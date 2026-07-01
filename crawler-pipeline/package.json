@@ -1,0 +1,25 @@
+{
+  "name": "crawler-pipeline",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "bootstrap": "tsx src/index.ts bootstrap",
+    "crawl": "tsx src/index.ts crawl"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.600.0",
+    "cloakbrowser": "file:../../socialpeta_downloader/third-party/CloakBrowser/js",
+    "impit": "^0.14.2",
+    "undici": "^6.20.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "playwright": "^1.61.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

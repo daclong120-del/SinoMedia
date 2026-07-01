@@ -1,0 +1,10 @@
+[Unit]
+Description=Renew Crawler Session Cookies
+After=network.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/crawler-pipeline
+ExecStart=/usr/bin/npm run bootstrap
+EnvironmentFile=/opt/crawler-pipeline/.env

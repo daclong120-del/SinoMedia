@@ -1,0 +1,16 @@
+[Unit]
+Description=Crawler Pipeline Worker (HTTP Crawl Service)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/crawler-pipeline
+ExecStart=/usr/bin/npm run crawl
+Restart=on-failure
+RestartSec=10
+MemoryMax=1500M
+EnvironmentFile=/opt/crawler-pipeline/.env
+
+[Install]
+WantedBy=multi-user.target
