@@ -1,0 +1,163 @@
+{
+  "$meta": {
+    "domain": "color",
+    "source": "src/app/globals.css, src/components/**",
+    "extractedFrom": "code",
+    "purpose": "Machine-readable design rules for AI-driven design generation"
+  },
+  "formatNote": "Canonical values are as-authored (oklch/rgb/hex). Do not convert when reproducing.",
+  "brand": {
+    "primary": {
+      "light": "rgb(0, 81, 195)",
+      "dark": "oklch(0.922 0 0)",
+      "usage": "Use for primary action buttons, text links, active navigation items, and focus outline rings."
+    },
+    "cloudflareOrange": {
+      "value": "rgb(246, 130, 31)",
+      "usage": "Use strictly for logos, branding accents, and promotional notices. Do not use for standard UI controls."
+    }
+  },
+  "semantic": {
+    "background": {
+      "light": "oklch(0.9875 0 0)",
+      "dark": "oklch(0.145 0 0)",
+      "usage": "Default application canvas background."
+    },
+    "foreground": {
+      "light": "rgb(49, 49, 49)",
+      "dark": "oklch(0.985 0 0)",
+      "usage": "Default text color for primary headings, body text, and input content."
+    },
+    "card": {
+      "light": "#ffffff",
+      "dark": "oklch(0.205 0 0)",
+      "usage": "Background color for surface containers (cards, dropdown lists, dialog overlays)."
+    },
+    "card-foreground": {
+      "light": "rgb(49, 49, 49)",
+      "dark": "oklch(0.985 0 0)",
+      "usage": "Text color within card containers."
+    },
+    "popover": {
+      "light": "#ffffff",
+      "dark": "oklch(0.205 0 0)",
+      "usage": "Background color for dropdown lists and tooltips."
+    },
+    "popover-foreground": {
+      "light": "rgb(49, 49, 49)",
+      "dark": "oklch(0.985 0 0)",
+      "usage": "Text color within popovers."
+    },
+    "secondary": {
+      "light": "oklch(0.97 0 0)",
+      "dark": "oklch(0.269 0 0)",
+      "usage": "Background color for secondary buttons, pills, and pill badges."
+    },
+    "secondary-foreground": {
+      "light": "rgb(49, 49, 49)",
+      "dark": "oklch(0.985 0 0)",
+      "usage": "Text color for secondary actions and items."
+    },
+    "muted": {
+      "light": "oklch(0.97 0 0)",
+      "dark": "oklch(0.269 0 0)",
+      "usage": "Background color for inactive controls, code blocks, or disabled buttons."
+    },
+    "muted-foreground": {
+      "light": "oklch(0.556 0 0)",
+      "dark": "oklch(0.708 0 0)",
+      "usage": "Text color for secondary headers, captions, metadata, input placeholders, and keyboard shortcut tips."
+    },
+    "accent": {
+      "light": "oklch(0.97 0 0)",
+      "dark": "oklch(0.269 0 0)",
+      "usage": "Background color for elements on hover (such as list items or ghost buttons)."
+    },
+    "accent-foreground": {
+      "light": "rgb(0, 81, 195)",
+      "dark": "oklch(0.985 0 0)",
+      "usage": "Text color for elements on hover (usually primary blue in light mode, foreground in dark)."
+    },
+    "destructive": {
+      "light": "oklch(0.577 0.245 27.325)",
+      "dark": "oklch(0.704 0.191 22.216)",
+      "usage": "Background or outline color for error panels, alerts, and destructive actions."
+    },
+    "border": {
+      "light": "oklch(0.145 0 0 / 0.1)",
+      "dark": "oklch(1 0 0 / 10%)",
+      "usage": "Color for hairline borders, card divides, and input outlines."
+    },
+    "input": {
+      "light": "oklch(0.145 0 0 / 0.1)",
+      "dark": "oklch(1 0 0 / 15%)",
+      "usage": "Color for form input borders."
+    },
+    "ring": {
+      "light": "rgb(0, 81, 195)",
+      "dark": "oklch(0.556 0 0)",
+      "usage": "Color of the outline ring on focus states."
+    }
+  },
+  "sidebar": {
+    "background": {
+      "light": "oklch(0.9875 0 0)",
+      "dark": "oklch(0.205 0 0)",
+      "usage": "Sidebar panel background."
+    },
+    "foreground": {
+      "light": "rgb(49, 49, 49)",
+      "dark": "oklch(0.985 0 0)",
+      "usage": "Sidebar link text color."
+    },
+    "primary": {
+      "light": "rgb(0, 81, 195)",
+      "dark": "oklch(0.488 0.243 264.376)",
+      "usage": "Sidebar primary indicator or icon accent."
+    },
+    "primary-foreground": {
+      "light": "#ffffff",
+      "dark": "oklch(0.985 0 0)",
+      "usage": "Sidebar selected item foreground."
+    },
+    "accent": {
+      "light": "oklch(0.97 0 0)",
+      "dark": "oklch(0.269 0 0)",
+      "usage": "Sidebar item hover background."
+    },
+    "accent-foreground": {
+      "light": "rgb(0, 81, 195)",
+      "dark": "oklch(0.985 0 0)",
+      "usage": "Sidebar item hover text."
+    },
+    "border": {
+      "light": "oklch(0.145 0 0 / 0.1)",
+      "dark": "oklch(1 0 0 / 10%)",
+      "usage": "Sidebar dividing borders."
+    }
+  },
+  "charts": [
+    "oklch(0.87 0 0)",
+    "oklch(0.556 0 0)",
+    "oklch(0.439 0 0)",
+    "oklch(0.371 0 0)",
+    "oklch(0.269 0 0)"
+  ],
+  "pairing": [
+    {
+      "surface": "bg-primary",
+      "foreground": "text-primary-foreground",
+      "rule": "Always pair primary background with primary-foreground to satisfy accessibility guidelines."
+    },
+    {
+      "surface": "bg-card",
+      "foreground": "text-foreground",
+      "rule": "Card containers must default to default foreground text."
+    },
+    {
+      "surface": "bg-secondary",
+      "foreground": "text-secondary-foreground",
+      "rule": "Secondary buttons or badges should pair secondary background with secondary-foreground."
+    }
+  ]
+}

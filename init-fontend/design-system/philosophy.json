@@ -1,0 +1,45 @@
+{
+  "$meta": {
+    "domain": "philosophy",
+    "source": "src/app/globals.css, src/components/**",
+    "extractedFrom": "code",
+    "purpose": "Machine-readable design rules for AI-driven design generation"
+  },
+  "personality": [
+    "utilitarian",
+    "trustworthy",
+    "dense-information",
+    "clean"
+  ],
+  "moodSummary": "Cloudflare Support Portal: A clean, neutral grey canvas with high information density. Brand identity is reinforced with a single, highly saturated brand blue for interactive commands, Cloudflare orange for logos/visual cues, and dark charcoal for text. Motion is used with restraint for delightful state transitions.",
+  "principles": [
+    {
+      "name": "High Information Density",
+      "rule": "Prioritize text-xs as the default typography size for labels, metadata, lists, and secondary buttons. Spacing uses snug paddings (p-3/p-4) and tight gaps (gap-1.5/gap-2) to display maximal content on screen without clutter.",
+      "confidence": "observed",
+      "evidence": "text-xs is used 254 times (the most frequent text size utility) and p-4/px-4 are the most frequent spacing values in the codebase."
+    },
+    {
+      "name": "Vivid Accent on Neutral Base",
+      "rule": "All primary actions, active navigation states, links, and input focus rings use the primary brand blue (rgb(0, 81, 195) in light / oklch(0.922 0 0) in dark). Backgrounds, borders, and text are kept in neutral greys to make the interactive accent stand out.",
+      "confidence": "observed",
+      "evidence": "--primary maps to bright blue, while backgrounds/borders are neutral grays. text-muted-foreground is used 292 times to tone down non-essential text."
+    },
+    {
+      "name": "Bipolar Dark/Light Parity",
+      "rule": "Every panel and component must support light and dark modes symmetrically. Avoid hardcoded light-only or dark-only color values, using semantic colors (bg-card, border-border, text-foreground) mapped through CSS custom properties.",
+      "confidence": "observed",
+      "evidence": "globals.css maps root and .dark properties comprehensively for all colors including cards, inputs, borders, and sidebar states."
+    }
+  ],
+  "doList": [
+    "Lead layout hierarchy through font weights (bold, semibold) and spacing, not font sizes.",
+    "Pair semantic surface tokens with their respective foreground tokens (e.g. bg-primary with text-primary-foreground).",
+    "Use font-mono for code strings, resource IDs, dates, and keyboard shortcut indicators."
+  ],
+  "dontList": [
+    "Don't introduce additional bright accent colors; restrict accent colors to primary blue and Cloudflare orange.",
+    "Don't use font sizes larger than text-sm for general body paragraphs or form labels.",
+    "Don't apply heavy shadow offsets; keep cards sitting flat or using shadow-sm."
+  ]
+}

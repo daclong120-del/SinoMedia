@@ -1,0 +1,81 @@
+{
+  "$meta": {
+    "domain": "typography",
+    "source": "src/app/globals.css, src/app/layout.tsx, src/components/**",
+    "extractedFrom": "code",
+    "purpose": "Machine-readable design rules for AI-driven design generation"
+  },
+  "fontFamilies": {
+    "sans": {
+      "stack": "\"Inter Variable\", \"Inter\", ui-sans-serif, system-ui, sans-serif",
+      "role": "Primary typeface. Used for all general UI elements, navigation, buttons, titles, and card contents."
+    },
+    "mono": {
+      "stack": "\"Geist Mono\", \"Geist Mono Fallback\", ui-monospace, monospace",
+      "role": "Monospace typeface. Used for code strings, terminal snippets, API resource IDs, times/dates, and keyboard shortcut indicators (e.g. Ctrl K)."
+    },
+    "heading": {
+      "stack": "var(--font-sans)",
+      "role": "Heading typeface. Inherits from font-sans; relies on weight variation instead of custom typography."
+    }
+  },
+  "typeScale": [
+    {
+      "step": "text-[10px]",
+      "equivalentSize": "10px",
+      "lineHeight": "normal",
+      "defaultWeight": "font-bold",
+      "textTransform": "uppercase",
+      "usage": "Category headers in sidebar (e.g., 'OBSERVE', 'BUILD'), Switch Account dropdown label, small metadata labels."
+    },
+    {
+      "step": "text-xs",
+      "equivalentSize": "12px",
+      "lineHeight": "1.25rem",
+      "defaultWeight": "font-normal",
+      "usage": "Default size for dashboard content. Card descriptions, metadata strings, search bar input placeholders, subtext/captions."
+    },
+    {
+      "step": "text-sm",
+      "equivalentSize": "14px",
+      "lineHeight": "1.25rem",
+      "defaultWeight": "font-medium",
+      "usage": "Main navigation links in sidebar, primary headers, button texts, standard table content, search input values."
+    },
+    {
+      "step": "text-base",
+      "equivalentSize": "16px",
+      "lineHeight": "1.5rem",
+      "defaultWeight": "font-normal",
+      "usage": "Standard article body reading copy (rarely used in dense dashboards)."
+    },
+    {
+      "step": "text-lg",
+      "equivalentSize": "18px",
+      "lineHeight": "1.75rem",
+      "defaultWeight": "font-semibold",
+      "usage": "Section headers inside drawers and settings blocks."
+    },
+    {
+      "step": "text-xl",
+      "equivalentSize": "20px",
+      "lineHeight": "1.75rem",
+      "defaultWeight": "font-bold",
+      "usage": "Main card titles (e.g. 'See what's new', topic grids)."
+    },
+    {
+      "step": "text-2xl",
+      "equivalentSize": "24px",
+      "lineHeight": "2rem",
+      "defaultWeight": "font-extrabold",
+      "usage": "Page headers, main welcome headers (e.g. 'Welcome to Cloudflare Support')."
+    }
+  ],
+  "weightGuidelines": {
+    "font-normal": "Use for primary description blocks, paragraph texts, and secondary fields.",
+    "font-medium": "Use for standard interactive states, form inputs, and button components.",
+    "font-semibold": "Use for sub-module headers, table headers, and navigation list items.",
+    "font-bold": "Use for primary cards titles and capitalized category titles.",
+    "font-extrabold": "Use for top-level headers to establish strong layout hierarchy."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "$meta": {
+    "domain": "radius-elevation",
+    "source": "src/app/globals.css, src/components/**",
+    "extractedFrom": "code",
+    "purpose": "Machine-readable design rules for AI-driven design generation"
+  },
+  "radius": {
+    "baseValue": "0.625rem",
+    "scale": {
+      "sm": { "value": "calc(var(--radius) * 0.6)", "equivalent": "6px", "usage": "Mini-badge containers, nested small UI primitives." },
+      "md": { "value": "calc(var(--radius) * 0.8)", "equivalent": "8px", "usage": "Medium-sized buttons, checkbox inputs, dropdown options." },
+      "lg": { "value": "var(--radius)", "equivalent": "10px", "usage": "Standard UI components, input fields, popover select items." },
+      "xl": { "value": "calc(var(--radius) * 1.4)", "equivalent": "14px", "usage": "Standard cards, navigation blocks, primary topic cards." },
+      "2xl": { "value": "calc(var(--radius) * 1.8)", "equivalent": "18px", "usage": "Double-radius container layouts." },
+      "3xl": { "value": "calc(var(--radius) * 2.2)", "equivalent": "22px", "usage": "Large popup panels, modal outlines." },
+      "4xl": { "value": "calc(var(--radius) * 2.6)", "equivalent": "26px", "usage": "Marketing page frames." }
+    },
+    "rules": [
+      {
+        "component": "Button",
+        "radius": "rounded-lg",
+        "note": "Standard button uses rounded-lg for clean density. Small/xs buttons may use rounded-md or customized calculations."
+      },
+      {
+        "component": "Card",
+        "radius": "rounded-xl",
+        "note": "All content cards use rounded-xl to soften the layout grid."
+      },
+      {
+        "component": "Avatar / Toggle",
+        "radius": "rounded-full",
+        "note": "User avatars, status pills, and toggle handles are completely circular."
+      }
+    ]
+  },
+  "elevation": {
+    "shadows": {
+      "shadow-sm": {
+        "strength": "very-subtle",
+        "usage": "Applied to all normal dashboard cards and static panel boxes to provide a modern floating look on light mode background."
+      },
+      "shadow-lg": {
+        "strength": "medium",
+        "usage": "Applied to dropdown select list menus and popovers."
+      },
+      "shadow-2xl": {
+        "strength": "strong",
+        "usage": "Applied to the slide-over AI Drawer or floating dialogs to distinguish overlay depth."
+      }
+    },
+    "rules": [
+      {
+        "name": "Flat cards in dark mode",
+        "rule": "Avoid using shadow-sm in dark mode; instead, cards should sit flat with an explicit border (border-border/10%) to define contrast."
+      }
+    ]
+  }
+}

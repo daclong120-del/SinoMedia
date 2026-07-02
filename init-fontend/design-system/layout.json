@@ -1,0 +1,41 @@
+{
+  "$meta": {
+    "domain": "layout",
+    "source": "src/app/layout.tsx, src/components/Sidebar.tsx, src/components/Header.tsx",
+    "extractedFrom": "code",
+    "purpose": "Machine-readable design rules for AI-driven design generation"
+  },
+  "breakpoints": {
+    "sm": { "value": "640px", "usage": "Mobile portrait adjustments." },
+    "md": { "value": "768px", "usage": "Tablet layouts; switches topic lists and support grid from 1 column to 2 columns." },
+    "lg": { "value": "1024px", "usage": "Desktop layouts; toggles the sidebar visibility from a slide-out drawer on mobile/tablet to a fixed left-side sidebar panel." }
+  },
+  "dimensions": {
+    "headerHeight": { "class": "h-14", "value": "56px" },
+    "sidebarWidthExpanded": { "class": "w-60", "value": "240px" },
+    "sidebarWidthCollapsed": { "class": "w-[60px]", "value": "60px" },
+    "maxAppWidth": { "class": "max-w-[1400px]", "value": "1400px" }
+  },
+  "layering": {
+    "sidebar": "z-30",
+    "header": "z-20",
+    "dropdownOverlays": "z-50",
+    "drawerOverlays": "z-50"
+  },
+  "structure": {
+    "appShell": "Desktop: Left-side fixed/sticky sidebar (width w-60/w-[60px]) + main content panel on the right with a top sticky Header (h-14). Main panel body is scrollable. Mobile: Sticky top header with a hamburger toggle button; sidebar is hidden and slide-in as an overlay drawer.",
+    "grids": [
+      {
+        "name": "Support search portal topic grid",
+        "classes": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4",
+        "usage": "Use for primary dashboards card decks (e.g. topic cards, support links)."
+      }
+    ]
+  },
+  "responsiveRules": [
+    {
+      "name": "Sidebar visibility toggle",
+      "rule": "At screen widths < 1024px (below lg breakpoint), the left sidebar is completely hidden (hidden) and replaced by an hamburger toggle menu in the header. Above 1024px, the sidebar is permanently visible."
+    }
+  ]
+}
