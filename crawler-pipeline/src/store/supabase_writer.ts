@@ -1,5 +1,6 @@
 import { CONFIG } from "../config.js";
 import { ProxyAgent } from "undici";
+import { CrawledAuthorRow, CrawledPostRow, CrawledCommentRow } from "../model/storage.js";
 
 let dispatcher: ProxyAgent | undefined;
 if (CONFIG.proxy) {
@@ -52,13 +53,7 @@ async function supabaseRest(path: string, options: { method?: string; body?: any
 /**
  * # Thêm mới hoặc cập nhật thông tin tác giả và trả về UUID tương ứng
  */
-export async function upsertAuthor(author: {
-  platform: string;
-  platform_uid: string;
-  nickname?: string;
-  avatar_url?: string;
-  raw?: any;
-}): Promise<string> {
+export async function upsertAuthor(author: CrawledAuthorRow): Promise<string> {
   const result = await supabaseRest("crawled_authors", {
     method: "POST",
     params: { on_conflict: "platform,platform_uid" },
@@ -82,17 +77,7 @@ export async function upsertAuthor(author: {
 /**
  * # Thêm mới hoặc cập nhật thông tin bài đăng/video
  */
-export async function upsertPost(post: {
-  platform: string;
-  platform_id: string;
-  author_id?: string;
-  caption?: string;
-  media_urls?: string[];
-  cover_url?: string;
-  stats?: any;
-  raw?: any;
-  published_at?: string;
-}): Promise<void> {
+export async function upsertPost(post: CrawledPostRow): Promise<void> {
   await supabaseRest("crawled_posts", {
     method: "POST",
     params: { on_conflict: "platform,platform_id" },
@@ -108,5 +93,71 @@ export async function upsertPost(post: {
       crawled_at: new Date().toISOString(),
       published_at: post.published_at,
     },
+  });
+}
+
+/**
+ * # Thêm mới hoặc cập nhật danh sách bài đăng/video (Bulk-Upsert)
+ */
+export async function upsertPosts(posts: CrawledPostRow[]): Promise<void> {
+  if (posts.length === 0) {
+    return;
+  }
+  await supabaseRest("crawled_posts", {
+    method: "POST",
+    params: { on_conflict: "platform,platform_id" },
+    body: posts.map((post) => ({
+      platform: post.platform,
+      platform_id: post.platform_id,
+      author_id: post.author_id,
+      caption: post.caption,
+      media_urls: post.media_urls || [],
+      cover_url: post.cover_url,
+      stats: post.stats,
+      raw: post.raw,
+      crawled_at: new Date().toISOString(),
+      published_at: post.published_at,
+    })),
+  });
+}
+
+/**
+ * # Lấy id (UUID) của post từ bảng crawled_posts bằng platform và platform_id
+ */
+export async function getPostUuid(platform: string, platformId: string): Promise<string | undefined> {
+  const result = await supabaseRest("crawled_posts", {
+    params: {
+      platform: `eq.${platform}`,
+      platform_id: `eq.${platformId}`,
+      select: "id",
+    },
+  });
+  return result?.[0]?.id;
+}
+
+/**
+ * # Thêm mới hoặc cập nhật danh sách bình luận cào được
+ */
+export async function upsertComments(comments: CrawledCommentRow[]): Promise<void> {
+  if (comments.length === 0) {
+    return;
+  }
+  await supabaseRest("crawled_comments", {
+    method: "POST",
+    params: { on_conflict: "platform,platform_cid" },
+    body: comments.map((c) => ({
+      platform: c.platform,
+      platform_cid: c.platform_cid,
+      post_id: c.post_id,
+      platform_post_id: c.platform_post_id,
+      parent_cid: c.parent_cid,
+      author_uid: c.author_uid,
+      author_nickname: c.author_nickname,
+      content: c.content,
+      like_count: c.like_count || 0,
+      raw: c.raw,
+      published_at: c.published_at,
+      crawled_at: new Date().toISOString(),
+    })),
   });
 }

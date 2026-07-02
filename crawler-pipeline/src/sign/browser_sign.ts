@@ -21,22 +21,43 @@ export async function bootstrapSession(profileDir: string) {
   try {
     const page = browserContext.pages()[0] || (await browserContext.newPage());
 
-    await page.route("**/*", (route) => {
-      const type = route.request().resourceType();
-      if (["image", "media", "font", "stylesheet"].includes(type)) {
-        route.abort();
-      } else {
-        route.continue();
-      }
-    });
-
     console.log("Đang điều hướng tới Douyin...");
     await page.goto("https://www.douyin.com", {
       waitUntil: "domcontentloaded",
       timeout: 60000,
     });
-    console.log("Điều hướng thành công. Đang chờ 5 giây...");
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    console.log("Điều hướng thành công.");
+    console.log("VUI LÒNG QUÉT MÃ QR HOẶC ĐĂNG NHẬP TRÊN CỬA SỔ TRÌNH DUYỆT ĐANG HIỂN THỊ.");
+    console.log("Hệ thống sẽ tự động phát hiện đăng nhập thành công (chờ tối đa 120 giây)...");
+
+    let loggedIn = false;
+    for (let i = 0; i < 120; i++) {
+      const cookies = await browserContext.cookies();
+      const loginStatusCookie = cookies.find((c) => c.name === "LOGIN_STATUS");
+      
+      const hasUserLogin = await page.evaluate(() => {
+        try {
+          return localStorage.getItem("HasUserLogin") || localStorage.getItem("login_status");
+        } catch {
+          return null;
+        }
+      });
+
+      if ((loginStatusCookie && loginStatusCookie.value === "1") || hasUserLogin === "1") {
+        console.log("Đã phát hiện trạng thái đăng nhập thành công!");
+        loggedIn = true;
+        break;
+      }
+      
+      if (i % 10 === 0 && i > 0) {
+        console.log(`Đang chờ đăng nhập... (${120 - i} giây còn lại)`);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+
+    if (!loggedIn) {
+      console.log("Cảnh báo: Hết thời gian chờ đăng nhập hoặc người dùng chưa đăng nhập. Tiến hành lưu session hiện tại...");
+    }
 
     const cookies = await browserContext.cookies();
     console.log(`Tìm thấy ${cookies.length} cookies.`);

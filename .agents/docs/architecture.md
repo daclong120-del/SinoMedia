@@ -37,8 +37,6 @@ expo-supabase-ai-template/
 ├── assets/                    # Tài nguyên tĩnh của ứng dụng (logo, hình ảnh, splash screen)
 ├── context/                   # Quản lý trạng thái toàn cục của React
 │   └── SessionProvider.tsx    # Cung cấp phiên đăng nhập (session) cho toàn bộ app
-├── docs/                      # Tài liệu dự án
-│   └── architecture.md        # Tài liệu kiến trúc và thư mục này
 ├── lib/                       # Khởi tạo các thư viện dùng chung
 │   └── supabase.ts            # Khởi tạo Supabase Client (đã cấu hình bộ nhớ lưu trữ an toàn)
 ├── src/                       # Thư mục mã nguồn chính của ứng dụng Expo
@@ -49,24 +47,77 @@ expo-supabase-ai-template/
 │   │   ├── (tabs)/            # Nhóm màn hình chính sau khi đăng nhập
 │   │   │   ├── _layout.tsx    # Định dạng thanh Tab Bar phía dưới ứng dụng
 │   │   │   ├── index.tsx      # Tab Home: Bảng điều khiển (Dashboard)
-│   │   │   └── account.tsx    # Tab Account: Cập nhật thông tin tài khoản
+│   │   │   ├── feed.tsx       # Tab Feed: Danh sách video/bài đăng
+│   │   │   ├── account.tsx    # Tab Account: Cập nhật thông tin tài khoản
+│   │   │   └── openai.tsx     # Tab AI: Chat với AI
+│   │   ├── post/
+│   │   │   └── [id].tsx       # Màn hình chi tiết bài đăng
 │   │   ├── _layout.tsx        # File Layout gốc: Quản lý chuyển hướng Auth/Tabs
+│   │   ├── modal.tsx          # Modal toàn cục
 │   │   └── +not-found.tsx     # Màn hình hiển thị lỗi 404 (Không tìm thấy trang)
 │   ├── components/            # Các UI Component tái sử dụng (Button, Input, Card...)
+│   ├── hooks/                 # Custom React hooks
+│   │   ├── useAuth.ts         # Hook xác thực — trạng thái session + login/logout
+│   │   └── usePosts.ts        # Hook truy vấn posts — phân trang, lọc platform
+│   ├── services/              # Tầng giao tiếp dữ liệu (Supabase/R2 queries)
+│   │   ├── auth.service.ts    # Các thao tác Supabase Auth
+│   │   ├── post.service.ts    # CRUD posts/comments/authors
+│   │   └── media.service.ts   # Tương tác Cloudflare R2 (presigned URL)
+│   ├── types/                 # TypeScript type definitions cho app
+│   │   ├── post.ts            # Post, Comment, Author types
+│   │   ├── auth.ts            # User, Session types
+│   │   └── navigation.ts     # Route params types
 │   ├── constants/             # Chứa màu sắc, cấu hình font, kích thước chung của ứng dụng
 │   └── utils/                 # Các hàm tiện ích dùng chung (định dạng ngày tháng, tiền tệ...)
+│
+├── crawler-pipeline/          # 🕷️ Crawler Engine (chạy tách biệt trên VPS)
+│   └── src/
+│       ├── base/              # Abstract interfaces — hợp đồng chung cho mọi platform
+│       │   ├── base_crawler.ts    # ICrawler: start(), search(), launchBrowser()
+│       │   ├── base_client.ts     # IApiClient: request(), updateCookies()
+│       │   ├── base_store.ts      # IStore: storeContent(), storeComment(), storeCreator()
+│       │   └── base_login.ts      # ILogin: begin(), loginByQrcode(), loginByCookies()
+│       ├── config/            # Cấu hình phân tầng: base + override per platform
+│       │   ├── base.config.ts     # Config chung: headless, proxy, crawlType
+│       │   └── douyin.config.ts   # Config riêng Douyin: maxPage, sortType
+│       ├── constant/          # Enums và hằng số dùng chung
+│       │   └── index.ts           # PlatformType, CrawlType, SortType, MediaType
+│       ├── crawl/             # Logic cào dữ liệu theo platform
+│       │   ├── client.ts          # DouyinClient — HTTP via impit + CloakBrowser fallback
+│       │   └── douyin.ts          # DouyinCrawler — orchestrator: detail, creator, search
+│       ├── model/             # Type definitions cho dữ liệu cào
+│       │   ├── douyin.ts          # DouyinAweme, DouyinComment types
+│       │   └── storage.ts         # CrawledPostRow, R2/Supabase types
+│       ├── sign/              # Signature & session management
+│       │   ├── browser_sign.ts    # Bootstrap session qua CloakBrowser
+│       │   ├── js_sign.ts         # Sinh a_bogus bằng Node.js engine
+│       │   ├── session_store.ts   # Lưu/đọc session từ file
+│       │   └── douyin.js          # Script sinh chữ ký a_bogus
+│       ├── store/             # Tầng lưu trữ: Supabase DB + Cloudflare R2
+│       │   ├── supabase_writer.ts # Ghi dữ liệu vào Supabase DB
+│       │   └── r2_uploader.ts     # Upload media lên Cloudflare R2
+│       ├── proxy/             # Quản lý proxy pool
+│       │   ├── proxy_pool.ts      # Xoay vòng proxy, health check
+│       │   └── types.ts           # ProxyInfo, ProxyProvider types
+│       ├── utils/             # Tiện ích dùng chung cho crawler
+│       │   ├── browser.ts         # Browser context utilities
+│       │   ├── crawler.ts         # Retry, user-agent rotation, URL helpers
+│       │   └── time.ts            # Sleep, timestamp, duration format
+│       ├── index.ts           # Entry point + CLI command dispatcher
+│       └── config.ts          # Config loader (.env)
+│
 ├── supabase/                  # Cấu hình backend Supabase chạy local và cloud
 │   ├── migrations/            # Các tệp SQL cấu hình Database (Tables, RLS, Triggers)
 │   └── config.toml            # File cấu hình hoạt động của Supabase CLI local
-├── .env                       # File cấu hình biến môi trường của dự án Expo (không commit)
+├── .env                       # File cấu hình biến môi trường (không commit)
 ├── .env.example               # File cấu hình mẫu biến môi trường
-├── app.json                   # Cấu hình ứng dụng Expo (Tên app, logo, phiên bản, Expo Web...)
-├── babel.config.js            # Cấu hình biên dịch mã nguồn của Babel
-├── global.css                 # File định nghĩa CSS toàn cục (Tailwind/NativeWind)
-├── metro.config.js            # Cấu hình trình đóng gói mã nguồn (Bundler) của Metro
-├── package.json               # Khai báo thư viện phụ thuộc và câu lệnh chạy dự án (scripts)
-├── tailwind.config.js         # Cấu hình các lớp CSS của Tailwind
-└── tsconfig.json              # Cấu hình trình biên dịch TypeScript
+├── app.json                   # Cấu hình ứng dụng Expo (Tên app, logo, phiên bản)
+├── babel.config.js            # Cấu hình biên dịch Babel
+├── global.css                 # CSS toàn cục (Tailwind/NativeWind)
+├── metro.config.js            # Cấu hình bundler Metro
+├── package.json               # Thư viện phụ thuộc và scripts
+├── tailwind.config.js         # Cấu hình Tailwind
+└── tsconfig.json              # Cấu hình TypeScript
 ```
 
 ---

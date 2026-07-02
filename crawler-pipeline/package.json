@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "bootstrap": "tsx src/index.ts bootstrap",
-    "crawl": "tsx src/index.ts crawl"
+    "crawl": "tsx src/index.ts crawl",
+    "creator": "tsx src/index.ts creator",
+    "search": "tsx src/index.ts search",
+    "comments": "tsx src/index.ts comments"
   },
   "engines": {
     "node": ">=18"
