@@ -14,5 +14,4 @@ export type TabParamList = {
   index: undefined;
   feed: undefined;
   account: undefined;
-  openai: undefined;
 };

@@ -5,8 +5,10 @@
 
 import { CONFIG } from "./config.js";
 import { logger } from "./utils/index.js";
-import { crawlVideo, crawlCreator, crawlSearch, crawlComments, closeBrowser } from "./crawl/douyin/index.js";
+import { closeBrowser } from "./crawl/douyin/index.js";
 import { PlatformType } from "./constant/index.js";
+import { CrawlerTask } from "./model/index.js";
+import { CrawlerFactory } from "./crawl/crawler_factory.js";
 
 // Trạng thái task hiện tại để ghi log vào DB
 let currentTaskId: string | null = null;
@@ -93,7 +95,7 @@ logger.debug = (msg: string, tag?: string) => {
 /**
  * # Lấy 1 task đang pending từ database
  */
-async function fetchPendingTask(): Promise<any> {
+async function fetchPendingTask(): Promise<CrawlerTask | null> {
   try {
     const tasks = await supabaseRest("crawler_tasks", {
       method: "GET",
@@ -103,7 +105,7 @@ async function fetchPendingTask(): Promise<any> {
         limit: "1",
       },
     });
-    return tasks && tasks.length > 0 ? tasks[0] : null;
+    return tasks && tasks.length > 0 ? (tasks[0] as CrawlerTask) : null;
   } catch (err: any) {
     logger.error(`Lỗi khi lấy task từ Supabase: ${err.message}`, "Worker");
     return null;
@@ -132,31 +134,29 @@ async function updateTaskStatus(taskId: string, status: "running" | "completed" 
 /**
  * # Thực thi 1 task cụ thể dựa trên platform và command
  */
-async function executeTask(task: any): Promise<void> {
+async function executeTask(task: CrawlerTask): Promise<void> {
   const { id, platform, command, target, max_count } = task;
+  if (!id) return;
   currentTaskId = id;
-  
+
   logger.info(`Bắt đầu xử lý task ${id} - Platform: ${platform}, Command: ${command}, Target: ${target}`, "Worker");
   await updateTaskStatus(id, "running");
 
   try {
-    // Hiện tại chỉ hỗ trợ Douyin, các platform khác sẽ bổ sung tương ứng
-    if (platform !== PlatformType.DOUYIN) {
-      throw new Error(`Platform "${platform}" chưa được hỗ trợ trên worker này.`);
-    }
+    const crawler = CrawlerFactory.create(platform);
 
     switch (command) {
       case "crawl":
-        await crawlVideo(target);
+        await crawler.crawl(target);
         break;
       case "creator":
-        await crawlCreator(target);
+        await crawler.creator(target);
         break;
       case "search":
-        await crawlSearch(target, max_count || 20);
+        await crawler.search(target, max_count || 20);
         break;
       case "comments":
-        await crawlComments(target, { maxCount: max_count || 50, withReplies: false });
+        await crawler.comments(target, max_count || 50);
         break;
       default:
         throw new Error(`Lệnh "${command}" không được hỗ trợ.`);
@@ -169,7 +169,7 @@ async function executeTask(task: any): Promise<void> {
     await updateTaskStatus(id, "failed", err.message);
   } finally {
     currentTaskId = null;
-    await closeBrowser().catch(() => {});
+    await closeBrowser().catch(() => { });
   }
 }
 

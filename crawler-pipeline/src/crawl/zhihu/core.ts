@@ -1,19 +1,574 @@
 /**
- * # Crawler chính cho Zhihu (知乎)
+ * # Crawler chính cho Zhihu (知乎) — điều phối search, detail, creator, comments
  */
 
-import type { ICrawler } from "../../base/base_crawler.js";
+import { ZhihuClient, downloadMedia } from "./client.js";
+import { uploadMediaToR2, checkMediaExistsInR2 } from "../../store/r2_uploader.js";
+import { upsertAuthor, upsertPost, upsertPosts, getPostUuid, upsertComments } from "../../store/supabase_writer.js";
+import { CrawledPostRow } from "../../model/storage.js";
+import type { ICrawler, BrowserLaunchOptions } from "../../base/base_crawler.js";
+import type { BrowserContext } from "playwright-core";
+import { stripHtml } from "../../utils/crawler.js";
+
+const ANSWERS_INCLUDE = "data[*].is_normal,admin_closed_comment,reward_info,is_collapsed,annotation_action,annotation_detail,collapse_reason,collapsed_by,suggest_edit,comment_count,can_comment,content,editable_content,attachment,voteup_count,reshipment_settings,comment_permission,created_time,updated_time,review_info,excerpt,paid_info,reaction_instruction,is_labeled,label_info,relationship.is_authorized,voting,is_author,is_thanked,is_nothelp;data[*].vessay_info;data[*].author.badge[?(type=best_answerer)].topics;data[*].author.vip_info;data[*].question.has_publishing_draft,relationship";
+const ARTICLES_INCLUDE = "data[*].comment_count,suggest_edit,is_normal,thumbnail_extra_info,thumbnail,can_comment,comment_permission,admin_closed_comment,content,voteup_count,created,updated,upvoted_followees,voting,review_info,reaction_instruction,is_labeled,label_info;data[*].vessay_info;data[*].author.badge[?(type=best_answerer)].topics;data[*].author.vip_info;";
+const VIDEOS_INCLUDE = "similar_zvideo,creation_relationship,reaction_instruction";
+
+/**
+ * # Dừng luồng thực thi trong khoảng thời gian chỉ định
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+/**
+ * # Phân tích và trích xuất loại thực thể từ URL Zhihu
+ */
+export function parseZhihuUrl(url: string): { type: "answer" | "article" | "zvideo" | "people" | ""; id: string; questionId?: string } {
+  if (url.includes("/answer/")) {
+    const match = url.match(/\/question\/(\d+)\/answer\/(\d+)/);
+    if (match) {
+      return { type: "answer", id: match[2], questionId: match[1] };
+    }
+  } else if (url.includes("/p/")) {
+    const match = url.match(/\/p\/(\d+)/);
+    if (match) {
+      return { type: "article", id: match[1] };
+    }
+  } else if (url.includes("/zvideo/")) {
+    const match = url.match(/\/zvideo\/([a-zA-Z0-9_]+)/);
+    if (match) {
+      return { type: "zvideo", id: match[1] };
+    }
+  } else if (url.includes("/people/")) {
+    const match = url.match(/\/people\/([^/?#]+)/);
+    if (match) {
+      return { type: "people", id: match[1] };
+    }
+  }
+  return { type: "", id: "" };
+}
+
+/**
+ * # Ánh xạ dữ liệu bình luận gốc của Zhihu sang cấu trúc database
+ */
+function mapZhihuComment(c: any, platformPostId: string, postUuid?: string, parentCid?: string) {
+  let ipLocation = "";
+  const commentTags = c.comment_tag || [];
+  for (const tag of commentTags) {
+    if (tag.type === "ip_info") {
+      ipLocation = tag.text || "";
+      break;
+    }
+  }
+
+  const author = c.author || {};
+  const authorMember = author.member || author;
+
+  return {
+    platform: "zhihu",
+    platform_cid: String(c.id),
+    post_id: postUuid,
+    platform_post_id: platformPostId,
+    parent_cid: parentCid ? String(parentCid) : (c.reply_comment_id ? String(c.reply_comment_id) : undefined),
+    author_uid: String(authorMember.url_token || authorMember.id || ""),
+    author_nickname: authorMember.name || "",
+    content: stripHtml(c.content || ""),
+    like_count: c.like_count || 0,
+    raw: c,
+    published_at: c.created_time ? new Date(c.created_time * 1000).toISOString() : undefined,
+  };
+}
+
+/**
+ * # Cào chi tiết bài đăng/câu trả lời/zvideo của Zhihu từ trang HTML chi tiết
+ */
+export async function crawlDetail(
+  url: string,
+  options?: { authorUuid?: string; skipDbWrite?: boolean }
+): Promise<CrawledPostRow | null> {
+  const { type, id } = parseZhihuUrl(url);
+  if (!type || !id) {
+    throw new Error(`URL không hợp lệ: ${url}`);
+  }
+
+  const zhihuClient = new ZhihuClient();
+  const html = await zhihuClient.request("GET", url, { sign: false, headers: { "Accept": "text/html" } });
+
+  const match = html.match(/<script id="js-initialData"[^>]*>([\s\S]*?)<\/script>/);
+  if (!match) {
+    throw new Error(`Không tìm thấy js-initialData trong HTML trang chi tiết`);
+  }
+
+  const jsonData = JSON.parse(match[1]);
+  const entities = jsonData.initialState?.entities || {};
+  let contentObj: any = null;
+
+  if (type === "answer") {
+    contentObj = entities.answers?.[id];
+  } else if (type === "article") {
+    contentObj = entities.articles?.[id];
+  } else if (type === "zvideo") {
+    contentObj = entities.zvideos?.[id];
+  }
+
+  if (!contentObj) {
+    throw new Error(`Không tìm thấy thông tin thực thể ${type} với ID ${id} trong js-initialData`);
+  }
+
+  let author = contentObj.author || {};
+  if (typeof author === "string") {
+    author = entities.users?.[author] || {};
+  }
+  const authorMember = author.member || author;
+
+  const platformUid = String(authorMember.urlToken || authorMember.url_token || authorMember.id || "unknown");
+  const nickname = authorMember.name || "Người dùng Zhihu";
+
+  let avatarUrlR2 = "";
+  const avatarUrl = authorMember.avatarUrl || authorMember.avatar_url;
+  if (avatarUrl) {
+    try {
+      const exists = await checkMediaExistsInR2("zhihu", platformUid, "avatar.jpg");
+      if (exists) {
+        avatarUrlR2 = `zhihu/${platformUid}/avatar.jpg`;
+      } else {
+        const avatarBuf = await downloadMedia(avatarUrl);
+        avatarUrlR2 = await uploadMediaToR2("zhihu", platformUid, "avatar.jpg", avatarBuf, "image/jpeg");
+      }
+    } catch {}
+  }
+
+  let authorUuid = options?.authorUuid;
+  if (!authorUuid) {
+    authorUuid = await upsertAuthor({
+      platform: "zhihu",
+      platform_uid: platformUid,
+      nickname,
+      avatar_url: avatarUrlR2 || undefined,
+      gender: authorMember.gender === 1 ? "Male" : (authorMember.gender === 0 ? "Female" : "Unknown"),
+      description: authorMember.headline || authorMember.description || undefined,
+      raw: authorMember,
+    });
+  }
+
+  let coverUrlR2 = "";
+  const coverUrl = contentObj.thumbnail || contentObj.imageUrl || contentObj.image_url;
+  if (coverUrl) {
+    try {
+      const exists = await checkMediaExistsInR2("zhihu", id, "cover.jpg");
+      if (exists) {
+        coverUrlR2 = `zhihu/${id}/cover.jpg`;
+      } else {
+        const coverBuf = await downloadMedia(coverUrl);
+        coverUrlR2 = await uploadMediaToR2("zhihu", id, "cover.jpg", coverBuf, "image/jpeg");
+      }
+    } catch {}
+  }
+
+  const publishedAt = contentObj.createdTime || contentObj.created || Math.floor(Date.now() / 1000);
+  const caption = stripHtml(contentObj.content || contentObj.excerpt || contentObj.title || "");
+
+  const postData: CrawledPostRow = {
+    platform: "zhihu",
+    platform_id: id,
+    author_id: authorUuid,
+    caption,
+    media_urls: [],
+    cover_url: coverUrlR2 || undefined,
+    stats: {
+      digg_count: contentObj.voteupCount || contentObj.voteup_count || 0,
+      comment_count: contentObj.commentCount || contentObj.comment_count || 0,
+      share_count: contentObj.shareCount || 0,
+      play_count: contentObj.playCount || 0,
+    },
+    raw: contentObj,
+    published_at: new Date(publishedAt * 1000).toISOString(),
+  };
+
+  if (!options?.skipDbWrite) {
+    await upsertPost(postData);
+  }
+
+  return postData;
+}
+
+/**
+ * # Cào bình luận của bài đăng Zhihu và lưu vào database
+ */
+export async function crawlComments(
+  contentId: string,
+  contentType: string,
+  options: { maxCount?: number; withReplies?: boolean } = {}
+): Promise<void> {
+  const maxCount = options.maxCount ?? 50;
+  const withReplies = options.withReplies ?? false;
+
+  const postUuid = await getPostUuid("zhihu", contentId);
+  const zhihuClient = new ZhihuClient();
+
+  const collected: any[] = [];
+  let commentsHasMore = true;
+  let nextOffset = "";
+
+  while (commentsHasMore && collected.length < maxCount) {
+    const commentsRes = await zhihuClient.request(
+      "GET",
+      `/api/v4/comment_v5/${contentType}s/${contentId}/root_comment?limit=10&offset=${nextOffset}&order=score`
+    );
+
+    const paging = commentsRes.paging || {};
+    commentsHasMore = paging.is_end === false;
+
+    const nextUrl = paging.next || "";
+    if (nextUrl) {
+      try {
+        const parsedUrl = new URL(nextUrl);
+        nextOffset = parsedUrl.searchParams.get("offset") || "";
+      } catch {
+        nextOffset = "";
+      }
+    } else {
+      nextOffset = "";
+    }
+
+    const data = commentsRes.data || [];
+    if (data.length === 0) {
+      break;
+    }
+
+    const primaryComments = data.slice(0, maxCount - collected.length);
+    const mappedPrimary = primaryComments.map((c: any) => mapZhihuComment(c, contentId, postUuid));
+    await upsertComments(mappedPrimary);
+
+    for (const c of primaryComments) {
+      collected.push(c);
+    }
+
+    if (withReplies) {
+      for (const comment of primaryComments) {
+        const childCommentCount = comment.child_comment_count ?? 0;
+        if (childCommentCount > 0) {
+          const rootId = comment.id;
+          let subHasMore = true;
+          let subOffset = "";
+
+          while (subHasMore) {
+            const subRes = await zhihuClient.request(
+              "GET",
+              `/api/v4/comment_v5/comment/${rootId}/child_comment?limit=10&offset=${subOffset}&order=sort`
+            );
+
+            const subPaging = subRes.paging || {};
+            subHasMore = subPaging.is_end === false;
+
+            const subNextUrl = subPaging.next || "";
+            if (subNextUrl) {
+              try {
+                const parsedUrl = new URL(subNextUrl);
+                subOffset = parsedUrl.searchParams.get("offset") || "";
+              } catch {
+                subOffset = "";
+              }
+            } else {
+              subOffset = "";
+            }
+
+            const subReplies = subRes.data || [];
+            if (subReplies.length === 0) {
+              break;
+            }
+
+            const mappedSub = subReplies.map((sc: any) => mapZhihuComment(sc, contentId, postUuid, rootId));
+            await upsertComments(mappedSub);
+
+            await sleep(1000 + Math.random() * 1000);
+          }
+        }
+      }
+    }
+
+    await sleep(1000 + Math.random() * 1000);
+  }
+}
+
+/**
+ * # Cào thông tin creator và toàn bộ bài đăng của creator trên Zhihu
+ */
+export async function crawlCreator(urlOrToken: string): Promise<void> {
+  let urlToken = urlOrToken;
+  if (urlOrToken.includes("/people/")) {
+    const parsed = parseZhihuUrl(urlOrToken);
+    urlToken = parsed.id;
+  }
+
+  console.log(`Bắt đầu cào thông tin creator cho token: ${urlToken}`);
+  const zhihuClient = new ZhihuClient();
+  const profileUrl = `https://www.zhihu.com/people/${urlToken}`;
+  const html = await zhihuClient.request("GET", profileUrl, { sign: false, headers: { "Accept": "text/html" } });
+
+  const match = html.match(/<script id="js-initialData"[^>]*>([\s\S]*?)<\/script>/);
+  if (!match) {
+    throw new Error(`Không tìm thấy js-initialData trong HTML trang cá nhân`);
+  }
+
+  const jsonData = JSON.parse(match[1]);
+  const entities = jsonData.initialState?.entities || {};
+  const creatorInfo = entities.users?.[urlToken];
+  if (!creatorInfo) {
+    throw new Error(`Không tìm thấy thông tin creator ${urlToken} trong js-initialData`);
+  }
+
+  let avatarUrlR2 = "";
+  const avatarUrl = creatorInfo.avatarUrl || creatorInfo.avatar_url;
+  if (avatarUrl) {
+    try {
+      const exists = await checkMediaExistsInR2("zhihu", urlToken, "avatar.jpg");
+      if (exists) {
+        avatarUrlR2 = `zhihu/${urlToken}/avatar.jpg`;
+      } else {
+        const avatarBuf = await downloadMedia(avatarUrl);
+        avatarUrlR2 = await uploadMediaToR2("zhihu", urlToken, "avatar.jpg", avatarBuf, "image/jpeg");
+      }
+    } catch {}
+  }
+
+  const authorUuid = await upsertAuthor({
+    platform: "zhihu",
+    platform_uid: urlToken,
+    nickname: creatorInfo.name || "Người dùng Zhihu",
+    avatar_url: avatarUrlR2 || undefined,
+    gender: creatorInfo.gender === 1 ? "Male" : (creatorInfo.gender === 0 ? "Female" : "Unknown"),
+    description: creatorInfo.headline || creatorInfo.description || undefined,
+    follows_count: creatorInfo.followingCount || 0,
+    fans_count: creatorInfo.followerCount || 0,
+    interaction_count: creatorInfo.voteupCount || 0,
+    videos_count: creatorInfo.zvideoCount || 0,
+    ip_location: creatorInfo.ipInfo || undefined,
+    raw: creatorInfo,
+  });
+
+  const maxPosts = process.env.CREATOR_MAX_POSTS ? parseInt(process.env.CREATOR_MAX_POSTS, 10) : 20;
+  let crawlCount = 0;
+  
+  const sources = [
+    { type: "answer", endpoint: "answers", include: ANSWERS_INCLUDE },
+    { type: "article", endpoint: "articles", include: ARTICLES_INCLUDE },
+    { type: "zvideo", endpoint: "zvideos", include: VIDEOS_INCLUDE }
+  ];
+
+  const pagePosts: CrawledPostRow[] = [];
+
+  for (const source of sources) {
+    if (crawlCount >= maxPosts) {
+      break;
+    }
+
+    let offset = 0;
+    const limit = 20;
+    let sourceEnd = false;
+
+    console.log(`Bắt đầu cào danh mục ${source.type} của creator`);
+
+    while (crawlCount < maxPosts && !sourceEnd) {
+      const url = `/api/v4/members/${urlToken}/${source.endpoint}?include=${encodeURIComponent(source.include)}&offset=${offset}&limit=${limit}&order_by=created`;
+      const res = await zhihuClient.request("GET", url);
+      const data = res.data || [];
+      if (data.length === 0) {
+        break;
+      }
+      
+      const paging = res.paging || {};
+      sourceEnd = paging.is_end === true;
+
+      for (const item of data) {
+        if (crawlCount >= maxPosts) {
+          break;
+        }
+
+        console.log(`Đang xử lý mục thứ ${crawlCount + 1}: ${item.id}`);
+
+        try {
+          let detailUrl = "";
+          if (source.type === "answer") {
+            detailUrl = `https://www.zhihu.com/question/${item.question?.id}/answer/${item.id}`;
+          } else if (source.type === "article") {
+            detailUrl = `https://zhuanlan.zhihu.com/p/${item.id}`;
+          } else if (source.type === "zvideo") {
+            detailUrl = `https://www.zhihu.com/zvideo/${item.id}`;
+          }
+
+          if (detailUrl) {
+            const postRow = await crawlDetail(detailUrl, { authorUuid, skipDbWrite: true });
+            if (postRow) {
+              pagePosts.push(postRow);
+              crawlCount++;
+            }
+          }
+        } catch (err) {
+          console.log(`Lỗi xử lý creator item ${item.id}: ${(err as Error).message}`);
+        }
+
+        await sleep(1000 + Math.random() * 1000);
+      }
+
+      offset += limit;
+      await sleep(1000 + Math.random() * 1000);
+    }
+  }
+
+  if (pagePosts.length > 0) {
+    await upsertPosts(pagePosts);
+    for (const post of pagePosts) {
+      if (process.env.ENABLE_GET_COMMENTS === "true") {
+        try {
+          await crawlComments(post.platform_id, (post.raw as any)?.type || "answer", {
+            maxCount: process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES ? parseInt(process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES, 10) : 50,
+            withReplies: process.env.ENABLE_GET_SUB_COMMENTS === "true"
+          });
+        } catch (err) {
+          console.log(`Lỗi khi cào bình luận cho bài đăng ${post.platform_id}: ${(err as Error).message}`);
+        }
+      }
+    }
+  }
+
+  console.log(`Hoàn thành cào creator ${creatorInfo.name}. Tổng số bài đăng đã xử lý: ${crawlCount}`);
+}
+
+/**
+ * # Cào bài đăng Zhihu theo từ khóa tìm kiếm
+ */
+export async function crawlSearch(keyword: string, maxCount = 20): Promise<void> {
+  const limit = 20;
+  let collected = 0;
+  let page = 1;
+  const zhihuClient = new ZhihuClient();
+
+  console.log(`Bắt đầu cào tìm kiếm Zhihu với từ khóa: "${keyword}", giới hạn: ${maxCount}`);
+
+  while (collected < maxCount) {
+    const offset = (page - 1) * limit;
+    const url = `/api/v4/search_v3?gk_version=gz-gaokao&t=general&q=${encodeURIComponent(keyword)}&correction=1&offset=${offset}&limit=${limit}&filter_fields=&lc_idx=${offset}&show_all_topics=0&search_source=Filter&time_interval=all&sort=default&vertical=general`;
+    
+    const searchRes = await zhihuClient.request("GET", url);
+    const data = searchRes.data || [];
+    console.log(`Lấy được trang tìm kiếm thứ ${page} với ${data.length} phần tử.`);
+
+    if (data.length === 0) {
+      break;
+    }
+
+    const searchResults = data.filter((item: any) => item.type === "search_result" || item.type === "zvideo");
+    if (searchResults.length === 0) {
+      break;
+    }
+
+    const pagePosts: CrawledPostRow[] = [];
+    for (const item of searchResults) {
+      if (collected >= maxCount) {
+        break;
+      }
+
+      const obj = item.object;
+      if (!obj) {
+        continue;
+      }
+
+      console.log(`Đang xử lý bài đăng tìm kiếm thứ ${collected + 1}: ${obj.id} - ${obj.title || "Không tiêu đề"}`);
+
+      try {
+        let contentUrl = "";
+        if (obj.type === "answer") {
+          contentUrl = `https://www.zhihu.com/question/${obj.question?.id}/answer/${obj.id}`;
+        } else if (obj.type === "article") {
+          contentUrl = `https://zhuanlan.zhihu.com/p/${obj.id}`;
+        } else if (obj.type === "zvideo") {
+          contentUrl = `https://www.zhihu.com/zvideo/${obj.id}`;
+        }
+
+        if (contentUrl) {
+          const detail = await crawlDetail(contentUrl, { skipDbWrite: true });
+          if (detail) {
+            pagePosts.push(detail);
+            collected++;
+          }
+        }
+      } catch (err) {
+        console.log(`Lỗi khi xử lý bài đăng tìm kiếm ${obj.id}: ${(err as Error).message}`);
+      }
+
+      await sleep(1000 + Math.random() * 1000);
+    }
+
+    if (pagePosts.length > 0) {
+      await upsertPosts(pagePosts);
+      for (const post of pagePosts) {
+        if (process.env.ENABLE_GET_COMMENTS === "true") {
+          try {
+            await crawlComments(post.platform_id, (post.raw as any)?.type || "answer", {
+              maxCount: process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES ? parseInt(process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES, 10) : 50,
+              withReplies: process.env.ENABLE_GET_SUB_COMMENTS === "true"
+            });
+          } catch (err) {
+            console.log(`Lỗi khi cào bình luận cho bài đăng ${post.platform_id}: ${(err as Error).message}`);
+          }
+        }
+      }
+    }
+
+    page++;
+    await sleep(1000 + Math.random() * 1000);
+  }
+}
 
 export class ZhihuCrawler implements ICrawler {
-  async start(): Promise<void> {
-    throw new Error("Chưa triển khai: ZhihuCrawler.start");
+  /**
+   * # Thực hiện cào chi tiết bài đăng Zhihu
+   */
+  async crawl(target: string): Promise<void> {
+    const post = await crawlDetail(target);
+    if (post && process.env.ENABLE_GET_COMMENTS === "true") {
+      try {
+        await crawlComments(post.platform_id, (post.raw as any)?.type || "answer", {
+          maxCount: process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES ? parseInt(process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES, 10) : 50,
+          withReplies: process.env.ENABLE_GET_SUB_COMMENTS === "true"
+        });
+      } catch (err) {
+        console.log(`Lỗi khi cào bình luận cho bài đăng ${post.platform_id}: ${(err as Error).message}`);
+      }
+    }
   }
 
-  async search(_keyword: string, _maxCount?: number): Promise<void> {
-    throw new Error("Chưa triển khai: ZhihuCrawler.search");
+  /**
+   * # Thực hiện cào profile creator và bài đăng của họ trên Zhihu
+   */
+  async creator(target: string): Promise<void> {
+    await crawlCreator(target);
   }
 
-  async launchBrowser(): Promise<any> {
-    throw new Error("Chưa triển khai: ZhihuCrawler.launchBrowser");
+  /**
+   * # Tìm kiếm bài đăng Zhihu theo từ khóa
+   */
+  async search(keyword: string, maxCount?: number): Promise<void> {
+    await crawlSearch(keyword, maxCount);
+  }
+
+  /**
+   * # Cào bình luận của bài đăng Zhihu
+   */
+  async comments(target: string, maxCount?: number): Promise<void> {
+    const { type, id } = parseZhihuUrl(target);
+    if (!type || !id) {
+      throw new Error(`URL không hợp lệ: ${target}`);
+    }
+    await crawlComments(id, type, { maxCount, withReplies: process.env.ENABLE_GET_SUB_COMMENTS === "true" });
+  }
+
+  /**
+   * # Khởi tạo browser context cho Zhihu
+   */
+  async launchBrowser(options?: BrowserLaunchOptions): Promise<BrowserContext> {
+    throw new Error("Không dùng: launchBrowser trực tiếp trên ZhihuCrawler");
   }
 }

@@ -8,7 +8,8 @@
     "crawl": "tsx src/index.ts crawl",
     "creator": "tsx src/index.ts creator",
     "search": "tsx src/index.ts search",
-    "comments": "tsx src/index.ts comments"
+    "comments": "tsx src/index.ts comments",
+    "add-account": "tsx src/index.ts add-account"
   },
   "engines": {
     "node": ">=18"

@@ -1,6 +1,6 @@
-# 🚀 Expo + Supabase + OpenAI Template
+# 🚀 Expo + Supabase Template
 
-A modern, production-ready React Native template built with Expo Router, Supabase authentication, and OpenAI integration. Features a professional UI built with NativeWind and comprehensive user management.
+A modern, production-ready React Native template built with Expo Router and Supabase authentication. Features a professional UI built with NativeWind and comprehensive user management.
 
 ## ✨ Features
 
@@ -11,11 +11,7 @@ A modern, production-ready React Native template built with Expo Router, Supabas
 - User profile management with database persistence
 - Row Level Security (RLS) for secure data access
 
-### 🤖 **AI Integration**
 
-- OpenAI GPT-3.5-turbo integration via Supabase Edge Functions
-- Professional AI assistant interface
-- Secure API key management through environment variables
 
 ### 🎨 **Modern UI/UX**
 
@@ -42,7 +38,7 @@ src/
 │   │   └── index.tsx      # Sign in/Sign up
 │   ├── (tabs)/            # Main app tabs
 │   │   ├── index.tsx      # Home screen
-│   │   ├── openai.tsx     # AI assistant
+
 │   │   └── account.tsx    # User profile
 │   ├── _layout.tsx        # Root layout with auth protection
 │   ├── modal.tsx          # Modal demo
@@ -52,7 +48,6 @@ src/
 └── utils/                 # Utility functions
 
 supabase/
-├── functions/openai/      # Edge Function for OpenAI integration
 ├── migrations/            # Database schema migrations
 ├── config.toml           # Supabase configuration
 ├── .env.local            # Local environment variables (not committed)
@@ -72,7 +67,7 @@ supabase/
 | **Styling**   | NativeWind v4 (Tailwind CSS)           |
 | **Backend**   | Supabase (Auth + Database + Functions) |
 | **Database**  | PostgreSQL with Row Level Security     |
-| **AI**        | OpenAI GPT-3.5-turbo                   |
+
 | **Language**  | TypeScript                             |
 | **State**     | React Context + Hooks                  |
 
@@ -83,7 +78,7 @@ supabase/
 - Node.js 18+
 - Expo CLI: `npm install -g @expo/cli`
 - Supabase CLI: [Installation Guide](https://supabase.com/docs/guides/cli/getting-started)
-- OpenAI API Key: [Get one here](https://platform.openai.com/api-keys)
+
 
 ### 1. Clone and Install
 
@@ -114,19 +109,15 @@ cp .env.example .env
 cp supabase/.env.local.example supabase/.env.local
 ```
 
-Add your OpenAI API key to `supabase/.env.local`:
 
-```bash
-OPENAI_API_KEY=sk-your-actual-openai-api-key-here
-```
 
 The `.env` file will be automatically populated with local Supabase URLs when you run `supabase start`.
 
 ### 4. Start Edge Functions
 
 ```bash
-# Start the OpenAI Edge Function
-supabase functions serve openai --env-file supabase/.env.local
+# Start Edge Functions
+supabase functions serve --env-file supabase/.env.local
 ```
 
 ### 5. Run the App
@@ -161,8 +152,7 @@ This project uses environment files to manage configuration:
 cp .env.example .env
 cp supabase/.env.local.example supabase/.env.local
 
-# Edit supabase/.env.local and add your OpenAI API key
-OPENAI_API_KEY=sk-your-actual-openai-api-key-here
+
 ```
 
 ### Local Supabase URLs
@@ -172,7 +162,7 @@ After running `supabase start`, you'll have:
 - **API URL**: `http://127.0.0.1:54321`
 - **Database**: `postgresql://postgres:postgres@127.0.0.1:54322/postgres`
 - **Studio**: `http://127.0.0.1:54323` (Database management UI)
-- **Edge Functions**: `http://127.0.0.1:54321/functions/v1/openai`
+- **Edge Functions**: `http://127.0.0.1:54321/functions/v1/<function_name>`
 
 ### Database Management
 
@@ -193,10 +183,10 @@ open http://127.0.0.1:54323
 ### Testing Edge Functions
 
 ```bash
-# Test the OpenAI function
-curl -X POST http://127.0.0.1:54321/functions/v1/openai \
+# Test a function
+curl -X POST http://127.0.0.1:54321/functions/v1/<function_name> \
   -H "Content-Type: application/json" \
-  -d '{"message": "Hello, AI!"}'
+  -d '{"name": "World"}'
 ```
 
 ## 📱 App Features
@@ -208,12 +198,7 @@ curl -X POST http://127.0.0.1:54321/functions/v1/openai \
 - Feature overview and checklist
 - Professional card-based layout
 
-### 🤖 **AI Assistant**
 
-- Chat interface with OpenAI GPT-3.5-turbo
-- Professional messaging UI
-- Loading states and error handling
-- Copy suggestions and examples
 
 ### 👤 **Account Management**
 
@@ -235,8 +220,7 @@ curl -X POST http://127.0.0.1:54321/functions/v1/openai \
 
 1. Create a new Supabase project at [supabase.com](https://supabase.com)
 2. Push your schema: `supabase db push`
-3. Deploy Edge Functions: `supabase functions deploy openai`
-4. Set production secrets: `supabase secrets set OPENAI_API_KEY=your-key`
+3. Deploy Edge Functions: `supabase functions deploy <function_name>`
 
 ### Expo App Deployment
 
@@ -271,10 +255,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Built with [Expo](https://expo.dev/)
 - Powered by [Supabase](https://supabase.com/)
-- AI by [OpenAI](https://openai.com/)
+
 - Styled with [NativeWind](https://www.nativewind.dev/)
 
 ---
 
 **Ready to build something amazing?** 🚀
-This template gives you everything you need for a modern, scalable mobile app with authentication, database, and AI features!
+This template gives you everything you need for a modern, scalable mobile app with authentication and database features!

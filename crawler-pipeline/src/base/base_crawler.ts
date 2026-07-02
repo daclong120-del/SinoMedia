@@ -5,8 +5,29 @@ import type { BrowserContext } from "playwright-core";
  * Mỗi platform (Douyin, TikTok, XHS...) phải implement interface này
  */
 export interface ICrawler {
-  start(): Promise<void>;
+  /**
+   * # Cào chi tiết một video/bài đăng
+   */
+  crawl(target: string): Promise<void>;
+
+  /**
+   * # Cào thông tin người sáng tạo nội dung (creator) và danh sách bài đăng của họ
+   */
+  creator(target: string): Promise<void>;
+
+  /**
+   * # Tìm kiếm bài viết/video theo từ khóa
+   */
   search(keyword: string, maxCount?: number): Promise<void>;
+
+  /**
+   * # Cào danh sách bình luận của bài viết/video
+   */
+  comments(target: string, maxCount?: number): Promise<void>;
+
+  /**
+   * # Khởi tạo browser context cho platform tương ứng
+   */
   launchBrowser(options?: BrowserLaunchOptions): Promise<BrowserContext>;
 }
 
@@ -16,3 +37,4 @@ export interface BrowserLaunchOptions {
   userAgent?: string;
   profileDir?: string;
 }
+

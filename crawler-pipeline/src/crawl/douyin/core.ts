@@ -3,6 +3,8 @@ import { uploadMediaToR2, checkMediaExistsInR2 } from "../../store/r2_uploader.j
 import { upsertAuthor, upsertPost, upsertPosts, getPostUuid, upsertComments } from "../../store/supabase_writer.js";
 import { DouyinAweme } from "../../model/douyin.js";
 import { CrawledPostRow } from "../../model/storage.js";
+import type { ICrawler, BrowserLaunchOptions } from "../../base/base_crawler.js";
+import type { BrowserContext } from "playwright-core";
 
 /**
  * # Phân giải link ngắn v.douyin.com để lấy link đầy đủ chứa ID
@@ -510,4 +512,44 @@ function mapComment(c: any, awemeId: string, postUuid?: string, parentCid?: stri
     raw: c,
     published_at: c.create_time ? new Date(c.create_time * 1000).toISOString() : undefined,
   };
+}
+
+/**
+ * # Lớp Crawler dành riêng cho nền tảng Douyin triển khai giao diện ICrawler
+ */
+export class DouyinCrawler implements ICrawler {
+  /**
+   * # Thực hiện cào chi tiết video Douyin
+   */
+  async crawl(target: string): Promise<void> {
+    await crawlVideo(target);
+  }
+
+  /**
+   * # Thực hiện cào profile creator và video của họ trên Douyin
+   */
+  async creator(target: string): Promise<void> {
+    await crawlCreator(target);
+  }
+
+  /**
+   * # Tìm kiếm video Douyin theo từ khóa
+   */
+  async search(keyword: string, maxCount?: number): Promise<void> {
+    await crawlSearch(keyword, maxCount);
+  }
+
+  /**
+   * # Cào bình luận của video Douyin
+   */
+  async comments(target: string, maxCount?: number): Promise<void> {
+    await crawlComments(target, { maxCount, withReplies: false });
+  }
+
+  /**
+   * # Khởi chạy trình duyệt cho Douyin
+   */
+  async launchBrowser(options?: BrowserLaunchOptions): Promise<BrowserContext> {
+    throw new Error("Không dùng: launchBrowser trực tiếp trên DouyinCrawler");
+  }
 }

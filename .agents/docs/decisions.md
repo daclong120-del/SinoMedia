@@ -23,3 +23,18 @@
   - **Deduplication R2:** Viết hàm `checkMediaExistsInR2` sử dụng `HeadObjectCommand` check trước khi tải/upload.
   - **Validation:** Tự viết hàm kiểm tra kiểu runtime đơn giản để tránh việc cài thêm `zod` làm phình repo và rủi ro cài đặt.
 - **Chọn các phương án trên vì:** Giúp crawler hoạt động hiệu quả trên VPS 2GB, tối ưu Class A/B request của Cloudflare R2 và đảm bảo fail loud khi cấu hình API thay đổi mà không làm nặng thêm dependencies.
+
+## 2026-07-02 — Cơ chế Chống chặn Bilibili Crawler trên Windows [initiative: refactor-migrate-platforms]
+- **Bối cảnh:** Bilibili API trả về lỗi `-412: request was banned` khi chạy trên Windows do thiếu spoofing JA3 từ `impit`. Cần cơ chế chống chặn ổn định.
+- **Phương án đã cân nhắc:**
+  - **Phương án A:** Chỉ chạy trên Linux/Docker nơi hỗ trợ `impit` (Hạn chế dev local trên Windows).
+  - **Phương án B:** Chỉ sử dụng cookie thủ công (Cookie hết hạn nhanh, dễ bị gián đoạn).
+  - **Phương án C (Khuyến nghị):** Tích hợp `CloakBrowser` làm fallback client gửi request qua `page.evaluate` kèm đồng bộ cookie tự động, ưu tiên cấu hình `BILIBILI_COOKIE` từ env.
+- **Chọn Phương án C vì:** Giữ tính nhất quán kiến trúc với Zhihu crawler, bảo vệ phiên đăng nhập cố định trên CI/Production và tự động hóa phục hồi phiên đăng nhập khi phát triển cục bộ trên Windows.
+
+## 2026-07-02 — Gỡ bỏ hoàn toàn OpenAI [initiative: refactor-remove-openai]
+- **Bối cảnh:** Người dùng yêu cầu loại bỏ hoàn toàn tích hợp OpenAI khỏi dự án để làm sạch codebase.
+- **Phương án đã cân nhắc:**
+  - **Phương án A:** Chỉ gỡ bỏ màn hình trên client nhưng giữ lại backend Edge Functions.
+  - **Phương án B (Khuyến nghị):** Gỡ bỏ triệt để cả UI client, kiểu dữ liệu, các đường dẫn liên kết, cấu hình Supabase Edge Function, biến môi trường và tài liệu dự án liên quan đến OpenAI.
+- **Chọn Phương án B vì:** Đảm bảo codebase sạch sẽ nhất, không để lại code dư thừa hay các cấu hình không sử dụng gây nhầm lẫn khi phát triển tiếp.

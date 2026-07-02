@@ -40,15 +40,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabBarIcon name="rss" color={color} />,
         }}
       />
-      <Tabs.Screen
-        name="openai"
-        options={{
-          title: "OpenAI",
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="lightbulb-o" color={color} />
-          ),
-        }}
-      />
+
       <Tabs.Screen
         name="account"
         options={{

@@ -44,13 +44,6 @@ supabase db push
 
 - `20241011000001_initial_schema.sql` - Initial database setup with profiles table
 
-## 🔑 Environment Variables
-
-Local development uses `supabase/.env.local`:
-
-```bash
-OPENAI_API_KEY=your_openai_api_key_here
-```
 
 ## 🛠 Useful Commands
 

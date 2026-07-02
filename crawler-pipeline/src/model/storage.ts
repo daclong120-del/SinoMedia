@@ -38,3 +38,30 @@ export interface CrawledCommentRow {
   raw?: unknown;
   published_at?: string;
 }
+
+/**
+ * # Đại diện cho một task cào dữ liệu trong hàng đợi Supabase
+ */
+export interface CrawlerTask {
+  id?: string;
+  platform: string;
+  command: string;
+  target: string;
+  max_count?: number;
+  status: "pending" | "running" | "completed" | "failed";
+  error_message?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/**
+ * # Nhật ký hoạt động của task cào dữ liệu được stream lên DB
+ */
+export interface CrawlerLog {
+  id?: number;
+  task_id: string;
+  level: "info" | "warn" | "error" | "debug";
+  message: string;
+  created_at?: string;
+}
+

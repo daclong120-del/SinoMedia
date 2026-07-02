@@ -1,15 +1,56 @@
+/**
+ * # File entrypoint khởi chạy CLI và Queue Worker
+ */
+
 import { bootstrapSession } from "./sign/browser_sign.js";
 import { saveSession } from "./sign/session_store.js";
-import { crawlVideo, crawlCreator, crawlSearch, crawlComments, closeBrowser } from "./crawl/douyin/index.js";
+import { closeBrowser as closeDouyinBrowser } from "./crawl/douyin/index.js";
+import { closeBrowser as closeZhihuBrowser } from "./crawl/zhihu/index.js";
+import { closeBrowser as closeBilibiliBrowser } from "./crawl/bilibili/index.js";
 import { join } from "node:path";
-
+import { CrawlerFactory } from "./crawl/crawler_factory.js";
+import { PlatformType } from "./constant/index.js";
 
 /**
- * # Hàm khởi chạy chính phân tích các tham số dòng lệnh và chạy tác vụ tương ứng
+ * # Tự động nhận diện nền tảng từ URL hoặc chuỗi target
+ */
+function detectPlatform(target: string): PlatformType {
+  const lower = target.toLowerCase();
+  if (lower.includes("bilibili.com") || lower.includes("b23.tv") || target.startsWith("BV") || /^\d+$/.test(target)) {
+    return PlatformType.BILIBILI;
+  }
+  if (lower.includes("zhihu.com")) {
+    return PlatformType.ZHIHU;
+  }
+  if (lower.includes("weibo.com") || lower.includes("weibo.cn")) {
+    return PlatformType.WEIBO;
+  }
+  if (lower.includes("tieba.baidu.com")) {
+    return PlatformType.TIEBA;
+  }
+  if (lower.includes("kuaishou.com")) {
+    return PlatformType.KUAISHOU;
+  }
+  if (lower.includes("xiaohongshu.com") || lower.includes("xhslink.com")) {
+    return PlatformType.XHS;
+  }
+  return PlatformType.DOUYIN;
+}
+
+/**
+ * # Hàm chạy chính của ứng dụng
  */
 async function main() {
   try {
     const args = process.argv.slice(2);
+    let platformArg: string | null = null;
+    
+    const platformIndex = args.findIndex(arg => arg === "-p" || arg === "--platform");
+    if (platformIndex !== -1 && args[platformIndex + 1]) {
+      platformArg = args[platformIndex + 1];
+      args.splice(platformIndex, 2);
+    }
+
     const command = args[0];
 
     if (command === "bootstrap") {
@@ -26,16 +67,20 @@ async function main() {
         await startQueueWorker();
         return;
       }
-      await crawlVideo(urlOrId);
+      const platform = (platformArg as PlatformType) || detectPlatform(urlOrId);
+      const crawler = CrawlerFactory.create(platform);
+      await crawler.crawl(urlOrId);
       return;
     }
 
     if (command === "creator") {
       const urlOrSecUid = args[1];
       if (!urlOrSecUid) {
-        throw new Error("Vui lòng cung cấp URL kênh hoặc sec_user_id cần cào: npm run creator <url_or_sec_uid>");
+        throw new Error("Vui lòng cung cấp URL kênh hoặc UID cần cào: npm run creator <url_or_uid> [-p platform]");
       }
-      await crawlCreator(urlOrSecUid);
+      const platform = (platformArg as PlatformType) || detectPlatform(urlOrSecUid);
+      const crawler = CrawlerFactory.create(platform);
+      await crawler.creator(urlOrSecUid);
       return;
     }
 
@@ -43,26 +88,60 @@ async function main() {
       const keyword = args[1];
       const maxCount = args[2] ? parseInt(args[2], 10) : 20;
       if (!keyword) {
-        throw new Error("Vui lòng cung cấp từ khóa tìm kiếm: npm run search <keyword> [max_count]");
+        throw new Error("Vui lòng cung cấp từ khóa tìm kiếm: npm run search <keyword> [max_count] [-p platform]");
       }
-      await crawlSearch(keyword, maxCount);
+      const platform = (platformArg as PlatformType) || PlatformType.DOUYIN;
+      const crawler = CrawlerFactory.create(platform);
+      await crawler.search(keyword, maxCount);
       return;
     }
 
     if (command === "comments") {
-      const awemeId = args[1];
+      const targetId = args[1];
       const maxCount = args[2] ? parseInt(args[2], 10) : 50;
-      const withReplies = args[3] === "true" || args[3] === "1";
-      if (!awemeId) {
-        throw new Error("Vui lòng cung cấp aweme_id video: npm run comments <aweme_id> [max_count] [with_replies]");
+      if (!targetId) {
+        throw new Error("Vui lòng cung cấp ID bài viết/video: npm run comments <id> [max_count] [-p platform]");
       }
-      await crawlComments(awemeId, { maxCount, withReplies });
+      const platform = (platformArg as PlatformType) || detectPlatform(targetId);
+      const crawler = CrawlerFactory.create(platform);
+      await crawler.comments(targetId, maxCount);
       return;
     }
 
-    throw new Error("Lệnh không hợp lệ. Các lệnh hỗ trợ: bootstrap, crawl <url_or_id>, creator <url_or_sec_uid>, search <keyword> [max_count], comments <aweme_id> [max_count] [with_replies]");
+    if (command === "add-account") {
+      const platform = args[1];
+      const username = args[2];
+      const cookieOrFile = args[3];
+      if (!platform || !username || !cookieOrFile) {
+        throw new Error("Vui lòng cung cấp đầy đủ thông tin: npm run add-account <platform> <username> <cookie_or_json_file_path>");
+      }
+      let cookieData = cookieOrFile;
+      if (cookieOrFile.endsWith(".json")) {
+        const { readFileSync } = await import("node:fs");
+        const fileContent = readFileSync(cookieOrFile, "utf8");
+        try {
+          const parsed = JSON.parse(fileContent);
+          if (Array.isArray(parsed)) {
+            cookieData = parsed.map((c: any) => `${c.name}=${c.value}`).join("; ");
+          } else if (parsed.cookie) {
+            cookieData = parsed.cookie;
+          }
+        } catch {
+          cookieData = fileContent.trim();
+        }
+      }
+      const { addOrUpdateAccount } = await import("./store/index.js");
+      await addOrUpdateAccount(platform, username, cookieData);
+      return;
+    }
+
+    throw new Error("Lệnh không hợp lệ. Các lệnh hỗ trợ: bootstrap, crawl <url_or_id>, creator <url_or_uid>, search <keyword> [max_count], comments <id> [max_count], add-account <platform> <username> <cookie_or_json_file_path>");
   } finally {
-    await closeBrowser();
+    await Promise.all([
+      closeDouyinBrowser().catch(() => {}),
+      closeZhihuBrowser().catch(() => {}),
+      closeBilibiliBrowser().catch(() => {})
+    ]);
   }
 }
 

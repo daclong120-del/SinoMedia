@@ -1,7 +1,8 @@
-# 📍 STATE — expo-supabase-ai-template   (cập nhật: 2026-07-01)
+# 📍 STATE — expo-supabase-ai-template   (cập nhật: 2026-07-02)
 
 ## Đang active
-- Không có initiative nào đang hoạt động (Tất cả đã hoàn tất).
+- Initiative: `refactor-migrate-platforms` 🔄 (Đang thực hiện Phase 1 — Bilibili Crawler)
+- `refactor-remove-openai` ✅ — Đã loại bỏ hoàn toàn OpenAI khỏi Client, Backend, và Tài liệu.
 - `refactor-project-structure` ✅ — đã tạo bộ khung: `base/`, `config/`, `constant/`, `proxy/`, `utils/` (crawler) + `hooks/`, `services/`, `types/` (Expo app).
 
 ## ❓ Câu hỏi mở / chờ người dùng (Đã thống nhất giả định mặc định)

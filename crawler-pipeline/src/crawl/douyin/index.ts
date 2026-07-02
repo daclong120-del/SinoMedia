@@ -12,6 +12,7 @@ export {
   extractAwemeId,
   persistAweme,
   extractSecUserId,
+  DouyinCrawler,
 } from "./core.js";
 export {
   douyinRequest,

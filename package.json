@@ -1,7 +1,7 @@
 {
   "name": "expo-supabase-ai-template",
   "version": "1.0.0",
-  "description": "A modern React Native template with Expo Router, Supabase authentication, and OpenAI integration",
+  "description": "A modern React Native template with Expo Router and Supabase authentication",
   "author": "Your Name",
   "main": "expo-router/entry",
   "scripts": {

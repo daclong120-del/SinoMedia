@@ -59,25 +59,7 @@ export default function HomeScreen() {
         </Text>
 
         <View className="space-y-3">
-          {/* AI Assistant Card */}
-          <Link href="/(tabs)/openai" asChild>
-            <TouchableOpacity className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm active:bg-gray-50">
-              <View className="flex-row items-center">
-                <View className="bg-blue-100 rounded-full p-3 mr-4">
-                  <Text className="text-2xl">🤖</Text>
-                </View>
-                <View className="flex-1">
-                  <Text className="text-lg font-semibold text-gray-900 mb-1">
-                    AI Assistant
-                  </Text>
-                  <Text className="text-gray-600 text-sm">
-                    Ask questions, get help, and explore AI capabilities
-                  </Text>
-                </View>
-                <Text className="text-gray-400 text-xl">›</Text>
-              </View>
-            </TouchableOpacity>
-          </Link>
+
 
           {/* Account Settings Card */}
           <Link href="/(tabs)/account" asChild>
@@ -120,12 +102,7 @@ export default function HomeScreen() {
                   Secure authentication with Supabase
                 </Text>
               </View>
-              <View className="flex-row items-center">
-                <Text className="text-green-500 mr-3">✓</Text>
-                <Text className="text-gray-700 flex-1">
-                  AI assistant powered by OpenAI
-                </Text>
-              </View>
+
               <View className="flex-row items-center">
                 <Text className="text-green-500 mr-3">✓</Text>
                 <Text className="text-gray-700 flex-1">

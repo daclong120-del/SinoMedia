@@ -63,7 +63,7 @@ const customStorage = {
  * const { data, error } = await supabase.from('profiles').select('*');
  *
  * // Use for Edge Functions
- * const { data, error } = await supabase.functions.invoke('openai', { body: { message } });
+ * const { data, error } = await supabase.functions.invoke('hello', { body: { message } });
  */
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
