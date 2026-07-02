@@ -1,7 +1,35 @@
 import { CONFIG } from "../../config.js";
-import { loadSession } from "../../sign/session_store.js";
+import { loadSession, SessionData } from "../../sign/session_store.js";
 import { signDetail } from "../../sign/douyin_sign.js";
 import { ProxyAgent } from "undici";
+
+let tempSessionOverride: SessionData | null = null;
+
+/**
+ * # Đặt cấu hình phiên Douyin tạm thời từ database
+ */
+export function setDouyinSession(cookies: any[] | null, msToken: string = ""): void {
+  if (cookies === null) {
+    tempSessionOverride = null;
+  } else {
+    tempSessionOverride = {
+      cookies,
+      msToken,
+      updatedAt: new Date().toISOString(),
+    };
+  }
+}
+
+/**
+ * # Lấy thông tin phiên hoạt động hiệu dụng
+ */
+export async function getEffectiveSession(): Promise<SessionData | null> {
+  if (tempSessionOverride) {
+    return tempSessionOverride;
+  }
+  return loadSession();
+}
+
 
 export const DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 let activeUserAgent = DEFAULT_USER_AGENT;
@@ -105,7 +133,7 @@ async function getBrowserPage() {
   }
   browserContext = await launchPersistentContext(launchOptions);
   try {
-    const session = await loadSession();
+    const session = await getEffectiveSession();
     if (session && session.cookies) {
       const validCookies = session.cookies.filter((c: any) => c.name && c.name.trim() !== "");
       await browserContext.addCookies(validCookies);
@@ -184,7 +212,7 @@ export async function douyinRequest(
     body?: any;
   } = {}
 ): Promise<any> {
-  const session = await loadSession();
+  const session = await getEffectiveSession();
   if (!session) {
     throw new Error("Không tìm thấy session. Vui lòng chạy pipeline:session trước.");
   }
@@ -537,7 +565,7 @@ export async function douyinGet(
     }
   }
 
-  const session = await loadSession();
+  const session = await getEffectiveSession();
   if (!session) {
     throw new Error("Chưa có session, chạy bootstrap trước.");
   }
@@ -561,3 +589,21 @@ export async function douyinGet(
  */
 export const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 export const CRAWL_SLEEP_MS = 1500;
+
+/**
+ * # Kiểm tra xem phiên đăng nhập Douyin hiện tại còn hoạt động không
+ */
+export async function checkSessionAlive(): Promise<boolean> {
+  try {
+    const res = await douyinGet("/aweme/v1/web/user/profile/self/", {}, { sign: true });
+    if (res && res.user && res.user.nickname) {
+      console.log(`Kiểm tra phiên đăng nhập thành công cho: ${res.user.nickname}`);
+      return true;
+    }
+    return false;
+  } catch (err) {
+    console.error("Kiểm tra phiên thất bại:", (err as Error).message);
+    return false;
+  }
+}
+

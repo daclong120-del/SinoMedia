@@ -56,7 +56,7 @@ export async function checkoutAccount(platform: string): Promise<{ id: string; u
       params: {
         platform: `eq.${platform}`,
         status: "eq.active",
-        order: "last_used_at.nullsfirst.asc",
+        order: "last_used_at.asc.nullsfirst",
         limit: "1",
       },
     });

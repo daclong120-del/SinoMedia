@@ -1,10 +1,100 @@
-import { douyinGet, downloadMedia, sleep, CRAWL_SLEEP_MS } from "./client.js";
+import { douyinGet, downloadMedia, sleep, CRAWL_SLEEP_MS, setDouyinSession, checkSessionAlive } from "./client.js";
 import { uploadMediaToR2, checkMediaExistsInR2 } from "../../store/r2_uploader.js";
-import { upsertAuthor, upsertPost, upsertPosts, getPostUuid, upsertComments } from "../../store/supabase_writer.js";
+import { upsertAuthor, upsertPost, upsertPosts, getPostUuid, upsertComments, checkoutAccount, checkinAccount } from "../../store/index.js";
 import { DouyinAweme } from "../../model/douyin.js";
 import { CrawledPostRow } from "../../model/storage.js";
+import { CONFIG } from "../../config.js";
 import type { ICrawler, BrowserLaunchOptions } from "../../base/base_crawler.js";
 import type { BrowserContext } from "playwright-core";
+let currentAccountId: string | null = null;
+
+/**
+ * # Đảm bảo trạng thái đăng nhập Douyin hợp lệ trước khi cào
+ */
+async function ensureLogin(): Promise<void> {
+  let attempts = 0;
+  const maxAttempts = 5;
+  while (attempts < maxAttempts) {
+    const account = await checkoutAccount("douyin");
+    if (!account) {
+      break;
+    }
+    console.log(`Đang kiểm tra tài khoản từ pool: ${account.username} (ID: ${account.id})...`);
+    try {
+      const data = JSON.parse(account.cookie_data);
+      if (data && (data.cookies || data.msToken)) {
+        setDouyinSession(data.cookies || [], data.msToken || "");
+      } else if (Array.isArray(data)) {
+        setDouyinSession(data, "");
+      } else {
+        setDouyinSession([], "");
+      }
+    } catch (err) {
+      const cookies = account.cookie_data.split(";").map(part => {
+        const trimmed = part.trim();
+        const eqIdx = trimmed.indexOf("=");
+        if (eqIdx > 0) {
+          const name = trimmed.substring(0, eqIdx);
+          const value = trimmed.substring(eqIdx + 1);
+          return { name, value, domain: ".douyin.com", path: "/" };
+        }
+        return null;
+      }).filter(Boolean);
+      const msTokenCookie = cookies.find(c => c && c.name === "msToken");
+      const msToken = msTokenCookie ? msTokenCookie.value : "";
+      setDouyinSession(cookies, msToken);
+    }
+    const isActive = await checkSessionAlive();
+    if (isActive) {
+      console.log(`Tài khoản ${account.username} hoạt động tốt. Sẵn sàng cào.`);
+      currentAccountId = account.id;
+      return;
+    } else {
+      console.log(`Tài khoản ${account.username} không hoạt động hoặc bị chặn. Đang đánh dấu lỗi...`);
+      await checkinAccount(account.id, false);
+      currentAccountId = null;
+      attempts++;
+    }
+  }
+  console.log("Không có tài khoản hoạt động nào từ Pool DB. Đang thử bằng cookie cục bộ...");
+  setDouyinSession(null);
+  const localIsActive = await checkSessionAlive();
+  if (localIsActive) {
+    console.log("Cookie cục bộ hoạt động tốt.");
+    currentAccountId = null;
+    return;
+  }
+  console.log("Cookie cục bộ hết hạn hoặc chưa đăng nhập. Tiến hành khởi chạy trình duyệt để đăng nhập...");
+  const { closeBrowser } = await import("./client.js");
+  const { DouyinLogin } = await import("./login.js");
+  try {
+    const { launchPersistentContext } = await import("cloakbrowser");
+    const { join } = await import("node:path");
+    const profileDir = join(process.cwd(), "output", "profiles", "douyin");
+    const context = (await launchPersistentContext({
+      userDataDir: profileDir,
+      headless: CONFIG.headless,
+      geoip: true,
+      humanize: true,
+    })) as any;
+    const login = new DouyinLogin({
+      browserContext: context,
+      cookieStr: process.env.DOUYIN_COOKIE,
+    });
+    const result = await login.begin(context);
+    if (!result.success) {
+      console.log(`Đăng nhập không thành công: ${result.errorMessage}. Chuyển sang chế độ ẩn danh (Guest)...`);
+    } else {
+      const { saveSession } = await import("../../sign/session_store.js");
+      await saveSession({ cookies: result.cookies, msToken: result.msToken || "" });
+      console.log("Đăng nhập thành công. Đã cập nhật và lưu cookie mới.");
+    }
+  } catch (err) {
+    console.log(`Không thể hoàn thành đăng nhập: ${(err as Error).message}. Tiếp tục bằng chế độ ẩn danh (Guest)...`);
+  } finally {
+    await closeBrowser();
+  }
+}
 
 /**
  * # Phân giải link ngắn v.douyin.com để lấy link đầy đủ chứa ID
@@ -522,28 +612,72 @@ export class DouyinCrawler implements ICrawler {
    * # Thực hiện cào chi tiết video Douyin
    */
   async crawl(target: string): Promise<void> {
-    await crawlVideo(target);
+    try {
+      await ensureLogin();
+      await crawlVideo(target);
+      if (currentAccountId) {
+        await checkinAccount(currentAccountId, true);
+      }
+    } catch (err) {
+      if (currentAccountId) {
+        await checkinAccount(currentAccountId, false);
+      }
+      throw err;
+    }
   }
 
   /**
    * # Thực hiện cào profile creator và video của họ trên Douyin
    */
   async creator(target: string): Promise<void> {
-    await crawlCreator(target);
+    try {
+      await ensureLogin();
+      await crawlCreator(target);
+      if (currentAccountId) {
+        await checkinAccount(currentAccountId, true);
+      }
+    } catch (err) {
+      if (currentAccountId) {
+        await checkinAccount(currentAccountId, false);
+      }
+      throw err;
+    }
   }
 
   /**
    * # Tìm kiếm video Douyin theo từ khóa
    */
   async search(keyword: string, maxCount?: number): Promise<void> {
-    await crawlSearch(keyword, maxCount);
+    try {
+      await ensureLogin();
+      await crawlSearch(keyword, maxCount);
+      if (currentAccountId) {
+        await checkinAccount(currentAccountId, true);
+      }
+    } catch (err) {
+      if (currentAccountId) {
+        await checkinAccount(currentAccountId, false);
+      }
+      throw err;
+    }
   }
 
   /**
    * # Cào bình luận của video Douyin
    */
   async comments(target: string, maxCount?: number): Promise<void> {
-    await crawlComments(target, { maxCount, withReplies: false });
+    try {
+      await ensureLogin();
+      await crawlComments(target, { maxCount, withReplies: false });
+      if (currentAccountId) {
+        await checkinAccount(currentAccountId, true);
+      }
+    } catch (err) {
+      if (currentAccountId) {
+        await checkinAccount(currentAccountId, false);
+      }
+      throw err;
+    }
   }
 
   /**
