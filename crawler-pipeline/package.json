@@ -17,6 +17,8 @@
     "@aws-sdk/client-s3": "^3.600.0",
     "cloakbrowser": "file:../../socialpeta_downloader/third-party/CloakBrowser/js",
     "impit": "^0.14.2",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "undici": "^6.20.0"
   },
   "devDependencies": {

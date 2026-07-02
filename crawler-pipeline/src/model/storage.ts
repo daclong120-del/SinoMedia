@@ -3,6 +3,13 @@ export interface CrawledAuthorRow {
   platform_uid: string;
   nickname?: string;
   avatar_url?: string;
+  gender?: string;
+  description?: string;
+  follows_count?: number;
+  fans_count?: number;
+  interaction_count?: number;
+  videos_count?: number;
+  ip_location?: string;
   raw?: unknown;
 }
 

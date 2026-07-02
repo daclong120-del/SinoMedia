@@ -1,6 +1,6 @@
 import { CONFIG } from "../../config.js";
 import { loadSession } from "../../sign/session_store.js";
-import { signDetail } from "../../sign/js_sign.js";
+import { signDetail } from "../../sign/douyin_sign.js";
 import { ProxyAgent } from "undici";
 
 export const DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";

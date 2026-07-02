@@ -22,7 +22,9 @@ async function main() {
     if (command === "crawl") {
       const urlOrId = args[1];
       if (!urlOrId) {
-        throw new Error("Vui lòng cung cấp URL hoặc ID video cần cào: npm run crawl <url_or_id>");
+        const { startQueueWorker } = await import("./queue_worker.js");
+        await startQueueWorker();
+        return;
       }
       await crawlVideo(urlOrId);
       return;

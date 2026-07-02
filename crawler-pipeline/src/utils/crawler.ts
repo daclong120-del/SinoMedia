@@ -1,5 +1,5 @@
 /**
- * # Tiện ích dùng chung cho crawler — retry, user-agent, URL parsing
+ * # Tiện ích dùng chung cho crawler — retry, user-agent, URL parsing, cookies
  */
 
 /**
@@ -60,3 +60,72 @@ export function buildQueryString(params: Record<string, string>): string {
     .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
     .join("&");
 }
+
+/**
+ * # Chuyển cookie string "k1=v1; k2=v2" thành object { k1: "v1", k2: "v2" }
+ * Ánh xạ từ ChinaMediaCrawler tools/crawler_util.py convert_str_cookie_to_dict
+ */
+export function parseCookieString(cookieStr: string): Record<string, string> {
+  const result: Record<string, string> = {};
+  if (!cookieStr) return result;
+  for (const part of cookieStr.split(";")) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+    const eqIndex = trimmed.indexOf("=");
+    if (eqIndex === -1) continue;
+    const key = trimmed.slice(0, eqIndex).trim();
+    const value = trimmed.slice(eqIndex + 1).trim();
+    if (key) result[key] = value;
+  }
+  return result;
+}
+
+/**
+ * # Chuyển mảng cookie objects [{name, value}] thành cookie string
+ * Ánh xạ từ ChinaMediaCrawler tools/crawler_util.py convert_cookies
+ */
+export function formatCookies(cookies: Array<{ name: string; value: string }>): string {
+  return cookies.map((c) => `${c.name}=${c.value}`).join("; ");
+}
+
+/**
+ * # Loại bỏ HTML tags, trả về text thuần
+ * Ánh xạ từ ChinaMediaCrawler tools/crawler_util.py extract_text_from_html
+ */
+export function stripHtml(html: string): string {
+  if (!html) return "";
+  return html
+    .replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, "")
+    .replace(/<[^>]+>/g, "")
+    .trim();
+}
+
+/**
+ * # Trích xuất URL params thành object
+ * Ánh xạ từ ChinaMediaCrawler tools/crawler_util.py extract_url_params_to_dict
+ */
+export function extractUrlParams(url: string): Record<string, string> {
+  try {
+    const params: Record<string, string> = {};
+    new URL(url).searchParams.forEach((v, k) => { params[k] = v; });
+    return params;
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * # Parse chuỗi tương tác "1.2万" / "3.5w" / "1234" thành số nguyên
+ * Ánh xạ từ ChinaMediaCrawler tools/crawler_util.py match_interact_info_count
+ */
+export function matchInteractCount(countStr: string): number {
+  if (!countStr) return 0;
+  const cleaned = countStr.trim().replace(/,/g, "");
+  const wanMatch = cleaned.match(/([\d.]+)\s*[万wW]/);
+  if (wanMatch) return Math.round(parseFloat(wanMatch[1]) * 10000);
+  const yiMatch = cleaned.match(/([\d.]+)\s*[亿]/);
+  if (yiMatch) return Math.round(parseFloat(yiMatch[1]) * 100000000);
+  const numMatch = cleaned.match(/\d+/);
+  return numMatch ? parseInt(numMatch[0], 10) : 0;
+}
+
