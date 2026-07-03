@@ -9,8 +9,10 @@ export default function SettingsPage() {
   const [balance, setBalance] = useState(4.85);
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
 
-  const [captchaStrategy, setCaptchaStrategy] = useState("auto_solve");
-  const [commentDepth, setCommentDepth] = useState("2");
+  const [use2Captcha, setUse2Captcha] = useState(true);
+  const [collectComments, setCollectComments] = useState(true);
+  const [collectReplies, setCollectReplies] = useState(true);
+  const [headlessMode, setHeadlessMode] = useState(true);
   const [defaultPriority, setDefaultPriority] = useState("normal");
 
   const handleRefreshBalance = () => {
@@ -32,97 +34,121 @@ export default function SettingsPage() {
       {/* Settings Grid */}
       <div className="space-y-6">
         {/* Anti-bot & CAPTCHA */}
-        <section className="bg-card rounded-xl border border-border overflow-hidden">
-          <div className="px-4 py-3 border-b border-border bg-muted/20">
+        <section className="bg-card rounded-xl border border-border">
+          <div className="px-4 py-3 border-b border-border bg-muted/20 rounded-t-xl">
             <h3 className="text-xs font-bold text-card-foreground">Anti-bot & CAPTCHA Integration</h3>
             <p className="text-[10px] text-muted-foreground mt-0.5">Tự động vượt slide/image CAPTCHA khi tài khoản crawler gặp checkpoint</p>
           </div>
           <div className="p-4 space-y-4 text-xs">
-            {/* 2Captcha API Key */}
-            <div className="space-y-1">
-              <span className="font-medium text-foreground">2Captcha API Key</span>
-              <div className="flex gap-2 max-w-md">
-                <input
-                  type={showKey ? "text" : "password"}
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  className="w-full h-8 px-3 border border-border rounded-lg bg-background text-foreground font-mono focus:outline-none"
-                />
+            {/* Toggle Switch/Checkbox */}
+            <label className="flex items-center gap-2 text-card-foreground select-none cursor-pointer">
+              <input
+                type="checkbox"
+                checked={use2Captcha}
+                onChange={(e) => setUse2Captcha(e.target.checked)}
+                className="rounded border-border text-primary focus:ring-primary size-4"
+              />
+              <span className="font-semibold">Tự động vượt CAPTCHA qua 2Captcha</span>
+            </label>
+
+            {/* Conditionally active fields */}
+            <div className={`space-y-4 transition-all duration-200 ${use2Captcha ? "opacity-100" : "opacity-40 pointer-events-none"}`}>
+              {/* 2Captcha API Key */}
+              <div className="space-y-1">
+                <span className="font-medium text-foreground">2Captcha API Key</span>
+                <div className="flex gap-2 max-w-md">
+                  <input
+                    type={showKey ? "text" : "password"}
+                    value={apiKey}
+                    disabled={!use2Captcha}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    className="w-full h-8 px-3 border border-border rounded-lg bg-background text-foreground font-mono focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowKey(!showKey)}
+                    disabled={!use2Captcha}
+                    className="h-8 px-3 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground"
+                  >
+                    {showKey ? "Ẩn" : "Hiện"}
+                  </button>
+                </div>
+              </div>
+
+              {/* 2Captcha Balance */}
+              <div className="flex items-center gap-4 py-2 border-y border-border/50">
+                <div>
+                  <p className="text-muted-foreground font-medium">Số dư 2Captcha</p>
+                  <p className="text-sm font-bold text-foreground font-mono mt-0.5">${balance.toFixed(2)} USD</p>
+                </div>
                 <button
                   type="button"
-                  onClick={() => setShowKey(!showKey)}
-                  className="h-8 px-3 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground"
+                  onClick={handleRefreshBalance}
+                  disabled={isLoadingBalance || !use2Captcha}
+                  className="h-7 px-3 rounded-lg bg-primary/10 text-primary hover:bg-primary/15 text-[11px] font-medium disabled:opacity-50"
                 >
-                  {showKey ? "Ẩn" : "Hiện"}
+                  {isLoadingBalance ? "Đang tải..." : "🔄 Cập nhật số dư"}
                 </button>
               </div>
-            </div>
-
-            {/* 2Captcha Balance */}
-            <div className="flex items-center gap-4 py-2 border-y border-border/50">
-              <div>
-                <p className="text-muted-foreground font-medium">Số dư 2Captcha</p>
-                <p className="text-sm font-bold text-foreground font-mono mt-0.5">${balance.toFixed(2)} USD</p>
-              </div>
-              <button
-                type="button"
-                onClick={handleRefreshBalance}
-                disabled={isLoadingBalance}
-                className="h-7 px-3 rounded-lg bg-primary/10 text-primary hover:bg-primary/15 text-[11px] font-medium disabled:opacity-50"
-              >
-                {isLoadingBalance ? "Đang tải..." : "🔄 Cập nhật số dư"}
-              </button>
-            </div>
-
-            {/* CAPTCHA Strategy */}
-            <div className="space-y-1">
-              <span className="font-medium text-foreground">Chiến lược xử lý lỗi CAPTCHA</span>
-              <DropdownSelect
-                value={captchaStrategy}
-                onChange={setCaptchaStrategy}
-                options={[
-                  { value: "auto_solve", label: "Tự động giải CAPTCHA qua 2Captcha API (Khuyên dùng)" },
-                  { value: "skip_ban", label: "Bỏ qua và Ban tài khoản ngay lập tức" },
-                  { value: "retry_3x_ban", label: "Thử giải 3 lần, thất bại mới ban tài khoản" }
-                ]}
-                fullWidth
-                className="max-w-md"
-              />
             </div>
           </div>
         </section>
 
         {/* Task Queue & Concurrency */}
-        <section className="bg-card rounded-xl border border-border overflow-hidden">
-          <div className="px-4 py-3 border-b border-border bg-muted/20">
+        <section className="bg-card rounded-xl border border-border">
+          <div className="px-4 py-3 border-b border-border bg-muted/20 rounded-t-xl">
             <h3 className="text-xs font-bold text-card-foreground">Hàng đợi & Luồng chạy song song</h3>
             <p className="text-[10px] text-muted-foreground mt-0.5">Giới hạn tài nguyên thực thi của crawler engine</p>
           </div>
           <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <label className="space-y-1 block">
-              <span className="font-medium text-foreground">Số task chạy song song tối đa (Concurrency)</span>
+              <span className="font-medium text-foreground">Số task chạy song song tối đa</span>
               <input type="number" defaultValue={3} className="w-full h-8 px-2 border border-border rounded-lg bg-background text-foreground" />
             </label>
             <label className="space-y-1 block">
-              <span className="font-medium text-foreground">Số lần thử lại tối đa (Max Retries)</span>
+              <span className="font-medium text-foreground">Số lần thử lại tối đa</span>
               <input type="number" defaultValue={2} className="w-full h-8 px-2 border border-border rounded-lg bg-background text-foreground" />
             </label>
-            <label className="space-y-1 block">
-              <span className="font-medium text-foreground">Độ sâu bình luận mặc định</span>
-              <DropdownSelect
-                value={commentDepth}
-                onChange={setCommentDepth}
-                options={[
-                  { value: "1", label: "Cấp 1 (Chỉ bình luận gốc)" },
-                  { value: "2", label: "Cấp 2 (Bao gồm phản hồi trực tiếp)" },
-                  { value: "3", label: "Cấp 3 (Lồng nhau tối đa 3 cấp)" },
-                  { value: "5", label: "Cấp 5 (Toàn bộ comment tree)" }
-                ]}
-                fullWidth
-              />
-            </label>
-            <label className="space-y-1 block">
-              <span className="font-medium text-foreground">Mức ưu tiên mặc định</span>
+            <div className="space-y-2 col-span-1 sm:col-span-2 pt-2 border-t border-border/50">
+              <span className="block font-medium text-foreground mb-1">Cấu hình luồng chạy & thu thập</span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <label className="flex items-center gap-2 text-card-foreground select-none cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={collectComments}
+                    onChange={(e) => {
+                      setCollectComments(e.target.checked);
+                      if (!e.target.checked) setCollectReplies(false);
+                    }}
+                    className="rounded border-border text-primary focus:ring-primary size-4"
+                  />
+                  <span>Thu thập bình luận</span>
+                </label>
+                <label className={`flex items-center gap-2 select-none cursor-pointer transition-opacity duration-150 ${
+                  collectComments ? "text-card-foreground" : "text-muted-foreground opacity-50 pointer-events-none"
+                }`}>
+                  <input
+                    type="checkbox"
+                    checked={collectReplies}
+                    disabled={!collectComments}
+                    onChange={(e) => setCollectReplies(e.target.checked)}
+                    className="rounded border-border text-primary focus:ring-primary size-4"
+                  />
+                  <span>Bình luận phụ</span>
+                </label>
+                <label className="flex items-center gap-2 text-card-foreground select-none cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={headlessMode}
+                    onChange={(e) => setHeadlessMode(e.target.checked)}
+                    className="rounded border-border text-primary focus:ring-primary size-4"
+                  />
+                  <span>Chế độ headless</span>
+                </label>
+              </div>
+            </div>
+            <div className="space-y-1 col-span-1 sm:col-span-2">
+              <span className="block font-medium text-foreground">Mức ưu tiên mặc định</span>
               <DropdownSelect
                 value={defaultPriority}
                 onChange={setDefaultPriority}
@@ -134,13 +160,13 @@ export default function SettingsPage() {
                 ]}
                 fullWidth
               />
-            </label>
+            </div>
           </div>
         </section>
 
         {/* Notifications */}
-        <section className="bg-card rounded-xl border border-border overflow-hidden">
-          <div className="px-4 py-3 border-b border-border bg-muted/20">
+        <section className="bg-card rounded-xl border border-border">
+          <div className="px-4 py-3 border-b border-border bg-muted/20 rounded-t-xl">
             <h3 className="text-xs font-bold text-card-foreground">Thông báo & Webhooks</h3>
             <p className="text-[10px] text-muted-foreground mt-0.5">Nhận thông báo khi crawler hoàn thành tác vụ</p>
           </div>
@@ -156,7 +182,7 @@ export default function SettingsPage() {
               </label>
               <label className="flex items-center gap-2 text-card-foreground">
                 <input type="checkbox" defaultChecked className="rounded" />
-                Gửi cảnh báo lập tức nếu task cào thất bại (Failed)
+                Gửi cảnh báo lập tức nếu task cào thất bại
               </label>
             </div>
           </div>

@@ -4,16 +4,9 @@ import React, { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { SpiderIcon } from "@/components/icons";
 
 // ─── Icon Components (inline SVG cho gọn) ────────────────────
-function SpiderIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="3" />
-      <path d="M12 9V3M12 15v6M9 12H3M15 12h6M9.5 9.5 5 5M14.5 9.5 19 5M9.5 14.5 5 19M14.5 14.5 19 19" />
-    </svg>
-  );
-}
 
 function SearchIcon({ className }: { className?: string }) {
   return (
@@ -78,6 +71,22 @@ const ICON_MAP: Record<string, (p: { className?: string }) => React.ReactNode> =
       <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
     </svg>
   ),
+  ManageAccountIcon: ({ className }) => (
+    <svg className={cn("size-4", className)} viewBox="0 0 16 16" fill="currentColor">
+      <path d="M8 5.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5zm0 4a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" />
+      <path d="M12.475 8l1.86-1.798-1.62-2.804-2.435.697L9.627 1.5h-3.25L5.75 4.095 3.3 3.398 1.68 6.204l1.87 1.807-1.87 1.81 1.62 2.806 2.45-.7.637 2.572h3.25l.643-2.565 2.465.705 1.622-2.805L12.475 8zm-.225 3.453l-2.183-.628-.67.463-.55 2.212h-1.68l-.55-2.2-.647-.475-2.195.628L2.935 10 4.57 8.42v-.81L2.935 6.027l.84-1.455 2.197.63.648-.517.547-2.185h1.68l.55 2.195.645.518 2.208-.64.84 1.454-1.638 1.583.025.808L13.1 10l-.85 1.453z" />
+    </svg>
+  ),
+  ShieldIcon: ({ className }) => (
+    <svg className={cn("size-4", className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  ),
+  CreditCardIcon: ({ className }) => (
+    <svg className={cn("size-4", className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect width="20" height="14" x="2" y="5" rx="2" /><line x1="2" x2="22" y1="10" y2="10" />
+    </svg>
+  ),
 };
 
 // ─── Navigation Structure (từ navigation.json) ──────────────
@@ -120,16 +129,11 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    id: "admin", title: "Admin",
+    id: "admin", title: "Quản trị",
     items: [
-      { id: "audit-logs", label: "Audit Logs", icon: "ClipboardIcon", href: "/dash/audit-logs", minRole: "admin" },
-      {
-        id: "settings", label: "Cài đặt", icon: "CogIcon", minRole: "admin",
-        children: [
-          { id: "settings-general", label: "Cài đặt hệ thống", href: "/dash/settings" },
-          { id: "settings-permissions", label: "Phân quyền Viewer", href: "/dash/settings/permissions" },
-        ],
-      },
+      { id: "audit-logs", label: "Nhật ký hoạt động", icon: "ClipboardIcon", href: "/dash/audit-logs", minRole: "admin" },
+      { id: "settings-general", label: "Cài đặt hệ thống", icon: "CogIcon", href: "/dash/settings", minRole: "admin" },
+      { id: "manage-account-members", label: "Quản lý thành viên", icon: "UsersIcon", href: "/dash/manage-account/members", minRole: "admin" },
     ],
   },
 ];
@@ -181,7 +185,7 @@ export default function Sidebar({ isMobileOpen = false, onMobileClose }: Sidebar
       "/dash/data/management",
       "/dash/audit-logs",
       "/dash/settings",
-      "/dash/settings/permissions",
+      "/dash/manage-account/members",
     ];
 
     // Nếu pathname trùng khớp chính xác với một route đã đăng ký khác, 

@@ -22,14 +22,14 @@ export default function AuditLogsPage() {
     <div className="px-4 md:px-8 py-6 max-w-[1400px] mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-lg font-bold text-foreground">Nhật ký hoạt động Admin (Audit Logs)</h1>
+        <h1 className="text-lg font-bold text-foreground">Nhật ký hoạt động Admin</h1>
         <p className="text-xs text-muted-foreground mt-0.5">Lịch sử ghi chép hoạt động cấu hình hệ thống và tác động dữ liệu</p>
       </div>
 
       {/* Filter Bar */}
       <div className="bg-card rounded-xl border border-border p-4 flex gap-4 flex-wrap items-center">
         <label className="space-y-1 block min-w-[200px] flex-1">
-          <span className="text-[11px] font-medium text-muted-foreground">Người thực hiện (Actor)</span>
+          <span className="text-[11px] font-medium text-muted-foreground">Người thực hiện</span>
           <DropdownSelect
             value={actorFilter}
             onChange={setActorFilter}
@@ -65,7 +65,7 @@ export default function AuditLogsPage() {
                 <th className="text-left px-4 py-2.5 text-muted-foreground font-medium">Hành động</th>
                 <th className="text-left px-4 py-2.5 text-muted-foreground font-medium">Đối tượng</th>
                 <th className="text-left px-4 py-2.5 text-muted-foreground font-medium">IP Address</th>
-                <th className="text-left px-4 py-2.5 text-muted-foreground font-medium">Chi tiết thay đổi (Payload)</th>
+                <th className="text-left px-4 py-2.5 text-muted-foreground font-medium">Chi tiết thay đổi</th>
               </tr>
             </thead>
             <tbody>

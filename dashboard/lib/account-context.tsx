@@ -16,7 +16,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
   const [isAskAiOpen, setIsAskAiOpen] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("cloudflare_active_account");
+    const saved = localStorage.getItem("sinomedia_active_account");
     if (saved) {
       setTimeout(() => {
         setActiveAccountState(saved);
@@ -27,7 +27,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
   const setActiveAccount = (account: string) => {
     setActiveAccountState(account);
     try {
-      localStorage.setItem("cloudflare_active_account", account);
+      localStorage.setItem("sinomedia_active_account", account);
     } catch (e) {
       console.warn("localStorage not available", e);
     }

@@ -19,8 +19,8 @@ export default function TasksPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   
   // New task form states
-  const [newPlatform, setNewPlatform] = useState("Douyin (抖音)");
-  const [newCategory, setNewCategory] = useState("Creator (KOL)");
+  const [newPlatform, setNewPlatform] = useState("Douyin");
+  const [newCategory, setNewCategory] = useState("Creator");
   const [newPriority, setNewPriority] = useState("Normal");
 
   const filtered = statusFilter === "all" ? mockTasks : mockTasks.filter((t) => t.status === statusFilter);
@@ -124,32 +124,32 @@ export default function TasksPage() {
               <div className="space-y-4">
                 <h3 className="text-xs font-semibold text-foreground border-b border-border pb-2">Cấu hình mục tiêu</h3>
                 <div className="grid grid-cols-2 gap-3">
-                  <label className="space-y-1">
+                  <label className="space-y-1 block">
                     <span className="text-[11px] font-medium text-muted-foreground">Nền tảng *</span>
                     <DropdownSelect
                       value={newPlatform}
                       onChange={setNewPlatform}
                       options={[
-                        "Douyin (抖音)",
+                        "Douyin",
                         "XHS / Tiểu Hồng Thư",
-                        "Bilibili (哔哩哔哩)",
-                        "Weibo (微博)",
-                        "Kuaishou (快手)",
-                        "Tieba (贴吧)",
-                        "Zhihu (知乎)",
+                        "Bilibili",
+                        "Weibo",
+                        "Kuaishou",
+                        "Tieba",
+                        "Zhihu",
                         "TikTok"
                       ]}
                       fullWidth
                     />
                   </label>
-                  <label className="space-y-1">
+                  <label className="space-y-1 block">
                     <span className="text-[11px] font-medium text-muted-foreground">Danh mục cào *</span>
                     <DropdownSelect
                       value={newCategory}
                       onChange={setNewCategory}
                       options={[
-                        "Creator (KOL)",
-                        "Search (Từ khóa)",
+                        "Creator",
+                        "Search",
                         "Comment",
                         "Ads Target"
                       ]}
@@ -162,11 +162,11 @@ export default function TasksPage() {
                   <textarea rows={3} placeholder="Nhập mỗi target một dòng..." className="w-full px-3 py-2 text-xs border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground resize-none" />
                 </label>
                 <div className="grid grid-cols-2 gap-3">
-                  <label className="space-y-1">
+                  <label className="space-y-1 block">
                     <span className="text-[11px] font-medium text-muted-foreground">Số lượng tối đa</span>
                     <input type="number" defaultValue={50} className="w-full h-8 px-2 text-xs border border-border rounded-lg bg-background text-foreground" />
                   </label>
-                  <label className="space-y-1">
+                  <label className="space-y-1 block">
                     <span className="text-[11px] font-medium text-muted-foreground">Mức ưu tiên</span>
                     <DropdownSelect
                       value={newPriority}

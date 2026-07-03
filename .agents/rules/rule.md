@@ -6,3 +6,8 @@ D:\Python\socialpeta-crawl , D:\Python\ChinaMediaCrawler , D:\Python\socialpeta_
 
 
 tao đang cố rewrite lại dự án này D:\Python\ChinaMediaCrawler cho dự án này D:\Python\expo-supabase-ai-template\.agents\docs
+
+không được dùng sub agent điều khiển trang web nữa
+Cấm tự chạy test mà ko hỏi ý kiến tôi
+
+Lun dùng .agents\skills\gitnexus để tra thông tin đọc code

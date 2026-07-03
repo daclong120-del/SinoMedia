@@ -45,16 +45,16 @@ export default function ProxiesPage() {
         <div className="p-4 rounded-xl border border-border bg-card">
           <h3 className="text-xs font-bold text-card-foreground flex items-center gap-1.5 mb-1">
             <span className="size-2 rounded-full bg-emerald-500" />
-            Sticky Proxy (Cố định)
+            Sticky Proxy
           </h3>
           <p className="text-[11px] text-muted-foreground leading-normal">Gán 1 proxy cố định cho 1 tài khoản cụ thể tại trang <code className="bg-muted px-1 py-0.5 rounded text-[10px]">Tài khoản cào</code>. Crawler sẽ chỉ dùng proxy này để đăng nhập và giữ session cho tài khoản đó.</p>
         </div>
         <div className="p-4 rounded-xl border border-border bg-card">
           <h3 className="text-xs font-bold text-card-foreground flex items-center gap-1.5 mb-1">
             <span className="size-2 rounded-full bg-blue-500" />
-            Rotating Pool (Xoay vòng)
+            Rotating Pool
           </h3>
-          <p className="text-[11px] text-muted-foreground leading-normal">Proxy không gán cho tài khoản nào sẽ được tự động xếp vào Rotating Pool. Crawler sẽ xoay vòng ngẫu nhiên danh sách này để thực hiện các request cào công khai (Search, Post Detail).</p>
+          <p className="text-[11px] text-muted-foreground leading-normal">Proxy không gán cho tài khoản nào sẽ được tự động xếp vào Rotating Pool. Crawler sẽ xoay vòng ngẫu nhiên danh sách này để thực hiện các request cào công khai như Search hoặc Post Detail.</p>
         </div>
       </div>
 
@@ -123,7 +123,7 @@ export default function ProxiesPage() {
                   fullWidth
                 />
               </label>
-              <label className="space-y-1 block"><span className="text-[11px] font-medium text-muted-foreground">Danh sách proxy (Mỗi dòng 1 proxy) *</span>
+              <label className="space-y-1 block"><span className="text-[11px] font-medium text-muted-foreground">Danh sách proxy *</span>
                 <textarea rows={6} placeholder="IP:Port
 IP:Port:User:Pass
 45.123.45.6:1080:username:password" className="w-full px-3 py-2 text-xs border border-border rounded-lg bg-background text-foreground font-mono resize-none" />

@@ -1,8 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import React, { useEffect, useState, useRef } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { useAccount } from "@/lib/account-context";
+import { UserIcon, ChevronDownIcon } from "@/components/icons";
 
 // ─── Breadcrumb mapping ──────────────────────────────────────
 const ROUTE_LABELS: Record<string, string[]> = {
@@ -24,12 +27,36 @@ interface HeaderProps {
 
 export default function Header({ onMenuToggle }: HeaderProps) {
   const pathname = usePathname();
-  const breadcrumb = ROUTE_LABELS[pathname] || ["SinoMedia"];
+  const router = useRouter();
   const [isDark, setIsDark] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  const { activeAccount } = useAccount();
+
+  const getBreadcrumbs = () => {
+    if (pathname.startsWith("/dash/manage-account")) {
+      return ["SinoMedia", "Quản trị", "Quản lý thành viên"];
+    }
+    return ROUTE_LABELS[pathname] || ["SinoMedia"];
+  };
+
+  const breadcrumb = getBreadcrumbs();
 
   // Đồng bộ dark mode state
   useEffect(() => {
     setIsDark(document.documentElement.classList.contains("dark"));
+  }, []);
+
+  // Đóng dropdown khi click bên ngoài
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const toggleTheme = () => {
@@ -46,7 +73,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
   };
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4 shrink-0">
+    <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4 shrink-0 relative z-30 select-none">
       {/* Left: Mobile menu + Breadcrumb */}
       <div className="flex items-center gap-3 min-w-0">
         {/* Mobile hamburger */}
@@ -91,12 +118,66 @@ export default function Header({ onMenuToggle }: HeaderProps) {
           )}
         </button>
 
-        {/* Profile */}
-        <div className="flex h-8 items-center gap-2 px-2 rounded-lg text-xs text-muted-foreground hover:bg-muted cursor-default select-none">
-          <div className="size-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
-            A
-          </div>
-          <span className="hidden sm:inline">Admin</span>
+        {/* Profile Dropdown */}
+        <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={() => setIsProfileOpen(!isProfileOpen)}
+            className="flex h-8 items-center gap-1.5 px-2 rounded-lg text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors focus:outline-none cursor-pointer"
+            aria-expanded={isProfileOpen}
+          >
+            <div className="size-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
+              <UserIcon size={12} className="text-primary" />
+            </div>
+            <span className="hidden sm:inline font-medium">{activeAccount}</span>
+            <ChevronDownIcon size={12} className={cn("transition-transform duration-150", isProfileOpen && "rotate-180")} />
+          </button>
+
+          {isProfileOpen && (
+            <div className="absolute right-0 mt-1.5 w-60 origin-top-right rounded-lg border border-border bg-card p-1 shadow-lg ring-1 ring-black/5 focus:outline-none animate-in fade-in slide-in-from-top-1 duration-150">
+              <div className="px-3 py-2 border-b border-border mb-1 select-none">
+                <p className="text-xs text-muted-foreground">Đăng nhập bằng</p>
+                <p className="text-xs font-semibold text-foreground truncate">
+                  {activeAccount.includes("@") ? activeAccount : `${activeAccount}@gmail.com`}
+                </p>
+              </div>
+
+              <Link
+                href="/dash/home"
+                onClick={() => setIsProfileOpen(false)}
+                className="flex items-center w-full px-3 py-1.5 text-xs rounded-md text-foreground hover:bg-muted transition-colors duration-100"
+              >
+                Tổng quan tài khoản
+              </Link>
+              <Link
+                href="/dash/manage-account/members"
+                onClick={() => setIsProfileOpen(false)}
+                className="flex items-center w-full px-3 py-1.5 text-xs rounded-md text-foreground hover:bg-muted transition-colors duration-100"
+              >
+                Quản lý tài khoản
+              </Link>
+              <Link
+                href="/dash/settings"
+                onClick={() => setIsProfileOpen(false)}
+                className="flex items-center w-full px-3 py-1.5 text-xs rounded-md text-foreground hover:bg-muted transition-colors duration-100"
+              >
+                Cài đặt hệ thống
+              </Link>
+              
+              <div className="h-px bg-border my-1" />
+
+              <button
+                onClick={() => {
+                  console.log("Logging out active user account:", activeAccount);
+                  setIsProfileOpen(false);
+                  localStorage.removeItem("sinomedia_active_account");
+                  router.push("/login");
+                }}
+                className="flex items-center w-full px-3 py-1.5 text-xs rounded-md text-destructive hover:bg-destructive/5 transition-colors duration-100 text-left font-medium cursor-pointer"
+              >
+                Đăng xuất
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>

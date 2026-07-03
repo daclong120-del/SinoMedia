@@ -39,10 +39,10 @@ export default function ManagementPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Supabase DB Storage */}
         <div className="p-4 rounded-xl border border-border bg-card space-y-3">
-          <h3 className="text-xs font-bold text-card-foreground">Dung lượng Cơ sở Dữ liệu (Supabase)</h3>
+          <h3 className="text-xs font-bold text-card-foreground">Dung lượng Cơ sở Dữ liệu</h3>
           <div className="space-y-1.5">
             <div className="flex justify-between text-[11px] font-mono">
-              <span className="text-muted-foreground">Đã dùng: 145 MB / 500 MB (Hạn mức Free)</span>
+              <span className="text-muted-foreground">Đã dùng: 145 MB / 500 MB</span>
               <span className="text-foreground font-semibold">29%</span>
             </div>
             <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
@@ -50,18 +50,18 @@ export default function ManagementPage() {
             </div>
           </div>
           <div className="text-[10px] text-muted-foreground leading-normal font-mono">
-            - Table crawled_posts: 24,839 rows (45 MB)<br />
-            - Table crawled_comments: 140,210 rows (82 MB)<br />
-            - Khác (indexes, logs, metadata): 18 MB
+            - Table crawled_posts: 24,839 rows - 45 MB<br />
+            - Table crawled_comments: 140,210 rows - 82 MB<br />
+            - Khác: 18 MB
           </div>
         </div>
 
         {/* Cloudflare R2 Storage */}
         <div className="p-4 rounded-xl border border-border bg-card space-y-3">
-          <h3 className="text-xs font-bold text-card-foreground">Dung lượng File Media (Cloudflare R2)</h3>
+          <h3 className="text-xs font-bold text-card-foreground">Dung lượng File Media</h3>
           <div className="space-y-1.5">
             <div className="flex justify-between text-[11px] font-mono">
-              <span className="text-muted-foreground">Đã dùng: 4.2 GB / Vô hạn (Pay-as-you-go)</span>
+              <span className="text-muted-foreground">Đã dùng: 4.2 GB / Vô hạn</span>
               <span className="text-foreground font-semibold">Billed: $0.06/tháng</span>
             </div>
             <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
@@ -69,8 +69,8 @@ export default function ManagementPage() {
             </div>
           </div>
           <div className="text-[10px] text-muted-foreground leading-normal font-mono">
-            - Thư mục video/: 2,143 files (3.8 GB)<br />
-            - Thư mục image/: 8,912 files (410 MB)<br />
+            - Thư mục video/: 2,143 files - 3.8 GB<br />
+            - Thư mục image/: 8,912 files - 410 MB<br />
             - Media cũ hơn 30 ngày chưa dọn dẹp: 1.1 GB
           </div>
         </div>
@@ -78,7 +78,7 @@ export default function ManagementPage() {
 
       {/* Data Clean-up Tools */}
       <div className="p-4 rounded-xl border border-border bg-card space-y-4">
-        <h3 className="text-xs font-bold text-card-foreground">Công cụ dọn dẹp dữ liệu (Admin only)</h3>
+        <h3 className="text-xs font-bold text-card-foreground">Công cụ dọn dẹp dữ liệu</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="p-3 border border-border bg-muted/20 rounded-lg flex flex-col justify-between">
             <div>

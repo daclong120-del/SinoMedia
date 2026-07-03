@@ -34,7 +34,6 @@ export default function PlatformHealthCard({ platform, active, banned, total, cl
       <div className="flex items-center gap-2 mb-3">
         <div className="size-2.5 rounded-full shrink-0" style={{ backgroundColor: config.color }} />
         <span className="text-xs font-semibold text-card-foreground">{config.label}</span>
-        <span className="text-[10px] text-muted-foreground">({config.labelCN})</span>
         <span className={cn("ml-auto text-[10px] font-medium", statusConfig.color)}>
           {statusConfig.label}
         </span>

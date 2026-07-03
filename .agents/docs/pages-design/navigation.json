@@ -40,20 +40,12 @@
       },
       {
         "id": "admin",
-        "title": "Admin",
+        "title": "Quản trị",
+        "titleEn": "Administration",
         "items": [
-          { "id": "audit-logs", "label": "Audit Logs", "icon": "ClipboardDocumentListIcon", "href": "/dash/audit-logs", "minRole": "admin" },
-          {
-            "id": "settings",
-            "label": "Cài đặt",
-            "labelEn": "Settings",
-            "icon": "CogIcon",
-            "minRole": "admin",
-            "children": [
-              { "id": "settings-general", "label": "Cài đặt hệ thống", "href": "/dash/settings" },
-              { "id": "settings-permissions", "label": "Phân quyền Viewer", "href": "/dash/settings/permissions" }
-            ]
-          }
+          { "id": "audit-logs", "label": "Nhật ký hoạt động", "labelEn": "Audit Logs", "icon": "ClipboardIcon", "href": "/dash/audit-logs", "minRole": "admin" },
+          { "id": "settings-general", "label": "Cài đặt hệ thống", "labelEn": "System Settings", "icon": "CogIcon", "href": "/dash/settings", "minRole": "admin" },
+          { "id": "manage-account-members", "label": "Quản lý thành viên", "labelEn": "Manage Members", "icon": "UsersIcon", "href": "/dash/manage-account/members", "minRole": "admin" }
         ]
       }
     ]
@@ -66,7 +58,7 @@
       {
         "id": "language-selector",
         "type": "dropdown",
-        "icon": "GlobeAltIcon",
+        "icon": "GlobeIcon",
         "options": [
           { "value": "vi", "label": "Tiếng Việt", "flag": "🇻🇳" },
           { "value": "en", "label": "English", "flag": "🇺🇸" }
@@ -75,10 +67,10 @@
       {
         "id": "profile",
         "type": "profile-dropdown",
-        "icon": "UserCircleIcon",
+        "icon": "UserIcon",
         "items": [
-          { "label": "Hồ sơ tài khoản", "href": "/dash/profile" },
-          { "label": "Cài đặt", "href": "/dash/settings" },
+          { "label": "Hồ sơ tài khoản", "href": "/dash/manage-account/members" },
+          { "label": "Cài đặt hệ thống", "href": "/dash/settings" },
           { "type": "divider" },
           { "label": "Đăng xuất", "action": "logout", "variant": "destructive" }
         ]

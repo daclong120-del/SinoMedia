@@ -44,6 +44,7 @@
 }
 
 :root {
+  color-scheme: light;
   --background: oklch(0.9875 0 0);
   --foreground: rgb(49, 49, 49);
   --card: #ffffff;
@@ -73,6 +74,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -120,4 +122,35 @@
 
   body { @apply bg-background text-foreground; }
   html { @apply font-sans; }
+
+  /* Autofill styling overrides */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover, 
+  input:-webkit-autofill:focus, 
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+    -webkit-text-fill-color: rgb(49, 49, 49) !important;
+    color: rgb(49, 49, 49) !important;
+    transition: background-color 5000s ease-in-out 0s !important;
+  }
+
+  .dark input:-webkit-autofill,
+  .dark input:-webkit-autofill:hover, 
+  .dark input:-webkit-autofill:focus, 
+  .dark input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #27272a inset !important;
+    -webkit-text-fill-color: oklch(0.985 0 0) !important;
+    color: oklch(0.985 0 0) !important;
+    transition: background-color 5000s ease-in-out 0s !important;
+  }
+
+  /* Hide number input spinners */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
 }
