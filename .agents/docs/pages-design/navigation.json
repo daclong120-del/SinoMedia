@@ -1,0 +1,88 @@
+{
+  "$schema": "sinomedia-navigation-spec/v1",
+  "appName": "SinoMedia Crawler Dashboard",
+  "defaultRoute": "/dash/home",
+  "sidebar": {
+    "width": 290,
+    "collapsible": true,
+    "collapseWidth": 64,
+    "brand": {
+      "name": "SinoMedia",
+      "logoIcon": "SpiderIcon",
+      "logoColor": "orange"
+    },
+    "search": { "enabled": true, "placeholder": "Tìm kiếm...", "shortcut": "Ctrl+K" },
+    "groups": [
+      {
+        "id": "dashboard",
+        "title": "Dashboard",
+        "items": [
+          { "id": "home", "label": "Tổng quan", "labelEn": "Overview", "icon": "HomeIcon", "href": "/dash/home", "minRole": "viewer" }
+        ]
+      },
+      {
+        "id": "crawler-controller",
+        "title": "Crawler Controller",
+        "items": [
+          { "id": "tasks", "label": "Nhiệm vụ cào", "labelEn": "Crawl Tasks", "icon": "PlayCircleIcon", "href": "/dash/tasks", "minRole": "viewer" },
+          { "id": "accounts", "label": "Tài khoản cào", "labelEn": "Accounts", "icon": "KeyIcon", "href": "/dash/accounts", "minRole": "admin" },
+          { "id": "proxies", "label": "Proxy Pool", "labelEn": "Proxy Pool", "icon": "ServerIcon", "href": "/dash/proxies", "minRole": "admin" }
+        ]
+      },
+      {
+        "id": "data-explorer",
+        "title": "Data Explorer",
+        "items": [
+          { "id": "authors", "label": "Tác giả / KOL", "labelEn": "Authors", "icon": "UsersIcon", "href": "/dash/data/authors", "minRole": "viewer" },
+          { "id": "posts", "label": "Bài viết & Video", "labelEn": "Posts & Videos", "icon": "FilmIcon", "href": "/dash/data/posts", "minRole": "viewer" },
+          { "id": "management", "label": "Quản lý dữ liệu", "labelEn": "Data Management", "icon": "CircleStackIcon", "href": "/dash/data/management", "minRole": "admin" }
+        ]
+      },
+      {
+        "id": "admin",
+        "title": "Admin",
+        "items": [
+          { "id": "audit-logs", "label": "Audit Logs", "icon": "ClipboardDocumentListIcon", "href": "/dash/audit-logs", "minRole": "admin" },
+          {
+            "id": "settings",
+            "label": "Cài đặt",
+            "labelEn": "Settings",
+            "icon": "CogIcon",
+            "minRole": "admin",
+            "children": [
+              { "id": "settings-general", "label": "Cài đặt hệ thống", "href": "/dash/settings" },
+              { "id": "settings-permissions", "label": "Phân quyền Viewer", "href": "/dash/settings/permissions" }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "header": {
+    "height": 56,
+    "breadcrumb": true,
+    "rightActions": [
+      { "id": "theme-toggle", "type": "theme-toggle", "icon": { "light": "SunIcon", "dark": "MoonIcon" } },
+      {
+        "id": "language-selector",
+        "type": "dropdown",
+        "icon": "GlobeAltIcon",
+        "options": [
+          { "value": "vi", "label": "Tiếng Việt", "flag": "🇻🇳" },
+          { "value": "en", "label": "English", "flag": "🇺🇸" }
+        ]
+      },
+      {
+        "id": "profile",
+        "type": "profile-dropdown",
+        "icon": "UserCircleIcon",
+        "items": [
+          { "label": "Hồ sơ tài khoản", "href": "/dash/profile" },
+          { "label": "Cài đặt", "href": "/dash/settings" },
+          { "type": "divider" },
+          { "label": "Đăng xuất", "action": "logout", "variant": "destructive" }
+        ]
+      }
+    ]
+  }
+}
