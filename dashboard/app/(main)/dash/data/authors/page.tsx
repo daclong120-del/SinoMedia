@@ -1,22 +1,34 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { PlatformBadge } from "@/components/dashboard/Badges";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
-import { mockAuthors } from "@/lib/mock-data";
+import { fetchAuthors } from "@/lib/api";
 import { formatNumber } from "@/lib/utils";
 import Link from "next/link";
+import type { CrawledAuthor } from "@/types";
 
 export default function AuthorsPage() {
   const [search, setSearch] = useState("");
   const [platform, setPlatform] = useState("all");
   const [location, setLocation] = useState("all");
   const [minFans, setMinFans] = useState(0);
+  const [authors, setAuthors] = useState<CrawledAuthor[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      const data = await fetchAuthors({ limit: 100 });
+      setAuthors(data);
+      setLoading(false);
+    }
+    load();
+  }, []);
 
   // Extract unique locations for filter
-  const locations = Array.from(new Set(mockAuthors.map((a) => a.ip_location).filter(Boolean)));
+  const locations = Array.from(new Set(authors.map((a) => a.ip_location).filter(Boolean)));
 
-  const filtered = mockAuthors.filter((a) => {
+  const filtered = authors.filter((a) => {
     const matchesSearch =
       a.nickname.toLowerCase().includes(search.toLowerCase()) ||
       a.platform_uid.toLowerCase().includes(search.toLowerCase()) ||

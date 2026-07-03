@@ -1,12 +1,17 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import MetricCard from "@/components/dashboard/MetricCard";
 import PlatformHealthCard from "@/components/dashboard/PlatformHealthCard";
 import { PlatformBadge, StatusBadge } from "@/components/dashboard/Badges";
-import { homeMetrics, postsPerDay, platformDistribution, platformHealth, mockTasks } from "@/lib/mock-data";
+import {
+  fetchDashboardMetrics, fetchPlatformDistribution, fetchTasks,
+  getPlatformHealth, getPostsPerDay
+} from "@/lib/api";
+import { homeMetrics as defaultMetrics } from "@/lib/mock-data";
 import { formatNumber, timeAgo } from "@/lib/utils";
 import Link from "next/link";
+import type { CrawlerTask } from "@/types";
 
 // ─── SVG Icons inline ────────────────────────────────────────
 const DocIcon = () => <svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" x2="8" y1="13" y2="13" /><line x1="16" x2="8" y1="17" y2="17" /></svg>;
@@ -119,7 +124,28 @@ function SimpleDonutChart({ data }: { data: { platform: string; count: number; c
 
 // ─── Page Component ──────────────────────────────────────────
 export default function HomePage() {
-  const recentTasks = mockTasks.slice(0, 5);
+  const [metrics, setMetrics] = useState(defaultMetrics);
+  const [distribution, setDistribution] = useState<{ platform: string; count: number; color: string }[]>([]);
+  const [recentTasks, setRecentTasks] = useState<CrawlerTask[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      const [m, d, t] = await Promise.all([
+        fetchDashboardMetrics(),
+        fetchPlatformDistribution(),
+        fetchTasks(),
+      ]);
+      setMetrics(m);
+      setDistribution(d);
+      setRecentTasks(t.slice(0, 5));
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  const postsPerDayData = getPostsPerDay();
+  const platformHealthData = getPlatformHealth();
 
   return (
     <div className="px-4 md:px-8 py-6 max-w-[1400px] mx-auto space-y-6">
@@ -133,31 +159,31 @@ export default function HomePage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           label="Bài viết đã cào"
-          value={homeMetrics.totalPosts}
+          value={metrics.totalPosts}
           icon={<DocIcon />}
           color="blue"
-          trend={homeMetrics.postsTrend}
+          trend={metrics.postsTrend}
         />
         <MetricCard
           label="Tác giả / KOL"
-          value={homeMetrics.totalAuthors}
+          value={metrics.totalAuthors}
           icon={<UsersIcon />}
           color="violet"
-          trend={homeMetrics.authorsTrend}
+          trend={metrics.authorsTrend}
         />
         <MetricCard
           label="Task đang chạy"
-          value={homeMetrics.runningTasks}
+          value={metrics.runningTasks}
           icon={<PlayIcon />}
           color="emerald"
-          subtitle={`${homeMetrics.pendingTasks} đang chờ`}
+          subtitle={`${metrics.pendingTasks} đang chờ`}
         />
         <MetricCard
           label="Tài khoản hoạt động"
-          value={`${homeMetrics.activeAccounts}/${homeMetrics.totalAccounts}`}
+          value={`${metrics.activeAccounts}/${metrics.totalAccounts}`}
           icon={<KeyIcon />}
           color="orange"
-          subtitle={`${Math.round((homeMetrics.activeAccounts / homeMetrics.totalAccounts) * 100)}% tỷ lệ sống`}
+          subtitle={`${metrics.totalAccounts > 0 ? Math.round((metrics.activeAccounts / metrics.totalAccounts) * 100) : 0}% tỷ lệ sống`}
         />
       </div>
 
@@ -166,12 +192,12 @@ export default function HomePage() {
         {/* Line Chart — spans 2 cols */}
         <div className="lg:col-span-2 rounded-xl border border-border bg-card p-4">
           <h3 className="text-xs font-semibold text-card-foreground mb-3">Bài viết cào mới theo ngày</h3>
-          <SimpleLineChart data={postsPerDay} />
+          <SimpleLineChart data={postsPerDayData} />
         </div>
         {/* Donut Chart */}
         <div className="rounded-xl border border-border bg-card p-4">
           <h3 className="text-xs font-semibold text-card-foreground mb-3">Phân bổ theo nền tảng</h3>
-          <SimpleDonutChart data={platformDistribution} />
+          <SimpleDonutChart data={distribution.length > 0 ? distribution : [{platform:'loading',count:1,color:'#666'}]} />
         </div>
       </div>
 
@@ -179,7 +205,7 @@ export default function HomePage() {
       <div>
         <h3 className="text-xs font-semibold text-foreground mb-3">Sức khỏe Pool Cookie</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {platformHealth.map((ph) => (
+          {platformHealthData.map((ph) => (
             <PlatformHealthCard key={ph.platform} {...ph} />
           ))}
         </div>

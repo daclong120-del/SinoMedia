@@ -1,18 +1,29 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import MetricCard from "@/components/dashboard/MetricCard";
 import { PlatformBadge, StatusBadge } from "@/components/dashboard/Badges";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
-import { mockAccounts } from "@/lib/mock-data";
+import { fetchAccounts } from "@/lib/api";
 import { timeAgo, cn } from "@/lib/utils";
+import type { CrawlerAccount } from "@/types";
 
 export default function AccountsPage() {
   const [showModal, setShowModal] = useState(false);
   const [accountPlatform, setAccountPlatform] = useState("Douyin");
-  const activeCount = mockAccounts.filter((a) => a.status === "active").length;
-  const bannedCount = mockAccounts.filter((a) => a.status === "banned").length;
-  const healthRate = Math.round((activeCount / mockAccounts.length) * 100);
+  const [accounts, setAccounts] = useState<CrawlerAccount[]>([]);
+
+  useEffect(() => {
+    async function load() {
+      const data = await fetchAccounts();
+      setAccounts(data);
+    }
+    load();
+  }, []);
+
+  const activeCount = accounts.filter((a) => a.status === "active").length;
+  const bannedCount = accounts.filter((a) => a.status === "banned").length;
+  const healthRate = accounts.length > 0 ? Math.round((activeCount / accounts.length) * 100) : 0;
 
   return (
     <div className="px-4 md:px-8 py-6 max-w-[1400px] mx-auto space-y-6">
@@ -31,7 +42,7 @@ export default function AccountsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard label="Tổng Active" value={activeCount} icon={<svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>} color="emerald" />
         <MetricCard label="Tổng Banned" value={bannedCount} icon={<svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><line x1="4.93" y1="4.93" x2="19.07" y2="19.07" /></svg>} color="red" />
-        <MetricCard label="Tổng tài khoản" value={mockAccounts.length} icon={<svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg>} color="blue" />
+        <MetricCard label="Tổng tài khoản" value={accounts.length} icon={<svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg>} color="blue" />
         <MetricCard label="Tỷ lệ sống" value={`${healthRate}%`} icon={<svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>} color="violet" />
       </div>
 
@@ -56,7 +67,7 @@ export default function AccountsPage() {
               </tr>
             </thead>
             <tbody>
-              {mockAccounts.map((acc) => (
+              {accounts.map((acc) => (
                 <tr key={acc.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
                   <td className="px-4 py-2.5 font-medium text-card-foreground">{acc.alias}</td>
                   <td className="px-4 py-2.5"><PlatformBadge platform={acc.platform} /></td>

@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { PlatformBadge, StatusBadge, PriorityBadge } from "@/components/dashboard/Badges";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
-import { mockTasks, mockConsoleLogs } from "@/lib/mock-data";
+import { fetchTasks, getConsoleLogs } from "@/lib/api";
 import { timeAgo, cn } from "@/lib/utils";
+import type { CrawlerTask } from "@/types";
 
 const LOG_COLORS: Record<string, string> = {
   INFO: "text-green-400",
@@ -17,13 +18,23 @@ export default function TasksPage() {
   const [showModal, setShowModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [tasks, setTasks] = useState<CrawlerTask[]>([]);
+  const consoleLogs = getConsoleLogs();
   
   // New task form states
   const [newPlatform, setNewPlatform] = useState("Douyin");
   const [newCategory, setNewCategory] = useState("Creator");
   const [newPriority, setNewPriority] = useState("Normal");
 
-  const filtered = statusFilter === "all" ? mockTasks : mockTasks.filter((t) => t.status === statusFilter);
+  useEffect(() => {
+    async function load() {
+      const data = await fetchTasks();
+      setTasks(data);
+    }
+    load();
+  }, []);
+
+  const filtered = statusFilter === "all" ? tasks : tasks.filter((t) => t.status === statusFilter);
 
   return (
     <div className="px-4 md:px-8 py-6 max-w-[1400px] mx-auto space-y-6">
@@ -100,7 +111,7 @@ export default function TasksPage() {
             <button onClick={() => setSelectedTask(null)} className="text-zinc-500 hover:text-zinc-300 text-[10px]">Đóng ✕</button>
           </div>
           <div className="bg-[oklch(0.12_0_0)] p-4 font-mono text-xs space-y-0.5 max-h-[300px] overflow-y-auto">
-            {mockConsoleLogs.map((log) => (
+            {consoleLogs.map((log) => (
               <div key={log.id} className="flex gap-2">
                 <span className="text-zinc-600 shrink-0">{new Date(log.created_at).toLocaleTimeString("vi-VN")}</span>
                 <span className={cn("font-semibold shrink-0 w-12", LOG_COLORS[log.level] || "text-zinc-400")}>[{log.level}]</span>

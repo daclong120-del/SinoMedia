@@ -4,8 +4,9 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { PlatformBadge } from "@/components/dashboard/Badges";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
-import { mockPosts, mockTags } from "@/lib/mock-data";
+import { fetchPosts, getTags } from "@/lib/api";
 import { formatNumber, timeAgo, cn } from "@/lib/utils";
+import type { CrawledPost } from "@/types";
 
 // Mock comments for detail view
 const mockComments = [
@@ -31,16 +32,23 @@ function PostsPageContent() {
   const [search, setSearch] = useState("");
   const [platform, setPlatform] = useState("all");
   const [selectedTag, setSelectedTag] = useState("all");
-  const [selectedPost, setSelectedPost] = useState<typeof mockPosts[0] | null>(null);
+  const [selectedPost, setSelectedPost] = useState<CrawledPost | null>(null);
+  const [posts, setPosts] = useState<CrawledPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const tags = getTags();
 
-  // Auto select first post if exists
+  // Fetch posts from Supabase
   useEffect(() => {
-    if (mockPosts.length > 0) {
-      setSelectedPost(mockPosts[0]);
+    async function load() {
+      const data = await fetchPosts({ limit: 100 });
+      setPosts(data);
+      if (data.length > 0) setSelectedPost(data[0]);
+      setLoading(false);
     }
+    load();
   }, []);
 
-  const filtered = mockPosts.filter((post) => {
+  const filtered = posts.filter((post) => {
     const matchesSearch = post.caption.toLowerCase().includes(search.toLowerCase()) || (post.title || "").toLowerCase().includes(search.toLowerCase());
     const matchesPlatform = platform === "all" || post.platform === platform;
     const matchesTag = selectedTag === "all" || post.tags.includes(selectedTag);
@@ -108,7 +116,7 @@ function PostsPageContent() {
             onChange={setSelectedTag}
             options={[
               { value: "all", label: "Tất cả nhãn" },
-              ...mockTags.map((tag) => ({ value: tag.name, label: tag.name }))
+              ...tags.map((tag) => ({ value: tag.name, label: tag.name }))
             ]}
             fullWidth
           />
