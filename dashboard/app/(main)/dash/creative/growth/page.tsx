@@ -2,13 +2,37 @@
 
 import React, { useState, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import { mockCreativeAds, mockCreativeAdvertisers } from "@/lib/mock-data";
 import CreativeCard from "@/components/dashboard/CreativeCard";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
+import CreativeDetailView from "@/components/dashboard/CreativeDetailView";
 import { cn } from "@/lib/utils";
 import type { Platform } from "@/types";
 
 function GrowthPageContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const viewId = searchParams.get("viewId") || "";
+
+  const handleCardClick = (id: string) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("viewId", id);
+    router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleCloseModal = () => {
+    const params = new URLSearchParams(window.location.search);
+    params.delete("viewId");
+    router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleNavigateModal = (targetId: string) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("viewId", targetId);
+    router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
+  };
+
   const [comparisonPeriod, setComparisonPeriod] = useState("7d_vs_7d");
   const [selectedPlatform, setSelectedPlatform] = useState<string>("all");
   const [sortBy, setSortBy] = useState("growth_pct_desc");
@@ -128,6 +152,7 @@ function GrowthPageContent() {
                 key={ad.id}
                 creative={ad}
                 advertiserName={adv ? adv.nickname : "Không rõ"}
+                onClick={() => handleCardClick(ad.id)}
               />
             );
           })}
@@ -144,6 +169,16 @@ function GrowthPageContent() {
             Cần ít nhất 2 kỳ dữ liệu để tính toán tăng trưởng. Tiếp tục chạy crawler để thu thập thêm dữ liệu so sánh.
           </p>
         </div>
+      )}
+
+      {/* Modal Creative Detail View */}
+      {viewId && (
+        <CreativeDetailView
+          id={viewId}
+          isModal={true}
+          onClose={handleCloseModal}
+          onNavigate={handleNavigateModal}
+        />
       )}
     </div>
   );

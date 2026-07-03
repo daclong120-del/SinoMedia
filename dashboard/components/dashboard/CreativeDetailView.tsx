@@ -252,7 +252,6 @@ export default function CreativeDetailView({
               autoPlay
               loop
               playsInline
-              referrerPolicy="no-referrer"
               className="max-h-[70vh] max-w-full w-auto h-auto object-contain rounded-2xl border border-border shadow-xl bg-zinc-950 dark:bg-black"
             />
           ) : (creative.media_type === "image" || creative.media_type === "carousel") && creative.media_urls?.[0] ? (

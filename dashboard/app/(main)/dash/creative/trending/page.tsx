@@ -2,8 +2,10 @@
 
 import React, { useState, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import { mockCreativeAds, mockCreativeAdvertisers } from "@/lib/mock-data";
 import { PlatformBadge } from "@/components/dashboard/Badges";
+import CreativeDetailView from "@/components/dashboard/CreativeDetailView";
 import { formatNumber, timeAgo, cn } from "@/lib/utils";
 import type { Platform } from "@/types";
 
@@ -44,6 +46,28 @@ function Sparkline({ data }: { data: { date: string; count: number }[] }) {
 }
 
 function TrendingPageContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const viewId = searchParams.get("viewId") || "";
+
+  const handleCardClick = (id: string) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("viewId", id);
+    router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleCloseModal = () => {
+    const params = new URLSearchParams(window.location.search);
+    params.delete("viewId");
+    router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleNavigateModal = (targetId: string) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("viewId", targetId);
+    router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
+  };
+
   const [period, setPeriod] = useState("30d");
   const [selectedPlatform, setSelectedPlatform] = useState<string>("all");
 
@@ -168,7 +192,14 @@ function TrendingPageContent() {
                   </div>
 
                   {/* Aspect Ratio 16/9 for wide layout */}
-                  <Link href={`/dash/creative/${ad.id}`} className="block relative aspect-[16/9] bg-zinc-950/90 dark:bg-black overflow-hidden border-b border-border">
+                  <Link
+                    href={`/dash/creative/${ad.id}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleCardClick(ad.id);
+                    }}
+                    className="block relative aspect-[16/9] bg-zinc-950/90 dark:bg-black overflow-hidden border-b border-border"
+                  >
                     <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center select-none text-zinc-400 dark:text-zinc-600 transition-transform duration-500 group-hover:scale-105">
                       <svg className="size-8 mb-1.5 stroke-[1.2] opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm-2 14.5v-9l6 4.5z" />
@@ -182,14 +213,21 @@ function TrendingPageContent() {
 
                   <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
                     <div className="space-y-1">
-                      <Link href={`/dash/creative/${ad.id}`} className="block">
+                      <Link
+                        href={`/dash/creative/${ad.id}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleCardClick(ad.id);
+                        }}
+                        className="block"
+                      >
                         <p className="text-xs text-foreground font-semibold line-clamp-2 hover:text-primary transition-colors leading-relaxed">
                           {ad.caption || "Không có chú thích."}
                         </p>
                       </Link>
                     </div>
 
-                    <div className="space-y-2.5 border-t border-border/50 pt-2.5">
+                    <div className="space-y-2.5 border-t border-border/55 pt-2.5">
                       <div className="grid grid-cols-2 gap-2 text-[10px] text-muted-foreground font-mono">
                         <div>
                           <span className="text-xs text-foreground font-bold block">{formatNumber(ad.view_count)}</span>
@@ -204,7 +242,7 @@ function TrendingPageContent() {
                       <div className="flex items-center justify-between text-[10px] border-t border-border/30 pt-2">
                         <Link
                           href={`/dash/creative/advertisers/${ad.author_id}`}
-                          className="text-primary hover:underline font-semibold truncate max-w-[140px]"
+                          className="text-primary hover:underline font-semibold"
                         >
                           {adv ? adv.nickname : "Advertiser"}
                         </Link>
@@ -250,7 +288,7 @@ function TrendingPageContent() {
                     <tr
                       key={ad.id}
                       className="hover:bg-muted/30 transition-colors group cursor-pointer"
-                      onClick={() => window.location.href = `/dash/creative/${ad.id}`}
+                      onClick={() => handleCardClick(ad.id)}
                     >
                       <td className="p-4 text-center font-bold font-mono">
                         <span className={cn(
@@ -312,6 +350,16 @@ function TrendingPageContent() {
           </div>
         )}
       </div>
+
+      {/* Modal Creative Detail View */}
+      {viewId && (
+        <CreativeDetailView
+          id={viewId}
+          isModal={true}
+          onClose={handleCloseModal}
+          onNavigate={handleNavigateModal}
+        />
+      )}
     </div>
   );
 }

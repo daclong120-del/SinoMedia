@@ -2,15 +2,38 @@
 
 import React, { useState, useMemo, Suspense } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { mockCreativeAds, mockCreativeAdvertisers } from "@/lib/mock-data";
 import CreativeCard from "@/components/dashboard/CreativeCard";
 import { PlatformBadge } from "@/components/dashboard/Badges";
+import CreativeDetailView from "@/components/dashboard/CreativeDetailView";
 import { formatNumber, cn } from "@/lib/utils";
 
 function AdvertiserProfileContent() {
   const params = useParams();
   const id = params?.id as string;
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const viewId = searchParams.get("viewId") || "";
+
+  const handleCardClick = (id: string) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("viewId", id);
+    router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleCloseModal = () => {
+    const params = new URLSearchParams(window.location.search);
+    params.delete("viewId");
+    router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleNavigateModal = (targetId: string) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("viewId", targetId);
+    router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
+  };
 
   const advertiser = useMemo(() => {
     return mockCreativeAdvertisers.find((a) => a.id === id);
@@ -301,6 +324,7 @@ function AdvertiserProfileContent() {
                   key={ad.id}
                   creative={ad}
                   advertiserName={advertiser.nickname}
+                  onClick={() => handleCardClick(ad.id)}
                 />
               ))}
             </div>
@@ -329,7 +353,14 @@ function AdvertiserProfileContent() {
                   key={ad.id}
                   className="bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg hover:border-zinc-300 dark:hover:border-zinc-700 transition-all flex flex-col relative"
                 >
-                  <Link href={`/dash/creative/${ad.id}`} className="block relative aspect-[16/9] bg-zinc-950/90 dark:bg-black overflow-hidden border-b border-border">
+                  <Link
+                    href={`/dash/creative/${ad.id}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleCardClick(ad.id);
+                    }}
+                    className="block relative aspect-[16/9] bg-zinc-950/90 dark:bg-black overflow-hidden border-b border-border"
+                  >
                     <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center select-none text-zinc-400 dark:text-zinc-600">
                       <svg className="size-8 mb-1.5 stroke-[1.2] opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm-2 14.5v-9l6 4.5z" />
@@ -341,7 +372,14 @@ function AdvertiserProfileContent() {
                     </div>
                   </Link>
                   <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
-                    <Link href={`/dash/creative/${ad.id}`} className="block">
+                    <Link
+                      href={`/dash/creative/${ad.id}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleCardClick(ad.id);
+                      }}
+                      className="block"
+                    >
                       <p className="text-xs text-foreground font-semibold line-clamp-2 hover:text-primary transition-colors leading-relaxed">
                         {ad.caption}
                       </p>
@@ -361,6 +399,16 @@ function AdvertiserProfileContent() {
               ))}
           </div>
         </div>
+      )}
+
+      {/* Modal Creative Detail View */}
+      {viewId && (
+        <CreativeDetailView
+          id={viewId}
+          isModal={true}
+          onClose={handleCloseModal}
+          onNavigate={handleNavigateModal}
+        />
       )}
     </div>
   );
