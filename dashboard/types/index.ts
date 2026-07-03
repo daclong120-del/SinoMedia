@@ -155,3 +155,42 @@ export interface PlatformHealth {
   banned: number;
   total: number;
 }
+
+export interface CreativeAdvertiser {
+  id: string;
+  platform_uid: string;
+  nickname: string;
+  platform: Platform;
+  avatar_url: string;
+  description: string;
+  creative_count: number;
+  total_views: number;
+  total_likes: number;
+  follows_count: number;
+  fans_count: number;
+  crawled_at: string;
+  last_active_at: string;
+}
+
+export interface CreativeAd {
+  id: string;
+  platform: Platform;
+  author_id: string;
+  platform_uid: string;
+  title: string;
+  caption: string;
+  cover_url: string;
+  media_type: "video" | "image" | "carousel";
+  like_count: number;
+  view_count: number;
+  comment_count: number;
+  share_count: number;
+  media_urls: string[];
+  tags: string[];
+  published_at: string;
+  crawled_at: string;
+  is_ad: boolean;
+  growth_rate: number;
+  views_history: { date: string; count: number }[];
+}
+

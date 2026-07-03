@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
+import Script from "next/script";
+
 const inter = Inter({
   variable: "--font-sans",
   subsets: ["latin", "vietnamese"],
@@ -30,7 +32,9 @@ export default function RootLayout({
     >
       <head>
         {/* Dark mode: đọc localStorage trước paint để tránh flash */}
-        <script
+        <Script
+          id="theme-detector"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               try {

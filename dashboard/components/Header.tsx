@@ -6,6 +6,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useAccount } from "@/lib/account-context";
 import { UserIcon, ChevronDownIcon } from "@/components/icons";
+import { mockCreativeAdvertisers, mockCreativeAds } from "@/lib/mock-data";
 
 // ─── Breadcrumb mapping ──────────────────────────────────────
 const ROUTE_LABELS: Record<string, string[]> = {
@@ -19,7 +20,14 @@ const ROUTE_LABELS: Record<string, string[]> = {
   "/dash/audit-logs": ["SinoMedia", "Admin", "Audit Logs"],
   "/dash/settings": ["SinoMedia", "Admin", "Cài đặt"],
   "/dash/settings/permissions": ["SinoMedia", "Admin", "Cài đặt", "Phân quyền"],
+  "/dash/creative/search": ["SinoMedia", "Creative Hub", "Tìm Creative"],
+  "/dash/creative/trending": ["SinoMedia", "Creative Hub", "BXH", "Xu hướng mới nhất"],
+  "/dash/creative/growth": ["SinoMedia", "Creative Hub", "BXH", "Tăng trưởng nhanh"],
+  "/dash/creative/new": ["SinoMedia", "Creative Hub", "BXH", "Creative mới"],
+  "/dash/creative/calendar": ["SinoMedia", "Creative Hub", "Lịch tiếp thị"],
+  "/dash/creative/advertisers": ["SinoMedia", "Creative Hub", "Phân tích Advertiser"],
 };
+
 
 interface HeaderProps {
   onMenuToggle?: () => void;
@@ -38,8 +46,20 @@ export default function Header({ onMenuToggle }: HeaderProps) {
     if (pathname.startsWith("/dash/manage-account")) {
       return ["SinoMedia", "Quản trị", "Quản lý thành viên"];
     }
+    if (pathname.startsWith("/dash/creative/advertisers/")) {
+      const advId = pathname.split("/").pop();
+      const adv = mockCreativeAdvertisers.find((a) => a.id === advId);
+      return ["SinoMedia", "Creative Hub", "Advertiser", adv ? adv.nickname : "Hồ sơ"];
+    }
+    if (pathname.startsWith("/dash/creative/") && !ROUTE_LABELS[pathname]) {
+      const creativeId = pathname.split("/").pop();
+      const creative = mockCreativeAds.find((c) => c.id === creativeId);
+      const label = creative ? (creative.title || (creative.caption.slice(0, 15) + "...")) : "Chi tiết";
+      return ["SinoMedia", "Creative Hub", "Creative", label];
+    }
     return ROUTE_LABELS[pathname] || ["SinoMedia"];
   };
+
 
   const breadcrumb = getBreadcrumbs();
 

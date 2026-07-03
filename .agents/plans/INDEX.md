@@ -12,6 +12,7 @@
 | refactor-project-structure | refactor | ✅ xong | 1/1 phase |
 | refactor-migrate-platforms | refactor | 🔄 đang làm | 2/6 phase |
 | refactor-remove-openai | refactor | ⏳ chưa | 0/3 phase |
+| feat-creative-hub | feature | 🔄 đang làm | 0/? phase |
 
 > Marker: ⏳ chưa · 🔄 đang làm · ✅ xong · ⛔ chặn
 
