@@ -2,14 +2,38 @@
 
 import React, { useState, useEffect, Suspense, useMemo } from "react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import { mockCreativeAds, mockCreativeAdvertisers } from "@/lib/mock-data";
 import CreativeCard from "@/components/dashboard/CreativeCard";
 import Pagination from "@/components/dashboard/Pagination";
 import { PlatformBadge } from "@/components/dashboard/Badges";
+import CreativeDetailView from "@/components/dashboard/CreativeDetailView";
 import { timeAgo, formatNumber, cn } from "@/lib/utils";
 import type { Platform, CreativeAd } from "@/types";
 
 function NewCreativesPageContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const viewId = searchParams.get("viewId") || "";
+
+  const handleCardClick = (id: string) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("viewId", id);
+    router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleCloseModal = () => {
+    const params = new URLSearchParams(window.location.search);
+    params.delete("viewId");
+    router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleNavigateModal = (targetId: string) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("viewId", targetId);
+    router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
+  };
+
   const [selectedPlatform, setSelectedPlatform] = useState<string>("all");
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -213,7 +237,11 @@ function NewCreativesPageContent() {
                       Mới
                     </span>
                   </div>
-                  <CreativeCard creative={ad} advertiserName={adv?.nickname} />
+                  <CreativeCard
+                    creative={ad}
+                    advertiserName={adv?.nickname}
+                    onClick={() => handleCardClick(ad.id)}
+                  />
                 </div>
               );
             })}
@@ -239,6 +267,16 @@ function NewCreativesPageContent() {
             Creative sẽ tự động xuất hiện tại đây khi crawler của bạn thu thập dữ liệu mới.
           </p>
         </div>
+      )}
+
+      {/* Detail view Modal */}
+      {viewId && (
+        <CreativeDetailView
+          id={viewId}
+          isModal={true}
+          onClose={handleCloseModal}
+          onNavigate={handleNavigateModal}
+        />
       )}
     </div>
   );

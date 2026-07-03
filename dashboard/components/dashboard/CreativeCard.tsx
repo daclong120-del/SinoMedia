@@ -10,9 +10,10 @@ interface CreativeCardProps {
   creative: CreativeAd;
   advertiserName?: string;
   className?: string;
+  onClick?: (e: React.MouseEvent) => void;
 }
 
-export default function CreativeCard({ creative, advertiserName, className }: CreativeCardProps) {
+export default function CreativeCard({ creative, advertiserName, className, onClick }: CreativeCardProps) {
   const videoRef = React.useRef<HTMLVideoElement>(null);
 
   const handleMouseEnter = () => {
@@ -25,6 +26,13 @@ export default function CreativeCard({ creative, advertiserName, className }: Cr
     if (creative.media_type === "video" && videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
+    }
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (onClick) {
+      e.preventDefault();
+      onClick(e);
     }
   };
 
@@ -67,6 +75,7 @@ export default function CreativeCard({ creative, advertiserName, className }: Cr
         className="relative block aspect-square bg-zinc-950/90 dark:bg-black overflow-hidden shrink-0 border-b border-border"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onClick={handleClick}
       >
         {creative.media_type === "video" && creative.media_urls?.[0] ? (
           <video
@@ -125,7 +134,7 @@ export default function CreativeCard({ creative, advertiserName, className }: Cr
       {/* Body Content */}
       <div className="p-3 flex-1 flex flex-col justify-between space-y-3">
         <div className="space-y-1.5">
-          <Link href={`/dash/creative/${creative.id}`} className="block">
+          <Link href={`/dash/creative/${creative.id}`} className="block" onClick={handleClick}>
             <p className="text-xs text-foreground font-semibold line-clamp-2 hover:text-primary transition-colors leading-relaxed">
               {creative.caption || "Không có chú thích."}
             </p>

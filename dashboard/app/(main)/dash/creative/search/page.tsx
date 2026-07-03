@@ -1,17 +1,38 @@
 "use client";
 
 import React, { useState, useEffect, Suspense, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { mockCreativeAds, mockCreativeAdvertisers } from "@/lib/mock-data";
 import CreativeCard from "@/components/dashboard/CreativeCard";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
 import Pagination from "@/components/dashboard/Pagination";
+import CreativeDetailView from "@/components/dashboard/CreativeDetailView";
 import { cn } from "@/lib/utils";
 import type { Platform, CreativeAd } from "@/types";
 
 function CreativeSearchPageContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const initialSearch = searchParams.get("q") || "";
+  const viewId = searchParams.get("viewId") || "";
+
+  const handleCardClick = (id: string) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("viewId", id);
+    router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleCloseModal = () => {
+    const params = new URLSearchParams(window.location.search);
+    params.delete("viewId");
+    router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleNavigateModal = (targetId: string) => {
+    const params = new URLSearchParams(window.location.search);
+    params.set("viewId", targetId);
+    router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
+  };
 
   // State filters
   const [search, setSearch] = useState(initialSearch);
@@ -504,6 +525,7 @@ function CreativeSearchPageContent() {
                   key={ad.id}
                   creative={ad}
                   advertiserName={adv ? adv.nickname : "Không rõ"}
+                  onClick={() => handleCardClick(ad.id)}
                 />
               );
             })}
@@ -535,6 +557,16 @@ function CreativeSearchPageContent() {
             Đặt lại tất cả bộ lọc
           </button>
         </div>
+      )}
+
+      {/* Detail view Modal */}
+      {viewId && (
+        <CreativeDetailView
+          id={viewId}
+          isModal={true}
+          onClose={handleCloseModal}
+          onNavigate={handleNavigateModal}
+        />
       )}
     </div>
   );
