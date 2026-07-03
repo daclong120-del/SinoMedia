@@ -1,0 +1,42 @@
+# ============================================================
+# Docker Compose cho Crawler Pipeline
+# Chạy: docker compose up -d --build
+# Log:  docker compose logs -f
+# Dừng: docker compose down
+# ============================================================
+
+services:
+  crawler:
+    build: .
+    container_name: crawler-worker
+    restart: unless-stopped
+
+    # Load biến môi trường từ file .env
+    env_file:
+      - .env
+
+    # Mount thư mục output ra ngoài (giữ dữ liệu khi restart/xóa container)
+    volumes:
+      - ./output:/app/output
+
+    # Giới hạn tài nguyên (tránh OOM kill VPS)
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+        reservations:
+          memory: 512m
+
+    # Health check — kiểm tra container còn sống không
+    healthcheck:
+      test: ["CMD", "node", "-e", "process.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"    # Mỗi file log tối đa 50MB
+        max-file: "3"      # Giữ tối đa 3 file log (150MB tổng)

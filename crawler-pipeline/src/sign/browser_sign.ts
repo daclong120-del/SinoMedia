@@ -1,10 +1,23 @@
-import { launchPersistentContext } from "cloakbrowser";
 import { CONFIG } from "../config.js";
+
+// Dynamic import: cloakbrowser chỉ có trên local (file: protocol), không có trên Docker
+let launchPersistentContext: any;
+try {
+  const mod = await import("cloakbrowser");
+  launchPersistentContext = mod.launchPersistentContext;
+} catch {
+  // Không có cloakbrowser → bootstrapSession sẽ throw error rõ ràng
+  launchPersistentContext = null;
+}
 
 /**
  * # Khởi chạy CloakBrowser để lấy cookies và msToken ban đầu của Douyin
  */
 export async function bootstrapSession(profileDir: string) {
+  if (!launchPersistentContext) {
+    throw new Error("CloakBrowser không có trên môi trường này. Chức năng bootstrap chỉ chạy trên máy local, không chạy trong Docker.");
+  }
+
   const launchOptions: any = {
     userDataDir: profileDir,
     headless: CONFIG.headless,
