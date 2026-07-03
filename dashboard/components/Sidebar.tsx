@@ -245,7 +245,7 @@ export default function Sidebar({ isMobileOpen = false, onMobileClose }: Sidebar
         {/* Search */}
         <div className="px-3 mb-2 mt-2">
           <div onClick={() => searchInputRef.current?.focus()} className={cn(
-            "relative flex items-center rounded-lg border border-border bg-muted/20 hover:bg-muted/40 transition-colors cursor-text",
+            "relative flex items-center rounded-lg border border-sidebar-border bg-sidebar-accent/50 hover:bg-sidebar-accent transition-colors cursor-text",
             isCollapsed ? "lg:justify-center lg:h-9" : "h-9 px-3"
           )}>
             <SearchIcon className="text-muted-foreground shrink-0" />
@@ -261,7 +261,7 @@ export default function Sidebar({ isMobileOpen = false, onMobileClose }: Sidebar
               )}
             />
             <kbd className={cn(
-              "hidden sm:inline-flex h-5 select-none items-center gap-0.5 rounded border border-border bg-background px-1.5 font-mono text-[9px] font-medium text-muted-foreground pointer-events-none shrink-0",
+              "hidden sm:inline-flex h-5 select-none items-center gap-0.5 rounded border border-sidebar-border bg-sidebar-accent px-1.5 font-mono text-[9px] font-medium text-muted-foreground pointer-events-none shrink-0",
               isCollapsed && "lg:hidden"
             )}>
               Ctrl K

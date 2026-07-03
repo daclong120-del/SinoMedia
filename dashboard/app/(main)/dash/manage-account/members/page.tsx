@@ -37,25 +37,52 @@ interface ApiTokenItem {
 
 export default function MembersPage() {
   const { activeAccount } = useAccount();
-  const [activeTab, setActiveTab] = useState<"members" | "tokens">("members");
+  const [activeTab, setActiveTab] = useState<"members" | "tokens" | "roles">("members");
   const activeEmail = activeAccount.includes("@") ? activeAccount : `${activeAccount}@gmail.com`;
+
+  // Roles & Permissions states
+  const [selectedRoleIndex, setSelectedRoleIndex] = useState(0);
+  const [rolesPermissions, setRolesPermissions] = useState([
+    {
+      roleName: "Admin",
+      description: "Có toàn quyền quản trị, cấu hình hệ thống, quản lý tác vụ crawl và thành viên.",
+      permissions: { tasks: true, accounts: true, proxies: true, settings: true, members: true, logs: true },
+      isLocked: true,
+    },
+    {
+      roleName: "User",
+      description: "Chỉ xem dữ liệu, giám sát trạng thái và xem dữ liệu đã thu thập.",
+      permissions: { tasks: false, accounts: false, proxies: false, settings: false, members: false, logs: true },
+      isLocked: false,
+    },
+  ]);
+
+  // Custom Dynamic Roles Management state
+  const [isAddRoleOpen, setIsAddRoleOpen] = useState(false);
+  const [newRoleName, setNewRoleName] = useState("");
+  const [newRoleDescription, setNewRoleDescription] = useState("");
+  const [newRolePermissions, setNewRolePermissions] = useState({ tasks: false, accounts: false, proxies: false, settings: false, members: false, logs: true });
+
+  const [isEditRoleInfoOpen, setIsEditRoleInfoOpen] = useState(false);
+  const [editRoleInfoName, setEditRoleInfoName] = useState("");
+  const [editRoleInfoDescription, setEditRoleInfoDescription] = useState("");
 
   // Invited/custom members state
   const [invitedMembers, setInvitedMembers] = useState<MemberItem[]>([
-    { name: "Security Auditor", email: "auditor@sinomedia.vn", role: "Read Only Admin", status: "Active", isSuperAdmin: false },
-    { name: "Dev Engineer", email: "engineer@sinomedia.vn", role: "Developer", status: "Pending", isSuperAdmin: false }
+    { name: "Security Auditor", email: "auditor@sinomedia.vn", role: "User", status: "Active", isSuperAdmin: false },
+    { name: "Dev Engineer", email: "engineer@sinomedia.vn", role: "Admin", status: "Pending", isSuperAdmin: false }
   ]);
 
-  // Compute total members list (with current active account as Super Admin at index 0)
+  // Compute total members list (with current active account as Admin at index 0)
   const members: MemberItem[] = [
-    { name: "Super Admin", email: activeEmail, role: "Super Admin", status: "Active", isSuperAdmin: true },
+    { name: "Chủ sở hữu", email: activeEmail, role: "Admin", status: "Active", isSuperAdmin: true },
     ...invitedMembers
   ];
 
   // API Tokens states
   const [apiTokens, setApiTokens] = useState<ApiTokenItem[]>([
     { id: "t1", name: "SinoMedia Crawler Service", tokenPrefix: "sm_live_a1b2...", role: "Admin", createdDate: "2026-06-20" },
-    { id: "t2", name: "Backup exporter utility", tokenPrefix: "sm_live_9z8y...", role: "Read Only Admin", createdDate: "2026-07-01" }
+    { id: "t2", name: "Backup exporter utility", tokenPrefix: "sm_live_9z8y...", role: "User", createdDate: "2026-07-01" }
   ]);
 
   const [memberSearchQuery, setMemberSearchQuery] = useState("");
@@ -68,7 +95,7 @@ export default function MembersPage() {
   
   // Edit Role State
   const [editingMember, setEditingMember] = useState<MemberItem | null>(null);
-  const [editingRole, setEditingRole] = useState<string>("Developer");
+  const [editingRole, setEditingRole] = useState<string>("User");
 
   // Create API Token Modal State
   const [isCreateTokenOpen, setIsCreateTokenOpen] = useState(false);
@@ -135,6 +162,70 @@ export default function MembersPage() {
     );
     showToast(`Đã cập nhật vai trò của ${editingMember.email} thành ${editingRole}`);
     setEditingMember(null);
+  };
+
+  const handleAddRoleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newRoleName) return;
+
+    if (rolesPermissions.some(r => r.roleName.toLowerCase() === newRoleName.toLowerCase())) {
+      showToast("Vai trò với tên này đã tồn tại.", "info");
+      return;
+    }
+
+    const newRole = {
+      roleName: newRoleName,
+      description: newRoleDescription || "Vai trò tùy chỉnh mới.",
+      permissions: newRolePermissions,
+      isLocked: false,
+    };
+
+    setRolesPermissions([...rolesPermissions, newRole]);
+    setSelectedRoleIndex(rolesPermissions.length);
+    setNewRoleName("");
+    setNewRoleDescription("");
+    setNewRolePermissions({ tasks: false, accounts: false, proxies: false, settings: false, members: false, logs: true });
+    setIsAddRoleOpen(false);
+    showToast(`Đã thêm vai trò mới: ${newRoleName}`);
+  };
+
+  const handleDeleteRole = (index: number) => {
+    const roleToDelete = rolesPermissions[index];
+    if (roleToDelete.isLocked) return;
+
+    setRolesPermissions(rolesPermissions.filter((_, i) => i !== index));
+    setSelectedRoleIndex(0);
+    showToast(`Đã xóa vai trò: ${roleToDelete.roleName}`);
+  };
+
+  const handleEditRoleInfoSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editRoleInfoName) return;
+
+    const oldName = rolesPermissions[selectedRoleIndex].roleName;
+    if (oldName.toLowerCase() !== editRoleInfoName.toLowerCase() &&
+        rolesPermissions.some(r => r.roleName.toLowerCase() === editRoleInfoName.toLowerCase())) {
+      showToast("Vai trò với tên này đã tồn tại.", "info");
+      return;
+    }
+
+    setRolesPermissions(
+      rolesPermissions.map((r, i) =>
+        i === selectedRoleIndex
+          ? { ...r, roleName: editRoleInfoName, description: editRoleInfoDescription }
+          : r
+      )
+    );
+    
+    setInvitedMembers(prev =>
+      prev.map(m => m.role === oldName ? { ...m, role: editRoleInfoName } : m)
+    );
+    setApiTokens(prev =>
+      prev.map(t => t.role === oldName ? { ...t, role: editRoleInfoName } : t)
+    );
+
+    setIsEditRoleInfoOpen(false);
+    showToast("Đã cập nhật thông tin vai trò.");
   };
 
   const handleCreateTokenSubmit = (e: React.FormEvent) => {
@@ -221,6 +312,18 @@ export default function MembersPage() {
           <Key size={14} />
           Khóa truy cập API
         </button>
+        <button
+          onClick={() => setActiveTab("roles")}
+          className={cn(
+            "px-4 py-2 border-b-2 -mb-[2px] transition-all cursor-pointer flex items-center gap-1.5",
+            activeTab === "roles"
+              ? "border-primary text-foreground font-bold"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <ShieldCheck size={14} />
+          Vai trò & Quyền hạn
+        </button>
       </div>
 
       {/* RENDER MEMBERS TAB */}
@@ -244,10 +347,7 @@ export default function MembersPage() {
                 onChange={setRoleFilter}
                 options={[
                   { value: "All roles", label: "Tất cả vai trò" },
-                  { value: "Super Admin", label: "Super Admin" },
-                  { value: "Admin", label: "Admin" },
-                  { value: "Developer", label: "Developer" },
-                  { value: "Read Only Admin", label: "Read Only Admin" }
+                  ...rolesPermissions.map(r => ({ value: r.roleName, label: r.roleName }))
                 ]}
               />
               <button
@@ -401,6 +501,244 @@ export default function MembersPage() {
         </div>
       )}
 
+      {/* RENDER ROLES & PERMISSIONS TAB */}
+      {activeTab === "roles" && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Roles List Card */}
+          <div className="md:col-span-1 bg-card rounded-xl border border-border p-4 space-y-3 shadow-sm select-none">
+            <div className="flex items-center justify-between pb-1 border-b border-border/40">
+              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Danh sách vai trò</h3>
+              <button
+                onClick={() => setIsAddRoleOpen(true)}
+                className="p-1 hover:bg-muted rounded text-primary hover:text-primary-hover flex items-center gap-1 cursor-pointer text-[10px] font-bold transition-colors"
+              >
+                <Plus size={12} /> Thêm vai trò
+              </button>
+            </div>
+            <div className="space-y-1">
+              {rolesPermissions.map((role, idx) => (
+                <button
+                  key={role.roleName}
+                  onClick={() => setSelectedRoleIndex(idx)}
+                  className={cn(
+                    "w-full text-left p-3 rounded-lg border transition-all text-xs flex flex-col gap-1 cursor-pointer",
+                    selectedRoleIndex === idx
+                      ? "border-primary bg-primary/5 text-foreground"
+                      : "border-border/60 hover:bg-muted text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <span className="font-bold">{role.roleName}</span>
+                  <span className="text-[10px] opacity-90 truncate max-w-xs">{role.description}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Permissions Matrix Detail Card */}
+          <div className="md:col-span-2 bg-card rounded-xl border border-border p-5 space-y-4 shadow-sm flex flex-col justify-between">
+            <div>
+              {/* Header */}
+              <div className="border-b border-border pb-3 mb-4 flex items-start justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">{rolesPermissions[selectedRoleIndex].roleName}</h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {rolesPermissions[selectedRoleIndex].description}
+                  </p>
+                </div>
+                {!rolesPermissions[selectedRoleIndex].isLocked && (
+                  <button
+                    onClick={() => {
+                      setEditRoleInfoName(rolesPermissions[selectedRoleIndex].roleName);
+                      setEditRoleInfoDescription(rolesPermissions[selectedRoleIndex].description);
+                      setIsEditRoleInfoOpen(true);
+                    }}
+                    className="text-[11px] font-bold text-primary hover:underline cursor-pointer"
+                  >
+                    Sửa thông tin
+                  </button>
+                )}
+              </div>
+
+              {/* Permissions List */}
+              <div className="space-y-3">
+                <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Quyền hạn chi tiết</h4>
+                
+                {/* Task Permission */}
+                <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/10">
+                  <div className="space-y-0.5 max-w-[80%]">
+                    <p className="text-xs font-bold text-foreground">Tác vụ crawler</p>
+                    <p className="text-[10px] text-muted-foreground">Tạo mới, khởi chạy, tạm dừng, thay đổi và xóa các chiến dịch cào dữ liệu mạng xã hội.</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={rolesPermissions[selectedRoleIndex].permissions.tasks}
+                    disabled={rolesPermissions[selectedRoleIndex].isLocked}
+                    onChange={(e) => {
+                      const updated = [...rolesPermissions];
+                      updated[selectedRoleIndex].permissions.tasks = e.target.checked;
+                      setRolesPermissions(updated);
+                    }}
+                    className="rounded border-border text-primary focus:ring-primary size-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                </div>
+
+                {/* Accounts Permission */}
+                <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/10">
+                  <div className="space-y-0.5 max-w-[80%]">
+                    <p className="text-xs font-bold text-foreground">Tài khoản crawler</p>
+                    <p className="text-[10px] text-muted-foreground">Quản lý kho tài khoản dùng để đăng nhập cào tin, kiểm tra trạng thái sống chết của cookie.</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={rolesPermissions[selectedRoleIndex].permissions.accounts}
+                    disabled={rolesPermissions[selectedRoleIndex].isLocked}
+                    onChange={(e) => {
+                      const updated = [...rolesPermissions];
+                      updated[selectedRoleIndex].permissions.accounts = e.target.checked;
+                      setRolesPermissions(updated);
+                    }}
+                    className="rounded border-border text-primary focus:ring-primary size-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                </div>
+
+                {/* Proxies Permission */}
+                <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/10">
+                  <div className="space-y-0.5 max-w-[80%]">
+                    <p className="text-xs font-bold text-foreground">Proxy và Mạng</p>
+                    <p className="text-[10px] text-muted-foreground">Thêm, xóa và cấu hình các proxy máy chủ để tránh bị chặn IP khi thực hiện crawl diện rộng.</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={rolesPermissions[selectedRoleIndex].permissions.proxies}
+                    disabled={rolesPermissions[selectedRoleIndex].isLocked}
+                    onChange={(e) => {
+                      const updated = [...rolesPermissions];
+                      updated[selectedRoleIndex].permissions.proxies = e.target.checked;
+                      setRolesPermissions(updated);
+                    }}
+                    className="rounded border-border text-primary focus:ring-primary size-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                </div>
+
+                {/* Settings Permission */}
+                <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/10">
+                  <div className="space-y-0.5 max-w-[80%]">
+                    <p className="text-xs font-bold text-foreground">Cấu hình hệ thống</p>
+                    <p className="text-[10px] text-muted-foreground">Thay đổi tham số luồng crawl, giới hạn tài nguyên máy chủ, cài đặt webhook và 2Captcha.</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={rolesPermissions[selectedRoleIndex].permissions.settings}
+                    disabled={rolesPermissions[selectedRoleIndex].isLocked}
+                    onChange={(e) => {
+                      const updated = [...rolesPermissions];
+                      updated[selectedRoleIndex].permissions.settings = e.target.checked;
+                      setRolesPermissions(updated);
+                    }}
+                    className="rounded border-border text-primary focus:ring-primary size-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                </div>
+
+                {/* Members Permission */}
+                <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/10">
+                  <div className="space-y-0.5 max-w-[80%]">
+                    <p className="text-xs font-bold text-foreground">Quản trị thành viên và API</p>
+                    <p className="text-[10px] text-muted-foreground">Mời người dùng mới vào hệ thống, điều chỉnh vai trò và tạo mới/thu hồi các mã khóa truy cập API.</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={rolesPermissions[selectedRoleIndex].permissions.members}
+                    disabled={rolesPermissions[selectedRoleIndex].isLocked}
+                    onChange={(e) => {
+                      const updated = [...rolesPermissions];
+                      updated[selectedRoleIndex].permissions.members = e.target.checked;
+                      setRolesPermissions(updated);
+                    }}
+                    className="rounded border-border text-primary focus:ring-primary size-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                </div>
+
+                {/* Audit Logs Permission */}
+                <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/10">
+                  <div className="space-y-0.5 max-w-[80%]">
+                    <p className="text-xs font-bold text-foreground">Nhật ký hoạt động</p>
+                    <p className="text-[10px] text-muted-foreground">Xem toàn bộ lịch sử thao tác của các thành viên khác để kiểm soát bảo mật hệ thống.</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={rolesPermissions[selectedRoleIndex].permissions.logs}
+                    disabled={rolesPermissions[selectedRoleIndex].isLocked}
+                    onChange={(e) => {
+                      const updated = [...rolesPermissions];
+                      updated[selectedRoleIndex].permissions.logs = e.target.checked;
+                      setRolesPermissions(updated);
+                    }}
+                    className="rounded border-border text-primary focus:ring-primary size-4 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Save Button */}
+            <div className="border-t border-border pt-4 mt-6 flex justify-between items-center">
+              <div>
+                {!rolesPermissions[selectedRoleIndex].isLocked && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteRole(selectedRoleIndex)}
+                    className="h-8 px-3 rounded-lg border border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600 dark:border-red-900/30 dark:hover:bg-red-950/20 text-xs font-semibold cursor-pointer flex items-center gap-1"
+                  >
+                    <Trash2 size={12} /> Xóa vai trò
+                  </button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const resetData = [
+                      {
+                        roleName: "Admin",
+                        description: "Có toàn quyền quản trị, cấu hình hệ thống, quản lý tác vụ crawl và thành viên.",
+                        permissions: { tasks: true, accounts: true, proxies: true, settings: true, members: true, logs: true },
+                        isLocked: true,
+                      },
+                      {
+                        roleName: "User",
+                        description: "Chỉ xem dữ liệu, giám sát trạng thái và xem dữ liệu đã thu thập.",
+                        permissions: { tasks: false, accounts: false, proxies: false, settings: false, members: false, logs: true },
+                        isLocked: true,
+                      },
+                    ];
+                    const updated = [...rolesPermissions];
+                    const def = resetData.find(d => d.roleName === rolesPermissions[selectedRoleIndex].roleName);
+                    if (def) {
+                      updated[selectedRoleIndex].permissions = def.permissions;
+                    } else {
+                      updated[selectedRoleIndex].permissions = { tasks: false, accounts: false, proxies: false, settings: false, members: false, logs: true };
+                    }
+                    setRolesPermissions(updated);
+                    showToast(`Đã khôi phục quyền mặc định của vai trò ${rolesPermissions[selectedRoleIndex].roleName}`);
+                  }}
+                  className="h-8 px-3 rounded-lg border border-border bg-card text-muted-foreground hover:bg-muted text-xs font-semibold cursor-pointer"
+                >
+                  Khôi phục mặc định
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    showToast(`Đã lưu thay đổi quyền hạn cho vai trò ${rolesPermissions[selectedRoleIndex].roleName}`);
+                  }}
+                  className="h-8 px-4 rounded-lg bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-semibold shadow-sm cursor-pointer"
+                >
+                  Lưu quyền hạn
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* MODALS */}
 
       {/* Invite Member Modal */}
@@ -437,11 +775,7 @@ export default function MembersPage() {
                 <DropdownSelect
                   value={inviteRole}
                   onChange={setInviteRole}
-                  options={[
-                    { value: "Admin", label: "Admin" },
-                    { value: "Developer", label: "Developer" },
-                    { value: "Read Only Admin", label: "Read Only Admin" }
-                  ]}
+                  options={rolesPermissions.map(r => ({ value: r.roleName, label: r.roleName }))}
                   fullWidth
                 />
               </div>
@@ -498,11 +832,7 @@ export default function MembersPage() {
                 <DropdownSelect
                   value={editingRole}
                   onChange={setEditingRole}
-                  options={[
-                    { value: "Admin", label: "Admin" },
-                    { value: "Developer", label: "Developer" },
-                    { value: "Read Only Admin", label: "Read Only Admin" }
-                  ]}
+                  options={rolesPermissions.map(r => ({ value: r.roleName, label: r.roleName }))}
                   fullWidth
                 />
               </div>
@@ -561,11 +891,7 @@ export default function MembersPage() {
                 <DropdownSelect
                   value={newTokenRole}
                   onChange={setNewTokenRole}
-                  options={[
-                    { value: "Admin", label: "Admin" },
-                    { value: "Developer", label: "Developer" },
-                    { value: "Read Only Admin", label: "Read Only Admin" }
-                  ]}
+                  options={rolesPermissions.map(r => ({ value: r.roleName, label: r.roleName }))}
                   fullWidth
                 />
               </div>
@@ -583,6 +909,124 @@ export default function MembersPage() {
                   className="h-9 px-4 rounded-lg bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-semibold shadow-sm transition-colors cursor-pointer"
                 >
                   Tạo Token
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Role Modal */}
+      {isAddRoleOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-card border border-border rounded-xl shadow-xl overflow-hidden animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between p-4 border-b border-border select-none">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                <ShieldCheck size={16} className="text-primary" />
+                Thêm vai trò mới
+              </h3>
+              <button
+                onClick={() => setIsAddRoleOpen(false)}
+                className="p-1 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <form onSubmit={handleAddRoleSubmit} className="p-4 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-muted-foreground uppercase">Tên vai trò mới</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="VD: Nhân viên hỗ trợ"
+                  value={newRoleName}
+                  onChange={(e) => setNewRoleName(e.target.value)}
+                  className="w-full h-9 px-3 rounded-lg border border-border bg-card text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-muted-foreground uppercase">Mô tả vai trò mới</label>
+                <textarea
+                  placeholder="Mô tả tóm tắt trách nhiệm của vai trò này"
+                  value={newRoleDescription}
+                  onChange={(e) => setNewRoleDescription(e.target.value)}
+                  className="w-full h-20 p-3 rounded-lg border border-border bg-card text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors resize-none"
+                />
+              </div>
+
+              <div className="pt-4 border-t border-border flex justify-end gap-2 select-none">
+                <button
+                  type="button"
+                  onClick={() => setIsAddRoleOpen(false)}
+                  className="h-9 px-4 rounded-lg border border-border hover:bg-muted text-xs font-semibold transition-colors cursor-pointer"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="h-9 px-4 rounded-lg bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+                >
+                  Thêm vai trò
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Role Info Modal */}
+      {isEditRoleInfoOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-card border border-border rounded-xl shadow-xl overflow-hidden animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between p-4 border-b border-border select-none">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                <ShieldCheck size={16} className="text-primary" />
+                Sửa thông tin vai trò
+              </h3>
+              <button
+                onClick={() => setIsEditRoleInfoOpen(false)}
+                className="p-1 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <form onSubmit={handleEditRoleInfoSubmit} className="p-4 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-muted-foreground uppercase">Tên vai trò mới</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="VD: Quản trị kỹ thuật"
+                  value={editRoleInfoName}
+                  onChange={(e) => setEditRoleInfoName(e.target.value)}
+                  className="w-full h-9 px-3 rounded-lg border border-border bg-card text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-muted-foreground uppercase">Mô tả vai trò mới</label>
+                <textarea
+                  placeholder="Mô tả tóm tắt trách nhiệm của vai trò này"
+                  value={editRoleInfoDescription}
+                  onChange={(e) => setEditRoleInfoDescription(e.target.value)}
+                  className="w-full h-20 p-3 rounded-lg border border-border bg-card text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors resize-none"
+                />
+              </div>
+
+              <div className="pt-4 border-t border-border flex justify-end gap-2 select-none">
+                <button
+                  type="button"
+                  onClick={() => setIsEditRoleInfoOpen(false)}
+                  className="h-9 px-4 rounded-lg border border-border hover:bg-muted text-xs font-semibold transition-colors cursor-pointer"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="h-9 px-4 rounded-lg bg-primary text-primary-foreground hover:bg-primary/95 text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+                >
+                  Lưu thay đổi
                 </button>
               </div>
             </form>
