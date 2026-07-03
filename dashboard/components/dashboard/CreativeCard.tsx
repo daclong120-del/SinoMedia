@@ -113,7 +113,7 @@ export default function CreativeCard({ creative, advertiserName, className, onCl
         <div className="absolute top-2 left-2 z-10">
           <PlatformBadge platform={creative.platform} className="shadow-sm backdrop-blur-sm" />
         </div>
-        <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5">
+        <div className="absolute bottom-2 right-2 z-10 flex items-center gap-1.5">
           <span className="h-5 px-1.5 rounded bg-zinc-900/80 text-white text-[10px] font-semibold flex items-center justify-center gap-1 backdrop-blur-sm shadow-sm">
             {renderMediaTypeIcon()}
             <span className="capitalize">{creative.media_type}</span>

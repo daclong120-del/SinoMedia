@@ -48,9 +48,8 @@ function GrowthPageContent() {
               value={comparisonPeriod}
               onChange={setComparisonPeriod}
               options={[
-                { value: "7d_vs_7d", label: "7 ngày gần nhất vs 7 ngày trước đó" },
-                { value: "30d_vs_30d", label: "30 ngày gần nhất vs 30 ngày trước đó" },
-                { value: "7d_vs_30d", label: "7 ngày gần nhất vs 30 ngày trước đó" },
+                { value: "7d_vs_7d", label: "7 ngày gần nhất" },
+                { value: "30d_vs_30d", label: "30 ngày gần nhất" },
               ]}
               fullWidth
             />

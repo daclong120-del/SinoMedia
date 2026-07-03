@@ -57,3 +57,17 @@
   - **Đồng bộ trạng thái:** Cả hai trang `search` và `new` giám sát sự thay đổi của tham số `viewId` trong URL để render Modal `CreativeDetailView` lồng đè lên giao diện hiện tại mà không unmount trang cha. Nhờ đó, tất cả trạng thái tìm kiếm, phân trang và cuộn trang đều được bảo toàn 100%. Khi tắt modal, tham số `viewId` được xóa khỏi URL để trở lại trạng thái ban đầu. Đường dẫn URL này cũng hoàn toàn có thể bookmark/chia sẻ trực tiếp vì nếu truy cập trực tiếp bằng đường dẫn chứa `viewId`, modal sẽ tự động mở sẵn.
   - **Soft-navigation trong Modal:** Khi nhấn vào các nút tương tác chuyển tiếp sang Creative khác nằm trong Modal, Modal sẽ thực hiện cập nhật mềm `viewId` lên URL thay vì chuyển hướng cứng, đảm bảo luồng trải nghiệm cực kỳ mượt mà và nhanh chóng.
   - **Tối ưu hóa trang chi tiết độc lập:** Đơn giản hóa trang chi tiết cũ `/dash/creative/[id]/page.tsx` thành một trang chứa nhẹ nhàng gọi trực tiếp `CreativeDetailView` với cờ `isModal={false}`. Điều này giúp loại bỏ hoàn toàn việc lặp mã và đảm bảo tính nhất quán giao diện giữa chế độ Modal và chế độ Trang độc lập.
+
+## 2026-07-03 — Tối ưu hóa tải dữ liệu (Lazy Loading & Metadata Preload) bảo vệ tài nguyên Server [initiative: refactor-creative-load-optimization]
+- **Bối cảnh:**
+  - Trang danh sách hiển thị 60 creative một lần (pageSize = 60). Nếu tải trước toàn bộ dữ liệu chi tiết, các creative tương tự, hoặc stream video cho cả 60 item cùng một lúc sẽ gây quá tải nặng cho server và tiêu tốn băng thông cực lớn của khách hàng.
+- **Phương án đã thực hiện:**
+  - **Tách biệt dữ liệu Danh sách & Chi tiết (Lazy Loading):** 
+    - Lưới danh sách bên ngoài chỉ render các dữ liệu cơ bản (id, title, cover_url, metrics tổng quan).
+    - Component `CreativeDetailView` chỉ được render và mount khi người dùng click vào card (khi URL xuất hiện `viewId`). 
+    - Vì thế, việc truy vấn dữ liệu chi tiết nâng cao (bảng phân tích tần suất, tag chi tiết, các creative tương tự) hoàn toàn chạy theo cơ chế "on-demand" (chỉ gọi khi cần) cho đúng 1 creative duy nhất được mở.
+  - **Tải trước video tối giản (Metadata Preload):**
+    - Đặt thuộc tính `preload="metadata"` cho thẻ `<video>` ở các card trong danh sách. 
+    - Trình duyệt chỉ gửi request lấy vài KB đầu tiên để trích xuất tỷ lệ khung hình và ảnh thumbnail ban đầu mà không stream toàn bộ file video.
+    - Video đầy đủ chỉ thực sự được stream khi người dùng di chuột vào card (hover to play) hoặc nhấp mở chi tiết.
+  - **Phân trang độc lập:** Khi chuyển sang trang kế tiếp, hệ thống chỉ gọi lại API danh sách để lấy 60 item mới dạng thu gọn chứ tuyệt đối không preload bất kỳ thông tin chi tiết nào.

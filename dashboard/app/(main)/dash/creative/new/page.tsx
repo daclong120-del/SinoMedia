@@ -35,8 +35,6 @@ function NewCreativesPageContent() {
   };
 
   const [selectedPlatform, setSelectedPlatform] = useState<string>("all");
-  const [autoRefresh, setAutoRefresh] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -137,19 +135,6 @@ function NewCreativesPageContent() {
     setCurrentPage(1);
   }, [selectedPlatform]);
 
-  // Simple auto refresh mock
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (autoRefresh) {
-      interval = setInterval(() => {
-        setRefreshing(true);
-        setTimeout(() => setRefreshing(false), 800);
-      }, 10000); // refresh every 10s for demo
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [autoRefresh]);
 
   const filtered = extendedMockCreativeAds.filter((ad) => {
     return selectedPlatform === "all" || ad.platform === selectedPlatform;
@@ -170,26 +155,6 @@ function NewCreativesPageContent() {
         <div>
           <h1 className="text-lg font-bold text-foreground">Creative mới</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Dòng thời gian các creative vừa được hệ thống crawler phát hiện và thu thập</p>
-        </div>
-        <div className="flex items-center gap-3">
-          {refreshing && (
-            <span className="text-[10px] text-emerald-500 font-medium flex items-center gap-1">
-              <span className="size-1.5 rounded-full bg-emerald-500 animate-ping" />
-              Đang làm mới...
-            </span>
-          )}
-          <button
-            onClick={() => setAutoRefresh(!autoRefresh)}
-            className={cn(
-              "h-8 px-3 text-xs font-semibold rounded-lg border transition-all flex items-center gap-1.5",
-              autoRefresh
-                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
-                : "bg-card border-border text-foreground hover:bg-muted"
-            )}
-          >
-            <span className={cn("size-2 rounded-full", autoRefresh ? "bg-emerald-500 animate-pulse" : "bg-zinc-400")} />
-            Tự động cập nhật
-          </button>
         </div>
       </div>
 
