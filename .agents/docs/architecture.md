@@ -34,6 +34,12 @@ Dưới đây là sơ đồ hình cây của toàn bộ dự án và chức năn
 ```
 expo-supabase-ai-template/
 ├── .agents/                   # Nhật ký hoạt động và kế hoạch của AI Agents
+├── dashboard/                 # 🖥️ SinoMedia Crawler Dashboard (Next.js 16 + Tailwind CSS v4)
+│   ├── app/                   # App Router định tuyến các trang Dashboard
+│   ├── components/            # Các UI component đặc thù của Dashboard (MetricCard, Badges, ConsolePanel)
+│   ├── lib/                   # Chứa mock-data, các utility, và platform config
+│   ├── types/                 # Hợp đồng TypeScript (Entities: Task, Account, Proxy, Author, Post,...)
+│   └── package.json           # Danh sách thư viện phụ thuộc của Dashboard
 ├── assets/                    # Tài nguyên tĩnh của ứng dụng (logo, hình ảnh, splash screen)
 ├── context/                   # Quản lý trạng thái toàn cục của React
 │   └── SessionProvider.tsx    # Cung cấp phiên đăng nhập (session) cho toàn bộ app
