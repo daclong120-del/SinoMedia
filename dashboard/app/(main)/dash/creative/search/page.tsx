@@ -7,7 +7,7 @@ import CreativeCard from "@/components/dashboard/CreativeCard";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
 import Pagination from "@/components/dashboard/Pagination";
 import { cn } from "@/lib/utils";
-import type { Platform } from "@/types";
+import type { Platform, CreativeAd } from "@/types";
 
 function CreativeSearchPageContent() {
   const searchParams = useSearchParams();
@@ -34,18 +34,88 @@ function CreativeSearchPageContent() {
   // Multiply mock data to support paginating 60 items per page (180 items total)
   const extendedMockCreativeAds = useMemo(() => {
     const list = [...mockCreativeAds];
-    const result = [];
+    const result: CreativeAd[] = [];
+
+    const imagePool = [
+      "/assets_test/image/TikTok_SPY_30062026_1.jpg",
+      "/assets_test/image/TikTok_SPY_30062026_2.jpg",
+      "/assets_test/image/Instagram_SPY_30062026_1.jpg",
+      "/assets_test/image/Facebook_SPY_30062026_1.jpg",
+      "/assets_test/image/Spotify_SPY_30062026_1.jpg",
+      "/assets_test/image/StarMaker_SPY_30062026_1.jpg",
+      "/assets_test/image/StarMaker_SPY_30062026_2.jpg",
+      "/assets_test/image/Temu_SPY_30062026_1.jpg",
+      "/assets_test/image/Temu_SPY_30062026_2.jpg",
+      "/assets_test/image/Alibabacom_SPY_30062026_1.jpg",
+      "/assets_test/image/FxPro_SPY_30062026_1.jpg",
+      "/assets_test/image/FxPro_SPY_30062026_2.jpg",
+      "/assets_test/image/WeatherRain_SPY_30062026_1.jpg",
+      "/assets_test/image/ASTRO_SPY_30062026_1.jpg",
+      "/assets_test/image/Glovo_SPY_30062026_1.jpg",
+      "/assets_test/image/Glovo_SPY_30062026_2.jpg",
+      "/assets_test/image/Magalu_SPY_30062026_1.jpg",
+      "/assets_test/image/Specialized_SPY_30062026_1.jpg"
+    ];
+
+    const videoPool = [
+      "/assets_test/video/English/TikTok_SPY_30062026_1.mp4",
+      "/assets_test/video/English/FontKeyboard_SPY_30062026_1.mp4",
+      "/assets_test/video/English/HDVideo_SPY_30062026_1.mp4",
+      "/assets_test/video/English/GlobalNews_SPY_30062026_1.mp4",
+      "/assets_test/video/English/GFXHyperUPFPS_SPY_30062026_1.mp4",
+      "/assets_test/video/English/AITranslator_SPY_30062026_11.mp4",
+      "/assets_test/video/English/CONTOURDIABETES_SPY_30062026_1.mp4",
+      "/assets_test/video/English/HSVPN_SPY_30062026_1.mp4",
+      "/assets_test/video/English/MoboReels_SPY_30062026_1.mp4",
+      "/assets_test/video/English/PersonalPay_SPY_30062026_1.mp4",
+      "/assets_test/video/English/PicTrace_SPY_30062026_1.mp4",
+      "/assets_test/video/English/Plantify_SPY_30062026_1.mp4",
+      "/assets_test/video/English/RemoteControl_SPY_30062026_1.mp4",
+      "/assets_test/video/English/ShopeeBrands_SPY_30062026_1.mp4",
+      "/assets_test/video/English/VPN_SPY_30062026_1.mp4",
+      "/assets_test/video/English/VidCash_SPY_30062026_1.mp4"
+    ];
+
     // We multiply 10 unique creatives by 18 to get 180 items
     for (let i = 0; i < 18; i++) {
       list.forEach((ad, index) => {
+        let copyCover = imagePool[(index * 7 + i * 3) % imagePool.length];
+        let copyVideo = videoPool[(index * 5 + i * 2) % videoPool.length];
+        let viewCount = Math.round(ad.view_count * (1 + ((i + index) % 5) * 0.12));
+        let likeCount = Math.round(ad.like_count * (1 + ((i + index) % 4) * 0.08));
+        let crawledAt = new Date(new Date(ad.crawled_at).getTime() - i * 3600000).toISOString();
+        let mediaType = ad.media_type;
+
+        // Custom overrides for the first 3 items (CR-001_copy_0, CR-002_copy_0, CR-003_copy_0)
+        if (i === 0 && ad.id === "CR-001") {
+          copyCover = "/assets_test/image/TikTok_SPY_30062026_1.jpg";
+          copyVideo = "/assets_test/video/BN/AITranslator_SPY_30062026_12.mp4";
+          viewCount = 6000000;
+          crawledAt = new Date().toISOString();
+          mediaType = "video";
+        } else if (i === 0 && ad.id === "CR-002") {
+          copyCover = "/assets_test/image/StarMaker_SPY_30062026_1.jpg";
+          copyVideo = "/assets_test/video/BN/AITranslator_SPY_30062026_92.mp4";
+          viewCount = 5900000;
+          crawledAt = new Date(Date.now() - 60000).toISOString();
+          mediaType = "video";
+        } else if (i === 0 && ad.id === "CR-003") {
+          copyCover = "/assets_test/image/Temu_SPY_30062026_1.jpg";
+          copyVideo = "/assets_test/video/BN/OlymptradeTrading_SPY_30062026_1.mp4";
+          viewCount = 5800000;
+          crawledAt = new Date(Date.now() - 120000).toISOString();
+          mediaType = "video";
+        }
+
         result.push({
           ...ad,
           id: `${ad.id}_copy_${i}`,
-          // Slightly vary metrics so the list isn't completely identical
-          view_count: Math.round(ad.view_count * (1 + ((i + index) % 5) * 0.12)),
-          like_count: Math.round(ad.like_count * (1 + ((i + index) % 4) * 0.08)),
-          // Slightly stagger crawled_at
-          crawled_at: new Date(new Date(ad.crawled_at).getTime() - i * 3600000).toISOString(),
+          cover_url: copyCover,
+          media_urls: mediaType === "video" ? [copyVideo] : [copyCover],
+          media_type: mediaType,
+          view_count: viewCount,
+          like_count: likeCount,
+          crawled_at: crawledAt,
         });
       });
     }

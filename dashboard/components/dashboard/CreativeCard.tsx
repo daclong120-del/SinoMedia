@@ -13,6 +13,21 @@ interface CreativeCardProps {
 }
 
 export default function CreativeCard({ creative, advertiserName, className }: CreativeCardProps) {
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+
+  const handleMouseEnter = () => {
+    if (creative.media_type === "video" && videoRef.current) {
+      videoRef.current.play().catch(() => {});
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (creative.media_type === "video" && videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+  };
+
   // Determine media type icon
   const renderMediaTypeIcon = () => {
     switch (creative.media_type) {
@@ -47,8 +62,23 @@ export default function CreativeCard({ creative, advertiserName, className }: Cr
       )}
     >
       {/* Thumbnail Container */}
-      <Link href={`/dash/creative/${creative.id}`} className="relative block aspect-[9/16] bg-zinc-950/90 dark:bg-black overflow-hidden shrink-0 border-b border-border">
-        {creative.cover_url ? (
+      <Link
+        href={`/dash/creative/${creative.id}`}
+        className="relative block aspect-square bg-zinc-950/90 dark:bg-black overflow-hidden shrink-0 border-b border-border"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        {creative.media_type === "video" && creative.media_urls?.[0] ? (
+          <video
+            ref={videoRef}
+            src={`${creative.media_urls[0]}#t=0.001`}
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : creative.cover_url ? (
           <img
             src={creative.cover_url}
             alt={creative.title || "Creative Thumbnail"}

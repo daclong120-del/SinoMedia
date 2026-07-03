@@ -38,3 +38,12 @@
   - **Phương án A:** Chỉ gỡ bỏ màn hình trên client nhưng giữ lại backend Edge Functions.
   - **Phương án B (Khuyến nghị):** Gỡ bỏ triệt để cả UI client, kiểu dữ liệu, các đường dẫn liên kết, cấu hình Supabase Edge Function, biến môi trường và tài liệu dự án liên quan đến OpenAI.
 - **Chọn Phương án B vì:** Đảm bảo codebase sạch sẽ nhất, không để lại code dư thừa hay các cấu hình không sử dụng gây nhầm lẫn khi phát triển tiếp.
+
+## 2026-07-03 — Tối ưu hóa Tỷ lệ Khung hình Creative Card và Trình phát Chi tiết [initiative: refactor-creative-aspect-ratio]
+- **Bối cảnh:** 
+  - Giao diện lưới ban đầu hiển thị Creative Card với tỷ lệ thumbnail `aspect-[9/16]` quá dài, chiếm dụng nhiều diện tích dọc màn hình.
+  - Khi xem chi tiết, trình phát video bị ép cứng vào tỷ lệ `aspect-[9/16]`, gây ra hiện tượng viền đen (letterboxing) thừa thãi ở trên/dưới cho các video dạng vuông hoặc ngang.
+- **Phương án đã thực hiện:**
+  - **Lưới tìm kiếm/Creative mới:** Chuyển đổi tỷ lệ thumbnail của `CreativeCard.tsx` từ `aspect-[9/16]` thành `aspect-square` (hình vuông 1:1) giúp giao diện gọn gàng, tăng mật độ thông tin. Đồng thời loại bỏ thuộc tính `poster` (vốn hiển thị ảnh tĩnh sai lệch) và thêm hậu tố `#t=0.001` vào đường dẫn video để trình duyệt tự động trích xuất frame đầu tiên làm thumbnail thực tế ngay khi vừa tải trang.
+  - **Trình phát chi tiết:** Giữ nguyên khung chứa ngoài cùng có độ rộng đầy đủ (`w-full`) để đồng bộ tuyệt đối với lưới layout responsive của trang chi tiết `/dash/creative/[id]/page.tsx`. Thay vào đó, chuyển các thuộc tính thiết kế (border, shadow-xl, rounded-2xl, background đen) trực tiếp vào thẻ `<video>` hoặc `<img>` với kích thước linh hoạt `max-h-[70vh] max-w-full w-auto h-auto object-contain`. Điều này giúp đường viền và bóng đổ ôm sát hoàn hảo theo tỷ lệ gốc của video (ngang, dọc, vuông) mà không bị thừa bất kỳ dải viền đen (pillarbox/letterbox) nào, trong khi bố cục tổng thể vẫn căn lề chính xác và cân đối. Loại bỏ thuộc tính `muted` khỏi thẻ `<video>` và sử dụng `videoRef` để lập trình âm lượng 1.0 (full) và `muted = false` ngay khi tải trang chi tiết nhằm phát âm thanh mặc định theo mong muốn của user.
+  - **Dữ liệu kiểm thử (Mock):** Cấu hình 3 video đầu tiên trong danh sách sử dụng các file thực tế từ `assets_test/video/BN/` (gồm 2 video vuông `AITranslator_SPY_30062026_12.mp4`, `AITranslator_SPY_30062026_92.mp4` và 1 video ngang `OlymptradeTrading_SPY_30062026_1.mp4`) để kiểm tra toàn diện khả năng thích ứng khung hình của trình phát.

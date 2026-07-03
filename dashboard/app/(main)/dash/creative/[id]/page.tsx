@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, Suspense } from "react";
+import React, { useState, useMemo, Suspense, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { mockCreativeAds, mockCreativeAdvertisers } from "@/lib/mock-data";
@@ -12,8 +12,101 @@ function CreativeDetailPageContent() {
   const id = params?.id as string;
 
   const creative = useMemo(() => {
+    if (!id) return null;
+
+    if (id.includes("_copy_")) {
+      const parts = id.split("_copy_");
+      const baseId = parts[0];
+      const copyIndex = parseInt(parts[1], 10);
+      const baseAd = mockCreativeAds.find((c) => c.id === baseId);
+      if (baseAd) {
+        const index = mockCreativeAds.findIndex((c) => c.id === baseId);
+
+        const imagePool = [
+          "/assets_test/image/TikTok_SPY_30062026_1.jpg",
+          "/assets_test/image/TikTok_SPY_30062026_2.jpg",
+          "/assets_test/image/Instagram_SPY_30062026_1.jpg",
+          "/assets_test/image/Facebook_SPY_30062026_1.jpg",
+          "/assets_test/image/Spotify_SPY_30062026_1.jpg",
+          "/assets_test/image/StarMaker_SPY_30062026_1.jpg",
+          "/assets_test/image/StarMaker_SPY_30062026_2.jpg",
+          "/assets_test/image/Temu_SPY_30062026_1.jpg",
+          "/assets_test/image/Temu_SPY_30062026_2.jpg",
+          "/assets_test/image/Alibabacom_SPY_30062026_1.jpg",
+          "/assets_test/image/FxPro_SPY_30062026_1.jpg",
+          "/assets_test/image/FxPro_SPY_30062026_2.jpg",
+          "/assets_test/image/WeatherRain_SPY_30062026_1.jpg",
+          "/assets_test/image/ASTRO_SPY_30062026_1.jpg",
+          "/assets_test/image/Glovo_SPY_30062026_1.jpg",
+          "/assets_test/image/Glovo_SPY_30062026_2.jpg",
+          "/assets_test/image/Magalu_SPY_30062026_1.jpg",
+          "/assets_test/image/Specialized_SPY_30062026_1.jpg"
+        ];
+
+        const videoPool = [
+          "/assets_test/video/English/TikTok_SPY_30062026_1.mp4",
+          "/assets_test/video/English/FontKeyboard_SPY_30062026_1.mp4",
+          "/assets_test/video/English/HDVideo_SPY_30062026_1.mp4",
+          "/assets_test/video/English/GlobalNews_SPY_30062026_1.mp4",
+          "/assets_test/video/English/GFXHyperUPFPS_SPY_30062026_1.mp4",
+          "/assets_test/video/English/AITranslator_SPY_30062026_11.mp4",
+          "/assets_test/video/English/CONTOURDIABETES_SPY_30062026_1.mp4",
+          "/assets_test/video/English/HSVPN_SPY_30062026_1.mp4",
+          "/assets_test/video/English/MoboReels_SPY_30062026_1.mp4",
+          "/assets_test/video/English/PersonalPay_SPY_30062026_1.mp4",
+          "/assets_test/video/English/PicTrace_SPY_30062026_1.mp4",
+          "/assets_test/video/English/Plantify_SPY_30062026_1.mp4",
+          "/assets_test/video/English/RemoteControl_SPY_30062026_1.mp4",
+          "/assets_test/video/English/ShopeeBrands_SPY_30062026_1.mp4",
+          "/assets_test/video/English/VPN_SPY_30062026_1.mp4",
+          "/assets_test/video/English/VidCash_SPY_30062026_1.mp4"
+        ];
+
+        let derivedCover = imagePool[(index * 7 + copyIndex * 3) % imagePool.length];
+        let derivedVideo = videoPool[(index * 5 + copyIndex * 2) % videoPool.length];
+        let derivedMediaType = baseAd.media_type;
+
+        // Custom overrides for the first 3 items (CR-001_copy_0, CR-002_copy_0, CR-003_copy_0)
+        if (copyIndex === 0 && baseAd.id === "CR-001") {
+          derivedCover = "/assets_test/image/TikTok_SPY_30062026_1.jpg";
+          derivedVideo = "/assets_test/video/BN/AITranslator_SPY_30062026_12.mp4";
+          derivedMediaType = "video";
+        } else if (copyIndex === 0 && baseAd.id === "CR-002") {
+          derivedCover = "/assets_test/image/StarMaker_SPY_30062026_1.jpg";
+          derivedVideo = "/assets_test/video/BN/AITranslator_SPY_30062026_92.mp4";
+          derivedMediaType = "video";
+        } else if (copyIndex === 0 && baseAd.id === "CR-003") {
+          derivedCover = "/assets_test/image/Temu_SPY_30062026_1.jpg";
+          derivedVideo = "/assets_test/video/BN/OlymptradeTrading_SPY_30062026_1.mp4";
+          derivedMediaType = "video";
+        }
+
+        return {
+          ...baseAd,
+          id,
+          cover_url: derivedCover,
+          media_urls: derivedMediaType === "video" ? [derivedVideo] : [derivedCover],
+          media_type: derivedMediaType,
+          view_count: copyIndex === 0 && baseAd.id === "CR-001" ? 6000000 : copyIndex === 0 && baseAd.id === "CR-002" ? 5900000 : copyIndex === 0 && baseAd.id === "CR-003" ? 5800000 : Math.round(baseAd.view_count * (1 + ((copyIndex + index) % 5) * 0.12)),
+          like_count: Math.round(baseAd.like_count * (1 + ((copyIndex + index) % 4) * 0.08)),
+        };
+      }
+    }
+
     return mockCreativeAds.find((c) => c.id === id);
   }, [id]);
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = false;
+      videoRef.current.volume = 1.0;
+      videoRef.current.play().catch((err) => {
+        console.log("Autoplay with audio was blocked or interrupted:", err);
+      });
+    }
+  }, [creative]);
 
   const advertiser = useMemo(() => {
     if (!creative) return null;
@@ -107,28 +200,29 @@ function CreativeDetailPageContent() {
       {/* Main Split Layout: Player on Left, Info on Right */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
         {/* Left Side: Media Player (60% width span) */}
-        <div className="lg:col-span-3 bg-zinc-950 dark:bg-black rounded-2xl overflow-hidden aspect-[9/16] max-h-[70vh] flex flex-col items-center justify-center relative group border border-zinc-800 shadow-xl">
+        {/* Left Side: Media Player (60% width span) */}
+        <div className="lg:col-span-3 flex flex-col items-center justify-center relative group w-full max-h-[70vh]">
           {creative.media_type === "video" && creative.media_urls?.[0] ? (
             <video
+              ref={videoRef}
               src={creative.media_urls[0]}
               poster={creative.cover_url}
               controls
               autoPlay
-              muted
               loop
               playsInline
               referrerPolicy="no-referrer"
-              className="absolute inset-0 w-full h-full object-contain"
+              className="max-h-[70vh] max-w-full w-auto h-auto object-contain rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl bg-zinc-950 dark:bg-black"
             />
           ) : (creative.media_type === "image" || creative.media_type === "carousel") && creative.media_urls?.[0] ? (
             <img
               src={creative.media_urls[0]}
               alt={creative.title || "Creative Media"}
               referrerPolicy="no-referrer"
-              className="absolute inset-0 w-full h-full object-contain"
+              className="max-h-[70vh] max-w-full w-auto h-auto object-contain rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl bg-zinc-950 dark:bg-black"
             />
           ) : (
-            <>
+            <div className="w-full aspect-video bg-zinc-950 dark:bg-black rounded-2xl overflow-hidden flex flex-col items-center justify-center relative border border-zinc-850 shadow-xl">
               <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center select-none text-zinc-400">
                 <div className="size-16 rounded-full bg-white/10 flex items-center justify-center mb-4 backdrop-blur-md group-hover:scale-110 transition-transform cursor-pointer">
                   <svg className="size-8 text-white fill-white translate-x-0.5" viewBox="0 0 24 24">
@@ -151,7 +245,7 @@ function CreativeDetailPageContent() {
                   </svg>
                 </div>
               </div>
-            </>
+            </div>
           )}
         </div>
 
