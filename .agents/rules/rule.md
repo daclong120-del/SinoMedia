@@ -10,4 +10,4 @@ tao đang cố rewrite lại dự án này D:\Python\ChinaMediaCrawler cho dự 
 không được dùng sub agent điều khiển trang web nữa
 Cấm tự chạy test mà ko hỏi ý kiến tôi
 
-Lun dùng .agents\skills\gitnexus để tra thông tin đọc code
+Bắc buộc dùng .agents\skills\gitnexus để đọc code

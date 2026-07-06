@@ -20,6 +20,9 @@ export async function uploadMediaToR2(
   body: Buffer,
   contentType: string
 ): Promise<string> {
+  if (process.env.ENABLE_UPLOAD_R2 === "false") {
+    return "";
+  }
   const key = `${platform}/${platformId}/${filename}`;
 
   const command = new PutObjectCommand({
@@ -41,6 +44,9 @@ export async function checkMediaExistsInR2(
   platformId: string,
   filename: string
 ): Promise<boolean> {
+  if (process.env.ENABLE_UPLOAD_R2 === "false") {
+    return false;
+  }
   const key = `${platform}/${platformId}/${filename}`;
   try {
     const command = new HeadObjectCommand({

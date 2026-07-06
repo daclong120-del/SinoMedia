@@ -3,12 +3,24 @@
  */
 
 import { ZhihuClient, downloadMedia } from "./client.js";
-import { uploadMediaToR2, checkMediaExistsInR2 } from "../../store/r2_uploader.js";
-import { upsertAuthor, upsertPost, upsertPosts, getPostUuid, upsertComments } from "../../store/supabase_writer.js";
+import {
+  upsertAuthor,
+  upsertPost,
+  upsertPosts,
+  getPostUuid,
+  upsertComments,
+  checkoutAccount,
+  checkinAccount,
+  uploadMediaToR2,
+  checkMediaExistsInR2,
+} from "../../store/index.js";
 import { CrawledPostRow } from "../../model/storage.js";
 import type { ICrawler, BrowserLaunchOptions } from "../../base/base_crawler.js";
-import type { BrowserContext } from "playwright-core";
-import { stripHtml } from "../../utils/crawler.js";
+import type { BrowserContext, Page } from "playwright-core";
+import { stripHtml, parseCookieString } from "../../utils/crawler.js";
+import { CONFIG } from "../../config.js";
+import { join } from "node:path";
+import { readFile, writeFile, mkdir } from "node:fs/promises";
 
 const ANSWERS_INCLUDE = "data[*].is_normal,admin_closed_comment,reward_info,is_collapsed,annotation_action,annotation_detail,collapse_reason,collapsed_by,suggest_edit,comment_count,can_comment,content,editable_content,attachment,voteup_count,reshipment_settings,comment_permission,created_time,updated_time,review_info,excerpt,paid_info,reaction_instruction,is_labeled,label_info,relationship.is_authorized,voting,is_author,is_thanked,is_nothelp;data[*].vessay_info;data[*].author.badge[?(type=best_answerer)].topics;data[*].author.vip_info;data[*].question.has_publishing_draft,relationship";
 const ARTICLES_INCLUDE = "data[*].comment_count,suggest_edit,is_normal,thumbnail_extra_info,thumbnail,can_comment,comment_permission,admin_closed_comment,content,voteup_count,created,updated,upvoted_followees,voting,review_info,reaction_instruction,is_labeled,label_info;data[*].vessay_info;data[*].author.badge[?(type=best_answerer)].topics;data[*].author.vip_info;";
@@ -523,20 +535,181 @@ export async function crawlSearch(keyword: string, maxCount = 20): Promise<void>
 }
 
 export class ZhihuCrawler implements ICrawler {
+  private client: ZhihuClient;
+  private currentAccountId: string | null = null;
+  private browserContext: BrowserContext | null = null;
+  private browserPage: Page | null = null;
+
+  constructor() {
+    this.client = new ZhihuClient();
+  }
+
+  async launchBrowser(options?: BrowserLaunchOptions): Promise<BrowserContext> {
+    if (this.browserContext) {
+      return this.browserContext;
+    }
+    const { launchPersistentContext } = await import("cloakbrowser");
+    const profileDir = join(process.cwd(), "output", "profiles", "zhihu");
+
+    const launchOptions: any = {
+      userDataDir: profileDir,
+      headless: options?.headless ?? CONFIG.headless,
+      geoip: true,
+      humanize: true,
+    };
+    if (CONFIG.proxy) {
+      launchOptions.proxy = CONFIG.proxy;
+    }
+
+    const rawContext = await launchPersistentContext(launchOptions);
+    this.browserContext = rawContext as unknown as BrowserContext;
+
+    const pages = this.browserContext.pages();
+    this.browserPage = pages[0] || (await this.browserContext.newPage());
+
+    await this.browserPage.route("**/*", (route: any) => {
+      const type = route.request().resourceType();
+      if (["image", "media", "font"].includes(type)) {
+        route.abort();
+      } else {
+        route.continue();
+      }
+    });
+
+    this.client.setPage(this.browserPage, this.browserContext);
+    return this.browserContext;
+  }
+
+  async ensureLogin(): Promise<void> {
+    let attempts = 0;
+    const maxAttempts = 5;
+
+    // 1. Thử lấy tài khoản từ Account Pool trong Database
+    while (attempts < maxAttempts) {
+      const account = await checkoutAccount("zhihu");
+      if (!account) {
+        break;
+      }
+      console.log(`Đang kiểm tra tài khoản Zhihu từ pool: ${account.username} (ID: ${account.id})...`);
+
+      const context = await this.launchBrowser();
+      const cookieDict = parseCookieString(account.cookie_data);
+      const cookieObjects = [".zhihu.com", "www.zhihu.com"].flatMap(domain =>
+        Object.entries(cookieDict).map(([name, value]) => ({
+          name,
+          value,
+          domain,
+          path: "/",
+        }))
+      );
+      await context.addCookies(cookieObjects);
+
+      const isActive = await this.client.pong();
+      if (isActive) {
+        console.log(`Tài khoản Zhihu ${account.username} hoạt động tốt. Sẵn sàng cào.`);
+        this.currentAccountId = account.id;
+        const freshCookies = await context.cookies();
+        await this.client.updateCookies(freshCookies.map(c => ({ name: c.name, value: c.value, domain: c.domain })));
+        return;
+      } else {
+        console.log(`Tài khoản Zhihu ${account.username} không hoạt động. Trả lại pool với đánh dấu lỗi...`);
+        await checkinAccount(account.id, false);
+        this.currentAccountId = null;
+        attempts++;
+      }
+    }
+
+    // 2. Dự phòng: Sử dụng cookie cục bộ từ môi trường hoặc JSON session file
+    console.log("Không có tài khoản hoạt động nào từ Pool DB. Đang thử bằng cookie cục bộ...");
+    const context = await this.launchBrowser();
+
+    let localCookie = process.env.ZHIHU_COOKIE || "";
+    if (!localCookie) {
+      try {
+        const sessionPath = join(process.cwd(), "output", "zhihu_session.json");
+        const content = await readFile(sessionPath, "utf8");
+        localCookie = JSON.parse(content).cookie || "";
+      } catch {}
+    }
+
+    if (localCookie) {
+      const cookieDict = parseCookieString(localCookie);
+      const cookieObjects = [".zhihu.com", "www.zhihu.com"].flatMap(domain =>
+        Object.entries(cookieDict).map(([name, value]) => ({
+          name,
+          value,
+          domain,
+          path: "/",
+        }))
+      );
+      await context.addCookies(cookieObjects);
+    }
+
+    const localIsActive = await this.client.pong();
+    if (localIsActive) {
+      console.log("Cookie cục bộ Zhihu hoạt động tốt.");
+      this.currentAccountId = null;
+      const freshCookies = await context.cookies();
+      await this.client.updateCookies(freshCookies.map(c => ({ name: c.name, value: c.value, domain: c.domain })));
+      return;
+    }
+
+    // 3. Tiến hành đăng nhập thủ công bằng cookie mới nạp qua ZhihuLogin
+    console.log("Cookie cục bộ hết hạn hoặc chưa đăng nhập. Tiến hành cấu hình qua ZhihuLogin...");
+    const { ZhihuLogin } = await import("./login.js");
+    try {
+      const login = new ZhihuLogin({
+        cookieStr: localCookie,
+      });
+      const result = await login.begin(context);
+      if (!result.success) {
+        console.log(`Đăng nhập không thành công: ${result.errorMessage}. Chạy chế độ khách (Guest)...`);
+      } else {
+        const cookieStr = result.cookies.map(c => `${c.name}=${c.value}`).join("; ");
+        const sessionPath = join(process.cwd(), "output", "zhihu_session.json");
+        await mkdir(join(process.cwd(), "output"), { recursive: true });
+        await writeFile(sessionPath, JSON.stringify({ cookie: cookieStr, updatedAt: new Date().toISOString() }, null, 2), "utf8");
+        console.log("Đăng nhập thành công. Đã cập nhật và lưu cookie mới.");
+        await this.client.updateCookies(result.cookies);
+      }
+    } catch (err) {
+      console.log(`Không thể hoàn thành đăng nhập: ${(err as Error).message}. Tiếp tục bằng chế độ khách (Guest)...`);
+    }
+  }
+
+  async releaseAccount(isSuccessful: boolean = true): Promise<void> {
+    if (this.currentAccountId) {
+      await checkinAccount(this.currentAccountId, isSuccessful);
+      this.currentAccountId = null;
+    }
+    if (this.browserContext) {
+      await this.browserContext.close();
+      this.browserContext = null;
+      this.browserPage = null;
+    }
+  }
+
   /**
    * # Thực hiện cào chi tiết bài đăng Zhihu
    */
   async crawl(target: string): Promise<void> {
-    const post = await crawlDetail(target);
-    if (post && process.env.ENABLE_GET_COMMENTS === "true") {
-      try {
-        await crawlComments(post.platform_id, (post.raw as any)?.type || "answer", {
-          maxCount: process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES ? parseInt(process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES, 10) : 50,
-          withReplies: process.env.ENABLE_GET_SUB_COMMENTS === "true"
-        });
-      } catch (err) {
-        console.log(`Lỗi khi cào bình luận cho bài đăng ${post.platform_id}: ${(err as Error).message}`);
+    let success = false;
+    try {
+      await this.ensureLogin();
+      const post = await crawlDetail(target);
+      if (post && process.env.ENABLE_GET_COMMENTS === "true") {
+        try {
+          await crawlComments(post.platform_id, (post.raw as any)?.type || "answer", {
+            maxCount: process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES ? parseInt(process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES, 10) : 50,
+            withReplies: process.env.ENABLE_GET_SUB_COMMENTS === "true"
+          });
+        } catch (err) {
+          console.log(`Lỗi khi cào bình luận cho bài đăng ${post.platform_id}: ${(err as Error).message}`);
+        }
       }
+      success = true;
+    } finally {
+      await this.releaseAccount(success);
     }
   }
 
@@ -544,31 +717,45 @@ export class ZhihuCrawler implements ICrawler {
    * # Thực hiện cào profile creator và bài đăng của họ trên Zhihu
    */
   async creator(target: string): Promise<void> {
-    await crawlCreator(target);
+    let success = false;
+    try {
+      await this.ensureLogin();
+      await crawlCreator(target);
+      success = true;
+    } finally {
+      await this.releaseAccount(success);
+    }
   }
 
   /**
    * # Tìm kiếm bài đăng Zhihu theo từ khóa
    */
   async search(keyword: string, maxCount?: number): Promise<void> {
-    await crawlSearch(keyword, maxCount);
+    let success = false;
+    try {
+      await this.ensureLogin();
+      await crawlSearch(keyword, maxCount);
+      success = true;
+    } finally {
+      await this.releaseAccount(success);
+    }
   }
 
   /**
    * # Cào bình luận của bài đăng Zhihu
    */
   async comments(target: string, maxCount?: number): Promise<void> {
-    const { type, id } = parseZhihuUrl(target);
-    if (!type || !id) {
-      throw new Error(`URL không hợp lệ: ${target}`);
+    let success = false;
+    try {
+      await this.ensureLogin();
+      const { type, id } = parseZhihuUrl(target);
+      if (!type || !id) {
+        throw new Error(`URL không hợp lệ: ${target}`);
+      }
+      await crawlComments(id, type, { maxCount, withReplies: process.env.ENABLE_GET_SUB_COMMENTS === "true" });
+      success = true;
+    } finally {
+      await this.releaseAccount(success);
     }
-    await crawlComments(id, type, { maxCount, withReplies: process.env.ENABLE_GET_SUB_COMMENTS === "true" });
-  }
-
-  /**
-   * # Khởi tạo browser context cho Zhihu
-   */
-  async launchBrowser(options?: BrowserLaunchOptions): Promise<BrowserContext> {
-    throw new Error("Không dùng: launchBrowser trực tiếp trên ZhihuCrawler");
   }
 }

@@ -139,7 +139,17 @@ async function executeTask(task: CrawlerTask): Promise<void> {
 
   logger.info(`Bắt đầu xử lý task ${id} - Platform: ${platform}, Command: ${command}, Target: ${target}`, "Worker");
 
+  const defaultHeadless = CONFIG.headless;
+
   try {
+    // Thiết lập cấu hình và metadata chạy crawler từ task
+    process.env.CURRENT_TASK_TAGS = JSON.stringify(task.metadata?.tags || []);
+    process.env.CURRENT_TASK_LANGUAGE = task.metadata?.language || "auto";
+    process.env.ENABLE_GET_COMMENTS = String(task.metadata?.crawl_comments ?? true);
+    process.env.ENABLE_GET_SUB_COMMENTS = String(task.metadata?.crawl_sub_comments ?? true);
+    process.env.ENABLE_UPLOAD_R2 = String(task.metadata?.upload_r2 ?? true);
+    CONFIG.headless = task.metadata?.headless ?? true;
+
     const crawler = CrawlerFactory.create(platform);
 
     switch (command) {
@@ -166,6 +176,12 @@ async function executeTask(task: CrawlerTask): Promise<void> {
     await updateTaskStatus(id, "failed", err.message);
   } finally {
     currentTaskId = null;
+    delete process.env.CURRENT_TASK_TAGS;
+    delete process.env.CURRENT_TASK_LANGUAGE;
+    delete process.env.ENABLE_GET_COMMENTS;
+    delete process.env.ENABLE_GET_SUB_COMMENTS;
+    delete process.env.ENABLE_UPLOAD_R2;
+    CONFIG.headless = defaultHeadless;
     await closeBrowser().catch(() => { });
   }
 }

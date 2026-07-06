@@ -23,6 +23,8 @@ export interface CrawledPostRow {
   stats?: unknown;
   raw?: unknown;
   published_at?: string;
+  tags?: string[];
+  language?: string;
 }
 
 export interface CrawledCommentRow {
@@ -52,6 +54,14 @@ export interface CrawlerTask {
   error_message?: string | null;
   created_at?: string;
   updated_at?: string;
+  metadata?: {
+    tags?: string[];
+    language?: string;
+    crawl_comments?: boolean;
+    crawl_sub_comments?: boolean;
+    headless?: boolean;
+    upload_r2?: boolean;
+  };
 }
 
 /**

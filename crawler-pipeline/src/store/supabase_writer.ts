@@ -85,6 +85,13 @@ export async function upsertAuthor(author: CrawledAuthorRow): Promise<string> {
  * # Thêm mới hoặc cập nhật thông tin bài đăng/video
  */
 export async function upsertPost(post: CrawledPostRow): Promise<void> {
+  const taskTagsStr = process.env.CURRENT_TASK_TAGS;
+  const taskTags: string[] = taskTagsStr ? JSON.parse(taskTagsStr) : [];
+  const mergedTags = Array.from(new Set([...(post.tags || []), ...taskTags]));
+
+  const taskLang = process.env.CURRENT_TASK_LANGUAGE;
+  const mergedLang = post.language && post.language !== "auto" ? post.language : (taskLang || "auto");
+
   await supabaseRest("crawled_posts", {
     method: "POST",
     params: { on_conflict: "platform,platform_id" },
@@ -99,6 +106,8 @@ export async function upsertPost(post: CrawledPostRow): Promise<void> {
       raw: post.raw,
       crawled_at: new Date().toISOString(),
       published_at: post.published_at,
+      tags: mergedTags,
+      language: mergedLang,
     },
   });
 }
@@ -110,21 +119,31 @@ export async function upsertPosts(posts: CrawledPostRow[]): Promise<void> {
   if (posts.length === 0) {
     return;
   }
+  const taskTagsStr = process.env.CURRENT_TASK_TAGS;
+  const taskTags: string[] = taskTagsStr ? JSON.parse(taskTagsStr) : [];
+  const taskLang = process.env.CURRENT_TASK_LANGUAGE;
+
   await supabaseRest("crawled_posts", {
     method: "POST",
     params: { on_conflict: "platform,platform_id" },
-    body: posts.map((post) => ({
-      platform: post.platform,
-      platform_id: post.platform_id,
-      author_id: post.author_id,
-      caption: post.caption,
-      media_urls: post.media_urls || [],
-      cover_url: post.cover_url,
-      stats: post.stats,
-      raw: post.raw,
-      crawled_at: new Date().toISOString(),
-      published_at: post.published_at,
-    })),
+    body: posts.map((post) => {
+      const mergedTags = Array.from(new Set([...(post.tags || []), ...taskTags]));
+      const mergedLang = post.language && post.language !== "auto" ? post.language : (taskLang || "auto");
+      return {
+        platform: post.platform,
+        platform_id: post.platform_id,
+        author_id: post.author_id,
+        caption: post.caption,
+        media_urls: post.media_urls || [],
+        cover_url: post.cover_url,
+        stats: post.stats,
+        raw: post.raw,
+        crawled_at: new Date().toISOString(),
+        published_at: post.published_at,
+        tags: mergedTags,
+        language: mergedLang,
+      };
+    }),
   });
 }
 

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { PlatformBadge, StatusBadge, PriorityBadge } from "@/components/dashboard/Badges";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
+import TagInput from "@/components/dashboard/TagInput";
 import { fetchTasks, fetchTaskLogs, createTasksBulk, subscribeToTasks, subscribeToTaskLogs } from "@/lib/api";
 import { timeAgo, cn } from "@/lib/utils";
 import type { CrawlerTask, CrawlerLogEntry, Platform } from "@/types";
@@ -41,6 +42,13 @@ const PRIORITY_MAP: Record<string, string> = {
   "Low": "low"
 };
 
+const LANGUAGE_MAP: Record<string, string> = {
+  "Auto": "auto",
+  "Trung Quốc (zh)": "zh",
+  "Tiếng Anh (en)": "en",
+  "Tiếng Việt (vi)": "vi"
+};
+
 export default function TasksPage() {
   const [showModal, setShowModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
@@ -55,6 +63,12 @@ export default function TasksPage() {
   const [newPriority, setNewPriority] = useState("Normal");
   const [newTargets, setNewTargets] = useState("");
   const [newMaxCount, setNewMaxCount] = useState(50);
+  const [newTags, setNewTags] = useState<string[]>([]);
+  const [newLanguage, setNewLanguage] = useState("Auto");
+  const [crawlComments, setCrawlComments] = useState(true);
+  const [crawlSubComments, setCrawlSubComments] = useState(true);
+  const [headlessMode, setHeadlessMode] = useState(true);
+  const [uploadR2, setUploadR2] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Notification & Feedback States
@@ -201,7 +215,15 @@ export default function TasksPage() {
       command: commandKey,
       target: target,
       max_count: Number(newMaxCount) || 50,
-      priority: priorityKey
+      priority: priorityKey,
+      metadata: {
+        tags: newTags,
+        language: LANGUAGE_MAP[newLanguage] || "auto",
+        crawl_comments: crawlComments,
+        crawl_sub_comments: crawlSubComments,
+        headless: headlessMode,
+        upload_r2: uploadR2
+      }
     }));
 
     const result = await createTasksBulk(payload);
@@ -225,6 +247,12 @@ export default function TasksPage() {
       // Reset targets input and close modal
       setNewTargets("");
       setNewMaxCount(50);
+      setNewTags([]);
+      setNewLanguage("Auto");
+      setCrawlComments(true);
+      setCrawlSubComments(true);
+      setHeadlessMode(true);
+      setUploadR2(true);
       setShowModal(false);
       setErrorsList([]);
     } else {
@@ -300,6 +328,7 @@ export default function TasksPage() {
                 <th className="text-left px-4 py-2.5 text-muted-foreground font-medium">Nền tảng</th>
                 <th className="text-left px-4 py-2.5 text-muted-foreground font-medium">Loại</th>
                 <th className="text-left px-4 py-2.5 text-muted-foreground font-medium">Target</th>
+                <th className="text-left px-4 py-2.5 text-muted-foreground font-medium">Cấu hình & Nhãn</th>
                 <th className="text-left px-4 py-2.5 text-muted-foreground font-medium">Ưu tiên</th>
                 <th className="text-left px-4 py-2.5 text-muted-foreground font-medium">Trạng thái</th>
                 <th className="text-left px-4 py-2.5 text-muted-foreground font-medium">Tạo lúc</th>
@@ -315,6 +344,42 @@ export default function TasksPage() {
                   <td className="px-4 py-2.5"><PlatformBadge platform={task.platform} /></td>
                   <td className="px-4 py-2.5 text-card-foreground capitalize">{task.command}</td>
                   <td className="px-4 py-2.5 text-card-foreground max-w-[200px] truncate font-mono text-[11px]">{task.target}</td>
+                  <td className="px-4 py-2.5">
+                    <div className="flex flex-col gap-1">
+                      {/* Configuration Badges */}
+                      <div className="flex items-center gap-1 flex-wrap">
+                        {task.metadata?.headless !== undefined && (
+                          <span className={cn(
+                            "px-1 py-0.5 rounded text-[9px] font-medium border",
+                            task.metadata.headless ? "bg-zinc-900 border-zinc-700 text-zinc-400" : "bg-orange-950 border-orange-900/50 text-orange-400"
+                          )}>
+                            {task.metadata.headless ? "headless" : "headful"}
+                          </span>
+                        )}
+                        {task.metadata?.crawl_comments && (
+                          <span className="px-1 py-0.5 rounded text-[9px] font-medium bg-blue-950 border border-blue-900/50 text-blue-400">
+                            comments
+                            {task.metadata?.crawl_sub_comments && "+sub"}
+                          </span>
+                        )}
+                        {task.metadata?.language && task.metadata.language !== "auto" && (
+                          <span className="px-1 py-0.5 rounded text-[9px] font-medium bg-purple-950 border border-purple-900/50 text-purple-400">
+                            lang: {task.metadata.language}
+                          </span>
+                        )}
+                      </div>
+                      {/* Tags Badges */}
+                      {task.metadata?.tags && task.metadata.tags.length > 0 && (
+                        <div className="flex items-center gap-1 flex-wrap">
+                          {task.metadata.tags.map((tag, idx) => (
+                            <span key={idx} className="px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-primary/10 text-primary border border-primary/20">
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-4 py-2.5"><PriorityBadge priority={task.priority} /></td>
                   <td className="px-4 py-2.5">
                     <StatusBadge status={task.status} />
@@ -473,11 +538,68 @@ export default function TasksPage() {
               </div>
 
               <div className="space-y-3">
-                <h3 className="text-xs font-semibold text-foreground border-b border-border pb-2">Cấu hình đầu ra</h3>
-                <label className="flex items-center gap-2 text-xs text-card-foreground cursor-pointer">
-                  <input type="checkbox" className="rounded border-border text-primary focus:ring-primary size-3.5" />
-                  Tải Media về R2 Storage
-                </label>
+                <h3 className="text-xs font-semibold text-foreground border-b border-border pb-2">Cấu hình đầu ra & Chạy</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-medium text-muted-foreground block">Tags (phân tách bằng dấu phẩy)</span>
+                    <TagInput tags={newTags} onChange={setNewTags} placeholder="Ví dụ: hot, tin_tuc, giải_trí" />
+                  </div>
+                  <label className="space-y-1 block">
+                    <span className="text-[11px] font-medium text-muted-foreground">Ngôn ngữ phân tích</span>
+                    <DropdownSelect
+                      value={newLanguage}
+                      onChange={setNewLanguage}
+                      options={[
+                        "Auto",
+                        "Trung Quốc (zh)",
+                        "Tiếng Anh (en)",
+                        "Tiếng Việt (vi)"
+                      ]}
+                      fullWidth
+                    />
+                  </label>
+                </div>
+
+                <div className="flex flex-col gap-2 pt-2">
+                  <label className="flex items-center gap-2 text-xs text-card-foreground cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={headlessMode}
+                      onChange={(e) => setHeadlessMode(e.target.checked)}
+                      className="rounded border-border text-primary focus:ring-primary size-3.5 bg-background" 
+                    />
+                    Chạy ẩn danh (Headless Mode)
+                  </label>
+                  <label className="flex items-center gap-2 text-xs text-card-foreground cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={crawlComments}
+                      onChange={(e) => setCrawlComments(e.target.checked)}
+                      className="rounded border-border text-primary focus:ring-primary size-3.5 bg-background" 
+                    />
+                    Cào bình luận bài đăng (Crawl Comments)
+                  </label>
+                  {crawlComments && (
+                    <label className="flex items-center gap-2 text-xs text-card-foreground pl-5 cursor-pointer animate-in fade-in slide-in-from-left-2 duration-150">
+                      <input 
+                        type="checkbox" 
+                        checked={crawlSubComments}
+                        onChange={(e) => setCrawlSubComments(e.target.checked)}
+                        className="rounded border-border text-primary focus:ring-primary size-3.5 bg-background" 
+                      />
+                      Cào bình luận phụ (Crawl Sub-comments)
+                    </label>
+                  )}
+                  <label className="flex items-center gap-2 text-xs text-card-foreground cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      checked={uploadR2}
+                      onChange={(e) => setUploadR2(e.target.checked)}
+                      className="rounded border-border text-primary focus:ring-primary size-3.5 bg-background" 
+                    />
+                    Tải Media về R2 Storage
+                  </label>
+                </div>
               </div>
             </div>
 

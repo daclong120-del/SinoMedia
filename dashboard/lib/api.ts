@@ -88,10 +88,11 @@ function mapDbTask(row: Record<string, unknown>): CrawlerTask {
     command: (row.command as CrawlerTask["command"]) || "search",
     target: (row.target as string) || "",
     status: (row.status as CrawlerTask["status"]) || "pending",
-    priority: "normal",
-    scheduled_at: null,
+    priority: (row.priority as CrawlerTask["priority"]) || "normal",
+    scheduled_at: (row.scheduled_at as string) || null,
     created_at: (row.created_at as string) || "",
     created_by: "system",
+    metadata: (row.metadata as CrawlerTask["metadata"]) || {},
   };
 }
 
@@ -216,6 +217,13 @@ export async function createTasksBulk(tasks: {
   target: string;
   max_count?: number;
   priority?: string;
+  metadata?: {
+    tags?: string[];
+    language?: string;
+    crawl_comments?: boolean;
+    crawl_sub_comments?: boolean;
+    headless?: boolean;
+  };
 }[]): Promise<{
   inserted_count: number;
   skipped_count: number;

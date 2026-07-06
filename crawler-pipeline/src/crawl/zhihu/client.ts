@@ -359,6 +359,33 @@ export class ZhihuClient implements IApiClient {
     }
   }
 
+  setPage(page: any, context?: any): void {
+    browserPage = page;
+    if (context) {
+      browserContext = context;
+    }
+  }
+
+  async getCurrentUserInfo(): Promise<any> {
+    return this.request("GET", "/api/v4/me?include=email,is_active,is_bind_phone");
+  }
+
+  async pong(): Promise<boolean> {
+    console.log("[ZhihuClient.pong] Bắt đầu pong zhihu...");
+    try {
+      const res = await this.getCurrentUserInfo();
+      if (res && (res.uid || res.id) && res.name) {
+        console.log("[ZhihuClient.pong] Ping zhihu thành công:", res.name);
+        return true;
+      }
+      console.log("[ZhihuClient.pong] Ping zhihu thất bại, dữ liệu nhận được:", JSON.stringify(res));
+      return false;
+    } catch (err) {
+      console.log("[ZhihuClient.pong] Lỗi khi ping zhihu:", (err as Error).message);
+      return false;
+    }
+  }
+
   /**
    * # Cập nhật danh sách cookie cho client
    */

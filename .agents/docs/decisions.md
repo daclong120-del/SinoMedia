@@ -78,3 +78,10 @@
   - **Phương án A:** Thêm từng cột tương ứng (`tags`, `language`, `crawl_comments`, `crawl_sub_comments`, `headless`) vào bảng `crawler_tasks`. (Ưu: Kiểu dữ liệu tường minh; Nhược: Làm phình cấu trúc bảng, khó mở rộng thêm các tùy chọn crawler trong tương lai).
   - **Phương án B (Khuyến nghị):** Thêm một cột JSONB duy nhất `metadata` mặc định `'{}'` vào bảng `crawler_tasks` để chứa tất cả cấu hình động. Với bảng dữ liệu bài viết cào được (`crawled_posts`), thêm 2 cột tường minh `tags text[]` và `language text` để phục vụ lọc/truy vấn tốc độ cao tại Creative Hub.
 - **Chọn Phương án B vì:** Đạt sự cân bằng tối đa giữa khả năng mở rộng linh hoạt của Task (JSONB chứa vô số cấu hình crawler động mà không lo sửa đổi DDL liên tục) và hiệu năng tìm kiếm ở lớp Creative Hub (sử dụng cột mảng `tags text[]` và index của PostgreSQL để lọc bài đăng cực nhanh).
+
+## 2026-07-06 — Thiết kế Tag Input dạng Chip có hỗ trợ Paste Hàng Loạt [initiative: feat-crawler-task-metadata]
+- **Bối cảnh:** Cần thiết kế giao diện nhập tags cho nhiệm vụ cào bài viết trong Modal tạo task của Dashboard.
+- **Phương án đã cân nhắc:**
+  - **Phương án A:** Ô nhập văn bản dạng chuỗi đơn giản, phân tách bằng dấu phẩy (Comma-separated text input). (Ưu: Đơn giản, code nhanh; Nhược: Dễ sai sót định dạng dữ liệu, rác khoảng trắng dư thừa trong DB).
+  - **Phương án B (Khuyến nghị):** Tag Input dạng chip tương tác, tự động parse chuỗi dán từ clipboard (onPaste) theo regex phân tách và hiển thị dưới dạng các thẻ chip riêng biệt.
+- **Chọn Phương án B vì:** Đảm bảo tính toàn vẹn của dữ liệu (data integrity) tránh các tag rỗng hoặc trùng lặp, đồng thời tối ưu hóa trải nghiệm người dùng với khả năng copy-paste nhanh danh sách nhiều tag cùng một lúc mà không đánh mất tốc độ nhập liệu.

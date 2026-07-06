@@ -32,6 +32,13 @@ export interface CrawlerTask {
   created_at: string;
   created_by: string;
   params?: Record<string, unknown>;
+  metadata?: {
+    tags?: string[];
+    language?: string;
+    crawl_comments?: boolean;
+    crawl_sub_comments?: boolean;
+    headless?: boolean;
+  };
 }
 
 export interface CrawlerAccount {
