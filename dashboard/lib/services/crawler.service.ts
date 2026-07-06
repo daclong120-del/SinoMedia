@@ -7,44 +7,49 @@ import { TaskRepository, type CreateTaskInput } from "@/lib/repositories/task.re
 import { AccountRepository } from "@/lib/repositories/account.repo";
 import { LogRepository } from "@/lib/repositories/log.repo";
 import type { CrawlerTask, CrawlerAccount, CrawlerLogEntry, Platform } from "@/types";
+import { Database } from "@/types/supabase";
+
+type DbTask = Database["public"]["Tables"]["crawler_tasks"]["Row"];
+type DbAccount = Database["public"]["Tables"]["crawler_accounts"]["Row"];
+type DbLog = Database["public"]["Tables"]["crawler_logs"]["Row"];
 
 // ─── Mappers ─────────────────────────────────────────────────
 
-function mapDbTask(row: Record<string, unknown>): CrawlerTask {
+function mapDbTask(row: DbTask): CrawlerTask {
   return {
-    id: row.id as string,
+    id: row.id,
     platform: row.platform as Platform,
     command: (row.command as CrawlerTask["command"]) || "search",
-    target: (row.target as string) || "",
+    target: row.target,
     status: (row.status as CrawlerTask["status"]) || "pending",
     priority: (row.priority as CrawlerTask["priority"]) || "normal",
-    scheduled_at: (row.scheduled_at as string) || null,
-    created_at: (row.created_at as string) || "",
+    scheduled_at: row.scheduled_at,
+    created_at: row.created_at,
     created_by: "system",
     metadata: (row.metadata as CrawlerTask["metadata"]) || {},
   };
 }
 
-function mapDbAccount(row: Record<string, unknown>): CrawlerAccount {
+function mapDbAccount(row: DbAccount): CrawlerAccount {
   return {
-    id: row.id as string,
+    id: row.id,
     platform: row.platform as Platform,
-    alias: (row.alias as string) || (row.username as string) || "unknown",
+    alias: row.username || "unknown",
     status: (row.status as CrawlerAccount["status"]) || "active",
-    failure_count: (row.failure_count as number) || 0,
+    failure_count: row.failure_count || 0,
     proxy: null,
-    last_used_at: (row.last_used_at as string) || null,
-    created_at: (row.created_at as string) || "",
+    last_used_at: row.last_used_at,
+    created_at: row.created_at || "",
   };
 }
 
-function mapDbLog(row: Record<string, unknown>): CrawlerLogEntry {
+function mapDbLog(row: DbLog): CrawlerLogEntry {
   return {
     id: String(row.id),
-    task_id: row.task_id as string,
+    task_id: row.task_id || "",
     level: ((row.level as string)?.toUpperCase() || "INFO") as CrawlerLogEntry["level"],
-    message: (row.message as string) || "",
-    created_at: (row.created_at as string) || "",
+    message: row.message || "",
+    created_at: row.created_at || "",
   };
 }
 

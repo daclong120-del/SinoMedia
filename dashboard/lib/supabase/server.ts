@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { Database } from "@/types/supabase";
 
 /**
  * Khởi tạo Supabase Client chạy ở môi trường Server (Server Components, Route Handlers, Server Actions)
@@ -8,7 +9,7 @@ import { cookies } from "next/headers";
 export async function createClientServer() {
   const cookieStore = await cookies();
 
-  return createServerClient(
+  return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {

@@ -35,3 +35,36 @@ export function timeAgo(date: string | Date): string {
   if (days < 30) return `${days} ngày trước`;
   return d.toLocaleDateString("vi-VN");
 }
+
+const SETTINGS_KEY = "sinomedia_system_settings";
+
+const DEFAULT_SETTINGS = {
+  use2Captcha: true,
+  apiKey: "g7a8s9d0a1b2c3d4e5f6",
+  collectComments: true,
+  collectReplies: true,
+  headlessMode: true,
+  defaultPriority: "normal",
+  maxConcurrentTasks: 3,
+  maxRetries: 2,
+  defaultWebhookUrl: "",
+  notifyOnSuccess: true,
+  alertOnFailure: true,
+};
+
+/** Đọc cài đặt hệ thống từ localStorage */
+export function getSettings(): Record<string, any> {
+  if (typeof window !== "undefined") {
+    const stored = localStorage.getItem(SETTINGS_KEY);
+    if (stored) return JSON.parse(stored);
+  }
+  return { ...DEFAULT_SETTINGS };
+}
+
+/** Lưu cài đặt hệ thống vào localStorage */
+export function saveSettings(settings: Record<string, any>): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  }
+}
+

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
-import { getSettings, saveSettings } from "@/lib/services/system.service";
+import { getSettings, saveSettings } from "@/lib/utils";
 
 export default function SettingsPage() {
   const [apiKey, setApiKey] = useState("g7a8s9d0a1b2c3d4e5f6");
@@ -185,9 +185,8 @@ export default function SettingsPage() {
                   />
                   <span>Thu thập bình luận</span>
                 </label>
-                <label className={`flex items-center gap-2 select-none cursor-pointer transition-opacity duration-150 ${
-                  collectComments ? "text-card-foreground" : "text-muted-foreground opacity-50 pointer-events-none"
-                }`}>
+                <label className={`flex items-center gap-2 select-none cursor-pointer transition-opacity duration-150 ${collectComments ? "text-card-foreground" : "text-muted-foreground opacity-50 pointer-events-none"
+                  }`}>
                   <input
                     type="checkbox"
                     checked={collectReplies}

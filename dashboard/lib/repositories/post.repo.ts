@@ -3,6 +3,7 @@
  * Tầng duy nhất chạm bảng `crawled_posts` trong Supabase.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/supabase";
 
 export interface PostQueryOpts {
   platform?: string;
@@ -13,10 +14,11 @@ export interface PostQueryOpts {
   sort?: "newest" | "oldest" | "views" | "likes" | "comments";
   limit?: number;
   offset?: number;
+  mediaType?: "video" | "image" | "all";
 }
 
 export class PostRepository {
-  constructor(private db: SupabaseClient) {}
+  constructor(private db: any) {}
 
   /** Lấy danh sách bài viết có phân trang + lọc + sắp xếp */
   async findMany(opts: PostQueryOpts = {}) {
@@ -49,6 +51,15 @@ export class PostRepository {
       const startDate = new Date();
       startDate.setDate(now.getDate() - daysMap[opts.timeRange]);
       query = query.gte("published_at", startDate.toISOString());
+    }
+
+    // Lọc theo media type
+    if (opts.mediaType && opts.mediaType !== "all") {
+      if (opts.mediaType === "video") {
+        query = query.not("cover_url", "is", null);
+      } else if (opts.mediaType === "image") {
+        query = query.is("cover_url", null);
+      }
     }
 
     // Sắp xếp
@@ -91,7 +102,7 @@ export class PostRepository {
     if (error) throw error;
 
     const counts: Record<string, number> = {};
-    (data ?? []).forEach((row) => {
+    (data ?? []).forEach((row: any) => {
       counts[row.platform] = (counts[row.platform] || 0) + 1;
     });
     return counts;
@@ -109,7 +120,7 @@ export class PostRepository {
     if (error) throw error;
 
     const counts: Record<string, number> = {};
-    (data ?? []).forEach((row) => {
+    (data ?? []).forEach((row: any) => {
       if (!row.published_at) return;
       const d = row.published_at.split("T")[0];
       counts[d] = (counts[d] || 0) + 1;

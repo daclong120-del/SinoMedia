@@ -94,7 +94,7 @@ export default function ProxiesPage() {
 
   const handleTestProxy = async (id: string) => {
     try {
-      const newStatus = await testProxyConnection(id);
+      const newStatus = await testProxy(id);
       setProxies((prev) =>
         prev.map((p) => (p.id === id ? { ...p, status: newStatus, last_used_at: new Date().toISOString() } : p))
       );
@@ -142,7 +142,7 @@ export default function ProxiesPage() {
       }
 
       if (parsed.length > 0) {
-        await createProxiesBulk(parsed);
+        await createProxies(parsed);
         showToast(`Đã nạp thành công ${parsed.length} proxies.`, "success");
         setBulkText("");
         setShowModal(false);

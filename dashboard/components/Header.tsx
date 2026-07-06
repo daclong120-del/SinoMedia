@@ -59,15 +59,10 @@ export default function Header({ onMenuToggle }: HeaderProps) {
       return ["SinoMedia", "Quản trị", "Quản lý thành viên"];
     }
     if (pathname.startsWith("/dash/creative/advertisers/")) {
-      const advId = pathname.split("/").pop();
-      const adv = mockCreativeAdvertisers.find((a) => a.id === advId);
-      return ["SinoMedia", "Creative Hub", "Advertiser", adv ? adv.nickname : "Hồ sơ"];
+      return ["SinoMedia", "Creative Hub", "Advertiser", "Hồ sơ"];
     }
     if (pathname.startsWith("/dash/creative/") && !ROUTE_LABELS[pathname]) {
-      const creativeId = pathname.split("/").pop();
-      const creative = mockCreativeAds.find((c) => c.id === creativeId);
-      const label = creative ? (creative.title || (creative.caption.slice(0, 15) + "...")) : "Chi tiết";
-      return ["SinoMedia", "Creative Hub", "Creative", label];
+      return ["SinoMedia", "Creative Hub", "Creative", "Chi tiết"];
     }
     return ROUTE_LABELS[pathname] || ["SinoMedia"];
   };

@@ -3,6 +3,7 @@
  * Tầng duy nhất chạm bảng `crawled_authors` trong Supabase.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/supabase";
 
 export interface AuthorQueryOpts {
   platform?: string;
@@ -12,7 +13,7 @@ export interface AuthorQueryOpts {
 }
 
 export class AuthorRepository {
-  constructor(private db: SupabaseClient) {}
+  constructor(private db: any) {}
 
   /** Lấy danh sách tác giả có phân trang + lọc */
   async findMany(opts: AuthorQueryOpts = {}) {

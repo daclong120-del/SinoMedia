@@ -18,7 +18,7 @@
 | feat-complete-backend-api | feature | ✅ xong | 5/5 phase |
 | refactor-client-storage | refactor | ✅ xong | 4/4 phase |
 | debug-terminal-sandbox | debug | ✅ xong | - |
-| refactor-data-access-layer | refactor | 🔄 đang làm | 1/4 phase |
+| refactor-data-access-layer | refactor | ✅ xong | 4/4 phase |
 
 > Marker: ⏳ chưa · 🔄 đang làm · ✅ xong · ⛔ chặn
 

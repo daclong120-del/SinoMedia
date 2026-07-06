@@ -3,6 +3,7 @@
  * Tầng duy nhất chạm bảng `audit_logs` và `exported_files` trong Supabase.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/supabase";
 
 export interface AuditEventInput {
   actor_id: string;
@@ -23,7 +24,7 @@ export interface ExportFileInput {
 }
 
 export class AuditRepository {
-  constructor(private db: SupabaseClient) {}
+  constructor(private db: any) {}
 
   // ─── Audit Logs ──────────────────────────────────────────────
 
@@ -42,7 +43,14 @@ export class AuditRepository {
   async logEvent(event: AuditEventInput) {
     const { error } = await this.db
       .from("audit_logs")
-      .insert([event]);
+      .insert([{
+        actor_id: event.actor_id,
+        action: event.action,
+        entity_type: event.entity_type,
+        entity_id: event.entity_id,
+        payload: event.payload as any,
+        ip_address: event.ip_address,
+      }]);
     if (error) throw error;
   }
 
@@ -62,7 +70,14 @@ export class AuditRepository {
   async logExport(file: ExportFileInput) {
     const { error } = await this.db
       .from("exported_files")
-      .insert([file]);
+      .insert([{
+        filename: file.filename,
+        type: file.type,
+        filter_snapshot: file.filter_snapshot as any,
+        size_bytes: file.size_bytes,
+        created_by: file.created_by,
+        download_url: file.download_url,
+      }]);
     if (error) throw error;
   }
 }

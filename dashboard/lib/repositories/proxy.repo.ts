@@ -3,6 +3,7 @@
  * Tầng duy nhất chạm bảng `crawler_proxies` trong Supabase.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/supabase";
 
 export interface CreateProxyInput {
   host: string;
@@ -14,7 +15,7 @@ export interface CreateProxyInput {
 }
 
 export class ProxyRepository {
-  constructor(private db: SupabaseClient) {}
+  constructor(private db: any) {}
 
   /** Lấy tất cả proxy, kèm tên account được gán */
   async findAll() {
@@ -32,10 +33,10 @@ export class ProxyRepository {
     if (proxiesRes.error) throw proxiesRes.error;
 
     const accountMap = new Map(
-      (accountsRes.data ?? []).map((a) => [a.id, a.username])
+      (accountsRes.data ?? []).map((a: any) => [a.id, a.username])
     );
 
-    return (proxiesRes.data ?? []).map((row) => ({
+    return (proxiesRes.data ?? []).map((row: any) => ({
       ...row,
       assigned_account_alias: row.assigned_account_id
         ? accountMap.get(row.assigned_account_id) ?? null

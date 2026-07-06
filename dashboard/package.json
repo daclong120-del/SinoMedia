@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "types:gen": "npx supabase gen types typescript --db-url \"postgresql://postgres:postgres@127.0.0.1:54322/postgres\" > types/supabase.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

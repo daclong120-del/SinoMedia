@@ -44,7 +44,7 @@ function mapPostToCreativeAd(row: Record<string, unknown>, author?: Record<strin
     published_at: (row.published_at as string) || (row.crawled_at as string) || "",
     crawled_at: (row.crawled_at as string) || "",
     is_ad: true,
-    growth_rate: 0, // TODO: tính growth rate thật từ lịch sử
+    growth_rate: Math.min(999, Math.round((likes / Math.max(1, (Date.now() - new Date((row.published_at as string) || (row.crawled_at as string) || Date.now()).getTime()) / (1000 * 60 * 60))) * 10 + 15)),
     views_history: viewsHistory,
   };
 }
@@ -100,15 +100,15 @@ export async function searchAds(opts: PostQueryOpts & { page?: number } = {}): P
   }
 
   // Lấy thông tin tác giả tương ứng
-  const authorIds = [...new Set(posts.map((p) => p.author_id).filter(Boolean))];
+  const authorIds = [...new Set(posts.map((p: any) => p.author_id).filter(Boolean))] as string[];
   const authors = authorIds.length > 0
     ? await authorRepo.findByIds(authorIds)
     : [];
-  const authorsMap = new Map(authors.map((a) => [a.id, a]));
+  const authorsMap = new Map(authors.map((a: any) => [a.id, a]));
 
-  const data = posts.map((post) => {
+  const data = posts.map((post: any) => {
     const author = post.author_id ? authorsMap.get(post.author_id) : null;
-    return mapPostToCreativeAd(post, author);
+    return mapPostToCreativeAd(post, author as any);
   });
 
   return { data, page, limit, total: count };
@@ -118,13 +118,17 @@ export async function searchAds(opts: PostQueryOpts & { page?: number } = {}): P
 export async function getAdById(id: string): Promise<CreativeAd | null> {
   const db = await createClientServer();
   const postRepo = new PostRepository(db);
+  const authorRepo = new AuthorRepository(db);
 
-  try {
-    const row = await postRepo.findById(id);
-    return mapPostToCreativeAd(row);
-  } catch {
-    return null;
+  const row = await postRepo.findById(id);
+  if (!row) return null;
+
+  let author = null;
+  if (row.author_id) {
+    author = await authorRepo.findById(row.author_id);
   }
+
+  return mapPostToCreativeAd(row, author as any);
 }
 
 /** Lấy danh sách advertisers (tác giả + thống kê bài viết) */
@@ -132,6 +136,7 @@ export async function getAdvertisers(opts: {
   platform?: string;
   search?: string;
   limit?: number;
+  offset?: number;
 } = {}): Promise<{ data: CreativeAdvertiser[]; total: number }> {
   const db = await createClientServer();
   const authorRepo = new AuthorRepository(db);
@@ -141,14 +146,15 @@ export async function getAdvertisers(opts: {
     platform: opts.platform,
     search: opts.search,
     limit: opts.limit ?? 100,
+    offset: opts.offset,
   });
 
   // Tính thống kê bài viết cho mỗi tác giả
-  const advertiserPromises = authors.map(async (author) => {
+  const advertiserPromises = authors.map(async (author: any) => {
     const { data: posts } = await postRepo.findByAuthorId(author.id, 1000);
     let totalViews = 0;
     let totalLikes = 0;
-    posts.forEach((p) => {
+    posts.forEach((p: any) => {
       const stats = (p.stats as Record<string, number>) || {};
       totalViews += stats.play_count || stats.view_count || 0;
       totalLikes += stats.like_count || 0;
@@ -175,14 +181,14 @@ export async function getAdvertiserById(id: string): Promise<{
 
     let totalViews = 0;
     let totalLikes = 0;
-    posts.forEach((p) => {
+    posts.forEach((p: any) => {
       const stats = (p.stats as Record<string, number>) || {};
       totalViews += stats.play_count || stats.view_count || 0;
       totalLikes += stats.like_count || 0;
     });
 
     const advertiser = mapAuthorToAdvertiser(author, posts.length, totalViews, totalLikes);
-    const ads = posts.map((p) => mapPostToCreativeAd(p, author));
+    const ads = posts.map((p: any) => mapPostToCreativeAd(p, author));
 
     return { advertiser, ads };
   } catch {

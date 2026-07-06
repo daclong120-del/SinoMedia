@@ -3,6 +3,7 @@
  * Tầng duy nhất chạm bảng `crawler_tasks` trong Supabase.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/supabase";
 
 export interface CreateTaskInput {
   platform: string;
@@ -14,7 +15,7 @@ export interface CreateTaskInput {
 }
 
 export class TaskRepository {
-  constructor(private db: SupabaseClient) {}
+  constructor(private db: any) {}
 
   /** Lấy tất cả task, sắp xếp theo ngày tạo mới nhất */
   async findAll(limit = 100) {
@@ -47,7 +48,7 @@ export class TaskRepository {
         priority: input.priority ?? "normal",
         status: "pending",
         scheduled_at: input.scheduled_at ?? null,
-        metadata: input.metadata ?? {},
+        metadata: (input.metadata ?? {}) as any,
       }])
       .select()
       .single();
@@ -71,7 +72,7 @@ export class TaskRepository {
     errors: string[];
   } | null> {
     const { data, error } = await this.db
-      .rpc("create_crawler_tasks", { p_tasks: tasks });
+      .rpc("create_crawler_tasks", { p_tasks: tasks as any });
     if (error) throw error;
     return data as {
       inserted_count: number;

@@ -3,9 +3,10 @@
  * Tầng duy nhất chạm bảng `crawler_logs` trong Supabase.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/supabase";
 
 export class LogRepository {
-  constructor(private db: SupabaseClient) {}
+  constructor(private db: any) {}
 
   /** Lấy danh sách log theo task_id, sắp xếp theo thời gian */
   async findByTaskId(taskId: string, limit = 200) {

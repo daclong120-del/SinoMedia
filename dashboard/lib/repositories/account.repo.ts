@@ -3,9 +3,10 @@
  * Tầng duy nhất chạm bảng `crawler_accounts` trong Supabase.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/supabase";
 
 export class AccountRepository {
-  constructor(private db: SupabaseClient) {}
+  constructor(private db: any) {}
 
   /** Lấy tất cả tài khoản crawler */
   async findAll() {

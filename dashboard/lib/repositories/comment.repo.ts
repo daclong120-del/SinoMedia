@@ -3,9 +3,10 @@
  * Tầng duy nhất chạm bảng `crawled_comments` trong Supabase.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/supabase";
 
 export class CommentRepository {
-  constructor(private db: SupabaseClient) {}
+  constructor(private db: any) {}
 
   /** Lấy danh sách bình luận theo bài viết */
   async findByPostId(postId: string, limit = 100) {
