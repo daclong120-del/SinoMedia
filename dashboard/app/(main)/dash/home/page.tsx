@@ -5,10 +5,11 @@ import MetricCard from "@/components/dashboard/MetricCard";
 import PlatformHealthCard from "@/components/dashboard/PlatformHealthCard";
 import { PlatformBadge, StatusBadge } from "@/components/dashboard/Badges";
 import {
-  fetchDashboardMetrics, fetchPlatformDistribution, fetchTasks,
+  getDashboardMetrics, getPlatformDistribution,
   getPlatformHealth, getPostsPerDay
-} from "@/lib/api";
-import { homeMetrics as defaultMetrics } from "@/lib/mock-data";
+} from "@/lib/actions/dashboard.actions";
+import { getTasks } from "@/lib/actions/crawler.actions";
+import type { DashboardMetrics } from "@/lib/services/dashboard.service";
 import { formatNumber, timeAgo } from "@/lib/utils";
 import Link from "next/link";
 import type { CrawlerTask } from "@/types";
@@ -138,7 +139,10 @@ function SimpleDonutChart({ data }: { data: { platform: string; count: number; c
 
 // ─── Page Component ──────────────────────────────────────────
 export default function HomePage() {
-  const [metrics, setMetrics] = useState(defaultMetrics);
+  const [metrics, setMetrics] = useState<DashboardMetrics>({
+    totalPosts: 0, totalAuthors: 0, runningTasks: 0, pendingTasks: 0,
+    activeAccounts: 0, totalAccounts: 0, postsTrend: 0, authorsTrend: 0,
+  });
   const [distribution, setDistribution] = useState<{ platform: string; count: number; color: string }[]>([]);
   const [recentTasks, setRecentTasks] = useState<CrawlerTask[]>([]);
   const [postsPerDayData, setPostsPerDayData] = useState<{ date: string; count: number }[]>([]);
@@ -150,9 +154,9 @@ export default function HomePage() {
       setLoading(true);
       try {
         const [m, d, t, pData, hData] = await Promise.all([
-          fetchDashboardMetrics(),
-          fetchPlatformDistribution(),
-          fetchTasks(),
+          getDashboardMetrics(),
+          getPlatformDistribution(),
+          getTasks(),
           getPostsPerDay(),
           getPlatformHealth(),
         ]);

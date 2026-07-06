@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense, useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { mockCreativeAds, mockCreativeAdvertisers } from "@/lib/mock-data";
+// Data được fetch qua /api/creative/new (API Route)
 import CreativeCard from "@/components/dashboard/CreativeCard";
 import Pagination from "@/components/dashboard/Pagination";
 import { PlatformBadge } from "@/components/dashboard/Badges";

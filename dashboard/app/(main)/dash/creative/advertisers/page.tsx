@@ -2,7 +2,7 @@
 
 import React, { useState, Suspense } from "react";
 import Link from "next/link";
-import { mockCreativeAdvertisers } from "@/lib/mock-data";
+// Data được fetch qua /api/creative/advertisers (API Route)
 import { PlatformBadge } from "@/components/dashboard/Badges";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
 import { formatNumber, timeAgo, cn } from "@/lib/utils";

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import MetricCard from "@/components/dashboard/MetricCard";
 import { PlatformBadge, StatusBadge } from "@/components/dashboard/Badges";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
-import { fetchAccounts } from "@/lib/api";
+import { getAccounts } from "@/lib/actions/crawler.actions";
 import { timeAgo, cn } from "@/lib/utils";
 import type { CrawlerAccount } from "@/types";
 
@@ -15,7 +15,7 @@ export default function AccountsPage() {
 
   useEffect(() => {
     async function load() {
-      const data = await fetchAccounts();
+      const data = await getAccounts();
       setAccounts(data);
     }
     load();

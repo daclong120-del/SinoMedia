@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getCreativeAdById, getCreativeAdvertiserById, getSimilarCreatives } from "@/lib/api";
+import { getAdById, getAdvertiserById, getSimilar } from "@/lib/actions/creative.actions";
 import { PlatformBadge } from "./Badges";
 import { formatNumber, timeAgo, cn } from "@/lib/utils";
 import type { CreativeAd, CreativeAdvertiser } from "@/types";
@@ -38,19 +38,19 @@ export default function CreativeDetailView({
     async function loadDetail() {
       setLoadingDetail(true);
       try {
-        const ad = await getCreativeAdById(id);
+        const ad = await getAdById(id);
         setCreative(ad);
         if (ad) {
           setTags(ad.tags || ["Hot", "Viral", "Ad"]);
 
           if (ad.author_id) {
-            const adv = await getCreativeAdvertiserById(ad.author_id);
-            setAdvertiser(adv);
+            const advResult = await getAdvertiserById(ad.author_id);
+            setAdvertiser(advResult?.advertiser ?? null);
           } else {
             setAdvertiser(null);
           }
 
-          const similar = await getSimilarCreatives(ad.platform, ad.author_id || "", ad.id);
+          const similar = await getSimilar(ad.platform, ad.id);
           setSimilarCreatives(similar);
         } else {
           setAdvertiser(null);

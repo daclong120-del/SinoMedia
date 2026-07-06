@@ -93,3 +93,21 @@
   - **Zustand UI Preferences:** Chọn dùng Zustand persist có cấu hình `version` và hàm `migrate` rõ ràng (Schema Versioning & Migration) để ngăn chặn crash runtime khi thay đổi store schema, kết hợp inline script ở `<head>` để parse JSON từ key store nhằm chống flicker dark mode.
   - **IndexedDB cho Dữ liệu lớn:** Chọn dùng IndexedDB thông qua thư viện `idb-keyval` (không đồng bộ, dung lượng lớn) thay vì localStorage cho danh sách proxy/link KOL lớn, kết hợp debounce ghi (~500ms) và bọc try-catch graceful fallback (in-memory + Toast UI) để xử lý việc Safari Private Browsing chặn ghi đĩa.
 - **Chọn các phương án trên vì:** Giải quyết toàn diện các lỗ hổng bảo mật kinh điển, bảo vệ hiệu năng mượt mà của UI (chống flicker, non-blocking main thread) và xử lý triệt để các edge cases thực tế như Safari Private Browsing và tính tương thích ngược của local state.
+
+## 2026-07-06 — Kiến trúc Data Access Layer: Repository + Service Pattern [initiative: refactor-data-access-layer]
+- **Bối cảnh:** Dashboard có 3 kiểu truy vấn DB song song (supabase singleton, SSR client, HTTP fetch), 3 supabase client files cùng tồn tại, 896 dòng api.ts monolith, 597 dòng mock-data fallback che lỗi. 18 page đều là "use client" gọi DB trực tiếp.
+- **Phương án đã cân nhắc:**
+  - **A. Repository + Service Pattern (khuyến nghị):** Repo = lớp duy nhất chạm DB (1 file/entity), Service = business logic compose nhiều repo. Server Components gọi Service. API Route cũng gọi Service.
+  - **B. tRPC / Server Actions thuần:** Type-safe end-to-end, nhưng phải setup thêm dependency mới, learning curve cao cho dự án đang chạy.
+  - **C. Giữ nguyên api.ts, chỉ dọn dẹp:** Ít rủi ro nhất nhưng không giải quyết gốc vấn đề coupling.
+- **Chọn A vì:** Chuẩn doanh nghiệp, Next.js 14+ khuyến nghị Server Components + server-side data fetching. Repository testable (inject SupabaseClient). Không thêm dependency mới. Chia 4 phase giảm rủi ro.
+
+## 2026-07-06 — Phase 1 giữ nguyên api.ts + mock-data.ts [initiative: refactor-data-access-layer]
+- **Bối cảnh:** 18 page "use client" đang import trực tiếp từ `lib/api.ts` và `lib/mock-data.ts`. Xoá ngay sẽ vỡ toàn bộ app.
+- **Quyết định:** Phase 1 chỉ TẠO repositories + services MỚI song song. api.ts, supabase.ts singleton, và mock-data.ts giữ nguyên. Phase 2 mới migrate page → xoá hết.
+- **Lý do:** Giảm blast radius — Phase 1 không phá gì cả, chỉ thêm code mới. Nếu lỗi, rollback = xoá thư mục repositories/ và services/.
+
+## 2026-07-06 — Realtime tách riêng lib/realtime/ [initiative: refactor-data-access-layer]
+- **Bối cảnh:** Supabase Realtime (postgres_changes) bắt buộc chạy trên browser client. Nếu xoá browser singleton sẽ mất realtime.
+- **Quyết định:** Tạo `lib/realtime/subscriptions.ts` — file DUY NHẤT import `createClientBrowser()`. Tất cả phần còn lại đều dùng server client.
+- **Lý do:** Tách rõ concern. Dễ audit "đâu dùng browser client" — chỉ 1 file duy nhất.

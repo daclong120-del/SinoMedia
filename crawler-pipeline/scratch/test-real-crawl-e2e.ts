@@ -30,6 +30,23 @@ const localDb = {
 let isSupabaseOnline = false;
 const originalFetch = globalThis.fetch;
 
+const localServiceRoleKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU";
+
+// Tự động inject API key và Auth header cho các request tới Supabase Local
+globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+  const url = input.toString();
+  if (url.includes("127.0.0.1:54321") || url.includes("localhost:54321")) {
+    const headers = {
+      "Content-Type": "application/json",
+      "apikey": localServiceRoleKey,
+      "Authorization": `Bearer ${localServiceRoleKey}`,
+      ...(init?.headers || {})
+    };
+    return originalFetch(input, { ...init, headers });
+  }
+  return originalFetch(input, init);
+};
+
 async function checkDatabaseOnline() {
   try {
     const controller = new AbortController();
@@ -131,7 +148,7 @@ async function insertSimulationPosts(platform: string, target: string, taskId: s
 }
 
 async function runE2ECrawlTest() {
-  console.log("=== BẮT ĐẦU CHẠY THỬ E2E CÀO 10 BÀI VIẾT THẬT Ở MỖI NỀN TẢNG ===");
+  console.log("=== BẮT ĐẦU CHẠY THỬ E2E CÀO 35 BÀI VIẾT THẬT Ở MỖI NỀN TẢNG ===");
   
   // 1. Kiểm tra database
   await checkDatabaseOnline();
@@ -141,17 +158,16 @@ async function runE2ECrawlTest() {
   const targetKeyword = "ootd";
 
   // 2. GIẢ LẬP FRONTEND GỬI YÊU CẦU CÀO
-  console.log("\n[Bước 1] Frontend tạo và gửi 3 task cào (mỗi nền tảng 10 bài viết)...");
+  console.log("\n[Bước 1] Frontend tạo và gửi 3 task cào (mỗi nền tảng 35 bài viết)...");
   
   const tasksCreated: CrawlerTask[] = [];
   for (const platform of platforms) {
-    const taskPayload: CrawlerTask = {
-      id: `task-real-crawl-${platform}-${Date.now().toString().slice(-4)}`,
+    const taskPayload: any = {
       platform,
       command: "search", // Dùng lệnh search để cào theo từ khóa tìm kiếm
       target: targetKeyword,
       status: "pending",
-      max_count: 10, // Giới hạn cào 10 cái
+      max_count: 35, // Giới hạn cào 35 cái
       metadata: {
         tags: ["real_e2e_test", `crawl_${platform}`],
         language: "vi",
@@ -163,12 +179,20 @@ async function runE2ECrawlTest() {
     const res = await fetch("http://127.0.0.1:54321/rest/v1/crawler_tasks", {
       method: "POST",
       body: JSON.stringify(taskPayload),
-      headers: { "Content-Type": "application/json" }
+      headers: { 
+        "Content-Type": "application/json",
+        "Prefer": "return=representation"
+      }
     });
     
     if (res.ok) {
-      tasksCreated.push(taskPayload);
-      console.log(` -> Đã gửi Task cào thành công: Platform = ${platform.toUpperCase()}, Limit = 10`);
+      const data = await res.json();
+      const insertedTask = Array.isArray(data) ? data[0] : data;
+      tasksCreated.push(insertedTask);
+      console.log(` -> Đã gửi Task cào thành công: Platform = ${platform.toUpperCase()}, ID = ${insertedTask.id}, Limit = 35`);
+    } else {
+      const errText = await res.text();
+      console.error(` -> Gửi Task thất bại: Platform = ${platform.toUpperCase()}, Status = ${res.status}, Error = ${errText}`);
     }
   }
 
@@ -196,8 +220,8 @@ async function runE2ECrawlTest() {
       const crawler = CrawlerFactory.create(task.platform);
 
       // Thử cào thật qua API của platform
-      console.log(`[Crawler] Gọi search('${task.target}', 10) thực tế...`);
-      await crawler.search(task.target, 10);
+      console.log(`[Crawler] Gọi search('${task.target}', 35) thực tế...`);
+      await crawler.search(task.target, 35);
       
       console.log(`✅ Cào thật thành công cho ${task.platform.toUpperCase()}!`);
       
@@ -213,7 +237,7 @@ async function runE2ECrawlTest() {
       console.log(` -> Kích hoạt chế độ Fallback: Sinh dữ liệu mô phỏng để tiếp tục quy trình E2E.`);
 
       // Ghi nhận bài viết mô phỏng
-      await insertSimulationPosts(task.platform, task.target, task.id, 10);
+      await insertSimulationPosts(task.platform, task.target, task.id, 35);
 
       // Đánh dấu hoàn thành qua fallback
       await fetch(`http://127.0.0.1:54321/rest/v1/crawler_tasks?id=eq.${task.id}`, {
@@ -228,7 +252,7 @@ async function runE2ECrawlTest() {
         body: JSON.stringify({
           task_id: task.id,
           level: "WARN",
-          message: `Cào thật thất bại (${crawlerErr.message}). Đã kích hoạt sinh mock 10 bài viết fallback.`,
+          message: `Cào thật thất bại (${crawlerErr.message}). Đã kích hoạt sinh mock 35 bài viết fallback.`,
           timestamp: new Date().toISOString()
         }),
         headers: { "Content-Type": "application/json" }
@@ -258,14 +282,14 @@ async function runE2ECrawlTest() {
   }
 
   // Kiểm tra điều kiện đạt
-  const isXhsCorrect = allPosts.filter(p => p.platform === PlatformType.XHS).length >= 10;
-  const isWeiboCorrect = allPosts.filter(p => p.platform === PlatformType.WEIBO).length >= 10;
-  const isDouyinCorrect = allPosts.filter(p => p.platform === PlatformType.DOUYIN).length >= 10;
+  const isXhsCorrect = allPosts.filter(p => p.platform === PlatformType.XHS).length >= 35;
+  const isWeiboCorrect = allPosts.filter(p => p.platform === PlatformType.WEIBO).length >= 35;
+  const isDouyinCorrect = allPosts.filter(p => p.platform === PlatformType.DOUYIN).length >= 35;
 
   if (isXhsCorrect && isWeiboCorrect && isDouyinCorrect) {
-    console.log("\n🎉 KẾT QUẢ CUỐI CÙNG: TEST E2E THÀNH CÔNG! Mỗi nền tảng đều có đủ ít nhất 10 bài viết trong DB.");
+    console.log("\n🎉 KẾT QUẢ CUỐI CÙNG: TEST E2E THÀNH CÔNG! Mỗi nền tảng đều có đủ ít nhất 35 bài viết trong DB.");
   } else {
-    console.error("\n❌ KẾT QUẢ CUỐI CÙNG: TEST THẤT BẠI! Số lượng bài viết cào được không đạt kỳ vọng 10 bài/nền tảng.");
+    console.error("\n❌ KẾT QUẢ CUỐI CÙNG: TEST THẤT BẠI! Số lượng bài viết cào được không đạt kỳ vọng 35 bài/nền tảng.");
   }
 
   // Khôi phục fetch gốc nếu có mock

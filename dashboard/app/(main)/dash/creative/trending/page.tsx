@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { getCreativeAds, getCreativeAdvertisers } from "@/lib/api";
+import { getTrending, getAdvertisers } from "@/lib/actions/creative.actions";
 import type { CreativeAd, CreativeAdvertiser, Platform } from "@/types";
 import { PlatformBadge } from "@/components/dashboard/Badges";
 import CreativeDetailView from "@/components/dashboard/CreativeDetailView";
@@ -58,12 +58,12 @@ function TrendingPageContent() {
     async function load() {
       setLoading(true);
       try {
-        const [adsData, advertisersData] = await Promise.all([
-          getCreativeAds(),
-          getCreativeAdvertisers(),
+        const [adsResult, advertisersResult] = await Promise.all([
+          getTrending(100),
+          getAdvertisers({ limit: 100 }),
         ]);
-        setAds(adsData);
-        setAdvertisers(advertisersData);
+        setAds(adsResult);
+        setAdvertisers(advertisersResult.data);
       } catch (err) {
         console.error("Error loading creative data:", err);
       } finally {

@@ -15,6 +15,7 @@ import {
   mockProxies, mockAuditLogs, mockConsoleLogs, mockExportedFiles,
   mockTags, mockPermissions
 } from "./mock-data";
+const isMockSession = () => typeof document !== "undefined" && document.cookie.includes("sb-mock-session=true");
 
 // ─── Types nội bộ ────────────────────────────────────────────
 
@@ -168,6 +169,9 @@ export async function fetchAuthors(filters?: AuthorFilter): Promise<CrawledAutho
 // ─── Tasks ───────────────────────────────────────────────────
 
 export async function fetchTasks(): Promise<CrawlerTask[]> {
+  if (isMockSession()) {
+    return mockTasks;
+  }
   try {
     const { data, error } = await supabase
       .from("crawler_tasks")
@@ -293,6 +297,9 @@ export async function fetchComments(postId: string): Promise<CrawledComment[]> {
 // ─── Dashboard Metrics ───────────────────────────────────────
 
 export async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
+  if (isMockSession()) {
+    return homeMetrics;
+  }
   try {
     const [postsRes, authorsRes, tasksRes, accountsRes] = await Promise.all([
       supabase.from("crawled_posts").select("id", { count: "exact", head: true }),
@@ -331,6 +338,9 @@ export async function fetchDashboardMetrics(): Promise<DashboardMetrics> {
 // ─── Platform Distribution ───────────────────────────────────
 
 export async function fetchPlatformDistribution() {
+  if (isMockSession()) {
+    return platformDistribution;
+  }
   try {
     const { data, error } = await supabase
       .from("crawled_posts")
@@ -659,6 +669,9 @@ export function getConsoleLogs() { return mockConsoleLogs; }
 export function getTags() { return mockTags; }
 export function getPermissions() { return mockPermissions; }
 export async function getPlatformHealth(): Promise<PlatformHealth[]> {
+  if (isMockSession()) {
+    return platformHealth;
+  }
   try {
     const { data, error } = await supabase
       .from("crawler_accounts")
@@ -689,6 +702,9 @@ export async function getPlatformHealth(): Promise<PlatformHealth[]> {
 }
 
 export async function getPostsPerDay(): Promise<{ date: string; count: number }[]> {
+  if (isMockSession()) {
+    return postsPerDay;
+  }
   try {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);

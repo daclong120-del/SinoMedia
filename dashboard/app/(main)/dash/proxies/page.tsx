@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import MetricCard from "@/components/dashboard/MetricCard";
 import { StatusBadge } from "@/components/dashboard/Badges";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
-import { getProxies, createProxiesBulk, deleteProxy, testProxyConnection } from "@/lib/api";
+import { getProxies, createProxies, deleteProxy, testProxy } from "@/lib/actions/system.actions";
 import { timeAgo, cn } from "@/lib/utils";
 import type { ProxyItem } from "@/types";
 import { getLargeDraft, setLargeDraft, delLargeDraft } from "@/lib/utils/storage-helper";

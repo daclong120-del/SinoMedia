@@ -36,6 +36,8 @@ export default function CreativeCard({ creative, advertiserName, className, onCl
     }
   };
 
+  const [mediaError, setMediaError] = React.useState(false);
+
   // Determine media type icon
   const renderMediaTypeIcon = () => {
     switch (creative.media_type) {
@@ -77,7 +79,7 @@ export default function CreativeCard({ creative, advertiserName, className, onCl
         onMouseLeave={handleMouseLeave}
         onClick={handleClick}
       >
-        {creative.media_type === "video" && creative.media_urls?.[0] ? (
+        {!mediaError && creative.media_type === "video" && creative.media_urls?.[0] ? (
           <video
             ref={videoRef}
             src={`${creative.media_urls[0]}#t=0.001`}
@@ -85,27 +87,32 @@ export default function CreativeCard({ creative, advertiserName, className, onCl
             loop
             playsInline
             preload="metadata"
+            onError={() => setMediaError(true)}
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
-        ) : creative.cover_url ? (
+        ) : !mediaError && creative.cover_url ? (
           <img
             src={creative.cover_url}
             alt={creative.title || "Creative Thumbnail"}
             referrerPolicy="no-referrer"
+            onError={() => setMediaError(true)}
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           /* Mock Cover Placeholder */
-          <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center select-none text-zinc-400 dark:text-zinc-600 transition-transform duration-500 group-hover:scale-105">
-            <svg className="size-10 mb-2 stroke-[1.2] opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center select-none bg-gradient-to-br from-zinc-900 to-zinc-950 text-zinc-400 dark:text-zinc-500 transition-transform duration-500 group-hover:scale-105">
+            <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" />
+            <svg className="size-8 mb-2 stroke-[1.2] opacity-75" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               {creative.media_type === "video" ? (
-                <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm-2 14.5v-9l6 4.5z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
               ) : (
-                <path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 9.5a1.5 1.5 0 1 1 1.5-1.5 1.5 1.5 0 0 1-1.5 1.5zm10 8.5h-13l3.5-5 2.5 3 3.5-4.5z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               )}
             </svg>
-            <span className="text-[10px] uppercase font-bold tracking-wider">{creative.platform} {creative.media_type}</span>
-            <span className="text-[9px] text-zinc-500 mt-1 max-w-[150px] line-clamp-1">{creative.title || "No Title"}</span>
+            <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-white/10 text-white/90 backdrop-blur-sm">{creative.platform} {creative.media_type}</span>
+            <span className="text-[10px] text-zinc-400 mt-2 max-w-[130px] line-clamp-2 leading-relaxed px-2 font-medium">
+              {creative.caption || creative.title || "No Caption"}
+            </span>
           </div>
         )}
 

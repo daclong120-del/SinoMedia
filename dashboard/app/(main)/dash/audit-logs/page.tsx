@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
-import { getAuditLogs } from "@/lib/api";
+import { getAuditLogs } from "@/lib/actions/system.actions";
 import { timeAgo } from "@/lib/utils";
 import type { AuditLogEntry } from "@/types";
 

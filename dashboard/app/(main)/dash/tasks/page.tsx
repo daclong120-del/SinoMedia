@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { PlatformBadge, StatusBadge, PriorityBadge } from "@/components/dashboard/Badges";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
 import TagInput from "@/components/dashboard/TagInput";
-import { fetchTasks, fetchTaskLogs, createTasksBulk, subscribeToTasks, subscribeToTaskLogs } from "@/lib/api";
+import { getTasks, getTaskLogs, createTasksBulk } from "@/lib/actions/crawler.actions";
+import { subscribeToTasks, subscribeToTaskLogs } from "@/lib/realtime/subscriptions";
 import { timeAgo, cn } from "@/lib/utils";
 import type { CrawlerTask, CrawlerLogEntry, Platform } from "@/types";
 import type { RealtimeChannel } from "@supabase/supabase-js";
@@ -87,7 +88,7 @@ export default function TasksPage() {
   // ─── Initial data load ─────────────────────────────────────
   useEffect(() => {
     async function load() {
-      const data = await fetchTasks();
+      const data = await getTasks();
       setTasks(data);
     }
     load();
@@ -124,7 +125,7 @@ export default function TasksPage() {
   // ─── Realtime: Task Logs (per selected task) ───────────────
   const loadAndSubscribeLogs = useCallback(async (taskId: string) => {
     // Fetch existing logs first
-    const existingLogs = await fetchTaskLogs(taskId);
+    const existingLogs = await getTaskLogs(taskId);
     setTaskLogs(existingLogs);
 
     // Subscribe to new logs

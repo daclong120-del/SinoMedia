@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { mockCreativeAds, mockCreativeAdvertisers } from "@/lib/mock-data";
+// Data được fetch qua /api/creative/search (API Route) — không cần import trực tiếp
 import CreativeCard from "@/components/dashboard/CreativeCard";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
 import Pagination from "@/components/dashboard/Pagination";
@@ -117,6 +117,7 @@ function CreativeSearchPageContent() {
             id: row.id,
             platform: row.platform,
             author_id: row.author_id || "",
+            author: row.author || null, // Map thông tin tác giả từ API
             platform_uid: row.platform_uid || "",
             title: row.caption ? row.caption.slice(0, 30) : "",
             caption: row.caption || "",

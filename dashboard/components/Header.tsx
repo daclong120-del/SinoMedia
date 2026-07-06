@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { useAccount } from "@/lib/account-context";
 import { UserIcon, ChevronDownIcon } from "@/components/icons";
 import { createClientBrowser } from "@/lib/supabase/client";
-import { mockCreativeAdvertisers, mockCreativeAds } from "@/lib/mock-data";
+
 import { useUIStore } from "@/lib/stores/use-ui-store";
 
 // ─── Breadcrumb mapping ──────────────────────────────────────

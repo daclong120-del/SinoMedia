@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
-import { getSystemSettings, saveSystemSettings } from "@/lib/api";
+import { getSettings, saveSettings } from "@/lib/services/system.service";
 
 export default function SettingsPage() {
   const [apiKey, setApiKey] = useState("g7a8s9d0a1b2c3d4e5f6");
@@ -29,7 +29,7 @@ export default function SettingsPage() {
     async function loadSettings() {
       setLoading(true);
       try {
-        const value = await getSystemSettings();
+        const value = getSettings();
         setApiKey(value.apiKey || "");
         setUse2Captcha(value.use2Captcha !== false);
         setCollectComments(value.collectComments !== false);
@@ -66,7 +66,7 @@ export default function SettingsPage() {
         notifyOnSuccess,
         alertOnFailure,
       };
-      await saveSystemSettings(payload);
+      saveSettings(payload);
       alert("Đã lưu cài đặt hệ thống thành công.");
     } catch (err) {
       console.error("Error saving settings:", err);

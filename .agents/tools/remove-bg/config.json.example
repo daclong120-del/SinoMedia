@@ -1,0 +1,7 @@
+{
+  "api_keys": [
+    "YOUR_API_KEY_1",
+    "YOUR_API_KEY_2"
+  ],
+  "cleanup_expiry_minutes": 30
+}

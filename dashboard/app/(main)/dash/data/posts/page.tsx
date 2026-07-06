@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { PlatformBadge } from "@/components/dashboard/Badges";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
-import { fetchPosts, getTags, fetchComments } from "@/lib/api";
+import { getPosts, getComments, getTags } from "@/lib/actions/data.actions";
 import { formatNumber, timeAgo, cn } from "@/lib/utils";
 import type { CrawledPost, CrawledComment } from "@/types";
 
@@ -42,9 +42,9 @@ function PostsPageContent() {
   // Fetch posts from Supabase
   useEffect(() => {
     async function load() {
-      const data = await fetchPosts({ limit: 100 });
-      setPosts(data);
-      if (data.length > 0) setSelectedPost(data[0]);
+      const result = await getPosts({ limit: 100 });
+      setPosts(result.data);
+      if (result.data.length > 0) setSelectedPost(result.data[0]);
       setLoading(false);
     }
     load();
@@ -59,7 +59,7 @@ function PostsPageContent() {
     async function loadComments() {
       setLoadingComments(true);
       try {
-        const data = await fetchComments(selectedPost.id);
+        const data = await getComments(selectedPost!.id);
         setComments(data);
       } catch (err) {
         console.error("Error loading comments:", err);

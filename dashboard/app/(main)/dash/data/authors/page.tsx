@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { PlatformBadge } from "@/components/dashboard/Badges";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
-import { fetchAuthors } from "@/lib/api";
+import { getAuthors } from "@/lib/actions/data.actions";
 import { formatNumber } from "@/lib/utils";
 import Link from "next/link";
 import type { CrawledAuthor } from "@/types";
@@ -18,8 +18,8 @@ export default function AuthorsPage() {
 
   useEffect(() => {
     async function load() {
-      const data = await fetchAuthors({ limit: 100 });
-      setAuthors(data);
+      const result = await getAuthors({ limit: 100 });
+      setAuthors(result.data);
       setLoading(false);
     }
     load();

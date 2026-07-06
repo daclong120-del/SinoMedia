@@ -3,7 +3,7 @@
 import React, { useState, useMemo, Suspense } from "react";
 import Link from "next/link";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import { mockCreativeAds, mockCreativeAdvertisers } from "@/lib/mock-data";
+// Data được fetch qua /api/creative/advertisers/[id] (API Route)
 import CreativeCard from "@/components/dashboard/CreativeCard";
 import { PlatformBadge } from "@/components/dashboard/Badges";
 import CreativeDetailView from "@/components/dashboard/CreativeDetailView";
@@ -104,7 +104,7 @@ function AdvertiserProfileContent() {
     // Aggregate by date
     const dateMap: Record<string, number> = {};
     advertiserCreatives.forEach((ad) => {
-      ad.views_history.forEach((h) => {
+      ad.views_history.forEach((h: { date: string; count: number }) => {
         dateMap[h.date] = (dateMap[h.date] || 0) + h.count;
       });
     });

@@ -3,7 +3,7 @@
 import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { mockCreativeAds, mockCreativeAdvertisers } from "@/lib/mock-data";
+// Data được fetch qua /api/creative/growth (API Route)
 import CreativeCard from "@/components/dashboard/CreativeCard";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
 import CreativeDetailView from "@/components/dashboard/CreativeDetailView";

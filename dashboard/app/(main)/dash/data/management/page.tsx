@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { mockTags } from "@/lib/mock-data";
-import { getExportedFiles } from "@/lib/api";
+import { getTags } from "@/lib/actions/data.actions";
+import { getExports } from "@/lib/actions/system.actions";
 import type { ExportedFile } from "@/types";
 import { formatNumber, formatFileSize, timeAgo } from "@/lib/utils";
 
 export default function ManagementPage() {
-  const [tags, setTags] = useState(mockTags);
+  const [tags, setTags] = useState<{ id: string; name: string; color: string; description: string; usage_count: number; created_at: string }[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState("#3b82f6");
@@ -20,7 +20,7 @@ export default function ManagementPage() {
     async function loadFiles() {
       setLoadingExported(true);
       try {
-        const list = await getExportedFiles();
+        const list = await getExports();
         setExportedFiles(list);
       } catch (err) {
         console.error("Error loading exported files:", err);
