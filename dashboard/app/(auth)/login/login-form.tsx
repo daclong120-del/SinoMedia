@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { GoogleIcon } from "@/components/icons";
-import { supabase } from "@/lib/supabase";
+import { createClientBrowser } from "@/lib/supabase/client";
 
 const EyeIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-75" viewBox="0 0 24 24">
@@ -65,6 +65,7 @@ const DICT: Record<string, typeof ENGLISH_DICT> = {
 
 export default function LoginForm() {
   const router = useRouter();
+  const supabase = createClientBrowser();
   const searchParams = useSearchParams();
   
   const [lang, setLang] = useState("English (US)");

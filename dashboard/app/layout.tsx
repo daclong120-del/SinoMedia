@@ -31,17 +31,27 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        {/* Dark mode: đọc localStorage trước paint để tránh flash */}
+        {/* Dark mode: đọc localStorage của Zustand trước paint để tránh flash */}
         <Script
           id="theme-detector"
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                  document.documentElement.classList.add('dark');
+                const stored = localStorage.getItem('sinomedia-ui-preferences');
+                if (stored) {
+                  const parsed = JSON.parse(stored);
+                  const theme = parsed?.state?.theme;
+                  if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                  }
                 } else {
-                  document.documentElement.classList.remove('dark');
+                  // Fallback mặc định theo preferences hệ thống nếu chưa có store
+                  if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.classList.add('dark');
+                  }
                 }
               } catch (_) {}
             `,

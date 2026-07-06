@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SpiderIcon } from "@/components/icons";
+import { useUIStore } from "@/lib/stores/use-ui-store";
 
 // ─── Icon Components (inline SVG cho gọn) ────────────────────
 
@@ -185,7 +186,14 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
+  const { sidebarCollapsed, setSidebarCollapsed } = useUIStore();
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  const isCollapsed = hasMounted ? sidebarCollapsed : false;
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -400,7 +408,7 @@ export default function Sidebar({ isMobileOpen = false, onMobileClose }: Sidebar
         {/* Collapse toggle */}
         <div className="border-t border-border p-2 hidden lg:block bg-sidebar">
           <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
+            onClick={() => setSidebarCollapsed(!isCollapsed)}
             className="flex h-8 w-full items-center justify-center rounded-lg text-zinc-500 dark:text-zinc-400 hover:bg-muted hover:text-zinc-950 dark:hover:text-zinc-50 transition-all duration-150"
             title={isCollapsed ? "Mở rộng sidebar" : "Thu gọn sidebar"}
           >

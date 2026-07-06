@@ -85,3 +85,11 @@
   - **Phương án A:** Ô nhập văn bản dạng chuỗi đơn giản, phân tách bằng dấu phẩy (Comma-separated text input). (Ưu: Đơn giản, code nhanh; Nhược: Dễ sai sót định dạng dữ liệu, rác khoảng trắng dư thừa trong DB).
   - **Phương án B (Khuyến nghị):** Tag Input dạng chip tương tác, tự động parse chuỗi dán từ clipboard (onPaste) theo regex phân tách và hiển thị dưới dạng các thẻ chip riêng biệt.
 - **Chọn Phương án B vì:** Đảm bảo tính toàn vẹn của dữ liệu (data integrity) tránh các tag rỗng hoặc trùng lặp, đồng thời tối ưu hóa trải nghiệm người dùng với khả năng copy-paste nhanh danh sách nhiều tag cùng một lúc mà không đánh mất tốc độ nhập liệu.
+
+## 2026-07-06 — Thiết kế Chiến Lược Lưu Trữ Dữ Liệu Client (Client Storage Strategy) [initiative: refactor-client-storage]
+- **Bối cảnh:** Dashboard Next.js đang lưu JWT token mặc định trong localStorage (qua `@supabase/supabase-js`), chưa cấu hình CSRF protection, chưa cấu hình Zustand persist versioning, và chưa có IndexedDB để xử lý dữ liệu nhập liệu lớn mà không block UI main thread.
+- **Phương án đã cân nhắc:**
+  - **Auth Token (JWT):** Chọn lưu trong Cookie httpOnly với `@supabase/ssr` thay vì localStorage để bảo vệ trước XSS. Chọn cấu hình `SameSite=Lax` thay vì `Strict` để giữ cho Google OAuth redirect hoạt động trơn tru từ trang của Supabase, kết hợp với kiểm tra `Origin`/`Referer` headers tại các API Route Handler nhận request POST/PUT/DELETE từ client nhằm chống CSRF.
+  - **Zustand UI Preferences:** Chọn dùng Zustand persist có cấu hình `version` và hàm `migrate` rõ ràng (Schema Versioning & Migration) để ngăn chặn crash runtime khi thay đổi store schema, kết hợp inline script ở `<head>` để parse JSON từ key store nhằm chống flicker dark mode.
+  - **IndexedDB cho Dữ liệu lớn:** Chọn dùng IndexedDB thông qua thư viện `idb-keyval` (không đồng bộ, dung lượng lớn) thay vì localStorage cho danh sách proxy/link KOL lớn, kết hợp debounce ghi (~500ms) và bọc try-catch graceful fallback (in-memory + Toast UI) để xử lý việc Safari Private Browsing chặn ghi đĩa.
+- **Chọn các phương án trên vì:** Giải quyết toàn diện các lỗ hổng bảo mật kinh điển, bảo vệ hiệu năng mượt mà của UI (chống flicker, non-blocking main thread) và xử lý triệt để các edge cases thực tế như Safari Private Browsing và tính tương thích ngược của local state.

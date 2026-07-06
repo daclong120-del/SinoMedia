@@ -91,7 +91,7 @@ async function updateTaskStatus(taskId: string, status: "completed" | "failed", 
 /**
  * # Thực thi 1 task cụ thể dựa trên platform và command
  */
-async function executeTask(task: CrawlerTask): Promise<void> {
+export async function executeTask(task: CrawlerTask): Promise<void> {
   const { id, platform, command, target, max_count } = task;
   if (!id) return;
   currentTaskId = id;

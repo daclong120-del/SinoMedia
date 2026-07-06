@@ -182,3 +182,13 @@ Mặc dù Supabase có sẵn dịch vụ Storage (lưu trữ tệp tin), việc 
         1. App gửi yêu cầu xin quyền tải file lên Edge Function.
         2. Edge Function sinh ra một **Presigned URL** (đường dẫn tải lên tạm thời có chữ ký bảo mật tồn tại trong 5-10 phút) từ Cloudflare R2 và gửi lại cho App.
         3. App sử dụng đường dẫn đó để tải trực tiếp file từ thiết bị lên Cloudflare R2 mà không cần đi qua Server trung gian, giúp tránh quá tải băng thông cho server.
+
+---
+
+## 💾 6. Chiến Lược Lưu Trữ Dữ Liệu Phía Client (Client Storage Strategy)
+
+Hệ thống phân chia dữ liệu client thành 4 phân vùng lưu trữ dựa trên tính chất bảo mật, kích thước dữ liệu và vòng đời (lifetime) để bảo vệ chống XSS/CSRF, tránh chặn ghi trên Safari Private và chống flicker giao diện.
+
+Chi tiết thiết kế kiến trúc, mã nguồn cấu hình và xử lý các kịch bản biên được tài liệu hóa đầy đủ tại:
+👉 **[Chiến Lược Lưu Trữ Client](file:///d:/Python/SinoMedia/.agents/docs/architecture/client-storage-strategy.md)**
+

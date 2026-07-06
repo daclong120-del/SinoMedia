@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import MetricCard from "@/components/dashboard/MetricCard";
 import { StatusBadge } from "@/components/dashboard/Badges";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
 import { getProxies, createProxiesBulk, deleteProxy, testProxyConnection } from "@/lib/api";
 import { timeAgo, cn } from "@/lib/utils";
 import type { ProxyItem } from "@/types";
+import { getLargeDraft, setLargeDraft, delLargeDraft } from "@/lib/utils/storage-helper";
+import { debounce } from "@/lib/utils/debounce";
 
 export default function ProxiesPage() {
   const [proxies, setProxies] = useState<ProxyItem[]>([]);
@@ -16,6 +18,62 @@ export default function ProxiesPage() {
   const [proxyProto, setProxyProto] = useState("HTTP");
   const [bulkText, setBulkText] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const [notification, setNotification] = useState<{ show: boolean; message: string; type: "success" | "error" | "info" }>({
+    show: false,
+    message: "",
+    type: "info"
+  });
+
+  const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
+    setNotification({ show: true, message, type });
+    setTimeout(() => {
+      setNotification((prev) => ({ ...prev, show: false }));
+    }, 5000);
+  };
+
+  const debouncedSaveRef = useRef<any>(null);
+
+  useEffect(() => {
+    debouncedSaveRef.current = debounce(async (text: string) => {
+      const result = await setLargeDraft("sinomedia-proxy-bulk-draft", text);
+      if (result.success && result.isFallback) {
+        showToast("Đang duyệt ẩn danh. Bản nháp proxy sẽ bị mất khi đóng tab.", "info");
+      }
+    }, 500);
+  }, []);
+
+  const handleTextChange = (text: string) => {
+    setBulkText(text);
+    if (debouncedSaveRef.current) {
+      debouncedSaveRef.current(text);
+    }
+  };
+
+  useEffect(() => {
+    if (showModal) {
+      const loadDraft = async () => {
+        const draft = await getLargeDraft<string>("sinomedia-proxy-bulk-draft");
+        if (draft) {
+          setBulkText(draft);
+          showToast("Đã tự động khôi phục bản nháp proxy trước đó của bạn.", "info");
+        }
+      };
+      loadDraft();
+    }
+  }, [showModal]);
+
+  const handleCancel = async () => {
+    setShowModal(false);
+    setBulkText("");
+    await delLargeDraft("sinomedia-proxy-bulk-draft");
+  };
+
+  const handleCleanDraft = async () => {
+    setBulkText("");
+    await delLargeDraft("sinomedia-proxy-bulk-draft");
+    showToast("Đã xóa bản nháp proxy.", "info");
+  };
 
   const fetchList = async () => {
     setLoading(true);
@@ -85,16 +143,17 @@ export default function ProxiesPage() {
 
       if (parsed.length > 0) {
         await createProxiesBulk(parsed);
-        alert(`Đã nạp thành công ${parsed.length} proxies.`);
+        showToast(`Đã nạp thành công ${parsed.length} proxies.`, "success");
         setBulkText("");
         setShowModal(false);
+        await delLargeDraft("sinomedia-proxy-bulk-draft");
         fetchList();
       } else {
-        alert("Định dạng dòng không hợp lệ. Vui lòng kiểm tra lại.");
+        showToast("Định dạng dòng không hợp lệ. Vui lòng kiểm tra lại.", "error");
       }
     } catch (err) {
       console.error(err);
-      alert("Lỗi khi nạp proxies.");
+      showToast("Lỗi khi nạp proxies.", "error");
     } finally {
       setSubmitting(false);
     }
@@ -215,11 +274,17 @@ export default function ProxiesPage() {
                   fullWidth
                 />
               </label>
-              <label className="space-y-1 block"><span className="text-[11px] font-medium text-muted-foreground">Danh sách proxy *</span>
+              <label className="space-y-1 block">
+                <div className="flex justify-between items-center">
+                  <span className="text-[11px] font-medium text-muted-foreground">Danh sách proxy *</span>
+                  {bulkText.trim() && (
+                    <button onClick={handleCleanDraft} className="text-[10px] text-destructive hover:underline font-semibold cursor-pointer">Xóa nháp</button>
+                  )}
+                </div>
                 <textarea
                   rows={6}
                   value={bulkText}
-                  onChange={(e) => setBulkText(e.target.value)}
+                  onChange={(e) => handleTextChange(e.target.value)}
                   placeholder="IP:Port&#10;IP:Port:User:Pass&#10;45.123.45.6:1080:username:password"
                   className="w-full px-3 py-2 text-xs border border-border rounded-lg bg-background text-foreground font-mono resize-none"
                 />
@@ -227,12 +292,24 @@ export default function ProxiesPage() {
               <p className="text-[10px] text-muted-foreground leading-normal">Hệ thống hỗ trợ tự động tách IP, Cổng, Username, Password. Có thể nạp số lượng lớn cùng lúc.</p>
             </div>
             <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-border">
-              <button onClick={() => { setShowModal(false); setBulkText(""); }} className="h-8 px-4 text-xs font-medium rounded-lg border border-border text-muted-foreground hover:bg-muted cursor-pointer">Hủy</button>
+              <button onClick={handleCancel} className="h-8 px-4 text-xs font-medium rounded-lg border border-border text-muted-foreground hover:bg-muted cursor-pointer">Hủy</button>
               <button onClick={handleBulkUpload} disabled={submitting} className="h-8 px-4 text-xs font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 cursor-pointer">
                 {submitting ? "Đang nạp..." : "Nạp Proxy"}
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {notification.show && (
+        <div className={cn(
+          "fixed bottom-4 right-4 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl border shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-200",
+          notification.type === "success" && "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400",
+          notification.type === "error" && "bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400",
+          notification.type === "info" && "bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400"
+        )}>
+          <span className="text-xs font-semibold">{notification.message}</span>
         </div>
       )}
     </div>

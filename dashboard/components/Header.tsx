@@ -6,8 +6,9 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useAccount } from "@/lib/account-context";
 import { UserIcon, ChevronDownIcon } from "@/components/icons";
-import { supabase } from "@/lib/supabase";
+import { createClientBrowser } from "@/lib/supabase/client";
 import { mockCreativeAdvertisers, mockCreativeAds } from "@/lib/mock-data";
+import { useUIStore } from "@/lib/stores/use-ui-store";
 
 // ─── Breadcrumb mapping ──────────────────────────────────────
 const ROUTE_LABELS: Record<string, string[]> = {
@@ -35,13 +36,23 @@ interface HeaderProps {
 }
 
 export default function Header({ onMenuToggle }: HeaderProps) {
+  const supabase = createClientBrowser();
   const pathname = usePathname();
   const router = useRouter();
-  const [isDark, setIsDark] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  
   const { activeAccount } = useAccount();
+
+  const [hasMounted, setHasMounted] = useState(false);
+  const { theme, setTheme } = useUIStore();
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  const isDark = hasMounted
+    ? (theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches))
+    : false;
 
   const getBreadcrumbs = () => {
     if (pathname.startsWith("/dash/manage-account")) {
@@ -81,15 +92,13 @@ export default function Header({ onMenuToggle }: HeaderProps) {
   }, []);
 
   const toggleTheme = () => {
+    const nextTheme = isDark ? "light" : "dark";
+    setTheme(nextTheme);
     const html = document.documentElement;
-    if (html.classList.contains("dark")) {
-      html.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-      setIsDark(false);
-    } else {
+    if (nextTheme === "dark") {
       html.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-      setIsDark(true);
+    } else {
+      html.classList.remove("dark");
     }
   };
 
