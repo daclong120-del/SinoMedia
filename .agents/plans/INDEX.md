@@ -10,7 +10,7 @@
 | debug-douyin-crawler-pipeline | debug | ✅ xong | - |
 | refactor-crawler-optimization | refactor | ✅ xong | 2/2 phase |
 | refactor-project-structure | refactor | ✅ xong | 1/1 phase |
-| refactor-migrate-platforms | refactor | 🔄 đang làm | 2/6 phase |
+| refactor-migrate-platforms | refactor | ✅ xong | 6/6 phase |
 | refactor-remove-openai | refactor | ⏳ chưa | 0/3 phase |
 | feat-creative-hub | feature | 🔄 đang làm | 0/? phase |
 | feat-crawler-tasks-trigger | feature | ✅ xong | 3/3 phase |

@@ -46,7 +46,7 @@ export async function bootstrapSession(profileDir: string) {
     let loggedIn = false;
     for (let i = 0; i < 120; i++) {
       const cookies = await browserContext.cookies();
-      const loginStatusCookie = cookies.find((c) => c.name === "LOGIN_STATUS");
+      const loginStatusCookie = cookies.find((c: any) => c.name === "LOGIN_STATUS");
       
       const hasUserLogin = await page.evaluate(() => {
         try {
@@ -74,7 +74,7 @@ export async function bootstrapSession(profileDir: string) {
 
     const cookies = await browserContext.cookies();
     console.log(`Tìm thấy ${cookies.length} cookies.`);
-    const msTokenCookie = cookies.find((c) => c.name === "msToken")?.value || "";
+    const msTokenCookie = cookies.find((c: any) => c.name === "msToken")?.value || "";
     const msTokenLocalStorage = await page.evaluate(
       () => localStorage.getItem("msToken") || localStorage.getItem("xmst") || ""
     );

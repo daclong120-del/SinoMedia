@@ -3,16 +3,10 @@
  */
 
 export enum WeiboSearchType {
-  DEFAULT = "typeall",
-  REALTIME = "realtime",
-  HOT = "hot",
-  MEDIA = "media",
-}
-
-export enum WeiboSortType {
-  DEFAULT = 0,
-  NEWEST = 1,
-  HOT = 2,
+  DEFAULT = "1",
+  REALTIME = "61",
+  POPULAR = "60",
+  VIDEO = "64",
 }
 
 export interface WeiboPostInfo {

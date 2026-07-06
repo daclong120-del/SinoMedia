@@ -4,25 +4,251 @@
  */
 
 import type { IApiClient, RequestOptions, CookieData } from "../../base/base_client.js";
+import type { Page } from "playwright-core";
+import { CONFIG } from "../../config.js";
+import { ProxyAgent } from "undici";
+import { mrc, b64Encode, encodeUtf8, getB3TraceId } from "./sign.js";
+import { XhsExtractor } from "./extractor.js";
+
+let dispatcher: ProxyAgent | undefined;
+if (CONFIG.proxy) {
+  dispatcher = new ProxyAgent(CONFIG.proxy);
+}
 
 export class XhsClient implements IApiClient {
   private cookies: CookieData[] = [];
   private headers: Record<string, string> = {};
+  public playwrightPage?: Page;
+  private _host: string = "https://edith.xiaohongshu.com";
 
   constructor(options?: { proxy?: string; headers?: Record<string, string> }) {
     this.headers = {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
       "Referer": "https://www.xiaohongshu.com/",
       "Origin": "https://www.xiaohongshu.com",
+      "Content-Type": "application/json;charset=UTF-8",
       ...options?.headers,
     };
   }
 
   /**
+   * # Thiết lập Playwright Page cho client
+   */
+  setPage(page: Page): void {
+    this.playwrightPage = page;
+  }
+
+  /**
+   * # Sinh chữ ký XHS thông qua kết hợp Playwright Page và thuật toán cục bộ
+   */
+  async sign(
+    uri: string,
+    method: string,
+    data?: any
+  ): Promise<{ "X-S": string; "X-T": string; "x-S-Common": string; "X-B3-Traceid": string }> {
+    if (!this.playwrightPage) {
+      throw new Error("Playwright Page is required for signing XHS requests.");
+    }
+
+    const currentUrl = this.playwrightPage.url();
+    if (!currentUrl.includes("xiaohongshu.com")) {
+      await this.playwrightPage.goto("https://www.xiaohongshu.com", { waitUntil: "domcontentloaded" }).catch(() => {});
+    }
+
+    // Đợi hàm sinh chữ ký phía trình duyệt sẵn sàng
+    await this.playwrightPage.waitForFunction(
+      () => typeof (window as any)._webmsxyw === "function",
+      { timeout: 10000 }
+    );
+
+    const isPost = method.toUpperCase() === "POST";
+
+    const xS = await this.playwrightPage.evaluate(
+      ({ uri, isPost, data }) => {
+        const fn = (window as any)._webmsxyw;
+        if (typeof fn !== "function") {
+          throw new Error("window._webmsxyw is not a function on the page");
+        }
+        if (isPost) {
+          return fn(uri, data);
+        } else {
+          if (data) {
+            let signUri = uri;
+            if (typeof data === "string") {
+              signUri += data.startsWith("?") ? data : `?${data}`;
+            } else if (typeof data === "object") {
+              const params = [];
+              for (const [key, value] of Object.entries(data)) {
+                let valStr = "";
+                if (Array.isArray(value)) {
+                  valStr = value.join(",");
+                } else if (value !== null && value !== undefined) {
+                  valStr = String(value);
+                }
+                const encodedVal = encodeURIComponent(valStr).replace(/%2C/g, ",");
+                params.push(`${key}=${encodedVal}`);
+              }
+              if (params.length > 0) {
+                signUri += `?${params.join("&")}`;
+              }
+            }
+            return fn(signUri);
+          }
+          return fn(uri);
+        }
+      },
+      { uri, isPost, data }
+    );
+
+    const xT = Math.floor(Date.now() / 1000).toString();
+
+    // Lấy cookie a1
+    const a1Cookie = this.cookies.find((c) => c.name === "a1")?.value || "";
+
+    // Lấy b1 từ localStorage nếu có thể
+    let b1 = "";
+    try {
+      b1 = (await this.playwrightPage.evaluate(() => localStorage.getItem("b1") || "")) || "";
+    } catch {
+      // Bỏ qua nếu có lỗi
+    }
+
+    const xSCommon = this.generateXSCommon(a1Cookie, b1, xS, xT);
+    const xB3Traceid = getB3TraceId();
+
+    return {
+      "X-S": xS,
+      "X-T": xT,
+      "x-S-Common": xSCommon,
+      "X-B3-Traceid": xB3Traceid,
+    };
+  }
+
+  /**
+   * # Sinh chuỗi x-s-common
+   */
+  private generateXSCommon(a1: string, b1: string, xS: string, xT: string): string {
+    const common = {
+      s0: 3,
+      s1: "",
+      x0: "1",
+      x1: "4.2.2",
+      x2: "Mac OS",
+      x3: "xhs-pc-web",
+      x4: "4.74.0",
+      x5: a1,
+      x6: xT,
+      x7: xS,
+      x8: b1,
+      x9: mrc(xT + xS + b1),
+      x10: 154,
+      x11: "normal",
+    };
+    const jsonStr = JSON.stringify(common);
+    const bytes = encodeUtf8(jsonStr);
+    return b64Encode(bytes);
+  }
+
+  /**
    * # Gửi request đến XHS API (cần chữ ký X-s, X-t)
    */
-  async request(_method: string, _url: string, _options?: RequestOptions): Promise<any> {
-    throw new Error("Chưa triển khai: XhsClient.request");
+  async request(method: string, url: string, options?: RequestOptions): Promise<any> {
+    let finalUrl = url;
+    if (!url.startsWith("http")) {
+      finalUrl = `${this._host}${url}`;
+    }
+
+    const parsedUrl = new URL(finalUrl);
+    const uri = parsedUrl.pathname;
+
+    let sigHeaders: Record<string, string> = {};
+    if (options?.sign !== false) {
+      try {
+        let signData: any = undefined;
+        if (method.toUpperCase() === "POST") {
+          signData = options?.body;
+        } else {
+          const paramsObj: Record<string, string | string[]> = {};
+          parsedUrl.searchParams.forEach((value, key) => {
+            if (paramsObj[key]) {
+              if (Array.isArray(paramsObj[key])) {
+                (paramsObj[key] as string[]).push(value);
+              } else {
+                paramsObj[key] = [paramsObj[key] as string, value];
+              }
+            } else {
+              paramsObj[key] = value;
+            }
+          });
+          signData = paramsObj;
+        }
+
+        sigHeaders = await this.sign(uri, method, signData);
+      } catch (err) {
+        console.warn("[XhsClient.request] Không thể sinh chữ ký:", (err as Error).message);
+      }
+    }
+
+    const cookieStr = this.cookies.map((c) => `${c.name}=${c.value}`).join("; ");
+    const requestHeaders = {
+      ...this.headers,
+      ...sigHeaders,
+      ...options?.headers,
+      ...(cookieStr ? { Cookie: cookieStr } : {}),
+    };
+
+    const fetchOpts: any = {
+      method,
+      headers: requestHeaders,
+    };
+
+    if (options?.body) {
+      fetchOpts.body = typeof options.body === "string" ? options.body : JSON.stringify(options.body);
+    }
+
+    if (dispatcher) {
+      fetchOpts.dispatcher = dispatcher;
+    }
+
+    const response = await fetch(finalUrl, fetchOpts);
+    const responseText = await response.text();
+
+    if (response.status === 471 || response.status === 461) {
+      throw new Error(`CAPTCHA xuất hiện, yêu cầu thất bại (461/471). Phản hồi: ${responseText}`);
+    }
+
+    if (response.status !== 200) {
+      throw new Error(`HTTP Status ${response.status}: ${responseText}`);
+    }
+
+    if (!responseText.trim().startsWith("{")) {
+      return responseText;
+    }
+
+    try {
+      const data = JSON.parse(responseText);
+      if (data.success === false) {
+        throw new Error(data.msg || JSON.stringify(data));
+      }
+      return data.data !== undefined ? data.data : (data.success !== undefined ? data.success : data);
+    } catch (err) {
+      throw new Error(
+        `Lỗi phân tích JSON phản hồi: ${(err as Error).message}. Phản hồi: ${responseText.substring(0, 200)}`
+      );
+    }
+  }
+
+  /**
+   * # Kiểm tra trạng thái đăng nhập qua API selfinfo
+   */
+  async pong(): Promise<boolean> {
+    try {
+      const selfInfo = await this.request("GET", "/api/sns/web/v1/user/selfinfo");
+      return !!selfInfo;
+    } catch (e) {
+      console.warn("[XhsClient.pong] Gặp lỗi kiểm tra ping:", (e as Error).message);
+      return false;
+    }
   }
 
   /**
@@ -30,6 +256,8 @@ export class XhsClient implements IApiClient {
    */
   async updateCookies(cookies: CookieData[]): Promise<void> {
     this.cookies = cookies;
+    const cookieStr = cookies.map((c) => `${c.name}=${c.value}`).join("; ");
+    this.headers["Cookie"] = cookieStr;
   }
 
   /**
@@ -38,4 +266,323 @@ export class XhsClient implements IApiClient {
   getActiveCookies(): CookieData[] {
     return this.cookies;
   }
+
+  /**
+   * # Helper GET request
+   */
+  async get(uri: string, params?: Record<string, any>): Promise<any> {
+    let queryStr = "";
+    if (params) {
+      const parts = [];
+      for (const [key, value] of Object.entries(params)) {
+        let valStr = "";
+        if (Array.isArray(value)) {
+          valStr = value.join(",");
+        } else if (value !== null && value !== undefined) {
+          valStr = String(value);
+        }
+        const encodedVal = encodeURIComponent(valStr).replace(/%2C/g, ",");
+        parts.push(`${key}=${encodedVal}`);
+      }
+      if (parts.length > 0) {
+        queryStr = `?${parts.join("&")}`;
+      }
+    }
+    return this.request("GET", `${uri}${queryStr}`);
+  }
+
+  /**
+   * # Helper POST request
+   */
+  async post(uri: string, data: Record<string, any>): Promise<any> {
+    return this.request("POST", uri, { body: data });
+  }
+
+  /**
+   * # Tìm kiếm bài viết theo từ khóa
+   */
+  async getNoteByKeyword(options: {
+    keyword: string;
+    searchId?: string;
+    page?: number;
+    pageSize?: number;
+    sort?: string;
+    noteType?: string;
+  }): Promise<any> {
+    const uri = "/api/sns/web/v1/search/notes";
+    const data = {
+      keyword: options.keyword,
+      page: options.page || 1,
+      page_size: options.pageSize || 20,
+      search_id: options.searchId || "0",
+      sort: options.sort || "general",
+      note_type: options.noteType || "all",
+    };
+    return this.post(uri, data);
+  }
+
+  /**
+   * # Lấy thông tin chi tiết bài viết từ API feed
+   */
+  async getNoteById(noteId: string, xsecSource: string = "pc_search", xsecToken: string = ""): Promise<any> {
+    const data = {
+      source_note_id: noteId,
+      image_formats: ["jpg", "webp", "avif"],
+      extra: { need_body_topic: 1 },
+      xsec_source: xsecSource || "pc_search",
+      xsec_token: xsecToken,
+    };
+    const uri = "/api/sns/web/v1/feed";
+    const res = await this.post(uri, data);
+    if (res && res.items && res.items.length > 0) {
+      return res.items[0].note_card || res.items[0].noteCard || {};
+    }
+    console.error(`[XhsClient.getNoteById] Note detail empty for ID ${noteId}`);
+    return {};
+  }
+
+  /**
+   * # Lấy thông tin chi tiết bài viết qua HTML explore (fallback)
+   */
+  async getNoteByIdFromHtml(
+    noteId: string,
+    xsecSource: string,
+    xsecToken: string,
+    enableCookie: boolean = false
+  ): Promise<any> {
+    const url = `https://www.xiaohongshu.com/explore/${noteId}?xsec_token=${xsecToken}&xsec_source=${xsecSource}`;
+    const copyHeaders = { ...this.headers };
+    if (!enableCookie) {
+      delete copyHeaders["Cookie"];
+      delete copyHeaders["cookie"];
+    }
+    const html = await this.request("GET", url, { headers: copyHeaders, sign: false });
+    return XhsExtractor.extractNoteDetailFromHtml(noteId, html);
+  }
+
+  /**
+   * # Lấy danh sách bình luận cấp 1
+   */
+  async getNoteComments(noteId: string, xsecToken: string, cursor: string = ""): Promise<any> {
+    const uri = "/api/sns/web/v2/comment/page";
+    const params = {
+      note_id: noteId,
+      cursor,
+      top_comment_id: "",
+      image_formats: "jpg,webp,avif",
+      xsec_token: xsecToken,
+    };
+    return this.get(uri, params);
+  }
+
+  /**
+   * # Lấy danh sách bình luận con cấp 2
+   */
+  async getNoteSubComments(
+    noteId: string,
+    rootCommentId: string,
+    xsecToken: string,
+    num: number = 10,
+    cursor: string = ""
+  ): Promise<any> {
+    const uri = "/api/sns/web/v2/comment/sub/page";
+    const params = {
+      note_id: noteId,
+      root_comment_id: rootCommentId,
+      num: String(num),
+      cursor,
+      image_formats: "jpg,webp,avif",
+      top_comment_id: "",
+      xsec_token: xsecToken,
+    };
+    return this.get(uri, params);
+  }
+
+  /**
+   * # Lấy toàn bộ bình luận của bài đăng (đệ quy)
+   */
+  async getNoteAllComments(options: {
+    noteId: string;
+    xsecToken: string;
+    crawlInterval?: number;
+    callback?: (noteId: string, comments: any[]) => Promise<void>;
+    maxCount?: number;
+  }): Promise<any[]> {
+    const result: any[] = [];
+    const maxCount = options.maxCount || 10;
+    const crawlInterval = options.crawlInterval || 1;
+    let commentsHasMore = true;
+    let commentsCursor = "";
+
+    while (commentsHasMore && result.length < maxCount) {
+      const commentsRes = await this.getNoteComments(options.noteId, options.xsecToken, commentsCursor);
+      commentsHasMore = commentsRes.has_more || commentsRes.hasMore || false;
+      commentsCursor = commentsRes.cursor || "";
+      if (!commentsRes.comments) {
+        break;
+      }
+      let comments = commentsRes.comments;
+      if (result.length + comments.length > maxCount) {
+        comments = comments.slice(0, maxCount - result.length);
+      }
+      if (options.callback) {
+        await options.callback(options.noteId, comments);
+      }
+      await new Promise((r) => setTimeout(r, crawlInterval * 1000));
+      result.push(...comments);
+
+      // Cào bình luận con cấp 2
+      const subComments = await this.getCommentsAllSubComments({
+        comments,
+        xsecToken: options.xsecToken,
+        crawlInterval,
+        callback: options.callback,
+      });
+      result.push(...subComments);
+    }
+    return result;
+  }
+
+  /**
+   * # Lấy toàn bộ bình luận con dưới các bình luận cấp 1
+   */
+  async getCommentsAllSubComments(options: {
+    comments: any[];
+    xsecToken: string;
+    crawlInterval?: number;
+    callback?: (noteId: string, comments: any[]) => Promise<void>;
+  }): Promise<any[]> {
+    const result: any[] = [];
+    const crawlInterval = options.crawlInterval || 1;
+    for (const comment of options.comments) {
+      try {
+        const noteId = comment.note_id || comment.noteId;
+        const subComments = comment.sub_comments || comment.subComments;
+        if (subComments && options.callback) {
+          await options.callback(noteId, subComments);
+        }
+        let subCommentHasMore = comment.sub_comment_has_more || comment.subCommentHasMore;
+        if (!subCommentHasMore) {
+          continue;
+        }
+        const rootCommentId = comment.id || comment.comment_id || comment.commentId;
+        let subCommentCursor = comment.sub_comment_cursor || comment.subCommentCursor || "";
+
+        while (subCommentHasMore) {
+          try {
+            const commentsRes = await this.getNoteSubComments(
+              noteId,
+              rootCommentId,
+              options.xsecToken,
+              10,
+              subCommentCursor
+            );
+            if (!commentsRes) {
+              break;
+            }
+            subCommentHasMore = commentsRes.has_more || commentsRes.hasMore || false;
+            subCommentCursor = commentsRes.cursor || "";
+            if (!commentsRes.comments) {
+              break;
+            }
+            const comments = commentsRes.comments;
+            if (options.callback) {
+              await options.callback(noteId, comments);
+            }
+            await new Promise((r) => setTimeout(r, crawlInterval * 1000));
+            result.push(...comments);
+          } catch (e) {
+            console.warn(`[XhsClient.getCommentsAllSubComments] Error fetching sub comments:`, e);
+            break;
+          }
+        }
+      } catch (e) {
+        console.error(`[XhsClient.getCommentsAllSubComments] Error processing comment:`, e);
+      }
+    }
+    return result;
+  }
+
+  /**
+   * # Lấy thông tin creator qua parse HTML profile
+   */
+  async getCreatorInfo(userId: string, xsecToken: string = "", xsecSource: string = ""): Promise<any> {
+    let uri = `/user/profile/${userId}`;
+    if (xsecToken && xsecSource) {
+      uri = `${uri}?xsec_token=${xsecToken}&xsec_source=${xsecSource}`;
+    }
+    const htmlContent = await this.request("GET", `https://www.xiaohongshu.com${uri}`, { sign: false });
+    return XhsExtractor.extractCreatorInfoFromHtml(htmlContent);
+  }
+
+  /**
+   * # Lấy các bài viết của creator (phân trang)
+   */
+  async getNotesByCreator(
+    userId: string,
+    cursor: string = "",
+    pageSize: number = 30,
+    xsecToken: string = "",
+    xsecSource: string = "pc_feed"
+  ): Promise<any> {
+    const uri = "/api/sns/web/v1/user_posted";
+    const params = {
+      num: pageSize,
+      cursor,
+      user_id: userId,
+      image_formats: "jpg,webp,avif",
+      xsec_token: xsecToken,
+      xsec_source: xsecSource,
+    };
+    return this.get(uri, params);
+  }
+
+  /**
+   * # Lấy tất cả bài viết của creator
+   */
+  async getAllNotesByCreator(options: {
+    userId: string;
+    crawlInterval?: number;
+    callback?: (notes: any[]) => Promise<void>;
+    xsecToken?: string;
+    xsecSource?: string;
+    maxCount?: number;
+  }): Promise<any[]> {
+    const result: any[] = [];
+    const maxCount = options.maxCount || 100;
+    const crawlInterval = options.crawlInterval || 1;
+    let notesHasMore = true;
+    let notesCursor = "";
+
+    while (notesHasMore && result.length < maxCount) {
+      const notesRes = await this.getNotesByCreator(
+        options.userId,
+        notesCursor,
+        30,
+        options.xsecToken || "",
+        options.xsecSource || "pc_feed"
+      );
+      if (!notesRes) {
+        break;
+      }
+      notesHasMore = notesRes.has_more || notesRes.hasMore || false;
+      notesCursor = notesRes.cursor || "";
+      if (!notesRes.notes) {
+        break;
+      }
+      const notes = notesRes.notes;
+      const remaining = maxCount - result.length;
+      if (remaining <= 0) {
+        break;
+      }
+      const notesToAdd = notes.slice(0, remaining);
+      if (options.callback) {
+        await options.callback(notesToAdd);
+      }
+      result.push(...notesToAdd);
+      await new Promise((r) => setTimeout(r, crawlInterval * 1000));
+    }
+    return result;
+  }
 }
+
