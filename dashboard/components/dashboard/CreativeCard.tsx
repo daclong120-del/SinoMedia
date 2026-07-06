@@ -147,8 +147,8 @@ export default function CreativeCard({ creative, advertiserName, className, onCl
             </p>
           </Link>
           <div className="flex flex-wrap gap-1">
-            {creative.tags.slice(0, 3).map((tag) => (
-              <span key={tag} className="text-[9px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
+            {[...new Set(creative.tags)].slice(0, 3).map((tag, idx) => (
+              <span key={`${tag}-${idx}`} className="text-[9px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
                 #{tag}
               </span>
             ))}

@@ -40,7 +40,7 @@ export default function AuthorsPage() {
   });
 
   return (
-    <div className="px-4 md:px-8 py-6 max-w-[1400px] mx-auto space-y-6">
+    <div suppressHydrationWarning className="px-4 md:px-8 py-6 max-w-[1400px] mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div>

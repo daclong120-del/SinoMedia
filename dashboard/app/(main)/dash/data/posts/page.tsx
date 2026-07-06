@@ -37,15 +37,26 @@ function PostsPageContent() {
   const [loading, setLoading] = useState(true);
   const [comments, setComments] = useState<CrawledComment[]>([]);
   const [loadingComments, setLoadingComments] = useState(false);
-  const tags = getTags();
+  const [tags, setTags] = useState<{ id: string; name: string; color: string; description: string; usage_count: number; created_at: string }[]>([]);
 
-  // Fetch posts from Supabase
+  // Fetch posts and tags from Supabase
   useEffect(() => {
     async function load() {
-      const result = await getPosts({ limit: 100 });
-      setPosts(result.data);
-      if (result.data.length > 0) setSelectedPost(result.data[0]);
-      setLoading(false);
+      try {
+        const [postsResult, tagsResult] = await Promise.all([
+          getPosts({ limit: 100 }),
+          getTags()
+        ]);
+        setPosts(postsResult.data);
+        setTags(tagsResult);
+        if (postsResult.data.length > 0) {
+          setSelectedPost(postsResult.data[0]);
+        }
+      } catch (err) {
+        console.error("Error loading posts or tags:", err);
+      } finally {
+        setLoading(false);
+      }
     }
     load();
   }, []);
