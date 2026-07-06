@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
+import { getSystemSettings, saveSystemSettings } from "@/lib/api";
 
 export default function SettingsPage() {
   const [apiKey, setApiKey] = useState("g7a8s9d0a1b2c3d4e5f6");
@@ -14,6 +15,66 @@ export default function SettingsPage() {
   const [collectReplies, setCollectReplies] = useState(true);
   const [headlessMode, setHeadlessMode] = useState(true);
   const [defaultPriority, setDefaultPriority] = useState("normal");
+
+  const [maxConcurrentTasks, setMaxConcurrentTasks] = useState(3);
+  const [maxRetries, setMaxRetries] = useState(2);
+  const [defaultWebhookUrl, setDefaultWebhookUrl] = useState("");
+  const [notifyOnSuccess, setNotifyOnSuccess] = useState(true);
+  const [alertOnFailure, setAlertOnFailure] = useState(true);
+
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    async function loadSettings() {
+      setLoading(true);
+      try {
+        const value = await getSystemSettings();
+        setApiKey(value.apiKey || "");
+        setUse2Captcha(value.use2Captcha !== false);
+        setCollectComments(value.collectComments !== false);
+        setCollectReplies(value.collectReplies !== false);
+        setHeadlessMode(value.headlessMode !== false);
+        setDefaultPriority(value.defaultPriority || "normal");
+        setMaxConcurrentTasks(value.maxConcurrentTasks || 3);
+        setMaxRetries(value.maxRetries || 2);
+        setDefaultWebhookUrl(value.defaultWebhookUrl || "");
+        setNotifyOnSuccess(value.notifyOnSuccess !== false);
+        setAlertOnFailure(value.alertOnFailure !== false);
+      } catch (err) {
+        console.error("Error loading settings:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadSettings();
+  }, []);
+
+  const handleSaveSettings = async () => {
+    setSaving(true);
+    try {
+      const payload = {
+        apiKey,
+        use2Captcha,
+        collectComments,
+        collectReplies,
+        headlessMode,
+        defaultPriority,
+        maxConcurrentTasks,
+        maxRetries,
+        defaultWebhookUrl,
+        notifyOnSuccess,
+        alertOnFailure,
+      };
+      await saveSystemSettings(payload);
+      alert("Đã lưu cài đặt hệ thống thành công.");
+    } catch (err) {
+      console.error("Error saving settings:", err);
+      alert("Lỗi khi lưu cài đặt hệ thống.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleRefreshBalance = () => {
     setIsLoadingBalance(true);
@@ -103,11 +164,11 @@ export default function SettingsPage() {
           <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <label className="space-y-1 block">
               <span className="font-medium text-foreground">Số task chạy song song tối đa</span>
-              <input type="number" defaultValue={3} className="w-full h-8 px-2 border border-border rounded-lg bg-background text-foreground" />
+              <input type="number" value={maxConcurrentTasks} onChange={(e) => setMaxConcurrentTasks(parseInt(e.target.value, 10) || 0)} className="w-full h-8 px-2 border border-border rounded-lg bg-background text-foreground" />
             </label>
             <label className="space-y-1 block">
               <span className="font-medium text-foreground">Số lần thử lại tối đa</span>
-              <input type="number" defaultValue={2} className="w-full h-8 px-2 border border-border rounded-lg bg-background text-foreground" />
+              <input type="number" value={maxRetries} onChange={(e) => setMaxRetries(parseInt(e.target.value, 10) || 0)} className="w-full h-8 px-2 border border-border rounded-lg bg-background text-foreground" />
             </label>
             <div className="space-y-2 col-span-1 sm:col-span-2 pt-2 border-t border-border/50">
               <span className="block font-medium text-foreground mb-1">Cấu hình luồng chạy & thu thập</span>
@@ -173,15 +234,15 @@ export default function SettingsPage() {
           <div className="p-4 space-y-4 text-xs">
             <label className="space-y-1 block">
               <span className="font-medium text-foreground">Default Webhook URL</span>
-              <input type="url" placeholder="https://api.telegram.org/bot.../sendMessage hoặc Discord Webhook" className="w-full max-w-xl h-8 px-3 border border-border rounded-lg bg-background text-foreground font-mono focus:outline-none" />
+              <input type="url" value={defaultWebhookUrl} onChange={(e) => setDefaultWebhookUrl(e.target.value)} placeholder="https://api.telegram.org/bot.../sendMessage hoặc Discord Webhook" className="w-full max-w-xl h-8 px-3 border border-border rounded-lg bg-background text-foreground font-mono focus:outline-none" />
             </label>
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-card-foreground">
-                <input type="checkbox" defaultChecked className="rounded" />
+                <input type="checkbox" checked={notifyOnSuccess} onChange={(e) => setNotifyOnSuccess(e.target.checked)} className="rounded" />
                 Gửi thông báo khi tác vụ hoàn thành thành công
               </label>
               <label className="flex items-center gap-2 text-card-foreground">
-                <input type="checkbox" defaultChecked className="rounded" />
+                <input type="checkbox" checked={alertOnFailure} onChange={(e) => setAlertOnFailure(e.target.checked)} className="rounded" />
                 Gửi cảnh báo lập tức nếu task cào thất bại
               </label>
             </div>
@@ -191,11 +252,11 @@ export default function SettingsPage() {
 
       {/* Actions */}
       <div className="flex justify-end gap-2">
-        <button className="h-8 px-4 text-xs font-medium rounded-lg border border-border bg-card text-muted-foreground hover:bg-muted transition-colors">
+        <button onClick={() => window.location.reload()} className="h-8 px-4 text-xs font-medium rounded-lg border border-border bg-card text-muted-foreground hover:bg-muted transition-colors cursor-pointer">
           Hủy
         </button>
-        <button className="h-8 px-4 text-xs font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
-          Lưu cài đặt
+        <button onClick={handleSaveSettings} disabled={saving || loading} className="h-8 px-4 text-xs font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer">
+          {saving ? "Đang lưu..." : "Lưu cài đặt"}
         </button>
       </div>
     </div>

@@ -5,7 +5,8 @@
 import { supabase } from "./supabase";
 import type {
   CrawledAuthor, CrawledPost, CrawlerTask, CrawlerAccount,
-  CrawledComment, CrawlerLogEntry, Platform
+  CrawledComment, CrawlerLogEntry, Platform, ProxyItem, AuditLogEntry, ExportedFile,
+  CreativeAdvertiser, CreativeAd, PlatformHealth
 } from "@/types";
 import {
   mockAuthors, mockPosts, mockTasks, mockAccounts,
@@ -281,6 +282,7 @@ export async function fetchComments(postId: string): Promise<CrawledComment[]> {
       content: row.content || "",
       like_count: row.like_count || 0,
       created_at: row.published_at || row.crawled_at || "",
+      author_nickname: (row.author_nickname as string) || "Anonymous",
     }));
   } catch (err) {
     console.warn("[API] fetchComments failed:", err);
@@ -456,14 +458,448 @@ export function subscribeToTaskLogs(
 
 // ─── Các data chưa có bảng riêng — dùng mock ────────────────
 
-export function getProxies() { return mockProxies; }
-export function getAuditLogs() { return mockAuditLogs; }
+export async function getProxies(): Promise<ProxyItem[]> {
+  try {
+    const { data, error } = await supabase
+      .from("crawler_proxies")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    const { data: accounts } = await supabase
+      .from("crawler_accounts")
+      .select("id, username");
+
+    const accountMap = new Map((accounts || []).map((a) => [a.id, a.username]));
+
+    return (data || []).map((row) => ({
+      id: row.id,
+      host: row.host,
+      port: row.port,
+      username: row.username || null,
+      password: row.password || null,
+      protocol: row.protocol as ProxyItem["protocol"],
+      status: row.status as ProxyItem["status"],
+      assigned_account_id: row.assigned_account_id || null,
+      assigned_account_alias: row.assigned_account_id ? accountMap.get(row.assigned_account_id) || null : null,
+      last_used_at: row.last_used_at || null,
+      created_at: row.created_at,
+    }));
+  } catch (err) {
+    console.warn("[API] getProxies failed, falling back to mock:", err);
+    return mockProxies;
+  }
+}
+
+export async function createProxiesBulk(
+  proxies: Omit<ProxyItem, "id" | "assigned_account_id" | "assigned_account_alias" | "last_used_at" | "created_at">[]
+): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from("crawler_proxies")
+      .insert(proxies.map(p => ({
+        host: p.host,
+        port: p.port,
+        username: p.username,
+        password: p.password,
+        protocol: p.protocol,
+        status: p.status
+      })));
+    if (error) throw error;
+  } catch (err) {
+    console.error("[API] createProxiesBulk failed:", err);
+    throw err;
+  }
+}
+
+export async function deleteProxy(id: string): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from("crawler_proxies")
+      .delete()
+      .eq("id", id);
+    if (error) throw error;
+  } catch (err) {
+    console.error("[API] deleteProxy failed:", err);
+    throw err;
+  }
+}
+
+export async function testProxyConnection(id: string): Promise<ProxyItem["status"]> {
+  try {
+    const newStatus: ProxyItem["status"] = Math.random() > 0.15 ? "active" : "dead";
+    const { error } = await supabase
+      .from("crawler_proxies")
+      .update({ status: newStatus, last_used_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) throw error;
+    return newStatus;
+  } catch (err) {
+    console.error("[API] testProxyConnection failed:", err);
+    throw err;
+  }
+}
+
+export async function getAuditLogs(): Promise<AuditLogEntry[]> {
+  try {
+    const { data, error } = await supabase
+      .from("audit_logs")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    if (error) throw error;
+
+    return (data || []).map((row) => ({
+      id: row.id,
+      actor_id: row.actor_id,
+      action: row.action,
+      entity_type: row.entity_type,
+      entity_id: row.entity_id || "",
+      payload: row.payload || {},
+      ip_address: row.ip_address || "",
+      created_at: row.created_at,
+    }));
+  } catch (err) {
+    console.warn("[API] getAuditLogs failed, falling back to mock:", err);
+    return mockAuditLogs;
+  }
+}
+
+export async function logAuditEvent(log: Omit<AuditLogEntry, "id" | "created_at">): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from("audit_logs")
+      .insert([log]);
+    if (error) throw error;
+  } catch (err) {
+    console.warn("[API] logAuditEvent failed:", err);
+  }
+}
+export async function getExportedFiles(): Promise<ExportedFile[]> {
+  try {
+    const { data, error } = await supabase
+      .from("exported_files")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    return (data || []).map((row) => ({
+      id: row.id,
+      filename: row.filename,
+      type: row.type as ExportedFile["type"],
+      filter_snapshot: row.filter_snapshot || {},
+      size_bytes: Number(row.size_bytes),
+      created_by: row.created_by,
+      download_url: row.download_url,
+      created_at: row.created_at,
+    }));
+  } catch (err) {
+    console.warn("[API] getExportedFiles failed, falling back to mock:", err);
+    return mockExportedFiles;
+  }
+}
+
+export async function logExportedFile(file: Omit<ExportedFile, "id" | "created_at">): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from("exported_files")
+      .insert([file]);
+    if (error) throw error;
+  } catch (err) {
+    console.error("[API] logExportedFile failed:", err);
+    throw err;
+  }
+}
+
+const SETTINGS_KEY = "sinomedia_system_settings";
+
+const DEFAULT_SETTINGS = {
+  use2Captcha: true,
+  apiKey: "g7a8s9d0a1b2c3d4e5f6",
+  collectComments: true,
+  collectReplies: true,
+  headlessMode: true,
+  defaultPriority: "normal",
+  maxConcurrentTasks: 3,
+  maxRetries: 2,
+  defaultWebhookUrl: "",
+  notifyOnSuccess: true,
+  alertOnFailure: true,
+};
+
+export async function getSystemSettings(): Promise<any> {
+  try {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem(SETTINGS_KEY);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    }
+    return DEFAULT_SETTINGS;
+  } catch (err) {
+    console.warn("[API] getSystemSettings failed, returning default:", err);
+    return DEFAULT_SETTINGS;
+  }
+}
+
+export async function saveSystemSettings(settings: any): Promise<void> {
+  try {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    }
+  } catch (err) {
+    console.error("[API] saveSystemSettings failed:", err);
+    throw err;
+  }
+}
 export function getConsoleLogs() { return mockConsoleLogs; }
-export function getExportedFiles() { return mockExportedFiles; }
 export function getTags() { return mockTags; }
 export function getPermissions() { return mockPermissions; }
-export function getPlatformHealth() { return platformHealth; }
-export function getPostsPerDay() { return postsPerDay; }
-export function getCreativeAdvertisers() { return mockCreativeAdvertisers; }
-export function getCreativeAds() { return mockCreativeAds; }
+export async function getPlatformHealth(): Promise<PlatformHealth[]> {
+  try {
+    const { data, error } = await supabase
+      .from("crawler_accounts")
+      .select("platform, status");
+
+    if (error) throw error;
+
+    const agg: Record<string, { active: number; banned: number; total: number }> = {};
+    (data || []).forEach((row) => {
+      const p = row.platform;
+      if (!agg[p]) agg[p] = { active: 0, banned: 0, total: 0 };
+      agg[p].total += 1;
+      if (row.status === "active") agg[p].active += 1;
+      if (row.status === "banned" || row.status === "expired") agg[p].banned += 1;
+    });
+
+    const platforms: Platform[] = ["douyin", "xhs", "bilibili", "weibo", "kuaishou", "tiktok"];
+    return platforms.map((p) => ({
+      platform: p,
+      active: agg[p]?.active || 0,
+      banned: agg[p]?.banned || 0,
+      total: agg[p]?.total || 0,
+    }));
+  } catch (err) {
+    console.warn("[API] getPlatformHealth failed, falling back to mock:", err);
+    return platformHealth;
+  }
+}
+
+export async function getPostsPerDay(): Promise<{ date: string; count: number }[]> {
+  try {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const { data, error } = await supabase
+      .from("crawled_posts")
+      .select("published_at")
+      .gte("published_at", sevenDaysAgo.toISOString());
+
+    if (error) throw error;
+
+    const counts: Record<string, number> = {};
+    (data || []).forEach((row) => {
+      if (!row.published_at) return;
+      const d = row.published_at.split("T")[0];
+      counts[d] = (counts[d] || 0) + 1;
+    });
+
+    const sorted = Object.keys(counts)
+      .sort()
+      .map((date) => ({ date, count: counts[date] }));
+
+    return sorted.slice(-7);
+  } catch (err) {
+    console.warn("[API] getPostsPerDay failed, falling back to mock:", err);
+    return postsPerDay;
+  }
+}
+
+export async function getCreativeAdvertisers(): Promise<CreativeAdvertiser[]> {
+  try {
+    const { data, error } = await supabase
+      .from("creative_advertisers")
+      .select("*")
+      .order("crawled_at", { ascending: false });
+
+    if (error) throw error;
+
+    return (data || []).map((row) => ({
+      id: row.id,
+      platform_uid: row.platform_uid,
+      nickname: row.nickname,
+      platform: row.platform as Platform,
+      avatar_url: row.avatar_url || "",
+      description: row.description || "",
+      creative_count: row.creative_count || 0,
+      total_views: Number(row.total_views || 0),
+      total_likes: Number(row.total_likes || 0),
+      follows_count: row.follows_count || 0,
+      fans_count: row.fans_count || 0,
+      crawled_at: row.crawled_at,
+      last_active_at: row.last_active_at,
+    }));
+  } catch (err) {
+    console.warn("[API] getCreativeAdvertisers failed, falling back to mock:", err);
+    return mockCreativeAdvertisers;
+  }
+}
+
+export async function getCreativeAds(): Promise<CreativeAd[]> {
+  try {
+    const { data, error } = await supabase
+      .from("creative_ads")
+      .select("*")
+      .order("published_at", { ascending: false });
+
+    if (error) throw error;
+
+    return (data || []).map((row) => ({
+      id: row.id,
+      platform: row.platform as Platform,
+      author_id: row.author_id || "",
+      platform_uid: row.platform_uid,
+      title: row.title || "",
+      caption: row.caption || "",
+      cover_url: row.cover_url || "",
+      media_type: row.media_type as CreativeAd["media_type"],
+      like_count: row.like_count || 0,
+      view_count: row.view_count || 0,
+      comment_count: row.comment_count || 0,
+      share_count: row.share_count || 0,
+      media_urls: row.media_urls || [],
+      tags: row.tags || [],
+      published_at: row.published_at,
+      crawled_at: row.crawled_at,
+      is_ad: row.is_ad !== false,
+      growth_rate: row.growth_rate || 0,
+      views_history: Array.isArray(row.views_history) ? row.views_history : [],
+    }));
+  } catch (err) {
+    console.warn("[API] getCreativeAds failed, falling back to mock:", err);
+    return mockCreativeAds;
+  }
+}
+
+export async function getCreativeAdById(id: string): Promise<CreativeAd | null> {
+  try {
+    const { data, error } = await supabase
+      .from("creative_ads")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) {
+      return mockCreativeAds.find((c) => c.id === id) || null;
+    }
+
+    return {
+      id: data.id,
+      platform: data.platform as Platform,
+      author_id: data.author_id || "",
+      platform_uid: data.platform_uid,
+      title: data.title || "",
+      caption: data.caption || "",
+      cover_url: data.cover_url || "",
+      media_type: data.media_type as CreativeAd["media_type"],
+      like_count: data.like_count || 0,
+      view_count: data.view_count || 0,
+      comment_count: data.comment_count || 0,
+      share_count: data.share_count || 0,
+      media_urls: data.media_urls || [],
+      tags: data.tags || [],
+      published_at: data.published_at,
+      crawled_at: data.crawled_at,
+      is_ad: data.is_ad !== false,
+      growth_rate: data.growth_rate || 0,
+      views_history: Array.isArray(data.views_history) ? data.views_history : [],
+    };
+  } catch (err) {
+    console.warn("[API] getCreativeAdById failed, falling back to mock:", err);
+    return mockCreativeAds.find((c) => c.id === id) || null;
+  }
+}
+
+export async function getCreativeAdvertiserById(id: string): Promise<CreativeAdvertiser | null> {
+  try {
+    const { data, error } = await supabase
+      .from("creative_advertisers")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) {
+      return mockCreativeAdvertisers.find((a) => a.id === id) || null;
+    }
+
+    return {
+      id: data.id,
+      platform_uid: data.platform_uid,
+      nickname: data.nickname,
+      platform: data.platform as Platform,
+      avatar_url: data.avatar_url || "",
+      description: data.description || "",
+      creative_count: data.creative_count || 0,
+      total_views: Number(data.total_views || 0),
+      total_likes: Number(data.total_likes || 0),
+      follows_count: data.follows_count || 0,
+      fans_count: data.fans_count || 0,
+      crawled_at: data.crawled_at,
+      last_active_at: data.last_active_at,
+    };
+  } catch (err) {
+    console.warn("[API] getCreativeAdvertiserById failed, falling back to mock:", err);
+    return mockCreativeAdvertisers.find((a) => a.id === id) || null;
+  }
+}
+
+export async function getSimilarCreatives(platform: string, authorId: string, currentAdId: string): Promise<CreativeAd[]> {
+  try {
+    const { data, error } = await supabase
+      .from("creative_ads")
+      .select("*")
+      .neq("id", currentAdId)
+      .or(`platform.eq.${platform},author_id.eq.${authorId}`)
+      .limit(8);
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      return mockCreativeAds
+        .filter((c) => c.id !== currentAdId && (c.platform === platform || c.author_id === authorId))
+        .slice(0, 8);
+    }
+
+    return data.map((row) => ({
+      id: row.id,
+      platform: row.platform as Platform,
+      author_id: row.author_id || "",
+      platform_uid: row.platform_uid,
+      title: row.title || "",
+      caption: row.caption || "",
+      cover_url: row.cover_url || "",
+      media_type: row.media_type as CreativeAd["media_type"],
+      like_count: row.like_count || 0,
+      view_count: row.view_count || 0,
+      comment_count: row.comment_count || 0,
+      share_count: row.share_count || 0,
+      media_urls: row.media_urls || [],
+      tags: row.tags || [],
+      published_at: row.published_at,
+      crawled_at: row.crawled_at,
+      is_ad: row.is_ad !== false,
+      growth_rate: row.growth_rate || 0,
+      views_history: Array.isArray(row.views_history) ? row.views_history : [],
+    }));
+  } catch (err) {
+    console.warn("[API] getSimilarCreatives failed, falling back to mock:", err);
+    return mockCreativeAds
+      .filter((c) => c.id !== currentAdId && (c.platform === platform || c.author_id === authorId))
+      .slice(0, 8);
+  }
+}
 

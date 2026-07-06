@@ -1,18 +1,31 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
-import { mockAuditLogs } from "@/lib/mock-data";
+import { getAuditLogs } from "@/lib/api";
 import { timeAgo } from "@/lib/utils";
+import type { AuditLogEntry } from "@/types";
 
 export default function AuditLogsPage() {
+  const [logs, setLogs] = useState<AuditLogEntry[]>([]);
+  const [loading, setLoading] = useState(true);
   const [actorFilter, setActorFilter] = useState("all");
   const [actionFilter, setActionFilter] = useState("all");
 
-  const actors = Array.from(new Set(mockAuditLogs.map((log) => log.actor_id)));
-  const actions = Array.from(new Set(mockAuditLogs.map((log) => log.action)));
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      const list = await getAuditLogs();
+      setLogs(list);
+      setLoading(false);
+    }
+    load();
+  }, []);
 
-  const filtered = mockAuditLogs.filter((log) => {
+  const actors = Array.from(new Set(logs.map((log) => log.actor_id)));
+  const actions = Array.from(new Set(logs.map((log) => log.action)));
+
+  const filtered = logs.filter((log) => {
     const matchesActor = actorFilter === "all" || log.actor_id === actorFilter;
     const matchesAction = actionFilter === "all" || log.action === actionFilter;
     return matchesActor && matchesAction;
@@ -69,32 +82,37 @@ export default function AuditLogsPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((log) => (
-                <tr key={log.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
-                  <td className="px-4 py-2.5 text-muted-foreground whitespace-nowrap">{timeAgo(log.created_at)}</td>
-                  <td className="px-4 py-2.5 font-medium text-card-foreground">{log.actor_id}</td>
-                  <td className="px-4 py-2.5 font-mono text-[11px]">
-                    <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded">{log.action}</span>
-                  </td>
-                  <td className="px-4 py-2.5 text-card-foreground">
-                    <span className="font-mono text-[10px] text-muted-foreground">{log.entity_type}</span>
-                    <span className="mx-1.5 text-zinc-300">/</span>
-                    <span className="font-semibold">{log.entity_id}</span>
-                  </td>
-                  <td className="px-4 py-2.5 font-mono text-muted-foreground text-[10px]">{log.ip_address}</td>
-                  <td className="px-4 py-2.5 text-[11px] text-muted-foreground font-mono max-w-[300px] truncate" title={JSON.stringify(log.payload)}>
-                    {JSON.stringify(log.payload)}
-                  </td>
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-8 text-muted-foreground">Đang tải nhật ký...</td>
                 </tr>
-              ))}
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-8 text-muted-foreground">Không tìm thấy nhật ký hoạt động nào.</td>
+                </tr>
+              ) : (
+                filtered.map((log) => (
+                  <tr key={log.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
+                    <td className="px-4 py-2.5 text-muted-foreground whitespace-nowrap">{timeAgo(log.created_at)}</td>
+                    <td className="px-4 py-2.5 font-medium text-card-foreground">{log.actor_id}</td>
+                    <td className="px-4 py-2.5 font-mono text-[11px]">
+                      <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded">{log.action}</span>
+                    </td>
+                    <td className="px-4 py-2.5 text-card-foreground">
+                      <span className="font-mono text-[10px] text-muted-foreground">{log.entity_type}</span>
+                      <span className="mx-1.5 text-zinc-300">/</span>
+                      <span className="font-semibold">{log.entity_id}</span>
+                    </td>
+                    <td className="px-4 py-2.5 font-mono text-muted-foreground text-[10px]">{log.ip_address}</td>
+                    <td className="px-4 py-2.5 text-[11px] text-muted-foreground font-mono max-w-[300px] truncate" title={JSON.stringify(log.payload)}>
+                      {JSON.stringify(log.payload)}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
-        {filtered.length === 0 && (
-          <div className="py-12 text-center text-muted-foreground text-xs">
-            Không tìm thấy nhật ký hoạt động nào.
-          </div>
-        )}
       </div>
     </div>
   );

@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { PlatformBadge } from "@/components/dashboard/Badges";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
-import { fetchPosts, getTags } from "@/lib/api";
+import { fetchPosts, getTags, fetchComments } from "@/lib/api";
 import { formatNumber, timeAgo, cn } from "@/lib/utils";
-import type { CrawledPost } from "@/types";
+import type { CrawledPost, CrawledComment } from "@/types";
 
 // Mock comments for detail view
 const mockComments = [
@@ -35,6 +35,8 @@ function PostsPageContent() {
   const [selectedPost, setSelectedPost] = useState<CrawledPost | null>(null);
   const [posts, setPosts] = useState<CrawledPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [comments, setComments] = useState<CrawledComment[]>([]);
+  const [loadingComments, setLoadingComments] = useState(false);
   const tags = getTags();
 
   // Fetch posts from Supabase
@@ -47,6 +49,40 @@ function PostsPageContent() {
     }
     load();
   }, []);
+
+  // Fetch comments when selectedPost changes
+  useEffect(() => {
+    if (!selectedPost) {
+      setComments([]);
+      return;
+    }
+    async function loadComments() {
+      setLoadingComments(true);
+      try {
+        const data = await fetchComments(selectedPost.id);
+        setComments(data);
+      } catch (err) {
+        console.error("Error loading comments:", err);
+      } finally {
+        setLoadingComments(false);
+      }
+    }
+    loadComments();
+  }, [selectedPost?.id]);
+
+  // Rebuild comment tree from flat DB structure
+  const commentTree = useMemo(() => {
+    const roots = comments.filter((c) => !c.parent_cid);
+    const replies = comments.filter((c) => c.parent_cid);
+
+    return roots.map((root) => {
+      const childReplies = replies.filter((r) => r.parent_cid === root.id);
+      return {
+        ...root,
+        replies: childReplies,
+      };
+    });
+  }, [comments]);
 
   const filtered = posts.filter((post) => {
     const matchesSearch = post.caption.toLowerCase().includes(search.toLowerCase()) || (post.title || "").toLowerCase().includes(search.toLowerCase());
@@ -211,33 +247,39 @@ function PostsPageContent() {
               <div className="space-y-3">
                 <h4 className="text-xs font-bold text-card-foreground border-b border-border pb-2">Bình luận cào được</h4>
                 <div className="space-y-3 text-[11px] leading-relaxed">
-                  {mockComments.map((comment) => (
-                    <div key={comment.id} className="space-y-2">
-                      <div className="bg-muted/30 p-2.5 rounded-lg border border-border/50">
-                        <div className="flex items-center justify-between text-[9px] text-muted-foreground mb-1">
-                          <span className="font-semibold text-foreground">{comment.author}</span>
-                          <span>{timeAgo(comment.created_at)}</span>
-                        </div>
-                        <p className="text-card-foreground">{comment.content}</p>
-                        <div className="mt-1.5 flex items-center gap-1.5 text-[9px] text-zinc-500 font-mono">
-                          <span>❤️ {comment.like} likes</span>
-                        </div>
-                      </div>
-                      {/* Replies */}
-                      {comment.replies.map((reply) => (
-                        <div key={reply.id} className="ml-5 bg-muted/20 p-2 rounded-lg border border-border/30">
+                  {loadingComments ? (
+                    <div className="text-center py-4 text-muted-foreground text-xs">Đang tải bình luận...</div>
+                  ) : commentTree.length > 0 ? (
+                    commentTree.map((comment) => (
+                      <div key={comment.id} className="space-y-2">
+                        <div className="bg-muted/30 p-2.5 rounded-lg border border-border/50">
                           <div className="flex items-center justify-between text-[9px] text-muted-foreground mb-1">
-                            <span className="font-semibold text-foreground">{reply.author}</span>
-                            <span>{timeAgo(reply.created_at)}</span>
+                            <span className="font-semibold text-foreground">{comment.author_nickname || "Anonymous"}</span>
+                            <span>{timeAgo(comment.created_at)}</span>
                           </div>
-                          <p className="text-card-foreground">{reply.content}</p>
+                          <p className="text-card-foreground">{comment.content}</p>
                           <div className="mt-1.5 flex items-center gap-1.5 text-[9px] text-zinc-500 font-mono">
-                            <span>❤️ {reply.like} likes</span>
+                            <span>❤️ {comment.like_count} likes</span>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  ))}
+                        {/* Replies */}
+                        {comment.replies.map((reply) => (
+                          <div key={reply.id} className="ml-5 bg-muted/20 p-2 rounded-lg border border-border/30">
+                            <div className="flex items-center justify-between text-[9px] text-muted-foreground mb-1">
+                              <span className="font-semibold text-foreground">{reply.author_nickname || "Anonymous"}</span>
+                              <span>{timeAgo(reply.created_at)}</span>
+                            </div>
+                            <p className="text-card-foreground">{reply.content}</p>
+                            <div className="mt-1.5 flex items-center gap-1.5 text-[9px] text-zinc-500 font-mono">
+                              <span>❤️ {reply.like_count} likes</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4 text-muted-foreground text-xs">Chưa có bình luận nào cho bài đăng này.</div>
+                  )}
                 </div>
               </div>
             </div>

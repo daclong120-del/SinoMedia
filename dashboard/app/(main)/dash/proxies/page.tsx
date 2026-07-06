@@ -1,22 +1,104 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import MetricCard from "@/components/dashboard/MetricCard";
 import { StatusBadge } from "@/components/dashboard/Badges";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
-import { mockProxies } from "@/lib/mock-data";
+import { getProxies, createProxiesBulk, deleteProxy, testProxyConnection } from "@/lib/api";
 import { timeAgo, cn } from "@/lib/utils";
+import type { ProxyItem } from "@/types";
 
 export default function ProxiesPage() {
+  const [proxies, setProxies] = useState<ProxyItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [proxyProto, setProxyProto] = useState("HTTP");
+  const [bulkText, setBulkText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const activeCount = mockProxies.filter((p) => p.status === "active").length;
-  const inactiveCount = mockProxies.filter((p) => p.status === "inactive").length;
-  const deadCount = mockProxies.filter((p) => p.status === "dead").length;
+  const fetchList = async () => {
+    setLoading(true);
+    const list = await getProxies();
+    setProxies(list);
+    setLoading(false);
+  };
 
-  const filtered = statusFilter === "all" ? mockProxies : mockProxies.filter((p) => p.status === statusFilter);
+  useEffect(() => {
+    fetchList();
+  }, []);
+
+  const activeCount = proxies.filter((p) => p.status === "active").length;
+  const inactiveCount = proxies.filter((p) => p.status === "inactive").length;
+  const deadCount = proxies.filter((p) => p.status === "dead").length;
+
+  const filtered = statusFilter === "all" ? proxies : proxies.filter((p) => p.status === statusFilter);
+
+  const handleTestProxy = async (id: string) => {
+    try {
+      const newStatus = await testProxyConnection(id);
+      setProxies((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, status: newStatus, last_used_at: new Date().toISOString() } : p))
+      );
+    } catch (err) {
+      console.error(err);
+      alert("Lỗi khi kiểm tra proxy.");
+    }
+  };
+
+  const handleDeleteProxy = async (id: string) => {
+    if (!confirm("Bạn có chắc chắn muốn xóa proxy này?")) return;
+    try {
+      await deleteProxy(id);
+      setProxies((prev) => prev.filter((p) => p.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Lỗi khi xóa proxy.");
+    }
+  };
+
+  const handleBulkUpload = async () => {
+    if (!bulkText.trim()) return;
+    setSubmitting(true);
+    try {
+      const lines = bulkText.split("\n").filter((l) => l.trim());
+      const parsed: Omit<ProxyItem, "id" | "assigned_account_id" | "assigned_account_alias" | "last_used_at" | "created_at">[] = [];
+
+      for (const line of lines) {
+        const parts = line.trim().split(":");
+        if (parts.length < 2) continue;
+        const host = parts[0];
+        const port = parseInt(parts[1], 10);
+        if (isNaN(port)) continue;
+        const username = parts[2] || null;
+        const password = parts[3] || null;
+
+        parsed.push({
+          host,
+          port,
+          username,
+          password,
+          protocol: proxyProto.toLowerCase() as ProxyItem["protocol"],
+          status: "active"
+        });
+      }
+
+      if (parsed.length > 0) {
+        await createProxiesBulk(parsed);
+        alert(`Đã nạp thành công ${parsed.length} proxies.`);
+        setBulkText("");
+        setShowModal(false);
+        fetchList();
+      } else {
+        alert("Định dạng dòng không hợp lệ. Vui lòng kiểm tra lại.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Lỗi khi nạp proxies.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="px-4 md:px-8 py-6 max-w-[1400px] mx-auto space-y-6">
@@ -37,7 +119,7 @@ export default function ProxiesPage() {
         <MetricCard label="Tổng Active" value={activeCount} icon={<svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><path d="m9 12 2 2 4-4" /></svg>} color="emerald" />
         <MetricCard label="Tổng Inactive" value={inactiveCount} icon={<svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>} color="orange" />
         <MetricCard label="Tổng Dead" value={deadCount} icon={<svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>} color="red" />
-        <MetricCard label="Tổng Proxy" value={mockProxies.length} icon={<svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect width="20" height="8" x="2" y="2" rx="2" ry="2" /><rect width="20" height="8" x="2" y="14" rx="2" ry="2" /><line x1="6" x2="6.01" y1="6" y2="6" /><line x1="6" x2="6.01" y1="18" y2="18" /></svg>} color="blue" />
+        <MetricCard label="Tổng Proxy" value={proxies.length} icon={<svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect width="20" height="8" x="2" y="2" rx="2" ry="2" /><rect width="20" height="8" x="2" y="14" rx="2" ry="2" /><line x1="6" x2="6.01" y1="6" y2="6" /><line x1="6" x2="6.01" y1="18" y2="18" /></svg>} color="blue" />
       </div>
 
       {/* Mode info */}
@@ -86,24 +168,34 @@ export default function ProxiesPage() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((p) => (
-                  <tr key={p.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
-                    <td className="px-4 py-2.5 font-mono text-[11px] text-card-foreground">{p.host}:{p.port}</td>
-                    <td className="px-4 py-2.5 uppercase font-medium text-card-foreground">{p.protocol}</td>
-                    <td className="px-4 py-2.5 text-muted-foreground">{p.username || "Anonymous"}</td>
-                    <td className="px-4 py-2.5"><StatusBadge status={p.status} /></td>
-                    <td className="px-4 py-2.5 text-card-foreground font-semibold">{p.assigned_account_alias || <span className="italic text-zinc-400 font-normal">Rotating Pool</span>}</td>
-                    <td className="px-4 py-2.5 text-muted-foreground">{p.last_used_at ? timeAgo(p.last_used_at) : "—"}</td>
-                    <td className="px-4 py-2.5 flex items-center gap-3">
-                      <button className="text-[10px] text-primary hover:underline font-medium">Test Proxy</button>
-                      <button className="text-[10px] text-destructive hover:underline font-medium">Xóa</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={7} className="text-center py-8 text-muted-foreground">Đang tải danh sách proxy...</td>
+                    </tr>
+                  ) : filtered.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="text-center py-8 text-muted-foreground">Không tìm thấy proxy nào.</td>
+                    </tr>
+                  ) : (
+                    filtered.map((p) => (
+                      <tr key={p.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
+                        <td className="px-4 py-2.5 font-mono text-[11px] text-card-foreground">{p.host}:{p.port}</td>
+                        <td className="px-4 py-2.5 uppercase font-medium text-card-foreground">{p.protocol}</td>
+                        <td className="px-4 py-2.5 text-muted-foreground">{p.username || "Anonymous"}</td>
+                        <td className="px-4 py-2.5"><StatusBadge status={p.status} /></td>
+                        <td className="px-4 py-2.5 text-card-foreground font-semibold">{p.assigned_account_alias || <span className="italic text-zinc-400 font-normal">Rotating Pool</span>}</td>
+                        <td className="px-4 py-2.5 text-muted-foreground">{p.last_used_at ? timeAgo(p.last_used_at) : "—"}</td>
+                        <td className="px-4 py-2.5 flex items-center gap-3">
+                          <button onClick={() => handleTestProxy(p.id)} className="text-[10px] text-primary hover:underline font-medium cursor-pointer">Test Proxy</button>
+                          <button onClick={() => handleDeleteProxy(p.id)} className="text-[10px] text-destructive hover:underline font-medium cursor-pointer">Xóa</button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
       </div>
 
       {/* Add Proxy Modal */}
@@ -124,15 +216,21 @@ export default function ProxiesPage() {
                 />
               </label>
               <label className="space-y-1 block"><span className="text-[11px] font-medium text-muted-foreground">Danh sách proxy *</span>
-                <textarea rows={6} placeholder="IP:Port
-IP:Port:User:Pass
-45.123.45.6:1080:username:password" className="w-full px-3 py-2 text-xs border border-border rounded-lg bg-background text-foreground font-mono resize-none" />
+                <textarea
+                  rows={6}
+                  value={bulkText}
+                  onChange={(e) => setBulkText(e.target.value)}
+                  placeholder="IP:Port&#10;IP:Port:User:Pass&#10;45.123.45.6:1080:username:password"
+                  className="w-full px-3 py-2 text-xs border border-border rounded-lg bg-background text-foreground font-mono resize-none"
+                />
               </label>
               <p className="text-[10px] text-muted-foreground leading-normal">Hệ thống hỗ trợ tự động tách IP, Cổng, Username, Password. Có thể nạp số lượng lớn cùng lúc.</p>
             </div>
             <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-border">
-              <button onClick={() => setShowModal(false)} className="h-8 px-4 text-xs font-medium rounded-lg border border-border text-muted-foreground hover:bg-muted">Hủy</button>
-              <button onClick={() => setShowModal(false)} className="h-8 px-4 text-xs font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90">Nạp Proxy</button>
+              <button onClick={() => { setShowModal(false); setBulkText(""); }} className="h-8 px-4 text-xs font-medium rounded-lg border border-border text-muted-foreground hover:bg-muted cursor-pointer">Hủy</button>
+              <button onClick={handleBulkUpload} disabled={submitting} className="h-8 px-4 text-xs font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 cursor-pointer">
+                {submitting ? "Đang nạp..." : "Nạp Proxy"}
+              </button>
             </div>
           </div>
         </div>

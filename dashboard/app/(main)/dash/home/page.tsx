@@ -127,25 +127,42 @@ export default function HomePage() {
   const [metrics, setMetrics] = useState(defaultMetrics);
   const [distribution, setDistribution] = useState<{ platform: string; count: number; color: string }[]>([]);
   const [recentTasks, setRecentTasks] = useState<CrawlerTask[]>([]);
+  const [postsPerDayData, setPostsPerDayData] = useState<{ date: string; count: number }[]>([]);
+  const [platformHealthData, setPlatformHealthData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
-      const [m, d, t] = await Promise.all([
-        fetchDashboardMetrics(),
-        fetchPlatformDistribution(),
-        fetchTasks(),
-      ]);
-      setMetrics(m);
-      setDistribution(d);
-      setRecentTasks(t.slice(0, 5));
-      setLoading(false);
+      setLoading(true);
+      try {
+        const [m, d, t, pData, hData] = await Promise.all([
+          fetchDashboardMetrics(),
+          fetchPlatformDistribution(),
+          fetchTasks(),
+          getPostsPerDay(),
+          getPlatformHealth(),
+        ]);
+        setMetrics(m);
+        setDistribution(d);
+        setRecentTasks(t.slice(0, 5));
+        setPostsPerDayData(pData);
+        setPlatformHealthData(hData);
+      } catch (err) {
+        console.error("Error loading home metrics:", err);
+      } finally {
+        setLoading(false);
+      }
     }
     load();
   }, []);
 
-  const postsPerDayData = getPostsPerDay();
-  const platformHealthData = getPlatformHealth();
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] text-xs text-muted-foreground">
+        Đang tải thông tin tổng quan...
+      </div>
+    );
+  }
 
   return (
     <div className="px-4 md:px-8 py-6 max-w-[1400px] mx-auto space-y-6">

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { GoogleIcon } from "@/components/icons";
+import { supabase } from "@/lib/supabase";
 
 const EyeIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-75" viewBox="0 0 24 24">
@@ -117,7 +118,7 @@ export default function LoginForm() {
     return "";
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const emailErr = validateEmail(email);
@@ -132,10 +133,20 @@ export default function LoginForm() {
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      if (email) {
-        localStorage.setItem("sinomedia_active_account", email.split("@")[0]);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
       }
+
+      if (data.user) {
+        localStorage.setItem("sinomedia_active_account", data.user.email?.split("@")[0] || email.split("@")[0]);
+      }
+
       const redirectUri = searchParams.get("redirect_uri");
       if (redirectUri) {
         try {
@@ -151,7 +162,12 @@ export default function LoginForm() {
         } catch {}
       }
       router.push("/dash/home");
-    }, 1200);
+    } catch (err: any) {
+      console.error("[Auth] Login error:", err);
+      setPasswordError(err.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { mockCreativeAds, mockCreativeAdvertisers } from "@/lib/mock-data";
+import { getCreativeAds, getCreativeAdvertisers } from "@/lib/api";
+import type { CreativeAd, CreativeAdvertiser, Platform } from "@/types";
 import { PlatformBadge } from "@/components/dashboard/Badges";
 import CreativeDetailView from "@/components/dashboard/CreativeDetailView";
 import { formatNumber, timeAgo, cn } from "@/lib/utils";
-import type { Platform } from "@/types";
 
 // Dynamic SVG Sparkline Component
 function Sparkline({ data }: { data: { date: string; count: number }[] }) {
@@ -50,6 +50,29 @@ function TrendingPageContent() {
   const router = useRouter();
   const viewId = searchParams.get("viewId") || "";
 
+  const [ads, setAds] = useState<CreativeAd[]>([]);
+  const [advertisers, setAdvertisers] = useState<CreativeAdvertiser[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      try {
+        const [adsData, advertisersData] = await Promise.all([
+          getCreativeAds(),
+          getCreativeAdvertisers(),
+        ]);
+        setAds(adsData);
+        setAdvertisers(advertisersData);
+      } catch (err) {
+        console.error("Error loading creative data:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
   const handleCardClick = (id: string) => {
     const params = new URLSearchParams(window.location.search);
     params.set("viewId", id);
@@ -71,9 +94,8 @@ function TrendingPageContent() {
   const [period, setPeriod] = useState("30d");
   const [selectedPlatform, setSelectedPlatform] = useState<string>("all");
 
-  const filtered = mockCreativeAds.filter((ad) => {
+  const filtered = ads.filter((ad) => {
     const matchesPlatform = selectedPlatform === "all" || ad.platform === selectedPlatform;
-    // Client-side mock filter for time range (since the mock data published_at has dynamic times)
     return matchesPlatform;
   });
 
@@ -102,6 +124,14 @@ function TrendingPageContent() {
     if (rank === 3) return "🥉 TOP 3";
     return `#${rank}`;
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] text-xs text-muted-foreground">
+        Đang tải dữ liệu Creative Hub...
+      </div>
+    );
+  }
 
   return (
     <div className="px-4 md:px-8 py-6 max-w-[1400px] mx-auto space-y-6">
@@ -177,7 +207,7 @@ function TrendingPageContent() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {top3.map((ad, idx) => {
               const rank = idx + 1;
-              const adv = mockCreativeAdvertisers.find((a) => a.id === ad.author_id);
+              const adv = advertisers.find((a) => a.id === ad.author_id);
               return (
                 <div
                   key={ad.id}
@@ -283,7 +313,7 @@ function TrendingPageContent() {
               <tbody className="divide-y divide-border/45">
                 {ranked.map((ad, idx) => {
                   const rank = idx + 1;
-                  const adv = mockCreativeAdvertisers.find((a) => a.id === ad.author_id);
+                  const adv = advertisers.find((a) => a.id === ad.author_id);
                   return (
                     <tr
                       key={ad.id}

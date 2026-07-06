@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { mockCreativeAds, mockCreativeAdvertisers } from "@/lib/mock-data";
+import { getCreativeAdById, getCreativeAdvertiserById, getSimilarCreatives } from "@/lib/api";
 import { PlatformBadge } from "./Badges";
 import { formatNumber, timeAgo, cn } from "@/lib/utils";
+import type { CreativeAd, CreativeAdvertiser } from "@/types";
 
 interface CreativeDetailViewProps {
   id: string;
@@ -23,119 +24,54 @@ export default function CreativeDetailView({
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const creative = useMemo(() => {
-    if (!id) return null;
+  const [creative, setCreative] = useState<CreativeAd | null>(null);
+  const [advertiser, setAdvertiser] = useState<CreativeAdvertiser | null>(null);
+  const [similarCreatives, setSimilarCreatives] = useState<CreativeAd[]>([]);
+  const [loadingDetail, setLoadingDetail] = useState(true);
 
-    if (id.includes("_copy_")) {
-      const parts = id.split("_copy_");
-      const baseId = parts[0];
-      const copyIndex = parseInt(parts[1], 10);
-      const baseAd = mockCreativeAds.find((c) => c.id === baseId);
-      if (baseAd) {
-        const index = mockCreativeAds.findIndex((c) => c.id === baseId);
+  const [tags, setTags] = useState<string[]>(["Hot", "Viral", "Ad"]);
+  const [newTag, setNewTag] = useState("");
+  const [isAddingTag, setIsAddingTag] = useState(false);
 
-        const imagePool = [
-          "/assets_test/image/TikTok_SPY_30062026_1.jpg",
-          "/assets_test/image/TikTok_SPY_30062026_2.jpg",
-          "/assets_test/image/Instagram_SPY_30062026_1.jpg",
-          "/assets_test/image/Facebook_SPY_30062026_1.jpg",
-          "/assets_test/image/Spotify_SPY_30062026_1.jpg",
-          "/assets_test/image/StarMaker_SPY_30062026_1.jpg",
-          "/assets_test/image/StarMaker_SPY_30062026_2.jpg",
-          "/assets_test/image/Temu_SPY_30062026_1.jpg",
-          "/assets_test/image/Temu_SPY_30062026_2.jpg",
-          "/assets_test/image/Alibabacom_SPY_30062026_1.jpg",
-          "/assets_test/image/FxPro_SPY_30062026_1.jpg",
-          "/assets_test/image/FxPro_SPY_30062026_2.jpg",
-          "/assets_test/image/WeatherRain_SPY_30062026_1.jpg",
-          "/assets_test/image/ASTRO_SPY_30062026_1.jpg",
-          "/assets_test/image/Glovo_SPY_30062026_1.jpg",
-          "/assets_test/image/Glovo_SPY_30062026_2.jpg",
-          "/assets_test/image/Magalu_SPY_30062026_1.jpg",
-          "/assets_test/image/Specialized_SPY_30062026_1.jpg"
-        ];
+  useEffect(() => {
+    if (!id) return;
+    async function loadDetail() {
+      setLoadingDetail(true);
+      try {
+        const ad = await getCreativeAdById(id);
+        setCreative(ad);
+        if (ad) {
+          setTags(ad.tags || ["Hot", "Viral", "Ad"]);
 
-        const videoPool = [
-          "/assets_test/video/English/TikTok_SPY_30062026_1.mp4",
-          "/assets_test/video/English/FontKeyboard_SPY_30062026_1.mp4",
-          "/assets_test/video/English/HDVideo_SPY_30062026_1.mp4",
-          "/assets_test/video/English/GlobalNews_SPY_30062026_1.mp4",
-          "/assets_test/video/English/GFXHyperUPFPS_SPY_30062026_1.mp4",
-          "/assets_test/video/English/AITranslator_SPY_30062026_11.mp4",
-          "/assets_test/video/English/CONTOURDIABETES_SPY_30062026_1.mp4",
-          "/assets_test/video/English/HSVPN_SPY_30062026_1.mp4",
-          "/assets_test/video/English/MoboReels_SPY_30062026_1.mp4",
-          "/assets_test/video/English/PersonalPay_SPY_30062026_1.mp4",
-          "/assets_test/video/English/PicTrace_SPY_30062026_1.mp4",
-          "/assets_test/video/English/Plantify_SPY_30062026_1.mp4",
-          "/assets_test/video/English/RemoteControl_SPY_30062026_1.mp4",
-          "/assets_test/video/English/ShopeeBrands_SPY_30062026_1.mp4",
-          "/assets_test/video/English/VPN_SPY_30062026_1.mp4",
-          "/assets_test/video/English/VidCash_SPY_30062026_1.mp4"
-        ];
+          if (ad.author_id) {
+            const adv = await getCreativeAdvertiserById(ad.author_id);
+            setAdvertiser(adv);
+          } else {
+            setAdvertiser(null);
+          }
 
-        let derivedCover = imagePool[(index * 7 + copyIndex * 3) % imagePool.length];
-        let derivedVideo = videoPool[(index * 5 + copyIndex * 2) % videoPool.length];
-        let derivedMediaType = baseAd.media_type;
-
-        if (copyIndex === 0 && baseAd.id === "CR-001") {
-          derivedCover = "/assets_test/image/TikTok_SPY_30062026_1.jpg";
-          derivedVideo = "/assets_test/video/BN/AITranslator_SPY_30062026_12.mp4";
-          derivedMediaType = "video";
-        } else if (copyIndex === 0 && baseAd.id === "CR-002") {
-          derivedCover = "/assets_test/image/StarMaker_SPY_30062026_1.jpg";
-          derivedVideo = "/assets_test/video/BN/AITranslator_SPY_30062026_92.mp4";
-          derivedMediaType = "video";
-        } else if (copyIndex === 0 && baseAd.id === "CR-003") {
-          derivedCover = "/assets_test/image/Temu_SPY_30062026_1.jpg";
-          derivedVideo = "/assets_test/video/BN/OlymptradeTrading_SPY_30062026_1.mp4";
-          derivedMediaType = "video";
+          const similar = await getSimilarCreatives(ad.platform, ad.author_id || "", ad.id);
+          setSimilarCreatives(similar);
+        } else {
+          setAdvertiser(null);
+          setSimilarCreatives([]);
         }
-
-        return {
-          ...baseAd,
-          id,
-          cover_url: derivedCover,
-          media_urls: derivedMediaType === "video" ? [derivedVideo] : [derivedCover],
-          media_type: derivedMediaType,
-          view_count: copyIndex === 0 && baseAd.id === "CR-001" ? 6000000 : copyIndex === 0 && baseAd.id === "CR-002" ? 5900000 : copyIndex === 0 && baseAd.id === "CR-003" ? 5800000 : Math.round(baseAd.view_count * (1 + ((copyIndex + index) % 5) * 0.12)),
-          like_count: Math.round(baseAd.like_count * (1 + ((copyIndex + index) % 4) * 0.08)),
-        };
+      } catch (err) {
+        console.error("Error loading creative detail:", err);
+      } finally {
+        setLoadingDetail(false);
       }
     }
-
-    return mockCreativeAds.find((c) => c.id === id);
+    loadDetail();
   }, [id]);
 
   useEffect(() => {
-    if (videoRef.current) {
+    if (videoRef.current && creative) {
       videoRef.current.muted = false;
       videoRef.current.volume = 1.0;
       videoRef.current.play().catch((err) => {
         console.log("Autoplay with audio was blocked or interrupted:", err);
       });
-    }
-  }, [creative]);
-
-  const advertiser = useMemo(() => {
-    if (!creative) return null;
-    return mockCreativeAdvertisers.find((a) => a.id === creative.author_id);
-  }, [creative]);
-
-  const similarCreatives = useMemo(() => {
-    if (!creative) return [];
-    return mockCreativeAds
-      .filter((c) => c.id !== creative.id && (c.platform === creative.platform || c.author_id === creative.author_id))
-      .slice(0, 8);
-  }, [creative]);
-
-  const [tags, setTags] = useState<string[]>(creative?.tags || ["Hot", "Viral", "Ad"]);
-  const [newTag, setNewTag] = useState("");
-  const [isAddingTag, setIsAddingTag] = useState(false);
-
-  useEffect(() => {
-    if (creative) {
-      setTags(creative.tags || ["Hot", "Viral", "Ad"]);
     }
   }, [creative]);
 
@@ -181,6 +117,16 @@ export default function CreativeDetailView({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isModal, onClose]);
+
+  if (!id) return null;
+
+  if (loadingDetail) {
+    return (
+      <div className="flex items-center justify-center p-12 text-xs text-muted-foreground">
+        Đang tải chi tiết Creative...
+      </div>
+    );
+  }
 
   if (!creative) {
     return (

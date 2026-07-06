@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
-import { mockExportedFiles, mockTags } from "@/lib/mock-data";
+import React, { useState, useEffect } from "react";
+import { mockTags } from "@/lib/mock-data";
+import { getExportedFiles } from "@/lib/api";
+import type { ExportedFile } from "@/types";
 import { formatNumber, formatFileSize, timeAgo } from "@/lib/utils";
 
 export default function ManagementPage() {
@@ -10,6 +12,24 @@ export default function ManagementPage() {
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState("#3b82f6");
   const [newTagDesc, setNewTagDesc] = useState("");
+
+  const [exportedFiles, setExportedFiles] = useState<ExportedFile[]>([]);
+  const [loadingExported, setLoadingExported] = useState(true);
+
+  useEffect(() => {
+    async function loadFiles() {
+      setLoadingExported(true);
+      try {
+        const list = await getExportedFiles();
+        setExportedFiles(list);
+      } catch (err) {
+        console.error("Error loading exported files:", err);
+      } finally {
+        setLoadingExported(false);
+      }
+    }
+    loadFiles();
+  }, []);
 
   const handleAddTag = () => {
     if (!newTagName) return;
@@ -143,22 +163,28 @@ export default function ManagementPage() {
             <span className="text-[10px] text-muted-foreground">Lưu trữ 30 ngày gần nhất</span>
           </div>
           <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
-            {mockExportedFiles.map((file) => (
-              <div key={file.id} className="flex items-center justify-between p-2.5 border border-border/50 rounded-lg hover:bg-muted/10 transition-colors">
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-card-foreground truncate">{file.filename}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">
-                    Tạo bởi: {file.created_by} • {timeAgo(file.created_at)}
-                  </p>
+            {loadingExported ? (
+              <div className="text-center py-8 text-muted-foreground text-xs">Đang tải lịch sử xuất file...</div>
+            ) : exportedFiles.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground text-xs">Không có lịch sử xuất file.</div>
+            ) : (
+              exportedFiles.map((file) => (
+                <div key={file.id} className="flex items-center justify-between p-2.5 border border-border/50 rounded-lg hover:bg-muted/10 transition-colors">
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-card-foreground truncate">{file.filename}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      Tạo bởi: {file.created_by} • {timeAgo(file.created_at)}
+                    </p>
+                  </div>
+                  <div className="text-right flex flex-col items-end gap-1.5 shrink-0">
+                    <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded font-mono text-muted-foreground">{formatFileSize(file.size_bytes)}</span>
+                    <a href={file.download_url} className="text-[10px] text-primary hover:underline font-semibold flex items-center gap-0.5">
+                      📥 Tải xuống
+                    </a>
+                  </div>
                 </div>
-                <div className="text-right flex flex-col items-end gap-1.5 shrink-0">
-                  <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded font-mono text-muted-foreground">{formatFileSize(file.size_bytes)}</span>
-                  <a href={file.download_url} className="text-[10px] text-primary hover:underline font-semibold flex items-center gap-0.5">
-                    📥 Tải xuống
-                  </a>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>

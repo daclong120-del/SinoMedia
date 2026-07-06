@@ -104,6 +104,7 @@ export interface CrawledComment {
   content: string;
   like_count: number;
   created_at: string;
+  author_nickname?: string | null;
   children?: CrawledComment[];
 }
 

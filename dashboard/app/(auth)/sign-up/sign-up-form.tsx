@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 
 const EyeIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-75" viewBox="0 0 24 24">
@@ -142,7 +143,7 @@ export default function SignUpForm() {
     return "";
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (turnstileState !== "success") {
@@ -161,11 +162,20 @@ export default function SignUpForm() {
 
     setIsLoading(true);
 
-    // Simulate registration redirect after 1.5s
-    setTimeout(() => {
-      if (email) {
-        localStorage.setItem("sinomedia_active_account", email.split("@")[0]);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
       }
+
+      if (data.user) {
+        localStorage.setItem("sinomedia_active_account", data.user.email?.split("@")[0] || email.split("@")[0]);
+      }
+
       const redirectUri = searchParams.get("redirect_uri");
       if (redirectUri) {
         try {
@@ -181,7 +191,12 @@ export default function SignUpForm() {
         } catch {}
       }
       router.push("/dash/home");
-    }, 1500);
+    } catch (err: any) {
+      console.error("[Auth] Signup error:", err);
+      setPasswordError(err.message || "Đăng ký thất bại. Vui lòng thử lại.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

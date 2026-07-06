@@ -6,6 +6,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useAccount } from "@/lib/account-context";
 import { UserIcon, ChevronDownIcon } from "@/components/icons";
+import { supabase } from "@/lib/supabase";
 import { mockCreativeAdvertisers, mockCreativeAds } from "@/lib/mock-data";
 
 // ─── Breadcrumb mapping ──────────────────────────────────────
@@ -186,9 +187,14 @@ export default function Header({ onMenuToggle }: HeaderProps) {
               <div className="h-px bg-border my-1" />
 
               <button
-                onClick={() => {
+                onClick={async () => {
                   console.log("Logging out active user account:", activeAccount);
                   setIsProfileOpen(false);
+                  try {
+                    await supabase.auth.signOut();
+                  } catch (err) {
+                    console.error("[Auth] Signout error:", err);
+                  }
                   localStorage.removeItem("sinomedia_active_account");
                   router.push("/login");
                 }}
