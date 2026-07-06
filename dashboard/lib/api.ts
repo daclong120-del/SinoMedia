@@ -5,7 +5,7 @@
 import { supabase } from "./supabase";
 import type {
   CrawledAuthor, CrawledPost, CrawlerTask, CrawlerAccount,
-  CrawledComment, Platform
+  CrawledComment, CrawlerLogEntry, Platform
 } from "@/types";
 import {
   mockAuthors, mockPosts, mockTasks, mockAccounts,
@@ -210,6 +210,33 @@ export async function createTask(task: {
   }
 }
 
+export async function createTasksBulk(tasks: {
+  platform: Platform;
+  command: string;
+  target: string;
+  max_count?: number;
+  priority?: string;
+}[]): Promise<{
+  inserted_count: number;
+  skipped_count: number;
+  errors: string[];
+} | null> {
+  try {
+    const { data, error } = await supabase
+      .rpc("create_crawler_tasks", { p_tasks: tasks });
+
+    if (error) throw error;
+    return data as {
+      inserted_count: number;
+      skipped_count: number;
+      errors: string[];
+    };
+  } catch (err) {
+    console.error("[API] createTasksBulk failed:", err);
+    return null;
+  }
+}
+
 // ─── Accounts ────────────────────────────────────────────────
 
 export async function fetchAccounts(): Promise<CrawlerAccount[]> {
@@ -325,6 +352,100 @@ export async function fetchPlatformDistribution() {
   }
 }
 
+// ─── Task Logs (thật từ DB) ──────────────────────────────────
+
+export async function fetchTaskLogs(taskId: string): Promise<CrawlerLogEntry[]> {
+  try {
+    const { data, error } = await supabase
+      .from("crawler_logs")
+      .select("*")
+      .eq("task_id", taskId)
+      .order("created_at", { ascending: true })
+      .limit(200);
+
+    if (error) throw error;
+    return (data || []).map((row) => ({
+      id: String(row.id),
+      task_id: row.task_id,
+      level: (row.level?.toUpperCase() || "INFO") as CrawlerLogEntry["level"],
+      message: row.message || "",
+      created_at: row.created_at || "",
+    }));
+  } catch (err) {
+    console.warn("[API] fetchTaskLogs failed:", err);
+    return [];
+  }
+}
+
+// ─── Realtime Subscriptions ──────────────────────────────────
+
+import type { RealtimeChannel } from "@supabase/supabase-js";
+
+/**
+ * Subscribe to changes on crawler_tasks table.
+ * Returns a RealtimeChannel that can be unsubscribed via channel.unsubscribe().
+ */
+export function subscribeToTasks(
+  onUpdate: (task: CrawlerTask) => void,
+  onInsert?: (task: CrawlerTask) => void,
+): RealtimeChannel {
+  const channel = supabase
+    .channel("tasks-realtime")
+    .on(
+      "postgres_changes",
+      { event: "UPDATE", schema: "public", table: "crawler_tasks" },
+      (payload) => {
+        onUpdate(mapDbTask(payload.new as Record<string, unknown>));
+      }
+    )
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "crawler_tasks" },
+      (payload) => {
+        if (onInsert) {
+          onInsert(mapDbTask(payload.new as Record<string, unknown>));
+        }
+      }
+    )
+    .subscribe();
+
+  return channel;
+}
+
+/**
+ * Subscribe to new log entries for a specific task.
+ * Returns a RealtimeChannel that can be unsubscribed via channel.unsubscribe().
+ */
+export function subscribeToTaskLogs(
+  taskId: string,
+  onNewLog: (log: CrawlerLogEntry) => void,
+): RealtimeChannel {
+  const channel = supabase
+    .channel(`task-logs-${taskId}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "crawler_logs",
+        filter: `task_id=eq.${taskId}`,
+      },
+      (payload) => {
+        const row = payload.new as Record<string, unknown>;
+        onNewLog({
+          id: String(row.id),
+          task_id: row.task_id as string,
+          level: ((row.level as string)?.toUpperCase() || "INFO") as CrawlerLogEntry["level"],
+          message: (row.message as string) || "",
+          created_at: (row.created_at as string) || "",
+        });
+      }
+    )
+    .subscribe();
+
+  return channel;
+}
+
 // ─── Các data chưa có bảng riêng — dùng mock ────────────────
 
 export function getProxies() { return mockProxies; }
@@ -337,3 +458,4 @@ export function getPlatformHealth() { return platformHealth; }
 export function getPostsPerDay() { return postsPerDay; }
 export function getCreativeAdvertisers() { return mockCreativeAdvertisers; }
 export function getCreativeAds() { return mockCreativeAds; }
+

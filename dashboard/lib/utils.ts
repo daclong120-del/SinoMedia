@@ -10,7 +10,7 @@ export function formatNumber(n: number | null | undefined): string {
   if (n == null) return "0";
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
   if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
-  return n.toLocaleString();
+  return String(n);
 }
 
 /** Format file size: bytes → "1.2 MB" */

@@ -63,6 +63,9 @@ async function writeLogToDb(level: string, message: string) {
         level,
         message,
       },
+      headers: {
+        "Prefer": "return=minimal",
+      },
     });
   } catch (err: any) {
     console.error(`[Worker] Không thể ghi log vào DB: ${err.message}`);
@@ -93,21 +96,16 @@ logger.debug = (msg: string, tag?: string) => {
 };
 
 /**
- * # Lấy 1 task đang pending từ database
+ * # Lấy và claim nguyên tử 1 task từ database
  */
-async function fetchPendingTask(): Promise<CrawlerTask | null> {
+async function claimNextTask(): Promise<CrawlerTask | null> {
   try {
-    const tasks = await supabaseRest("crawler_tasks", {
-      method: "GET",
-      params: {
-        status: "eq.pending",
-        order: "created_at.asc",
-        limit: "1",
-      },
+    const task = await supabaseRest("rpc/claim_next_crawler_task", {
+      method: "POST",
     });
-    return tasks && tasks.length > 0 ? (tasks[0] as CrawlerTask) : null;
+    return task as CrawlerTask | null;
   } catch (err: any) {
-    logger.error(`Lỗi khi lấy task từ Supabase: ${err.message}`, "Worker");
+    logger.error(`Lỗi khi claim task từ Supabase: ${err.message}`, "Worker");
     return null;
   }
 }
@@ -115,7 +113,7 @@ async function fetchPendingTask(): Promise<CrawlerTask | null> {
 /**
  * # Cập nhật trạng thái của task
  */
-async function updateTaskStatus(taskId: string, status: "running" | "completed" | "failed", errorMessage?: string): Promise<void> {
+async function updateTaskStatus(taskId: string, status: "completed" | "failed", errorMessage?: string): Promise<void> {
   try {
     await supabaseRest("crawler_tasks", {
       method: "PATCH",
@@ -140,7 +138,6 @@ async function executeTask(task: CrawlerTask): Promise<void> {
   currentTaskId = id;
 
   logger.info(`Bắt đầu xử lý task ${id} - Platform: ${platform}, Command: ${command}, Target: ${target}`, "Worker");
-  await updateTaskStatus(id, "running");
 
   try {
     const crawler = CrawlerFactory.create(platform);
@@ -180,7 +177,7 @@ export async function startQueueWorker(): Promise<void> {
   logger.info("Khởi chạy Crawler Queue Worker... Đang lắng nghe task từ Supabase...", "Worker");
 
   while (true) {
-    const task = await fetchPendingTask();
+    const task = await claimNextTask();
     if (task) {
       await executeTask(task);
     }

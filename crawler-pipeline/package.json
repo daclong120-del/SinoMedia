@@ -6,6 +6,7 @@
   "scripts": {
     "bootstrap": "tsx src/index.ts bootstrap",
     "crawl": "tsx src/index.ts crawl",
+    "worker:dev": "nodemon --watch src --exec tsx src/index.ts crawl",
     "creator": "tsx src/index.ts creator",
     "search": "tsx src/index.ts search",
     "comments": "tsx src/index.ts comments",
@@ -24,6 +25,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
+    "nodemon": "^3.1.14",
     "playwright": "^1.61.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"

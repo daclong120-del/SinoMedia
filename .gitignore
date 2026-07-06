@@ -41,8 +41,6 @@ app-example
 # API credentials
 api.txt
 
-.agents/
-
 # crawler-pipeline
 crawler-pipeline/node_modules/
 crawler-pipeline/.env

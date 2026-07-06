@@ -71,3 +71,10 @@
     - Trình duyệt chỉ gửi request lấy vài KB đầu tiên để trích xuất tỷ lệ khung hình và ảnh thumbnail ban đầu mà không stream toàn bộ file video.
     - Video đầy đủ chỉ thực sự được stream khi người dùng di chuột vào card (hover to play) hoặc nhấp mở chi tiết.
   - **Phân trang độc lập:** Khi chuyển sang trang kế tiếp, hệ thống chỉ gọi lại API danh sách để lấy 60 item mới dạng thu gọn chứ tuyệt đối không preload bất kỳ thông tin chi tiết nào.
+
+## 2026-07-03 — Schema Update cho Task Metadata và Cấu hình Nâng cao [initiative: feat-crawler-task-metadata]
+- **Bối cảnh:** Cần bổ sung các cấu hình nâng cao cho Crawler Task (Tags, Ngôn ngữ, Chế độ headless, cào bình luận, bình luận phụ) từ Dashboard xuống Database và Queue Worker.
+- **Phương án đã cân nhắc:**
+  - **Phương án A:** Thêm từng cột tương ứng (`tags`, `language`, `crawl_comments`, `crawl_sub_comments`, `headless`) vào bảng `crawler_tasks`. (Ưu: Kiểu dữ liệu tường minh; Nhược: Làm phình cấu trúc bảng, khó mở rộng thêm các tùy chọn crawler trong tương lai).
+  - **Phương án B (Khuyến nghị):** Thêm một cột JSONB duy nhất `metadata` mặc định `'{}'` vào bảng `crawler_tasks` để chứa tất cả cấu hình động. Với bảng dữ liệu bài viết cào được (`crawled_posts`), thêm 2 cột tường minh `tags text[]` và `language text` để phục vụ lọc/truy vấn tốc độ cao tại Creative Hub.
+- **Chọn Phương án B vì:** Đạt sự cân bằng tối đa giữa khả năng mở rộng linh hoạt của Task (JSONB chứa vô số cấu hình crawler động mà không lo sửa đổi DDL liên tục) và hiệu năng tìm kiếm ở lớp Creative Hub (sử dụng cột mảng `tags text[]` và index của PostgreSQL để lọc bài đăng cực nhanh).

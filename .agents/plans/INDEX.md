@@ -13,6 +13,8 @@
 | refactor-migrate-platforms | refactor | 🔄 đang làm | 2/6 phase |
 | refactor-remove-openai | refactor | ⏳ chưa | 0/3 phase |
 | feat-creative-hub | feature | 🔄 đang làm | 0/? phase |
+| feat-crawler-tasks-trigger | feature | ✅ xong | 3/3 phase |
+| feat-crawler-task-metadata | feature | 🔄 đang làm | 1/4 phase |
 
 > Marker: ⏳ chưa · 🔄 đang làm · ✅ xong · ⛔ chặn
 

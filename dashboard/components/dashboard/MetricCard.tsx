@@ -33,7 +33,9 @@ export default function MetricCard({ label, value, icon, color, trend, trendLabe
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-medium text-muted-foreground mb-1 truncate">{label}</p>
-          <p className="text-2xl font-bold tracking-tight text-card-foreground">{typeof value === "number" ? value.toLocaleString() : value}</p>
+          <p className="text-2xl font-bold tracking-tight text-card-foreground" suppressHydrationWarning>
+            {typeof value === "number" ? value.toLocaleString() : value}
+          </p>
           {subtitle && <p className="text-[10px] text-muted-foreground mt-0.5">{subtitle}</p>}
         </div>
         <div className={cn("flex items-center justify-center size-10 rounded-lg shrink-0", colors.icon)}>
