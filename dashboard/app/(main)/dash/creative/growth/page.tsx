@@ -37,51 +37,93 @@ function GrowthPageContent() {
   const [selectedPlatform, setSelectedPlatform] = useState<string>("all");
   const [sortBy, setSortBy] = useState("growth_pct_desc");
 
-  const filtered = mockCreativeAds.filter((ad) => {
-    const matchesPlatform = selectedPlatform === "all" || ad.platform === selectedPlatform;
-    return matchesPlatform && ad.growth_rate > 0;
-  });
+  const [creatives, setCreatives] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Sort by growth rate descending or absolute growth
-  const sorted = [...filtered].sort((a, b) => {
-    if (sortBy === "growth_pct_desc") {
-      return b.growth_rate - a.growth_rate;
-    } else {
-      // absolute growth mock: view_count * (growth_rate / 100)
-      const absA = a.view_count * (a.growth_rate / 100);
-      const absB = b.view_count * (b.growth_rate / 100);
-      return absB - absA;
+  React.useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (selectedPlatform !== "all") {
+          params.set("platform", selectedPlatform);
+        }
+        const res = await fetch(`/api/creative/growth?${params.toString()}`);
+        if (!res.ok) throw new Error("Fetch failed");
+        const json = await res.json();
+        
+        let data = json.data.map((row: any) => {
+          const views = parseInt(row.stats?.play_count || row.stats?.view_count || "0", 10);
+          const likes = parseInt(row.stats?.like_count || "0", 10);
+          
+          return {
+            id: row.id,
+            platform: row.platform,
+            author_id: row.author_id || "",
+            platform_uid: row.platform_uid || "",
+            title: row.caption ? row.caption.slice(0, 30) : "",
+            caption: row.caption || "",
+            cover_url: row.cover_url || "",
+            media_type: row.cover_url ? "video" : "image",
+            like_count: likes,
+            view_count: views,
+            comment_count: parseInt(row.stats?.comment_count || "0", 10),
+            share_count: parseInt(row.stats?.share_count || "0", 10),
+            media_urls: row.media_urls || [],
+            tags: row.tags || [],
+            published_at: row.published_at || row.crawled_at,
+            crawled_at: row.crawled_at,
+            is_ad: true,
+            growth_rate: row.growth_rate || 0,
+            views_history: [],
+            author: row.author
+          };
+        });
+
+        if (sortBy === "growth_pct_desc") {
+          data.sort((a: any, b: any) => b.growth_rate - a.growth_rate);
+        } else {
+          data.sort((a: any, b: any) => b.view_count - a.view_count);
+        }
+
+        setCreatives(data);
+      } catch (err) {
+        console.error("Error loading growth data:", err);
+      } finally {
+        setLoading(false);
+      }
     }
-  });
+    loadData();
+  }, [selectedPlatform, sortBy]);
 
   return (
     <div className="px-4 md:px-8 py-6 max-w-[1400px] mx-auto space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-lg font-bold text-foreground">BXH Creative — Tăng trưởng nhanh</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">Xác định nhanh các ad creative đang lan truyền mạnh mẽ nhất trong thời gian ngắn</p>
+        <h1 className="text-lg font-bold text-foreground">Tăng trưởng nhanh</h1>
+        <p className="text-xs text-muted-foreground mt-0.5">Phát hiện các mẫu quảng cáo đang bứt phá về tương tác so với kỳ trước</p>
       </div>
 
-      {/* Select Bars and Filtering Controls */}
-      <div className="bg-card rounded-xl border border-border p-4 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Comparison period select */}
+      {/* Filter panel */}
+      <div className="bg-card rounded-xl border border-border p-4 md:p-6 space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Comparison period */}
           <div className="space-y-1.5">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">Kỳ so sánh</span>
             <DropdownSelect
               value={comparisonPeriod}
               onChange={setComparisonPeriod}
               options={[
-                { value: "7d_vs_7d", label: "7 ngày gần nhất" },
-                { value: "30d_vs_30d", label: "30 ngày gần nhất" },
+                { value: "7d_vs_7d", label: "7 ngày gần nhất vs 7 ngày trước" },
+                { value: "30d_vs_30d", label: "30 ngày gần nhất vs 30 ngày trước" },
               ]}
               fullWidth
             />
           </div>
 
-          {/* Sort selection */}
-          <div className="space-y-1.5">
-            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">Sắp xếp theo</span>
+          {/* Metric Sort */}
+          <div className="space-y-1.5 md:col-span-2">
+            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">Sắp xếp theo chỉ số</span>
             <div className="flex gap-2">
               <button
                 onClick={() => setSortBy("growth_pct_desc")}
@@ -92,7 +134,7 @@ function GrowthPageContent() {
                     : "bg-background border-border text-foreground hover:bg-muted"
                 )}
               >
-                Tăng trưởng % cao nhất
+                Tỷ lệ tăng trưởng (%)
               </button>
               <button
                 onClick={() => setSortBy("growth_abs_desc")}
@@ -143,15 +185,20 @@ function GrowthPageContent() {
       </div>
 
       {/* Grid creative results */}
-      {sorted.length > 0 ? (
+      {loading ? (
+        <div className="py-20 text-center text-xs text-muted-foreground">
+          <div className="animate-spin size-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-3" />
+          Đang tải dữ liệu tăng trưởng...
+        </div>
+      ) : creatives.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {sorted.map((ad) => {
-            const adv = mockCreativeAdvertisers.find((a) => a.id === ad.author_id);
+          {creatives.map((ad) => {
+            const nickname = ad.author?.nickname || "Không rõ";
             return (
               <CreativeCard
                 key={ad.id}
                 creative={ad}
-                advertiserName={adv ? adv.nickname : "Không rõ"}
+                advertiserName={nickname}
                 onClick={() => handleCardClick(ad.id)}
               />
             );
@@ -166,7 +213,7 @@ function GrowthPageContent() {
           </div>
           <h3 className="text-sm font-bold text-foreground">Chưa có dữ liệu tăng trưởng</h3>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Cần ít nhất 2 kỳ dữ liệu để tính toán tăng trưởng. Tiếp tục chạy crawler để thu thập thêm dữ liệu so sánh.
+            Tiếp tục chạy crawler để thu thập thêm dữ liệu so sánh cho kỳ gần nhất.
           </p>
         </div>
       )}

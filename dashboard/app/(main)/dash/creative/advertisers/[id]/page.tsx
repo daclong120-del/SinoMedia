@@ -35,17 +35,67 @@ function AdvertiserProfileContent() {
     router.push(`${window.location.pathname}?${params.toString()}`, { scroll: false });
   };
 
-  const advertiser = useMemo(() => {
-    return mockCreativeAdvertisers.find((a) => a.id === id);
+  const [advertiser, setAdvertiser] = useState<any | null>(null);
+  const [advertiserCreatives, setAdvertiserCreatives] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    if (!id) return;
+    async function loadData() {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/creative/advertisers/${id}`);
+        if (!res.ok) throw new Error("Fetch failed");
+        const json = await res.json();
+        
+        const mappedCreatives = (json.creatives || []).map((row: any) => {
+          const views = parseInt(row.stats?.play_count || row.stats?.view_count || "0", 10);
+          const likes = parseInt(row.stats?.like_count || "0", 10);
+          
+          const mockHistory = Array.from({ length: 7 }, (_, i) => {
+            const d = new Date();
+            d.setDate(d.getDate() - (6 - i));
+            return {
+              date: d.toISOString().split("T")[0],
+              count: Math.round(views * (0.4 + i * 0.1))
+            };
+          });
+
+          return {
+            id: row.id,
+            platform: row.platform,
+            author_id: row.author_id || "",
+            platform_uid: row.platform_uid || "",
+            title: row.caption ? row.caption.slice(0, 30) : "",
+            caption: row.caption || "",
+            cover_url: row.cover_url || "",
+            media_type: row.cover_url ? "video" : "image",
+            like_count: likes,
+            view_count: views,
+            comment_count: parseInt(row.stats?.comment_count || "0", 10),
+            share_count: parseInt(row.stats?.share_count || "0", 10),
+            media_urls: row.media_urls || [],
+            tags: row.tags || [],
+            published_at: row.published_at || row.crawled_at,
+            crawled_at: row.crawled_at,
+            is_ad: true,
+            growth_rate: row.growth_rate || 0,
+            views_history: mockHistory
+          };
+        });
+
+        setAdvertiser(json.advertiser);
+        setAdvertiserCreatives(mappedCreatives);
+      } catch (err) {
+        console.error("Error loading advertiser profile:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
   }, [id]);
 
   const [activeTab, setActiveTab] = useState<"creatives" | "trends">("creatives");
-
-  // Get creatives by this advertiser
-  const advertiserCreatives = useMemo(() => {
-    if (!advertiser) return [];
-    return mockCreativeAds.filter((ad) => ad.author_id === advertiser.id);
-  }, [advertiser]);
 
   // Aggregate views trend data for the chart
   const trendData = useMemo(() => {
@@ -219,6 +269,15 @@ function AdvertiserProfileContent() {
   const handleExport = () => {
     alert("Tính năng đang được phát triển: Xuất tất cả creative của advertiser này.");
   };
+
+  if (loading) {
+    return (
+      <div className="py-20 text-center text-xs text-muted-foreground">
+        <div className="animate-spin size-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-3" />
+        Đang tải hồ sơ advertiser...
+      </div>
+    );
+  }
 
   if (!advertiser) {
     return (

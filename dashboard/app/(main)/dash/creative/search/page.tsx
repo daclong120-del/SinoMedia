@@ -52,96 +52,16 @@ function CreativeSearchPageContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(60);
 
-  // Multiply mock data to support paginating 60 items per page (180 items total)
-  const extendedMockCreativeAds = useMemo(() => {
-    const list = [...mockCreativeAds];
-    const result: CreativeAd[] = [];
+  const [creatives, setCreatives] = useState<CreativeAd[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-    const imagePool = [
-      "/assets_test/image/TikTok_SPY_30062026_1.jpg",
-      "/assets_test/image/TikTok_SPY_30062026_2.jpg",
-      "/assets_test/image/Instagram_SPY_30062026_1.jpg",
-      "/assets_test/image/Facebook_SPY_30062026_1.jpg",
-      "/assets_test/image/Spotify_SPY_30062026_1.jpg",
-      "/assets_test/image/StarMaker_SPY_30062026_1.jpg",
-      "/assets_test/image/StarMaker_SPY_30062026_2.jpg",
-      "/assets_test/image/Temu_SPY_30062026_1.jpg",
-      "/assets_test/image/Temu_SPY_30062026_2.jpg",
-      "/assets_test/image/Alibabacom_SPY_30062026_1.jpg",
-      "/assets_test/image/FxPro_SPY_30062026_1.jpg",
-      "/assets_test/image/FxPro_SPY_30062026_2.jpg",
-      "/assets_test/image/WeatherRain_SPY_30062026_1.jpg",
-      "/assets_test/image/ASTRO_SPY_30062026_1.jpg",
-      "/assets_test/image/Glovo_SPY_30062026_1.jpg",
-      "/assets_test/image/Glovo_SPY_30062026_2.jpg",
-      "/assets_test/image/Magalu_SPY_30062026_1.jpg",
-      "/assets_test/image/Specialized_SPY_30062026_1.jpg"
-    ];
-
-    const videoPool = [
-      "/assets_test/video/English/TikTok_SPY_30062026_1.mp4",
-      "/assets_test/video/English/FontKeyboard_SPY_30062026_1.mp4",
-      "/assets_test/video/English/HDVideo_SPY_30062026_1.mp4",
-      "/assets_test/video/English/GlobalNews_SPY_30062026_1.mp4",
-      "/assets_test/video/English/GFXHyperUPFPS_SPY_30062026_1.mp4",
-      "/assets_test/video/English/AITranslator_SPY_30062026_11.mp4",
-      "/assets_test/video/English/CONTOURDIABETES_SPY_30062026_1.mp4",
-      "/assets_test/video/English/HSVPN_SPY_30062026_1.mp4",
-      "/assets_test/video/English/MoboReels_SPY_30062026_1.mp4",
-      "/assets_test/video/English/PersonalPay_SPY_30062026_1.mp4",
-      "/assets_test/video/English/PicTrace_SPY_30062026_1.mp4",
-      "/assets_test/video/English/Plantify_SPY_30062026_1.mp4",
-      "/assets_test/video/English/RemoteControl_SPY_30062026_1.mp4",
-      "/assets_test/video/English/ShopeeBrands_SPY_30062026_1.mp4",
-      "/assets_test/video/English/VPN_SPY_30062026_1.mp4",
-      "/assets_test/video/English/VidCash_SPY_30062026_1.mp4"
-    ];
-
-    // We multiply 10 unique creatives by 18 to get 180 items
-    for (let i = 0; i < 18; i++) {
-      list.forEach((ad, index) => {
-        let copyCover = imagePool[(index * 7 + i * 3) % imagePool.length];
-        let copyVideo = videoPool[(index * 5 + i * 2) % videoPool.length];
-        let viewCount = Math.round(ad.view_count * (1 + ((i + index) % 5) * 0.12));
-        let likeCount = Math.round(ad.like_count * (1 + ((i + index) % 4) * 0.08));
-        let crawledAt = new Date(new Date(ad.crawled_at).getTime() - i * 3600000).toISOString();
-        let mediaType = ad.media_type;
-
-        // Custom overrides for the first 3 items (CR-001_copy_0, CR-002_copy_0, CR-003_copy_0)
-        if (i === 0 && ad.id === "CR-001") {
-          copyCover = "/assets_test/image/TikTok_SPY_30062026_1.jpg";
-          copyVideo = "/assets_test/video/BN/AITranslator_SPY_30062026_12.mp4";
-          viewCount = 6000000;
-          crawledAt = new Date().toISOString();
-          mediaType = "video";
-        } else if (i === 0 && ad.id === "CR-002") {
-          copyCover = "/assets_test/image/StarMaker_SPY_30062026_1.jpg";
-          copyVideo = "/assets_test/video/BN/AITranslator_SPY_30062026_92.mp4";
-          viewCount = 5900000;
-          crawledAt = new Date(Date.now() - 60000).toISOString();
-          mediaType = "video";
-        } else if (i === 0 && ad.id === "CR-003") {
-          copyCover = "/assets_test/image/Temu_SPY_30062026_1.jpg";
-          copyVideo = "/assets_test/video/BN/OlymptradeTrading_SPY_30062026_1.mp4";
-          viewCount = 5800000;
-          crawledAt = new Date(Date.now() - 120000).toISOString();
-          mediaType = "video";
-        }
-
-        result.push({
-          ...ad,
-          id: `${ad.id}_copy_${i}`,
-          cover_url: copyCover,
-          media_urls: mediaType === "video" ? [copyVideo] : [copyCover],
-          media_type: mediaType,
-          view_count: viewCount,
-          like_count: likeCount,
-          crawled_at: crawledAt,
-        });
-      });
+  // Sync initial query param
+  useEffect(() => {
+    if (initialSearch) {
+      setSearch(initialSearch);
     }
-    return result;
-  }, []);
+  }, [initialSearch]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -158,12 +78,82 @@ function CreativeSearchPageContent() {
     language,
   ]);
 
-  // Sync initial query param
   useEffect(() => {
-    if (initialSearch) {
-      setSearch(initialSearch);
+    async function loadData() {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (search) params.set("query", search);
+        if (selectedPlatforms.length > 0) {
+          params.set("platform", selectedPlatforms.join(","));
+        }
+        if (selectedMediaTypes.length > 0) {
+          params.set("mediaType", selectedMediaTypes.join(","));
+        }
+        if (timeRange !== "all") {
+          params.set("timeRange", timeRange);
+        }
+        
+        let apiSort = "newest";
+        if (sortBy === "view_count_desc") apiSort = "views";
+        else if (sortBy === "like_count_desc") apiSort = "likes";
+        else if (sortBy === "comment_count_desc") apiSort = "comments";
+        else if (sortBy === "published_at_desc") apiSort = "newest";
+        else if (sortBy === "published_at_asc") apiSort = "oldest";
+        params.set("sort", apiSort);
+
+        params.set("page", String(currentPage));
+        params.set("limit", String(pageSize));
+
+        const res = await fetch(`/api/creative/search?${params.toString()}`);
+        if (!res.ok) throw new Error("Fetch failed");
+        const json = await res.json();
+        
+        const mapped = json.data.map((row: any) => {
+          const views = parseInt(row.stats?.play_count || row.stats?.view_count || "0", 10);
+          const likes = parseInt(row.stats?.like_count || "0", 10);
+          
+          return {
+            id: row.id,
+            platform: row.platform,
+            author_id: row.author_id || "",
+            platform_uid: row.platform_uid || "",
+            title: row.caption ? row.caption.slice(0, 30) : "",
+            caption: row.caption || "",
+            cover_url: row.cover_url || "",
+            media_type: row.cover_url ? "video" : "image",
+            like_count: likes,
+            view_count: views,
+            comment_count: parseInt(row.stats?.comment_count || "0", 10),
+            share_count: parseInt(row.stats?.share_count || "0", 10),
+            media_urls: row.media_urls || [],
+            tags: row.tags || [],
+            published_at: row.published_at || row.crawled_at,
+            crawled_at: row.crawled_at,
+            is_ad: true,
+            growth_rate: row.growth_rate || 0,
+            views_history: []
+          };
+        });
+
+        setCreatives(mapped);
+        setTotalCount(json.total);
+      } catch (err) {
+        console.error("Error fetching creatives:", err);
+      } finally {
+        setLoading(false);
+      }
     }
-  }, [initialSearch]);
+    loadData();
+  }, [
+    search,
+    selectedPlatforms,
+    selectedMediaTypes,
+    timeRange,
+    sortBy,
+    currentPage,
+    pageSize,
+  ]);
 
   const togglePlatform = (p: Platform) => {
     if (selectedPlatforms.includes(p)) {
@@ -197,71 +187,7 @@ function CreativeSearchPageContent() {
     alert("Tính năng đang được phát triển: Xuất danh sách creative dưới dạng CSV/Excel.");
   };
 
-  // Filter logic
-  const filtered = extendedMockCreativeAds.filter((ad) => {
-    // 1. Search Query
-    const matchesSearch =
-      !search ||
-      ad.caption.toLowerCase().includes(search.toLowerCase()) ||
-      (ad.title || "").toLowerCase().includes(search.toLowerCase()) ||
-      ad.tags.some((tag) => tag.toLowerCase().includes(search.toLowerCase()));
-
-    // 2. Platforms
-    const matchesPlatform =
-      selectedPlatforms.length === 0 || selectedPlatforms.includes(ad.platform);
-
-    // 3. Media Types
-    const matchesMediaType =
-      selectedMediaTypes.length === 0 || selectedMediaTypes.includes(ad.media_type);
-
-    // 4. Content Type (ad / organic)
-    const matchesContentType =
-      contentType === "all" ||
-      (contentType === "ad" && ad.is_ad) ||
-      (contentType === "organic" && !ad.is_ad);
-
-    // 5. Advanced Filters - Min Views
-    const matchesMinViews = !minViews || ad.view_count >= parseInt(minViews, 10);
-
-    // 6. Advanced Filters - Min Likes
-    const matchesMinLikes = !minLikes || ad.like_count >= parseInt(minLikes, 10);
-
-    // 7. Language (Mock check - if zh check for hanzi, if en check for en, etc.)
-    let matchesLanguage = true;
-    if (language !== "all") {
-      const hasChinese = /[\u4e00-\u9fa5]/.test(ad.caption);
-      if (language === "zh") {
-        matchesLanguage = hasChinese;
-      } else if (language === "en") {
-        matchesLanguage = !hasChinese && ad.caption.includes(" ");
-      } else {
-        matchesLanguage = !hasChinese && !ad.caption.includes(" ");
-      }
-    }
-
-    return (
-      matchesSearch &&
-      matchesPlatform &&
-      matchesMediaType &&
-      matchesContentType &&
-      matchesMinViews &&
-      matchesMinLikes &&
-      matchesLanguage
-    );
-  });
-
-  // Sorting logic
-  const sorted = [...filtered].sort((a, b) => {
-    if (sortBy === "view_count_desc") return b.view_count - a.view_count;
-    if (sortBy === "like_count_desc") return b.like_count - a.like_count;
-    if (sortBy === "comment_count_desc") return b.comment_count - a.comment_count;
-    if (sortBy === "published_at_desc") return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
-    if (sortBy === "published_at_asc") return new Date(a.published_at).getTime() - new Date(b.published_at).getTime();
-    return 0;
-  });
-
-  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
-  const paginatedSorted = sorted.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   return (
     <div className="px-4 md:px-8 py-6 max-w-[1600px] mx-auto space-y-6">
@@ -471,7 +397,7 @@ function CreativeSearchPageContent() {
       {/* Result summary and Content type Quick Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border/50 pb-4">
         <div className="text-xs text-muted-foreground">
-          Tìm thấy <span className="text-foreground font-semibold">{sorted.length}</span> creative phù hợp
+          Tìm thấy <span className="text-foreground font-semibold">{totalCount}</span> creative phù hợp
         </div>
 
         <div className="flex items-center gap-1 bg-muted p-0.5 rounded-lg self-start sm:self-auto">
@@ -515,16 +441,21 @@ function CreativeSearchPageContent() {
       )}
 
       {/* Grid of Results */}
-      {paginatedSorted.length > 0 ? (
+      {loading ? (
+        <div className="py-20 text-center text-xs text-muted-foreground">
+          <div className="animate-spin size-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-3" />
+          Đang tải danh sách creative...
+        </div>
+      ) : creatives.length > 0 ? (
         <div className="space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {paginatedSorted.map((ad) => {
-              const adv = mockCreativeAdvertisers.find((a) => a.id === ad.author_id);
+            {creatives.map((ad) => {
+              const nickname = (ad as any).author?.nickname || "Không rõ";
               return (
                 <CreativeCard
                   key={ad.id}
                   creative={ad}
-                  advertiserName={adv ? adv.nickname : "Không rõ"}
+                  advertiserName={nickname}
                   onClick={() => handleCardClick(ad.id)}
                 />
               );

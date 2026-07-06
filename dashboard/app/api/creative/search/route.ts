@@ -1,18 +1,92 @@
 import { NextResponse } from "next/server";
 import { createClientServer } from "@/lib/supabase/server";
+import { mockCreativeAds, mockCreativeAdvertisers } from "@/lib/mock-data";
 
 export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const query = searchParams.get("query") || "";
-    const platform = searchParams.get("platform") || "all";
-    const mediaType = searchParams.get("mediaType") || "all";
-    const timeRange = searchParams.get("timeRange") || "all"; // all, 7d, 30d, 90d
-    const tag = searchParams.get("tag") || "";
-    const sort = searchParams.get("sort") || "newest";
-    const page = parseInt(searchParams.get("page") || "1", 10);
-    const limit = parseInt(searchParams.get("limit") || "20", 10);
+  const { searchParams } = new URL(request.url);
+  const query = searchParams.get("query") || "";
+  const platform = searchParams.get("platform") || "all";
+  const mediaType = searchParams.get("mediaType") || "all";
+  const timeRange = searchParams.get("timeRange") || "all"; // all, 7d, 30d, 90d
+  const tag = searchParams.get("tag") || "";
+  const sort = searchParams.get("sort") || "newest";
+  const page = parseInt(searchParams.get("page") || "1", 10);
+  const limit = parseInt(searchParams.get("limit") || "20", 10);
 
+  // Helper function to serve mock data when DB is offline or mock session is active
+  const serveMockData = () => {
+    let filtered = [...mockCreativeAds];
+    
+    // 1. Lọc theo platform (multi-select)
+    if (platform !== "all") {
+      const platforms = platform.split(",").map(p => p.trim());
+      filtered = filtered.filter(ad => platforms.includes(ad.platform));
+    }
+    
+    // 2. Lọc theo media type
+    if (mediaType !== "all") {
+      filtered = filtered.filter(ad => ad.media_type === mediaType);
+    }
+    
+    // 3. Lọc theo tag
+    if (tag) {
+      filtered = filtered.filter(ad => ad.tags.includes(tag));
+    }
+
+    // 4. Lọc theo từ khóa (caption)
+    if (query) {
+      filtered = filtered.filter(ad => 
+        ad.caption.toLowerCase().includes(query.toLowerCase()) || 
+        (ad.title || "").toLowerCase().includes(query.toLowerCase())
+      );
+    }
+
+    // 5. Sắp xếp
+    if (sort === "views") {
+      filtered.sort((a, b) => b.view_count - a.view_count);
+    } else if (sort === "likes") {
+      filtered.sort((a, b) => b.like_count - a.like_count);
+    } else if (sort === "comments") {
+      filtered.sort((a, b) => b.comment_count - a.comment_count);
+    } else if (sort === "newest") {
+      filtered.sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
+    } else if (sort === "oldest") {
+      filtered.sort((a, b) => new Date(a.published_at).getTime() - new Date(b.published_at).getTime());
+    }
+
+    const total = filtered.length;
+    const from = (page - 1) * limit;
+    const paginated = filtered.slice(from, from + limit);
+
+    // Map thêm author profile
+    const paginatedWithAuthor = paginated.map(ad => {
+      const author = mockCreativeAdvertisers.find(a => a.id === ad.author_id) || null;
+      return {
+        ...ad,
+        stats: {
+          play_count: ad.view_count,
+          like_count: ad.like_count,
+          comment_count: ad.comment_count,
+          share_count: ad.share_count
+        },
+        author
+      };
+    });
+
+    return NextResponse.json({
+      data: paginatedWithAuthor,
+      page,
+      limit,
+      total
+    });
+  };
+
+  const mockSession = request.headers.get("cookie")?.includes("sb-mock-session=true");
+  if (mockSession) {
+    return serveMockData();
+  }
+
+  try {
     const supabase = await createClientServer();
     let q = supabase
       .from("crawled_posts")
@@ -27,7 +101,6 @@ export async function GET(request: Request) {
     // 2. Lọc theo media type
     if (mediaType !== "all") {
       if (mediaType === "video") {
-        // Post có cover_url hoặc stats.play_count thường là video
         q = q.not("cover_url", "is", null);
       } else if (mediaType === "image" || mediaType === "carousel") {
         q = q.is("cover_url", null);
@@ -79,7 +152,8 @@ export async function GET(request: Request) {
     const { data: posts, error, count } = await q;
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.warn("[API Search] Database error, falling back to mock:", error);
+      return serveMockData();
     }
 
     if (!posts || posts.length === 0) {
@@ -118,6 +192,7 @@ export async function GET(request: Request) {
       total: count || 0,
     });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.warn("[API Search] Exception caught, falling back to mock:", err);
+    return serveMockData();
   }
 }

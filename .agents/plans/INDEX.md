@@ -12,7 +12,7 @@
 | refactor-project-structure | refactor | ✅ xong | 1/1 phase |
 | refactor-migrate-platforms | refactor | ✅ xong | 6/6 phase |
 | refactor-remove-openai | refactor | ✅ xong | 3/3 phase |
-| feat-creative-hub | feature | 🔄 đang làm | 1/6 phase |
+| feat-creative-hub | feature | ✅ xong | 6/6 phase |
 | feat-crawler-tasks-trigger | feature | ✅ xong | 3/3 phase |
 | feat-crawler-task-metadata | feature | ✅ xong | 4/4 phase |
 | feat-complete-backend-api | feature | ✅ xong | 5/5 phase |

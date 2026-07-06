@@ -25,20 +25,42 @@ function AdvertisersPageContent() {
     alert("Tính năng đang được phát triển: Xuất danh sách advertiser dưới dạng CSV/Excel.");
   };
 
-  // Filter logic
-  const filtered = mockCreativeAdvertisers.filter((adv) => {
-    const matchesSearch = !search || adv.nickname.toLowerCase().includes(search.toLowerCase()) || adv.description.toLowerCase().includes(search.toLowerCase());
-    const matchesPlatform = selectedPlatforms.length === 0 || selectedPlatforms.includes(adv.platform);
-    return matchesSearch && matchesPlatform;
-  });
+  const [advertisers, setAdvertisers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Sort logic
-  const sorted = [...filtered].sort((a, b) => {
-    if (sortBy === "creative_count_desc") return b.creative_count - a.creative_count;
-    if (sortBy === "total_views_desc") return b.total_views - a.total_views;
-    if (sortBy === "last_active_desc") return new Date(b.last_active_at).getTime() - new Date(a.last_active_at).getTime();
-    return 0;
-  });
+  React.useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (selectedPlatforms.length > 0) {
+          params.set("platform", selectedPlatforms.join(","));
+        }
+        if (search) {
+          params.set("query", search);
+        }
+        const res = await fetch(`/api/creative/advertisers?${params.toString()}`);
+        if (!res.ok) throw new Error("Fetch failed");
+        const json = await res.json();
+        
+        let data = json.data;
+        if (sortBy === "creative_count_desc") {
+          data.sort((a: any, b: any) => b.creative_count - a.creative_count);
+        } else if (sortBy === "total_views_desc") {
+          data.sort((a: any, b: any) => b.total_views - a.total_views);
+        } else if (sortBy === "last_active_desc") {
+          data.sort((a: any, b: any) => new Date(b.last_active_at).getTime() - new Date(a.last_active_at).getTime());
+        }
+
+        setAdvertisers(data);
+      } catch (err) {
+        console.error("Error loading advertisers:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, [search, selectedPlatforms, sortBy]);
 
   return (
     <div className="px-4 md:px-8 py-6 max-w-[1400px] mx-auto space-y-6">
@@ -122,14 +144,19 @@ function AdvertisersPageContent() {
             />
           </div>
           <div className="text-xs text-muted-foreground self-end sm:self-auto font-mono">
-            Kết quả: <span className="font-bold text-foreground">{sorted.length}</span> advertisers
+            Kết quả: <span className="font-bold text-foreground">{advertisers.length}</span> advertisers
           </div>
         </div>
       </div>
 
       {/* Main Table view */}
       <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
-        {sorted.length > 0 ? (
+        {loading ? (
+          <div className="py-20 text-center text-xs text-muted-foreground">
+            <div className="animate-spin size-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-3" />
+            Đang tải danh sách advertiser...
+          </div>
+        ) : advertisers.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
@@ -145,7 +172,7 @@ function AdvertisersPageContent() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/45">
-                {sorted.map((adv) => (
+                {advertisers.map((adv) => (
                   <tr
                     key={adv.id}
                     className="hover:bg-muted/30 transition-colors group cursor-pointer"

@@ -21,6 +21,13 @@ const KeyIcon = () => <svg className="size-5" viewBox="0 0 24 24" fill="none" st
 
 // ─── Simple Line Chart (SVG thuần) ───────────────────────────
 function SimpleLineChart({ data }: { data: { date: string; count: number }[] }) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-[200px] border border-dashed border-border rounded-xl text-xs text-muted-foreground">
+        Không có dữ liệu xu hướng trong 7 ngày qua
+      </div>
+    );
+  }
   const maxVal = Math.max(...data.map((d) => d.count));
   const minVal = Math.min(...data.map((d) => d.count));
   const range = maxVal - minVal || 1;
@@ -72,6 +79,13 @@ function SimpleLineChart({ data }: { data: { date: string; count: number }[] }) 
 // ─── Simple Donut Chart (SVG thuần) ──────────────────────────
 function SimpleDonutChart({ data }: { data: { platform: string; count: number; color: string }[] }) {
   const total = data.reduce((s, d) => s + d.count, 0);
+  if (!data || data.length === 0 || total === 0) {
+    return (
+      <div className="flex items-center justify-center h-40 text-xs text-muted-foreground w-full border border-dashed border-border rounded-xl">
+        Chưa có dữ liệu bài viết
+      </div>
+    );
+  }
   const cx = 100;
   const cy = 100;
   const r = 75;

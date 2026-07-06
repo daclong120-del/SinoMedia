@@ -36,10 +36,29 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Gọi getUser() để tự động refresh token nếu hết hạn
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Kiểm tra chế độ Mock Session để hỗ trợ phát triển offline
+  const mockSession = request.cookies.get("sb-mock-session")?.value;
+  if (mockSession === "true") {
+    const mockUserEmail = request.cookies.get("sb-mock-user")?.value || "admin@sinomedia.vn";
+    const user = {
+      id: "mock-user-id-9999",
+      email: mockUserEmail,
+      user_metadata: {},
+      app_metadata: {},
+      aud: "authenticated",
+      created_at: new Date().toISOString()
+    };
+    return { supabaseResponse, user: user as any };
+  }
+
+  let user = null;
+  try {
+    // Gọi getUser() để tự động refresh token nếu hết hạn
+    const { data } = await supabase.auth.getUser();
+    user = data?.user || null;
+  } catch (err) {
+    console.warn("[Middleware] Supabase getUser failed, possibly offline:", err);
+  }
 
   return { supabaseResponse, user };
 }

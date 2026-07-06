@@ -75,10 +75,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
 
   const breadcrumb = getBreadcrumbs();
 
-  // Đồng bộ dark mode state
-  useEffect(() => {
-    setIsDark(document.documentElement.classList.contains("dark"));
-  }, []);
+
 
   // Đóng dropdown khi click bên ngoài
   useEffect(() => {

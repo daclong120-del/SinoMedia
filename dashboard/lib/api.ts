@@ -719,28 +719,10 @@ export async function getPostsPerDay(): Promise<{ date: string; count: number }[
 
 export async function getCreativeAdvertisers(): Promise<CreativeAdvertiser[]> {
   try {
-    const { data, error } = await supabase
-      .from("creative_advertisers")
-      .select("*")
-      .order("crawled_at", { ascending: false });
-
-    if (error) throw error;
-
-    return (data || []).map((row) => ({
-      id: row.id,
-      platform_uid: row.platform_uid,
-      nickname: row.nickname,
-      platform: row.platform as Platform,
-      avatar_url: row.avatar_url || "",
-      description: row.description || "",
-      creative_count: row.creative_count || 0,
-      total_views: Number(row.total_views || 0),
-      total_likes: Number(row.total_likes || 0),
-      follows_count: row.follows_count || 0,
-      fans_count: row.fans_count || 0,
-      crawled_at: row.crawled_at,
-      last_active_at: row.last_active_at,
-    }));
+    const res = await fetch("/api/creative/advertisers?limit=100");
+    if (!res.ok) throw new Error("Fetch failed");
+    const json = await res.json();
+    return json.data;
   } catch (err) {
     console.warn("[API] getCreativeAdvertisers failed, falling back to mock:", err);
     return mockCreativeAdvertisers;
@@ -749,34 +731,46 @@ export async function getCreativeAdvertisers(): Promise<CreativeAdvertiser[]> {
 
 export async function getCreativeAds(): Promise<CreativeAd[]> {
   try {
-    const { data, error } = await supabase
-      .from("creative_ads")
-      .select("*")
-      .order("published_at", { ascending: false });
+    const res = await fetch("/api/creative/search?limit=100");
+    if (!res.ok) throw new Error("Fetch failed");
+    const json = await res.json();
+    return json.data.map((row: any) => {
+      const views = parseInt(row.stats?.play_count || row.stats?.view_count || "0", 10);
+      const likes = parseInt(row.stats?.like_count || "0", 10);
+      const comments = parseInt(row.stats?.comment_count || "0", 10);
+      const shares = parseInt(row.stats?.share_count || "0", 10);
+      
+      const mockHistory = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date();
+        d.setDate(d.getDate() - (6 - i));
+        return {
+          date: d.toISOString().split("T")[0],
+          count: Math.round(views * (0.4 + i * 0.1))
+        };
+      });
 
-    if (error) throw error;
-
-    return (data || []).map((row) => ({
-      id: row.id,
-      platform: row.platform as Platform,
-      author_id: row.author_id || "",
-      platform_uid: row.platform_uid,
-      title: row.title || "",
-      caption: row.caption || "",
-      cover_url: row.cover_url || "",
-      media_type: row.media_type as CreativeAd["media_type"],
-      like_count: row.like_count || 0,
-      view_count: row.view_count || 0,
-      comment_count: row.comment_count || 0,
-      share_count: row.share_count || 0,
-      media_urls: row.media_urls || [],
-      tags: row.tags || [],
-      published_at: row.published_at,
-      crawled_at: row.crawled_at,
-      is_ad: row.is_ad !== false,
-      growth_rate: row.growth_rate || 0,
-      views_history: Array.isArray(row.views_history) ? row.views_history : [],
-    }));
+      return {
+        id: row.id,
+        platform: row.platform as Platform,
+        author_id: row.author_id || "",
+        platform_uid: row.platform_uid || "",
+        title: row.caption ? row.caption.slice(0, 30) : "",
+        caption: row.caption || "",
+        cover_url: row.cover_url || "",
+        media_type: row.cover_url ? "video" : "image",
+        like_count: likes,
+        view_count: views,
+        comment_count: comments,
+        share_count: shares,
+        media_urls: row.media_urls || [],
+        tags: row.tags || [],
+        published_at: row.published_at || row.crawled_at,
+        crawled_at: row.crawled_at,
+        is_ad: true,
+        growth_rate: row.growth_rate || 0,
+        views_history: mockHistory
+      };
+    });
   } catch (err) {
     console.warn("[API] getCreativeAds failed, falling back to mock:", err);
     return mockCreativeAds;
@@ -785,37 +779,44 @@ export async function getCreativeAds(): Promise<CreativeAd[]> {
 
 export async function getCreativeAdById(id: string): Promise<CreativeAd | null> {
   try {
-    const { data, error } = await supabase
-      .from("creative_ads")
-      .select("*")
-      .eq("id", id)
-      .maybeSingle();
-
-    if (error) throw error;
-    if (!data) {
-      return mockCreativeAds.find((c) => c.id === id) || null;
-    }
+    const res = await fetch(`/api/creative/${id}`);
+    if (!res.ok) throw new Error("Fetch failed");
+    const row = await res.json();
+    
+    const views = parseInt(row.stats?.play_count || row.stats?.view_count || "0", 10);
+    const likes = parseInt(row.stats?.like_count || "0", 10);
+    const comments = parseInt(row.stats?.comment_count || "0", 10);
+    const shares = parseInt(row.stats?.share_count || "0", 10);
+    
+    const mockHistory = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (6 - i));
+      return {
+        date: d.toISOString().split("T")[0],
+        count: Math.round(views * (0.4 + i * 0.1))
+      };
+    });
 
     return {
-      id: data.id,
-      platform: data.platform as Platform,
-      author_id: data.author_id || "",
-      platform_uid: data.platform_uid,
-      title: data.title || "",
-      caption: data.caption || "",
-      cover_url: data.cover_url || "",
-      media_type: data.media_type as CreativeAd["media_type"],
-      like_count: data.like_count || 0,
-      view_count: data.view_count || 0,
-      comment_count: data.comment_count || 0,
-      share_count: data.share_count || 0,
-      media_urls: data.media_urls || [],
-      tags: data.tags || [],
-      published_at: data.published_at,
-      crawled_at: data.crawled_at,
-      is_ad: data.is_ad !== false,
-      growth_rate: data.growth_rate || 0,
-      views_history: Array.isArray(data.views_history) ? data.views_history : [],
+      id: row.id,
+      platform: row.platform as Platform,
+      author_id: row.author_id || "",
+      platform_uid: row.platform_uid || "",
+      title: row.caption ? row.caption.slice(0, 30) : "",
+      caption: row.caption || "",
+      cover_url: row.cover_url || "",
+      media_type: row.cover_url ? "video" : "image",
+      like_count: likes,
+      view_count: views,
+      comment_count: comments,
+      share_count: shares,
+      media_urls: row.media_urls || [],
+      tags: row.tags || [],
+      published_at: row.published_at || row.crawled_at,
+      crawled_at: row.crawled_at,
+      is_ad: true,
+      growth_rate: row.growth_rate || 0,
+      views_history: mockHistory
     };
   } catch (err) {
     console.warn("[API] getCreativeAdById failed, falling back to mock:", err);
@@ -825,32 +826,10 @@ export async function getCreativeAdById(id: string): Promise<CreativeAd | null> 
 
 export async function getCreativeAdvertiserById(id: string): Promise<CreativeAdvertiser | null> {
   try {
-    const { data, error } = await supabase
-      .from("creative_advertisers")
-      .select("*")
-      .eq("id", id)
-      .maybeSingle();
-
-    if (error) throw error;
-    if (!data) {
-      return mockCreativeAdvertisers.find((a) => a.id === id) || null;
-    }
-
-    return {
-      id: data.id,
-      platform_uid: data.platform_uid,
-      nickname: data.nickname,
-      platform: data.platform as Platform,
-      avatar_url: data.avatar_url || "",
-      description: data.description || "",
-      creative_count: data.creative_count || 0,
-      total_views: Number(data.total_views || 0),
-      total_likes: Number(data.total_likes || 0),
-      follows_count: data.follows_count || 0,
-      fans_count: data.fans_count || 0,
-      crawled_at: data.crawled_at,
-      last_active_at: data.last_active_at,
-    };
+    const res = await fetch(`/api/creative/advertisers/${id}`);
+    if (!res.ok) throw new Error("Fetch failed");
+    const json = await res.json();
+    return json.advertiser;
   } catch (err) {
     console.warn("[API] getCreativeAdvertiserById failed, falling back to mock:", err);
     return mockCreativeAdvertisers.find((a) => a.id === id) || null;
@@ -859,42 +838,37 @@ export async function getCreativeAdvertiserById(id: string): Promise<CreativeAdv
 
 export async function getSimilarCreatives(platform: string, authorId: string, currentAdId: string): Promise<CreativeAd[]> {
   try {
-    const { data, error } = await supabase
-      .from("creative_ads")
-      .select("*")
-      .neq("id", currentAdId)
-      .or(`platform.eq.${platform},author_id.eq.${authorId}`)
-      .limit(8);
-
-    if (error) throw error;
-
-    if (!data || data.length === 0) {
-      return mockCreativeAds
-        .filter((c) => c.id !== currentAdId && (c.platform === platform || c.author_id === authorId))
-        .slice(0, 8);
-    }
-
-    return data.map((row) => ({
-      id: row.id,
-      platform: row.platform as Platform,
-      author_id: row.author_id || "",
-      platform_uid: row.platform_uid,
-      title: row.title || "",
-      caption: row.caption || "",
-      cover_url: row.cover_url || "",
-      media_type: row.media_type as CreativeAd["media_type"],
-      like_count: row.like_count || 0,
-      view_count: row.view_count || 0,
-      comment_count: row.comment_count || 0,
-      share_count: row.share_count || 0,
-      media_urls: row.media_urls || [],
-      tags: row.tags || [],
-      published_at: row.published_at,
-      crawled_at: row.crawled_at,
-      is_ad: row.is_ad !== false,
-      growth_rate: row.growth_rate || 0,
-      views_history: Array.isArray(row.views_history) ? row.views_history : [],
-    }));
+    const res = await fetch(`/api/creative/search?platform=${platform}&limit=8`);
+    if (!res.ok) throw new Error("Fetch failed");
+    const json = await res.json();
+    return json.data
+      .filter((c: any) => c.id !== currentAdId)
+      .map((row: any) => {
+        const views = parseInt(row.stats?.play_count || row.stats?.view_count || "0", 10);
+        const likes = parseInt(row.stats?.like_count || "0", 10);
+        
+        return {
+          id: row.id,
+          platform: row.platform as Platform,
+          author_id: row.author_id || "",
+          platform_uid: row.platform_uid || "",
+          title: "",
+          caption: row.caption || "",
+          cover_url: row.cover_url || "",
+          media_type: row.cover_url ? "video" : "image",
+          like_count: likes,
+          view_count: views,
+          comment_count: parseInt(row.stats?.comment_count || "0", 10),
+          share_count: parseInt(row.stats?.share_count || "0", 10),
+          media_urls: row.media_urls || [],
+          tags: row.tags || [],
+          published_at: row.published_at || row.crawled_at,
+          crawled_at: row.crawled_at,
+          is_ad: true,
+          growth_rate: 0,
+          views_history: []
+        };
+      });
   } catch (err) {
     console.warn("[API] getSimilarCreatives failed, falling back to mock:", err);
     return mockCreativeAds

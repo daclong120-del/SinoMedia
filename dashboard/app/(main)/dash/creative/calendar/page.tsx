@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useMemo, Suspense } from "react";
+import React, { useState, useMemo, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { mockCreativeAds, mockCreativeAdvertisers } from "@/lib/mock-data";
 import { PlatformBadge } from "@/components/dashboard/Badges";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
 import { cn, formatNumber, timeAgo } from "@/lib/utils";
-import type { Platform } from "@/types";
+import type { Platform, CreativeAd, CreativeAdvertiser } from "@/types";
 
 function CalendarPageContent() {
   // Calendar date view (default July 2026)
@@ -19,6 +18,61 @@ function CalendarPageContent() {
   
   // Slide drawer state
   const [selectedDay, setSelectedDay] = useState<{ day: number; month: number; year: number } | null>(null);
+
+  const [creatives, setCreatives] = useState<CreativeAd[]>([]);
+  const [advertisers, setAdvertisers] = useState<CreativeAdvertiser[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      try {
+        const [creativesRes, advertisersRes] = await Promise.all([
+          fetch("/api/creative/search?limit=250"),
+          fetch("/api/creative/advertisers?limit=100")
+        ]);
+        if (!creativesRes.ok || !advertisersRes.ok) throw new Error("Fetch failed");
+        const creativesJson = await creativesRes.json();
+        const advertisersJson = await advertisersRes.json();
+
+        const mappedCreatives = creativesJson.data.map((row: any) => {
+          const views = parseInt(row.stats?.play_count || row.stats?.view_count || "0", 10);
+          const likes = parseInt(row.stats?.like_count || "0", 10);
+          
+          return {
+            id: row.id,
+            platform: row.platform,
+            author_id: row.author_id || "",
+            platform_uid: row.platform_uid || "",
+            title: row.caption ? row.caption.slice(0, 30) : "",
+            caption: row.caption || "",
+            cover_url: row.cover_url || "",
+            media_type: row.cover_url ? "video" : "image",
+            like_count: likes,
+            view_count: views,
+            comment_count: parseInt(row.stats?.comment_count || "0", 10),
+            share_count: parseInt(row.stats?.share_count || "0", 10),
+            media_urls: row.media_urls || [],
+            tags: row.tags || [],
+            published_at: row.published_at || row.crawled_at,
+            crawled_at: row.crawled_at,
+            is_ad: true,
+            growth_rate: row.growth_rate || 0,
+            views_history: [],
+            author: row.author
+          };
+        });
+
+        setCreatives(mappedCreatives);
+        setAdvertisers(advertisersJson.data);
+      } catch (err) {
+        console.error("Error loading calendar data:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
 
   // Month names translation
   const monthNames = [
@@ -93,16 +147,16 @@ function CalendarPageContent() {
 
   // Filter ads based on platform & advertiser selection
   const filteredAds = useMemo(() => {
-    return mockCreativeAds.filter((ad) => {
+    return creatives.filter((ad) => {
       const matchesPlatform = selectedPlatform === "all" || ad.platform === selectedPlatform;
       const matchesAdvertiser = selectedAdvertiser === "all" || ad.author_id === selectedAdvertiser;
       return matchesPlatform && matchesAdvertiser;
     });
-  }, [selectedPlatform, selectedAdvertiser]);
+  }, [creatives, selectedPlatform, selectedAdvertiser]);
 
   // Group filtered ads by absolute date key (d-m-y)
   const adsByDate = useMemo(() => {
-    const map: Record<string, typeof mockCreativeAds> = {};
+    const map: Record<string, CreativeAd[]> = {};
     filteredAds.forEach((ad) => {
       const d = new Date(ad.published_at);
       const key = `${d.getDate()}-${d.getMonth()}-${d.getFullYear()}`;
@@ -194,7 +248,7 @@ function CalendarPageContent() {
               onChange={setSelectedAdvertiser}
               options={[
                 { value: "all", label: "Tất cả Advertiser" },
-                ...mockCreativeAdvertisers.map((adv) => ({ value: adv.id, label: adv.nickname }))
+                ...advertisers.map((adv) => ({ value: adv.id, label: adv.nickname }))
               ]}
               fullWidth
             />
@@ -309,7 +363,7 @@ function CalendarPageContent() {
             {/* Drawer Content */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {drawerAds.map((ad) => {
-                const adv = mockCreativeAdvertisers.find((a) => a.id === ad.author_id);
+                const nickname = (ad as any).author?.nickname || "Advertiser";
                 return (
                   <div
                     key={ad.id}
@@ -334,7 +388,7 @@ function CalendarPageContent() {
                       
                       <div className="flex items-center justify-between text-[9px] border-t border-border/30 pt-1.5 mt-2">
                         <span className="font-mono text-muted-foreground">Views: {formatNumber(ad.view_count)}</span>
-                        <span className="text-primary font-bold">{adv ? adv.nickname : "Advertiser"}</span>
+                        <span className="text-primary font-bold">{nickname}</span>
                       </div>
                     </div>
                   </div>
