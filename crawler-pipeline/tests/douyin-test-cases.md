@@ -2,9 +2,13 @@
 
 ## Overview
 - **Feature**: Douyin Crawler Platform & Account Rotation Pool Integration
+- **Source Code**:
+  - Main Core Crawler: [core.ts](file:///d:/Python/SinoMedia/crawler-pipeline/src/crawl/douyin/core.ts)
+  - API Client & Sign: [client.ts](file:///d:/Python/SinoMedia/crawler-pipeline/src/crawl/douyin/client.ts)
+  - Login Manager: [login.ts](file:///d:/Python/SinoMedia/crawler-pipeline/src/crawl/douyin/login.ts)
 - **Requirements Source**: Porting of MediaCrawler (Python) to TS-based pipeline with Supabase-backed Account Rotation (`crawler-pipeline/src/crawl/douyin`)
 - **Test Coverage**: Functional (Detail, Comments, Creator, Search), Edge Cases (Short URL resolution), and State/Rotation Tests (Checkout, Health verification, failure count updating, fallback to local/guest).
-- **Last Updated**: 2026-07-02
+- **Last Updated**: 2026-07-06
 
 ---
 

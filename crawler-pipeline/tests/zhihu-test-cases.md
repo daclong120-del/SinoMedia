@@ -2,9 +2,13 @@
 
 ## Overview
 - **Feature**: Zhihu Crawler Platform Migration
+- **Source Code**:
+  - Main Core Crawler: [core.ts](file:///d:/Python/SinoMedia/crawler-pipeline/src/crawl/zhihu/core.ts)
+  - API Client & Sign: [client.ts](file:///d:/Python/SinoMedia/crawler-pipeline/src/crawl/zhihu/client.ts)
+  - Login Manager: [login.ts](file:///d:/Python/SinoMedia/crawler-pipeline/src/crawl/zhihu/login.ts)
 - **Requirements Source**: Porting of MediaCrawler (Python) to TS-based pipeline (`crawler-pipeline/src/crawl/zhihu`)
 - **Test Coverage**: Functional, Edge Cases, Error Handling, and Browser Fallback mechanics for Zhihu Articles, Answers, Zvideos, Creator Profiles, Comments, and Session Management.
-- **Last Updated**: 2026-07-02
+- **Last Updated**: 2026-07-06
 
 ---
 
@@ -197,6 +201,38 @@
   - File is written successfully.
   - Subsequent requests (via client/browser) load and reuse these updated cookies, preserving the session state.
 
+#### TC-ST-003: Account Pool Rotation & Checkout/Checkin Flow
+- **Requirement**: Verify checking out and checking in Zhihu accounts from/to the Account Pool.
+- **Priority**: High
+- **Preconditions**:
+  - Registered Zhihu accounts exist in the database table (account status active).
+- **Test Steps**:
+  1. Call `checkoutAccount("zhihu")` during initialization of the crawler.
+  2. Verify that an account is successfully queried and checked out, locking it for the current task.
+  3. Run crawler logic.
+  4. If the crawl finishes successfully, call `releaseAccount(true)` (which calls `checkinAccount(accountId, true)`).
+  5. If the crawl fails or pong checks fail, call `releaseAccount(false)` (which calls `checkinAccount(accountId, false)` to mark account issues).
+- **Expected Results**:
+  - Active accounts are selected from the pool correctly.
+  - Accounts are successfully checked back into the pool with appropriate status updates (success vs. failure).
+- **Postconditions**: DB account pool status is updated accurately.
+
+#### TC-ST-004: Local Cookie File Fallback & Manual Login Via ZhihuLogin
+- **Requirement**: Fall back to manual login if no active accounts are available in the DB pool.
+- **Priority**: Medium
+- **Preconditions**:
+  - No active accounts in database (checkout returns null).
+  - Local cookie file `output/zhihu_session.json` or `process.env.ZHIHU_COOKIE` has expired cookies or is empty.
+- **Test Steps**:
+  1. Trigger crawler execution.
+  2. Database returns no active accounts.
+  3. Crawler loads local cookie, tries `pong()` check, which fails.
+  4. Crawler initiates `ZhihuLogin` with local config.
+  5. If manual login completes, write updated cookies back to `output/zhihu_session.json`.
+- **Expected Results**:
+  - Clean fallback logic executes step-by-step from DB pool → Local Cookies → Manual login fallback.
+  - New session cookies are successfully written to `output/zhihu_session.json` upon login completion.
+
 ---
 
 ## Test Coverage Matrix
@@ -212,6 +248,8 @@
 | Search API check | TC-ERR-002 | ✓ Complete |
 | Database validation | TC-ERR-003 | ✓ Complete |
 | Browser Fallback (CloakBrowser) | TC-ST-001, TC-ST-002 | ✓ Complete |
+| Account Pool Rotation | TC-ST-003 | ✓ Complete |
+| Login fallback / ZhihuLogin | TC-ST-004 | ✓ Complete |
 
 ---
 
