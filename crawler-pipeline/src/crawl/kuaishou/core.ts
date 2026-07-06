@@ -309,7 +309,7 @@ export class KuaishouCrawler implements ICrawler {
       const postUuid = await persistPost(detail, authorUuid);
 
       // Cào bình luận nếu được cấu hình
-      if (process.env.CRAWLER_ENABLE_COMMENTS !== "false") {
+      if (process.env.ENABLE_GET_COMMENTS !== "false") {
         await this.client.getVideoAllComments(
           photoId,
           1.0,
@@ -365,7 +365,7 @@ export class KuaishouCrawler implements ICrawler {
             const postUuid = await persistPost(detailedItem, authorUuid);
 
             // Cào bình luận cho từng video của creator
-            if (process.env.CRAWLER_ENABLE_COMMENTS !== "false") {
+            if (process.env.ENABLE_GET_COMMENTS !== "false") {
               await this.client.getVideoAllComments(
                 photoId,
                 1.0,
@@ -451,7 +451,7 @@ export class KuaishouCrawler implements ICrawler {
           const postUuid = await persistPost(detailedItem, authorUuid);
 
           // Cào bình luận
-          if (process.env.CRAWLER_ENABLE_COMMENTS !== "false") {
+          if (process.env.ENABLE_GET_COMMENTS !== "false") {
             await this.client.getVideoAllComments(
               photoId,
               1.0,

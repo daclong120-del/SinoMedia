@@ -311,7 +311,7 @@ export class WeiboCrawler implements ICrawler {
       const postUuid = await persistPost(noteItem, authorUuid);
 
       // Cào bình luận nếu được cấu hình
-      if (process.env.CRAWLER_ENABLE_COMMENTS !== "false") {
+      if (process.env.ENABLE_GET_COMMENTS !== "false") {
         await this.client.getNoteAllComments(
           noteId,
           2.0,
@@ -357,7 +357,7 @@ export class WeiboCrawler implements ICrawler {
             const postUuid = await persistPost(noteItem, authorUuid);
             
             // Cào bình luận cho từng bài viết của creator
-            if (process.env.CRAWLER_ENABLE_COMMENTS !== "false" && noteItem.mblog?.id) {
+            if (process.env.ENABLE_GET_COMMENTS !== "false" && noteItem.mblog?.id) {
               const noteId = String(noteItem.mblog.id);
               await this.client.getNoteAllComments(
                 noteId,
@@ -436,7 +436,7 @@ export class WeiboCrawler implements ICrawler {
           const postUuid = await persistPost(noteItem, authorUuid);
 
           // Cào bình luận của bài viết tìm kiếm được
-          if (process.env.CRAWLER_ENABLE_COMMENTS !== "false" && mblog.id) {
+          if (process.env.ENABLE_GET_COMMENTS !== "false" && mblog.id) {
             const noteId = String(mblog.id);
             await this.client.getNoteAllComments(
               noteId,

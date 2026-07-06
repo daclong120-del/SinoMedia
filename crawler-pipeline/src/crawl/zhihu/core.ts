@@ -432,7 +432,7 @@ export async function crawlCreator(urlOrToken: string): Promise<void> {
   if (pagePosts.length > 0) {
     await upsertPosts(pagePosts);
     for (const post of pagePosts) {
-      if (process.env.ENABLE_GET_COMMENTS === "true") {
+      if (process.env.ENABLE_GET_COMMENTS !== "false") {
         try {
           await crawlComments(post.platform_id, (post.raw as any)?.type || "answer", {
             maxCount: process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES ? parseInt(process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES, 10) : 50,
@@ -516,7 +516,7 @@ export async function crawlSearch(keyword: string, maxCount = 20): Promise<void>
     if (pagePosts.length > 0) {
       await upsertPosts(pagePosts);
       for (const post of pagePosts) {
-        if (process.env.ENABLE_GET_COMMENTS === "true") {
+        if (process.env.ENABLE_GET_COMMENTS !== "false") {
           try {
             await crawlComments(post.platform_id, (post.raw as any)?.type || "answer", {
               maxCount: process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES ? parseInt(process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES, 10) : 50,
@@ -697,7 +697,7 @@ export class ZhihuCrawler implements ICrawler {
     try {
       await this.ensureLogin();
       const post = await crawlDetail(target);
-      if (post && process.env.ENABLE_GET_COMMENTS === "true") {
+      if (post && process.env.ENABLE_GET_COMMENTS !== "false") {
         try {
           await crawlComments(post.platform_id, (post.raw as any)?.type || "answer", {
             maxCount: process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES ? parseInt(process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES, 10) : 50,

@@ -1,54 +1,5 @@
-import { CONFIG } from "../config.js";
-import { ProxyAgent } from "undici";
+import { supabaseRest } from "./supabase_client.js";
 import { CrawledAuthorRow, CrawledPostRow, CrawledCommentRow } from "../model/storage.js";
-
-let dispatcher: ProxyAgent | undefined;
-if (CONFIG.proxy) {
-  dispatcher = new ProxyAgent(CONFIG.proxy);
-}
-
-/**
- * # Thực hiện gửi HTTP request đến Supabase PostgREST API dùng service_role key
- */
-async function supabaseRest(path: string, options: { method?: string; body?: any; params?: Record<string, string> } = {}): Promise<any> {
-  const urlObj = new URL(`${CONFIG.supabase.url}/rest/v1/${path}`);
-  if (options.params) {
-    for (const [key, value] of Object.entries(options.params)) {
-      urlObj.searchParams.append(key, value);
-    }
-  }
-
-  const headers: Record<string, string> = {
-    "apikey": CONFIG.supabase.serviceRoleKey,
-    "Authorization": `Bearer ${CONFIG.supabase.serviceRoleKey}`,
-    "Content-Type": "application/json",
-  };
-
-  if (options.method && ["POST", "PUT", "PATCH"].includes(options.method)) {
-    headers["Prefer"] = "return=representation,resolution=merge-duplicates";
-  }
-
-  const fetchOptions: any = {
-    method: options.method || "GET",
-    headers,
-  };
-
-  if (options.body) {
-    fetchOptions.body = JSON.stringify(options.body);
-  }
-
-  if (dispatcher) {
-    fetchOptions.dispatcher = dispatcher;
-  }
-
-  const res = await fetch(urlObj.toString(), fetchOptions);
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Supabase REST error ${res.status}: ${errText}`);
-  }
-
-  return res.json();
-}
 
 /**
  * # Thêm mới hoặc cập nhật thông tin tác giả và trả về UUID tương ứng

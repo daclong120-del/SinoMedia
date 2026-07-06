@@ -1,9 +1,5 @@
-/**
- * # Queue Worker xử lý tác vụ cào dữ liệu từ database Supabase
- * Thay thế cho FastAPI API routers của ChinaMediaCrawler bằng kiến trúc hướng DB (Database-driven)
- */
-
 import { CONFIG } from "./config.js";
+import { supabaseRest } from "./store/supabase_client.js";
 import { logger } from "./utils/index.js";
 import { closeBrowser } from "./crawl/douyin/index.js";
 import { PlatformType } from "./constant/index.js";
@@ -12,43 +8,6 @@ import { CrawlerFactory } from "./crawl/crawler_factory.js";
 
 // Trạng thái task hiện tại để ghi log vào DB
 let currentTaskId: string | null = null;
-
-/**
- * # Gửi request đến Supabase PostgREST API
- */
-async function supabaseRest(path: string, options: { method?: string; body?: any; params?: Record<string, string>; headers?: Record<string, string> } = {}): Promise<any> {
-  const urlObj = new URL(`${CONFIG.supabase.url}/rest/v1/${path}`);
-  if (options.params) {
-    for (const [key, value] of Object.entries(options.params)) {
-      urlObj.searchParams.append(key, value);
-    }
-  }
-
-  const headers: Record<string, string> = {
-    "apikey": CONFIG.supabase.serviceRoleKey,
-    "Authorization": `Bearer ${CONFIG.supabase.serviceRoleKey}`,
-    "Content-Type": "application/json",
-    ...options.headers,
-  };
-
-  const fetchOptions: any = {
-    method: options.method || "GET",
-    headers,
-  };
-
-  if (options.body) {
-    fetchOptions.body = JSON.stringify(options.body);
-  }
-
-  const res = await fetch(urlObj.toString(), fetchOptions);
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Supabase REST error ${res.status}: ${errText}`);
-  }
-
-  if (res.status === 204) return null; // No Content
-  return res.json();
-}
 
 /**
  * # Ghi log của task hiện tại vào bảng crawler_logs trong Supabase

@@ -425,7 +425,7 @@ export async function crawlCreator(urlOrUid: string): Promise<void> {
     if (pagePosts.length > 0) {
       await upsertPosts(pagePosts);
       for (const post of pagePosts) {
-        if (process.env.ENABLE_GET_COMMENTS === "true") {
+        if (process.env.ENABLE_GET_COMMENTS !== "false") {
           try {
             await crawlComments(post.platform_id, {
               maxCount: process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES ? parseInt(process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES, 10) : 50,
@@ -502,7 +502,7 @@ export async function crawlSearch(keyword: string, maxCount = 20): Promise<void>
     if (pagePosts.length > 0) {
       await upsertPosts(pagePosts);
       for (const post of pagePosts) {
-        if (process.env.ENABLE_GET_COMMENTS === "true") {
+        if (process.env.ENABLE_GET_COMMENTS !== "false") {
           try {
             await crawlComments(post.platform_id, {
               maxCount: process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES ? parseInt(process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES, 10) : 50,
@@ -532,7 +532,7 @@ export class BilibiliCrawler implements ICrawler {
       const bvid = parseVideoInfoFromUrl(target);
       const detailRes = await bilibiliGet("/x/web-interface/view/detail", { bvid }, false);
       const post = await persistBilibiliVideo(detailRes);
-      if (process.env.ENABLE_GET_COMMENTS === "true") {
+      if (process.env.ENABLE_GET_COMMENTS !== "false") {
         try {
           await crawlComments(post.platform_id, {
             maxCount: process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES ? parseInt(process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES, 10) : 50,

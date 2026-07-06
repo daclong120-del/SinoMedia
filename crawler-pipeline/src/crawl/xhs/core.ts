@@ -400,7 +400,7 @@ export class XhsCrawler implements ICrawler {
 
       const postUuid = await persistPost(noteDetail, authorUuid);
 
-      if (process.env.CRAWLER_ENABLE_COMMENTS !== "false") {
+      if (process.env.ENABLE_GET_COMMENTS !== "false") {
         await this.client.getNoteAllComments({
           noteId: urlInfo.noteId,
           xsecToken: urlInfo.xsecToken,
@@ -468,7 +468,7 @@ export class XhsCrawler implements ICrawler {
 
         const postUuid = await persistPost(detailedNote, authorUuid);
 
-        if (process.env.CRAWLER_ENABLE_COMMENTS !== "false") {
+        if (process.env.ENABLE_GET_COMMENTS !== "false") {
           await this.client.getNoteAllComments({
             noteId,
             xsecToken,
@@ -558,7 +558,7 @@ export class XhsCrawler implements ICrawler {
 
           const postUuid = await persistPost(detailedNote, authorUuid);
 
-          if (process.env.CRAWLER_ENABLE_COMMENTS !== "false") {
+          if (process.env.ENABLE_GET_COMMENTS !== "false") {
             await this.client.getNoteAllComments({
               noteId,
               xsecToken,

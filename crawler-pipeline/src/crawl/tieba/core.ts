@@ -299,7 +299,7 @@ export class TiebaCrawler implements ICrawler {
 
       const postUuid = await persistPost(note, authorUuid);
 
-      if (process.env.ENABLE_GET_COMMENTS === "true") {
+      if (process.env.ENABLE_GET_COMMENTS !== "false") {
         const maxComments = process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES
           ? parseInt(process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES, 10)
           : 50;
@@ -347,7 +347,7 @@ export class TiebaCrawler implements ICrawler {
 
       for (const note of notes) {
         const postUuid = await persistPost(note, authorUuid);
-        if (process.env.ENABLE_GET_COMMENTS === "true") {
+        if (process.env.ENABLE_GET_COMMENTS !== "false") {
           const maxComments = process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES
             ? parseInt(process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES, 10)
             : 50;
@@ -399,7 +399,7 @@ export class TiebaCrawler implements ICrawler {
 
         const postUuid = await persistPost(note, authorUuid);
 
-        if (process.env.ENABLE_GET_COMMENTS === "true") {
+        if (process.env.ENABLE_GET_COMMENTS !== "false") {
           const maxComments = process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES
             ? parseInt(process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES, 10)
             : 50;

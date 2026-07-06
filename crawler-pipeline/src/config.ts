@@ -35,8 +35,8 @@ function getEnv(key: string): string | undefined {
 
 export const CONFIG = {
   supabase: {
-    url: getEnv("SUPABASE_URL") ?? getEnv("EXPO_PUBLIC_SUPABASE_URL") ?? "https://ejwqyycoycyzuxseecck.supabase.co",
-    serviceRoleKey: getEnv("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    url: getEnv("SUPABASE_URL") ?? getEnv("EXPO_PUBLIC_SUPABASE_URL") ?? (() => { throw new Error("Thiếu biến SUPABASE_URL — vui lòng cấu hình trong file .env"); })(),
+    serviceRoleKey: getEnv("SUPABASE_SERVICE_ROLE_KEY") ?? (() => { throw new Error("Thiếu biến SUPABASE_SERVICE_ROLE_KEY — vui lòng cấu hình trong file .env"); })(),
   },
   r2: {
     accessKeyId: getEnv("R2_ACCESS_KEY_ID") ?? "",
