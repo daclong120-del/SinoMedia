@@ -6,7 +6,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useAccount } from "@/lib/account-context";
 import { UserIcon, ChevronDownIcon } from "@/components/icons";
-import { createClientBrowser } from "@/lib/supabase/client";
+import { signOutAction } from "@/lib/actions/auth.actions";
 
 import { useUIStore } from "@/lib/stores/use-ui-store";
 
@@ -36,7 +36,6 @@ interface HeaderProps {
 }
 
 export default function Header({ onMenuToggle }: HeaderProps) {
-  const supabase = createClientBrowser();
   const pathname = usePathname();
   const router = useRouter();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -191,13 +190,10 @@ export default function Header({ onMenuToggle }: HeaderProps) {
                 onClick={async () => {
                   console.log("Logging out active user account:", activeAccount);
                   setIsProfileOpen(false);
-                  try {
-                    await supabase.auth.signOut();
-                  } catch (err) {
-                    console.error("[Auth] Signout error:", err);
-                  }
+                  await signOutAction();
                   localStorage.removeItem("sinomedia_active_account");
                   router.push("/login");
+                  router.refresh();
                 }}
                 className="flex items-center w-full px-3 py-1.5 text-xs rounded-md text-destructive hover:bg-destructive/5 transition-colors duration-100 text-left font-medium cursor-pointer"
               >

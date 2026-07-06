@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { createClientBrowser } from "@/lib/supabase/client";
+import { signUpAction } from "@/lib/actions/auth.actions";
 
 const EyeIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-75" viewBox="0 0 24 24">
@@ -74,7 +74,6 @@ const DICT: Record<string, typeof ENGLISH_DICT> = {
 
 export default function SignUpForm() {
   const router = useRouter();
-  const supabase = createClientBrowser();
   const searchParams = useSearchParams();
 
   const [lang, setLang] = useState("English (US)");
@@ -164,17 +163,15 @@ export default function SignUpForm() {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
+      const res = await signUpAction(email, password);
 
-      if (error) {
-        throw error;
+      if (!res.success) {
+        setPasswordError(res.error || "Đăng ký thất bại. Vui lòng thử lại.");
+        return;
       }
 
-      if (data.user) {
-        localStorage.setItem("sinomedia_active_account", data.user.email?.split("@")[0] || email.split("@")[0]);
+      if (res.user) {
+        localStorage.setItem("sinomedia_active_account", res.user.email?.split("@")[0] || email.split("@")[0]);
       }
 
       const redirectUri = searchParams.get("redirect_uri");
@@ -187,14 +184,16 @@ export default function SignUpForm() {
             } else {
               router.push(decoded);
             }
+            router.refresh();
             return;
           }
         } catch {}
       }
       router.push("/dash/home");
+      router.refresh();
     } catch (err: any) {
       console.error("[Auth] Signup error:", err);
-      setPasswordError(err.message || "Đăng ký thất bại. Vui lòng thử lại.");
+      setPasswordError("Đăng ký thất bại. Vui lòng thử lại.");
     } finally {
       setIsLoading(false);
     }

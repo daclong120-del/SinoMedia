@@ -111,3 +111,13 @@
 - **Bối cảnh:** Supabase Realtime (postgres_changes) bắt buộc chạy trên browser client. Nếu xoá browser singleton sẽ mất realtime.
 - **Quyết định:** Tạo `lib/realtime/subscriptions.ts` — file DUY NHẤT import `createClientBrowser()`. Tất cả phần còn lại đều dùng server client.
 - **Lý do:** Tách rõ concern. Dễ audit "đâu dùng browser client" — chỉ 1 file duy nhất.
+
+## 2026-07-06 — Tái Cấu Trúc Lớp Xác Thực: Server Actions + Service Pattern [initiative: refactor-auth-layer]
+- **Bối cảnh:** Luồng đăng ký (Sign Up) và đăng nhập (Login) hiện tại đang gọi trực tiếp `@supabase/supabase-js` ở Client Component. Code xử lý turnstile simulation, bypass offline mode, và quản lý cookie (mock session) bị trộn lẫn trong UI Form, không an toàn và khó bảo trì.
+- **Phương án đã cân nhắc:**
+  - **Phương án A (Khuyến nghị):** Đưa toàn bộ logic Auth (signIn, signUp, offline ping, mock session) lên Server thông qua `AuthService` và `auth.actions.ts`. Client chỉ gửi dữ liệu thô và nhận phản hồi UI.
+  - **Phương án B:** Chỉ chuyển luồng Đăng nhập, giữ nguyên luồng Đăng ký ở Client để xử lý Captcha/Turnstile trực tiếp.
+- **Chọn Phương án A vì:** 
+  - Đảm bảo an toàn bảo mật tuyệt đối: Cookie xác thực mock được ghi bằng HTTP Response Header (`cookies()`) thay vì `document.cookie` ở browser.
+  - Tách biệt hoàn toàn mã UI khỏi mã logic Supabase, làm cho UI Form cực kỳ ngắn gọn, dễ đọc và dễ bảo trì (đúng theo mô hình Controller - Service của NestJS mà user tham khảo).
+  - Quản lý tập trung mọi trạng thái bypass và kiểm soát lỗi từ API Supabase.

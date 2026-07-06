@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { GoogleIcon } from "@/components/icons";
-import { createClientBrowser } from "@/lib/supabase/client";
+import { loginAction } from "@/lib/actions/auth.actions";
 
 const EyeIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-75" viewBox="0 0 24 24">
@@ -65,7 +65,6 @@ const DICT: Record<string, typeof ENGLISH_DICT> = {
 
 export default function LoginForm() {
   const router = useRouter();
-  const supabase = createClientBrowser();
   const searchParams = useSearchParams();
   
   const [lang, setLang] = useState("English (US)");
@@ -134,57 +133,19 @@ export default function LoginForm() {
 
     setIsLoading(true);
 
-    // Kiểm tra xem Supabase endpoint có online không trước khi auth để tránh Chrome Extension ném lỗi TypeError
-    let isSupabaseOnline = false;
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 1200);
-      await fetch(process.env.NEXT_PUBLIC_SUPABASE_URL!, {
-        method: "GET",
-        signal: controller.signal,
-        mode: "no-cors",
-      });
-      clearTimeout(timeoutId);
-      isSupabaseOnline = true;
-    } catch (e) {
-      console.warn("[Auth] Supabase endpoint offline, activating fallback demo mode.");
-    }
+      const res = await loginAction(email, password);
 
-    try {
-      // 1. Kiểm tra tài khoản bypass offline hoặc nếu Supabase đang sập/offline
-      if (!isSupabaseOnline || (email === "admin@sinomedia.vn" && password === "12345678")) {
-        document.cookie = "sb-mock-session=true; path=/; max-age=86400; SameSite=Lax";
-        document.cookie = `sb-mock-user=${encodeURIComponent(email)}; path=/; max-age=86400; SameSite=Lax`;
-        localStorage.setItem("sinomedia_active_account", email.split("@")[0] === "admin" ? "admin" : email.split("@")[0]);
-        router.push("/dash/home");
+      if (!res.success) {
+        setPasswordError(res.error || "Đăng nhập thất bại.");
         return;
       }
 
-      // 2. Chạy auth Supabase thật
-      let data, error;
-      try {
-        const res = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        data = res.data;
-        error = res.error;
-      } catch (fetchErr: any) {
-        console.warn("[Auth] Supabase fetch error, fallback to offline demo:", fetchErr);
-        document.cookie = "sb-mock-session=true; path=/; max-age=86400; SameSite=Lax";
-        document.cookie = `sb-mock-user=${encodeURIComponent(email)}; path=/; max-age=86400; SameSite=Lax`;
-        localStorage.setItem("sinomedia_active_account", email.split("@")[0]);
-        router.push("/dash/home");
-        return;
-      }
-
-      if (error) {
-        throw error;
-      }
-
-      if (data.user) {
-        localStorage.setItem("sinomedia_active_account", data.user.email?.split("@")[0] || email.split("@")[0]);
-      }
+      const activeUser = res.mock 
+        ? (res.email?.split("@")[0] || "admin") 
+        : (res.user?.email?.split("@")[0] || email.split("@")[0]);
+      
+      localStorage.setItem("sinomedia_active_account", activeUser);
 
       const redirectUri = searchParams.get("redirect_uri");
       if (redirectUri) {
@@ -196,14 +157,16 @@ export default function LoginForm() {
             } else {
               router.push(decoded);
             }
+            router.refresh();
             return;
           }
         } catch {}
       }
       router.push("/dash/home");
+      router.refresh();
     } catch (err: any) {
       console.error("[Auth] Login error:", err);
-      setPasswordError(err.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản.");
+      setPasswordError("Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản.");
     } finally {
       setIsLoading(false);
     }

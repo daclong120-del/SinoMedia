@@ -19,6 +19,7 @@
 | refactor-client-storage | refactor | ✅ xong | 4/4 phase |
 | debug-terminal-sandbox | debug | ✅ xong | - |
 | refactor-data-access-layer | refactor | ✅ xong | 4/4 phase |
+| refactor-auth-layer | refactor | ✅ xong | 2/2 phase |
 
 > Marker: ⏳ chưa · 🔄 đang làm · ✅ xong · ⛔ chặn
 
