@@ -18,6 +18,29 @@ type PostStats = {
   share_count?: number;
 };
 
+function isDynamicServerUsageError(err: unknown) {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "digest" in err &&
+    (err as { digest?: string }).digest === "DYNAMIC_SERVER_USAGE"
+  );
+}
+
+async function withSupabaseTimeout<T>(promise: Promise<T>, label: string): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error(`${label} timed out`)), 1200);
+      }),
+    ]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+}
+
 function getPostStats(row: TableRow<"crawled_posts">): PostStats {
   return typeof row.stats === "object" && row.stats !== null && !Array.isArray(row.stats)
     ? (row.stats as unknown as PostStats)
@@ -97,29 +120,29 @@ export async function searchAds(opts: PostQueryOpts & { page?: number } = {}): P
   limit: number;
   total: number;
 }> {
-  const db = await createClientServer();
-  const postRepo = new PostRepository(db as unknown as DbClient);
-  const authorRepo = new AuthorRepository(db as unknown as DbClient);
-
   const page = opts.page ?? 1;
   const limit = opts.limit ?? 20;
   const offset = (page - 1) * limit;
+  try {
+    const db = await createClientServer();
+    const postRepo = new PostRepository(db as unknown as DbClient);
+    const authorRepo = new AuthorRepository(db as unknown as DbClient);
 
-  const { data: posts, count } = await postRepo.findMany({
+  const { data: posts, count } = await withSupabaseTimeout(postRepo.findMany({
     ...opts,
     limit,
     offset,
-  });
+  }), "searchAds.findMany");
 
   if (posts.length === 0) {
     return { data: [], page, limit, total: count };
   }
 
   // Lấy thông tin tác giả tương ứng
-  const authorIds = [...new Set(posts.map((p) => p.author_id).filter(Boolean))] as string[];
-  const authors = authorIds.length > 0
-    ? await authorRepo.findByIds(authorIds)
-    : [];
+    const authorIds = [...new Set(posts.map((p) => p.author_id).filter(Boolean))] as string[];
+    const authors = authorIds.length > 0
+      ? await withSupabaseTimeout(authorRepo.findByIds(authorIds), "searchAds.findByIds")
+      : [];
   const authorsMap = new Map<string, TableRow<"crawled_authors">>(
     authors.map((a) => [a.id, a])
   );
@@ -129,24 +152,35 @@ export async function searchAds(opts: PostQueryOpts & { page?: number } = {}): P
     return mapPostToCreativeAd(post, author);
   });
 
-  return { data, page, limit, total: count };
+    return { data, page, limit, total: count };
+  } catch (err) {
+    if (isDynamicServerUsageError(err)) throw err;
+    console.warn("[CreativeService] searchAds failed; returning empty result:", err);
+    return { data: [], page, limit, total: 0 };
+  }
 }
 
 /** Lấy chi tiết 1 creative ad */
 export async function getAdById(id: string): Promise<CreativeAd | null> {
-  const db = await createClientServer();
-  const postRepo = new PostRepository(db as unknown as DbClient);
-  const authorRepo = new AuthorRepository(db as unknown as DbClient);
+  try {
+    const db = await createClientServer();
+    const postRepo = new PostRepository(db as unknown as DbClient);
+    const authorRepo = new AuthorRepository(db as unknown as DbClient);
 
-  const row = await postRepo.findById(id);
+  const row = await withSupabaseTimeout(postRepo.findById(id), "getAdById.findById");
   if (!row) return null;
 
   let author = null;
   if (row.author_id) {
-    author = await authorRepo.findById(row.author_id);
+    author = await withSupabaseTimeout(authorRepo.findById(row.author_id), "getAdById.findAuthor");
   }
 
-  return mapPostToCreativeAd(row, author);
+    return mapPostToCreativeAd(row, author);
+  } catch (err) {
+    if (isDynamicServerUsageError(err)) throw err;
+    console.warn("[CreativeService] getAdById failed; returning null:", err);
+    return null;
+  }
 }
 
 /** Lấy danh sách advertisers (tác giả + thống kê bài viết) */
@@ -156,20 +190,24 @@ export async function getAdvertisers(opts: {
   limit?: number;
   offset?: number;
 } = {}): Promise<{ data: CreativeAdvertiser[]; total: number }> {
-  const db = await createClientServer();
-  const authorRepo = new AuthorRepository(db as unknown as DbClient);
-  const postRepo = new PostRepository(db as unknown as DbClient);
+  try {
+    const db = await createClientServer();
+    const authorRepo = new AuthorRepository(db as unknown as DbClient);
+    const postRepo = new PostRepository(db as unknown as DbClient);
 
-  const { data: authors, count } = await authorRepo.findMany({
+  const { data: authors, count } = await withSupabaseTimeout(authorRepo.findMany({
     platform: opts.platform,
     search: opts.search,
     limit: opts.limit ?? 100,
     offset: opts.offset,
-  });
+  }), "getAdvertisers.findMany");
 
   // Tính thống kê bài viết cho mỗi tác giả
   const advertiserPromises = authors.map(async (author) => {
-    const { data: posts } = await postRepo.findByAuthorId(author.id, 1000);
+    const { data: posts } = await withSupabaseTimeout(
+      postRepo.findByAuthorId(author.id, 1000),
+      "getAdvertisers.findByAuthorId"
+    );
     let totalViews = 0;
     let totalLikes = 0;
     posts.forEach((p) => {
@@ -181,7 +219,12 @@ export async function getAdvertisers(opts: {
   });
 
   const data = await Promise.all(advertiserPromises);
-  return { data, total: count };
+    return { data, total: count };
+  } catch (err) {
+    if (isDynamicServerUsageError(err)) throw err;
+    console.warn("[CreativeService] getAdvertisers failed; returning empty result:", err);
+    return { data: [], total: 0 };
+  }
 }
 
 /** Lấy chi tiết 1 advertiser + danh sách bài viết của họ */
@@ -189,14 +232,17 @@ export async function getAdvertiserById(id: string): Promise<{
   advertiser: CreativeAdvertiser | null;
   ads: CreativeAd[];
 } | null> {
-  const db = await createClientServer();
-  const authorRepo = new AuthorRepository(db as unknown as DbClient);
-  const postRepo = new PostRepository(db as unknown as DbClient);
-
   try {
-    const author = await authorRepo.findById(id);
+    const db = await createClientServer();
+    const authorRepo = new AuthorRepository(db as unknown as DbClient);
+    const postRepo = new PostRepository(db as unknown as DbClient);
+
+    const author = await withSupabaseTimeout(authorRepo.findById(id), "getAdvertiserById.findById");
     if (!author) return null;
-    const { data: posts } = await postRepo.findByAuthorId(id, 100);
+    const { data: posts } = await withSupabaseTimeout(
+      postRepo.findByAuthorId(id, 100),
+      "getAdvertiserById.findByAuthorId"
+    );
 
     let totalViews = 0;
     let totalLikes = 0;
@@ -210,7 +256,8 @@ export async function getAdvertiserById(id: string): Promise<{
     const ads = posts.map((p) => mapPostToCreativeAd(p, author));
 
     return { advertiser, ads };
-  } catch {
+  } catch (err) {
+    if (isDynamicServerUsageError(err)) throw err;
     return null;
   }
 }

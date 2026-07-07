@@ -52,12 +52,21 @@ export async function updateSession(request: NextRequest) {
   }
 
   let user = null;
-  try {
-    // Gọi getUser() để tự động refresh token nếu hết hạn
-    const { data } = await supabase.auth.getUser();
-    user = data?.user || null;
-  } catch (err) {
-    console.warn("[Middleware] Supabase getUser failed, possibly offline:", err);
+  const hasAuthCookie = request.cookies.getAll().some(c => c.name.startsWith("sb-") && c.name.endsWith("-auth-token"));
+
+  if (hasAuthCookie) {
+    try {
+      // Thiết lập timeout 2 giây để tránh treo request khi Supabase local offline
+      const timeoutPromise = new Promise<null>((_, reject) =>
+        setTimeout(() => reject(new Error("Supabase auth connection timeout")), 2000)
+      );
+      
+      const getUserPromise = supabase.auth.getUser().then(({ data }) => data?.user || null);
+      
+      user = await Promise.race([getUserPromise, timeoutPromise]);
+    } catch (err) {
+      console.warn("[Middleware] Supabase getUser failed or timed out:", err);
+    }
   }
 
   return { supabaseResponse, user };

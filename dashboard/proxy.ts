@@ -15,7 +15,7 @@ export async function proxy(request: NextRequest) {
       // Lưu lại URL hiện tại để chuyển hướng sau khi đăng nhập thành công
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = "/login";
-      redirectUrl.searchParams.set("redirect_uri", encodeURIComponent(request.nextUrl.pathname + request.nextUrl.search));
+      redirectUrl.searchParams.set("redirect_uri", request.nextUrl.pathname + request.nextUrl.search);
       return NextResponse.redirect(redirectUrl);
     }
   }

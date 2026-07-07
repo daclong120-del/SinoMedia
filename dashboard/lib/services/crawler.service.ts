@@ -14,6 +14,29 @@ type DbTask = Database["public"]["Tables"]["crawler_tasks"]["Row"];
 type DbAccount = Database["public"]["Tables"]["crawler_accounts"]["Row"];
 type DbLog = Database["public"]["Tables"]["crawler_logs"]["Row"];
 
+function isDynamicServerUsageError(err: unknown) {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "digest" in err &&
+    (err as { digest?: string }).digest === "DYNAMIC_SERVER_USAGE"
+  );
+}
+
+async function withSupabaseTimeout<T>(promise: Promise<T>, label: string): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error(`${label} timed out`)), 1200);
+      }),
+    ]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+}
+
 // ─── Mappers ─────────────────────────────────────────────────
 
 function mapDbTask(row: DbTask): CrawlerTask {
@@ -58,10 +81,16 @@ function mapDbLog(row: DbLog): CrawlerLogEntry {
 
 /** Lấy danh sách task crawler đã map sang app type */
 export async function getTasks(): Promise<CrawlerTask[]> {
-  const db = await createClientServer();
-  const repo = new TaskRepository(db as unknown as DbClient);
-  const data = await repo.findAll();
-  return data.map(mapDbTask);
+  try {
+    const db = await createClientServer();
+    const repo = new TaskRepository(db as unknown as DbClient);
+    const data = await withSupabaseTimeout(repo.findAll(), "getTasks.findAll");
+    return data.map(mapDbTask);
+  } catch (err) {
+    if (isDynamicServerUsageError(err)) throw err;
+    console.warn("[CrawlerService] getTasks failed; returning empty list:", err);
+    return [];
+  }
 }
 
 /** Tạo task crawler mới */
@@ -104,10 +133,16 @@ export async function retryTask(id: string): Promise<void> {
 
 /** Lấy log của một task cụ thể */
 export async function getTaskLogs(taskId: string): Promise<CrawlerLogEntry[]> {
-  const db = await createClientServer();
-  const repo = new LogRepository(db as unknown as DbClient);
-  const data = await repo.findByTaskId(taskId);
-  return data.map(mapDbLog);
+  try {
+    const db = await createClientServer();
+    const repo = new LogRepository(db as unknown as DbClient);
+    const data = await withSupabaseTimeout(repo.findByTaskId(taskId), "getTaskLogs.findByTaskId");
+    return data.map(mapDbLog);
+  } catch (err) {
+    if (isDynamicServerUsageError(err)) throw err;
+    console.warn("[CrawlerService] getTaskLogs failed; returning empty list:", err);
+    return [];
+  }
 }
 
 /** Lấy danh sách tài khoản crawler */

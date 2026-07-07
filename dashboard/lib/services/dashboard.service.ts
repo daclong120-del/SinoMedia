@@ -52,24 +52,59 @@ export interface PlatformHealthItem {
   total: number;
 }
 
+const EMPTY_DASHBOARD_METRICS: DashboardMetrics = {
+  totalPosts: 0,
+  totalAuthors: 0,
+  runningTasks: 0,
+  pendingTasks: 0,
+  activeAccounts: 0,
+  totalAccounts: 0,
+  postsTrend: 0,
+  authorsTrend: 0,
+};
+
+function isDynamicServerUsageError(err: unknown) {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "digest" in err &&
+    (err as { digest?: string }).digest === "DYNAMIC_SERVER_USAGE"
+  );
+}
+
+async function withSupabaseTimeout<T>(promise: Promise<T>, label: string): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error(`${label} timed out`)), 1200);
+      }),
+    ]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+}
+
 // ─── Service Functions ───────────────────────────────────────
 
 /** Lấy tổng quan metrics cho trang Home */
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
-  const db = await createClientServer();
-  const postRepo = new PostRepository(db as unknown as DbClient);
-  const authorRepo = new AuthorRepository(db as unknown as DbClient);
-  const taskRepo = new TaskRepository(db as unknown as DbClient);
-  const accountRepo = new AccountRepository(db as unknown as DbClient);
+  try {
+    const db = await createClientServer();
+    const postRepo = new PostRepository(db as unknown as DbClient);
+    const authorRepo = new AuthorRepository(db as unknown as DbClient);
+    const taskRepo = new TaskRepository(db as unknown as DbClient);
+    const accountRepo = new AccountRepository(db as unknown as DbClient);
 
-  const [totalPosts, totalAuthors, tasks, accounts] = await Promise.all([
+  const [totalPosts, totalAuthors, tasks, accounts] = await withSupabaseTimeout(Promise.all([
     postRepo.count(),
     authorRepo.count(),
     taskRepo.findAllWithStatus(),
     accountRepo.findAll(),
-  ]);
+  ]), "getDashboardMetrics");
 
-  return {
+    return {
     totalPosts,
     totalAuthors,
     runningTasks: tasks.filter((t) => t.status === "running").length,
@@ -78,36 +113,54 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     totalAccounts: accounts.length,
     postsTrend: 0,  // TODO: so sánh với tuần trước
     authorsTrend: 0,
-  };
+    };
+  } catch (err) {
+    if (isDynamicServerUsageError(err)) throw err;
+    console.warn("[DashboardService] getDashboardMetrics failed; returning empty metrics:", err);
+    return EMPTY_DASHBOARD_METRICS;
+  }
 }
 
 /** Lấy phân bố bài viết theo platform (cho biểu đồ tròn) */
 export async function getPlatformDistribution(): Promise<PlatformDistItem[]> {
-  const db = await createClientServer();
-  const postRepo = new PostRepository(db as unknown as DbClient);
-  const counts = await postRepo.countByPlatform();
+  try {
+    const db = await createClientServer();
+    const postRepo = new PostRepository(db as unknown as DbClient);
+    const counts = await withSupabaseTimeout(postRepo.countByPlatform(), "getPlatformDistribution");
 
-  return Object.entries(counts)
+    return Object.entries(counts)
     .map(([platform, count]) => ({
       platform: platform as Platform,
       count,
       color: PLATFORM_COLORS[platform] ?? "#666",
     }))
-    .sort((a, b) => b.count - a.count);
+      .sort((a, b) => b.count - a.count);
+  } catch (err) {
+    if (isDynamicServerUsageError(err)) throw err;
+    console.warn("[DashboardService] getPlatformDistribution failed; returning empty list:", err);
+    return [];
+  }
 }
 
 /** Lấy số bài viết theo ngày (cho biểu đồ xu hướng 7 ngày) */
 export async function getPostsPerDay(): Promise<{ date: string; count: number }[]> {
-  const db = await createClientServer();
-  const postRepo = new PostRepository(db as unknown as DbClient);
-  return postRepo.countByDay(7);
+  try {
+    const db = await createClientServer();
+    const postRepo = new PostRepository(db as unknown as DbClient);
+    return withSupabaseTimeout(postRepo.countByDay(7), "getPostsPerDay");
+  } catch (err) {
+    if (isDynamicServerUsageError(err)) throw err;
+    console.warn("[DashboardService] getPostsPerDay failed; returning empty list:", err);
+    return [];
+  }
 }
 
 /** Lấy sức khỏe platform (số tài khoản active/banned) */
 export async function getPlatformHealth(): Promise<PlatformHealthItem[]> {
-  const db = await createClientServer();
-  const accountRepo = new AccountRepository(db as unknown as DbClient);
-  const accounts = await accountRepo.findAllWithStatus();
+  try {
+    const db = await createClientServer();
+    const accountRepo = new AccountRepository(db as unknown as DbClient);
+    const accounts = await withSupabaseTimeout(accountRepo.findAllWithStatus(), "getPlatformHealth");
 
   const agg: Record<string, { active: number; banned: number; total: number }> = {};
   accounts.forEach((row) => {
@@ -119,10 +172,15 @@ export async function getPlatformHealth(): Promise<PlatformHealthItem[]> {
     if (row.status === "banned" || row.status === "expired") agg[p].banned += 1;
   });
 
-  return TRACKED_PLATFORMS.map((p) => ({
+    return TRACKED_PLATFORMS.map((p) => ({
     platform: p,
     active: agg[p]?.active ?? 0,
     banned: agg[p]?.banned ?? 0,
     total: agg[p]?.total ?? 0,
-  }));
+    }));
+  } catch (err) {
+    if (isDynamicServerUsageError(err)) throw err;
+    console.warn("[DashboardService] getPlatformHealth failed; returning empty list:", err);
+    return [];
+  }
 }
