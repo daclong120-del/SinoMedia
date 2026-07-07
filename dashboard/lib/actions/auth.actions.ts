@@ -20,8 +20,8 @@ export async function loginAction(email: string, password: string) {
     }
 
     return { success: true, mock: false, user: result.user };
-  } catch (err: any) {
-    return { success: false, error: err.message || "Đăng nhập thất bại." };
+  } catch (err) {
+    return { success: false, error: (err as Error).message || "Đăng nhập thất bại." };
   }
 }
 
@@ -29,8 +29,8 @@ export async function signUpAction(email: string, password: string) {
   try {
     const result = await AuthService.signUp(email, password);
     return { success: true, user: result.user, hasSession: !!result.session };
-  } catch (err: any) {
-    return { success: false, error: err.message || "Đăng ký thất bại." };
+  } catch (err) {
+    return { success: false, error: (err as Error).message || "Đăng ký thất bại." };
   }
 }
 
@@ -42,7 +42,7 @@ export async function signOutAction() {
 
     const supabase = await createClientServer();
     await supabase.auth.signOut();
-  } catch (e) {
+  } catch {
     // 
   }
 }

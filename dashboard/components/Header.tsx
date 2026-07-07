@@ -46,7 +46,8 @@ export default function Header({ onMenuToggle }: HeaderProps) {
   const { theme, setTheme } = useUIStore();
 
   useEffect(() => {
-    setHasMounted(true);
+    const timer = setTimeout(() => setHasMounted(true), 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const isDark = hasMounted

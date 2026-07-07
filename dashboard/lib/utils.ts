@@ -53,16 +53,16 @@ const DEFAULT_SETTINGS = {
 };
 
 /** Đọc cài đặt hệ thống từ localStorage */
-export function getSettings(): Record<string, any> {
+export function getSettings(): Record<string, unknown> {
   if (typeof window !== "undefined") {
     const stored = localStorage.getItem(SETTINGS_KEY);
     if (stored) return JSON.parse(stored);
   }
-  return { ...DEFAULT_SETTINGS };
+  return { ...DEFAULT_SETTINGS } as unknown as Record<string, unknown>;
 }
 
 /** Lưu cài đặt hệ thống vào localStorage */
-export function saveSettings(settings: Record<string, any>): void {
+export function saveSettings(settings: Record<string, unknown>): void {
   if (typeof window !== "undefined") {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   }

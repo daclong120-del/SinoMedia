@@ -21,7 +21,7 @@ export class AuthService {
       });
       clearTimeout(timeoutId);
       isSupabaseOnline = true;
-    } catch (e) {
+    } catch {
       // offline
     }
 

@@ -200,5 +200,6 @@ export interface CreativeAd {
   is_ad: boolean;
   growth_rate: number;
   views_history: { date: string; count: number }[];
+  author?: CreativeAdvertiser | null;
 }
 

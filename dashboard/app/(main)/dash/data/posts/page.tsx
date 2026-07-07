@@ -61,24 +61,34 @@ function PostsPageContent() {
     load();
   }, []);
 
-  // Fetch comments when selectedPost changes
   useEffect(() => {
+    let active = true;
+
     if (!selectedPost) {
-      setComments([]);
-      return;
+      const timer = setTimeout(() => {
+        if (active) setComments([]);
+      }, 0);
+      return () => {
+        active = false;
+        clearTimeout(timer);
+      };
     }
     async function loadComments() {
       setLoadingComments(true);
       try {
         const data = await getComments(selectedPost!.id);
-        setComments(data);
+        if (active) setComments(data);
       } catch (err) {
         console.error("Error loading comments:", err);
       } finally {
-        setLoadingComments(false);
+        if (active) setLoadingComments(false);
       }
     }
     loadComments();
+
+    return () => {
+      active = false;
+    };
   }, [selectedPost?.id]);
 
   // Rebuild comment tree from flat DB structure

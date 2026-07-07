@@ -1,7 +1,7 @@
 {
   "$meta": {
     "domain": "style",
-    "source": "init-fontend/design-system/*.json",
+    "source": "init-design/design-system/*.json",
     "extractedFrom": "tokens-consolidation",
     "purpose": "Consolidated design tokens style guide for unified code generation"
   },

@@ -1,7 +1,7 @@
 {
   "$meta": {
     "domain": "index",
-    "source": "init-fontend/app/globals.css",
+    "source": "init-design/app/globals.css",
     "extractedFrom": "code",
     "purpose": "Manifest of the extracted design system rules for Cloudflare Support Portal"
   },

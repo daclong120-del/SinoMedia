@@ -30,7 +30,7 @@ const DEFAULT_STATE = {
  */
 export const useUIStore = create<UIState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       ...DEFAULT_STATE,
       setTheme: (theme) => set({ theme }),
       setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
@@ -50,11 +50,11 @@ export const useUIStore = create<UIState>()(
       name: "sinomedia-ui-preferences", // Key lưu trong localStorage
       storage: createJSONStorage(() => localStorage),
       version: 1, // Schema version bắt đầu từ 1
-      migrate: (persistedState: any, version: number) => {
+      migrate: (persistedState: unknown, version: number) => {
         console.log(`[UI Store] Migrating from version ${version} to 1`);
         
         // Khởi tạo state mặc định nếu dữ liệu cũ trống
-        const state = (persistedState ?? {}) as Record<string, any>;
+        const state = (persistedState ?? {}) as Partial<UIState>;
 
         if (version === 0) {
           // Xử lý tương thích ngược: Nếu dữ liệu cũ thiếu tableLayouts, bổ sung mặc định

@@ -2,8 +2,7 @@
  * Repository — crawler_proxies
  * Tầng duy nhất chạm bảng `crawler_proxies` trong Supabase.
  */
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/types/supabase";
+import type { DbClient, TableRow } from "./types";
 
 export interface CreateProxyInput {
   host: string;
@@ -15,10 +14,10 @@ export interface CreateProxyInput {
 }
 
 export class ProxyRepository {
-  constructor(private db: any) {}
+  constructor(private readonly db: DbClient) {}
 
   /** Lấy tất cả proxy, kèm tên account được gán */
-  async findAll() {
+  async findAll(): Promise<(TableRow<"crawler_proxies"> & { assigned_account_alias: string | null })[]> {
     // 2 query song song: proxies + accounts (thay vì join SQL phức tạp)
     const [proxiesRes, accountsRes] = await Promise.all([
       this.db
@@ -32,11 +31,11 @@ export class ProxyRepository {
 
     if (proxiesRes.error) throw proxiesRes.error;
 
-    const accountMap = new Map(
-      (accountsRes.data ?? []).map((a: any) => [a.id, a.username])
+    const accountMap = new Map<string, string | null>(
+      (accountsRes.data ?? []).map((a) => [a.id, a.username])
     );
 
-    return (proxiesRes.data ?? []).map((row: any) => ({
+    return (proxiesRes.data ?? []).map((row) => ({
       ...row,
       assigned_account_alias: row.assigned_account_id
         ? accountMap.get(row.assigned_account_id) ?? null
@@ -45,7 +44,7 @@ export class ProxyRepository {
   }
 
   /** Tạo nhiều proxy cùng lúc */
-  async createBulk(proxies: CreateProxyInput[]) {
+  async createBulk(proxies: CreateProxyInput[]): Promise<void> {
     const { error } = await this.db
       .from("crawler_proxies")
       .insert(proxies.map((p) => ({
@@ -60,7 +59,7 @@ export class ProxyRepository {
   }
 
   /** Xoá proxy theo ID */
-  async deleteById(id: string) {
+  async deleteById(id: string): Promise<void> {
     const { error } = await this.db
       .from("crawler_proxies")
       .delete()

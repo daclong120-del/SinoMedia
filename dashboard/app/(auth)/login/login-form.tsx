@@ -164,7 +164,7 @@ export default function LoginForm() {
       }
       router.push("/dash/home");
       router.refresh();
-    } catch (err: any) {
+    } catch (err) {
       console.error("[Auth] Login error:", err);
       setPasswordError("Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản.");
     } finally {

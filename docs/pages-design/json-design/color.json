@@ -1,7 +1,7 @@
 {
   "$meta": {
     "domain": "color",
-    "source": "init-fontend/app/globals.css",
+    "source": "init-design/app/globals.css",
     "extractedFrom": "code",
     "purpose": "Define light/dark theme colors, semantic overrides, and usage guidelines"
   },

@@ -9,7 +9,7 @@ import {
   getPlatformHealth, getPostsPerDay
 } from "@/lib/actions/dashboard.actions";
 import { getTasks } from "@/lib/actions/crawler.actions";
-import type { DashboardMetrics } from "@/lib/services/dashboard.service";
+import type { DashboardMetrics, PlatformHealthItem } from "@/lib/services/dashboard.service";
 import { formatNumber, timeAgo } from "@/lib/utils";
 import Link from "next/link";
 import type { CrawlerTask } from "@/types";
@@ -91,14 +91,15 @@ function SimpleDonutChart({ data }: { data: { platform: string; count: number; c
   const cy = 100;
   const r = 75;
   const r2 = 50;
-  let startAngle = -90;
+  type Slice = { platform: string; count: number; color: string; startAngle: number; angle: number };
 
-  const slices = data.map((d) => {
-    const angle = (d.count / total) * 360;
-    const start = startAngle;
-    startAngle += angle;
-    return { ...d, startAngle: start, angle };
-  });
+  const slices = data.reduce<Slice[]>((acc, item) => {
+    const previous = acc.at(-1);
+    const startAngleVal = previous ? previous.startAngle + previous.angle : -90;
+    const angle = (item.count / total) * 360;
+    acc.push({ ...item, startAngle: startAngleVal, angle });
+    return acc;
+  }, []);
 
   const toRad = (deg: number) => (deg * Math.PI) / 180;
   const arcPath = (sa: number, ea: number, outerR: number, innerR: number) => {
@@ -146,7 +147,7 @@ export default function HomePage() {
   const [distribution, setDistribution] = useState<{ platform: string; count: number; color: string }[]>([]);
   const [recentTasks, setRecentTasks] = useState<CrawlerTask[]>([]);
   const [postsPerDayData, setPostsPerDayData] = useState<{ date: string; count: number }[]>([]);
-  const [platformHealthData, setPlatformHealthData] = useState<any[]>([]);
+  const [platformHealthData, setPlatformHealthData] = useState<PlatformHealthItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

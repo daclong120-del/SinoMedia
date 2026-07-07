@@ -6,11 +6,26 @@ import { createClientServer } from "@/lib/supabase/server";
 import { PostRepository, type PostQueryOpts } from "@/lib/repositories/post.repo";
 import { AuthorRepository } from "@/lib/repositories/author.repo";
 import type { CreativeAd, CreativeAdvertiser, Platform } from "@/types";
+import type { TableRow } from "@/lib/repositories/types";
 
 // ─── Mappers ─────────────────────────────────────────────────
 
-function mapPostToCreativeAd(row: Record<string, unknown>, author?: Record<string, unknown> | null): CreativeAd {
-  const stats = (row.stats as Record<string, number>) || {};
+type PostStats = {
+  play_count?: number;
+  view_count?: number;
+  like_count?: number;
+  comment_count?: number;
+  share_count?: number;
+};
+
+function getPostStats(row: TableRow<"crawled_posts">): PostStats {
+  return typeof row.stats === "object" && row.stats !== null && !Array.isArray(row.stats)
+    ? (row.stats as unknown as PostStats)
+    : {};
+}
+
+function mapPostToCreativeAd(row: TableRow<"crawled_posts">, author?: TableRow<"crawled_authors"> | null): CreativeAd {
+  const stats = getPostStats(row);
   const views = stats.play_count || stats.view_count || 0;
   const likes = stats.like_count || 0;
   const comments = stats.comment_count || 0;
@@ -27,13 +42,13 @@ function mapPostToCreativeAd(row: Record<string, unknown>, author?: Record<strin
   });
 
   return {
-    id: row.id as string,
+    id: row.id,
     platform: row.platform as Platform,
-    author_id: (row.author_id as string) || "",
-    platform_uid: (row.platform_id as string) || "",
-    title: (row.caption as string)?.slice(0, 30) || "",
-    caption: (row.caption as string) || "",
-    cover_url: (row.cover_url as string) || "",
+    author_id: row.author_id || "",
+    platform_uid: row.platform_id || "",
+    title: row.caption?.slice(0, 30) || "",
+    caption: row.caption || "",
+    cover_url: row.cover_url || "",
     media_type: row.cover_url ? "video" : "image",
     like_count: likes,
     view_count: views,
@@ -41,34 +56,35 @@ function mapPostToCreativeAd(row: Record<string, unknown>, author?: Record<strin
     share_count: shares,
     media_urls: (row.media_urls as string[]) || [],
     tags: (row.tags as string[]) || [],
-    published_at: (row.published_at as string) || (row.crawled_at as string) || "",
-    crawled_at: (row.crawled_at as string) || "",
+    published_at: row.published_at || row.crawled_at || "",
+    crawled_at: row.crawled_at || "",
     is_ad: true,
-    growth_rate: Math.min(999, Math.round((likes / Math.max(1, (Date.now() - new Date((row.published_at as string) || (row.crawled_at as string) || Date.now()).getTime()) / (1000 * 60 * 60))) * 10 + 15)),
+    growth_rate: Math.min(999, Math.round((likes / Math.max(1, (Date.now() - new Date(row.published_at || row.crawled_at || Date.now()).getTime()) / (1000 * 60 * 60))) * 10 + 15)),
     views_history: viewsHistory,
+    author: author ? mapAuthorToAdvertiser(author, 0, 0, 0) : null,
   };
 }
 
 function mapAuthorToAdvertiser(
-  author: Record<string, unknown>,
+  author: TableRow<"crawled_authors">,
   postCount: number,
   totalViews: number,
   totalLikes: number,
 ): CreativeAdvertiser {
   return {
-    id: author.id as string,
-    platform_uid: (author.platform_uid as string) || "",
-    nickname: (author.nickname as string) || "Unknown",
+    id: author.id,
+    platform_uid: author.platform_uid || "",
+    nickname: author.nickname || "Unknown",
     platform: author.platform as Platform,
-    avatar_url: (author.avatar_url as string) || "",
-    description: (author.description as string) || "",
+    avatar_url: author.avatar_url || "",
+    description: author.description || "",
     creative_count: postCount,
     total_views: totalViews,
     total_likes: totalLikes,
-    follows_count: (author.follows_count as number) || 0,
-    fans_count: (author.fans_count as number) || 0,
-    crawled_at: (author.updated_at as string) || (author.created_at as string) || "",
-    last_active_at: (author.updated_at as string) || "",
+    follows_count: author.follows_count || 0,
+    fans_count: author.fans_count || 0,
+    crawled_at: author.updated_at || author.created_at || "",
+    last_active_at: author.updated_at || "",
   };
 }
 
@@ -100,15 +116,17 @@ export async function searchAds(opts: PostQueryOpts & { page?: number } = {}): P
   }
 
   // Lấy thông tin tác giả tương ứng
-  const authorIds = [...new Set(posts.map((p: any) => p.author_id).filter(Boolean))] as string[];
+  const authorIds = [...new Set(posts.map((p) => p.author_id).filter(Boolean))] as string[];
   const authors = authorIds.length > 0
     ? await authorRepo.findByIds(authorIds)
     : [];
-  const authorsMap = new Map(authors.map((a: any) => [a.id, a]));
+  const authorsMap = new Map<string, TableRow<"crawled_authors">>(
+    authors.map((a) => [a.id, a])
+  );
 
-  const data = posts.map((post: any) => {
+  const data = posts.map((post) => {
     const author = post.author_id ? authorsMap.get(post.author_id) : null;
-    return mapPostToCreativeAd(post, author as any);
+    return mapPostToCreativeAd(post, author);
   });
 
   return { data, page, limit, total: count };
@@ -128,7 +146,7 @@ export async function getAdById(id: string): Promise<CreativeAd | null> {
     author = await authorRepo.findById(row.author_id);
   }
 
-  return mapPostToCreativeAd(row, author as any);
+  return mapPostToCreativeAd(row, author);
 }
 
 /** Lấy danh sách advertisers (tác giả + thống kê bài viết) */
@@ -150,12 +168,12 @@ export async function getAdvertisers(opts: {
   });
 
   // Tính thống kê bài viết cho mỗi tác giả
-  const advertiserPromises = authors.map(async (author: any) => {
+  const advertiserPromises = authors.map(async (author) => {
     const { data: posts } = await postRepo.findByAuthorId(author.id, 1000);
     let totalViews = 0;
     let totalLikes = 0;
-    posts.forEach((p: any) => {
-      const stats = (p.stats as Record<string, number>) || {};
+    posts.forEach((p) => {
+      const stats = getPostStats(p);
       totalViews += stats.play_count || stats.view_count || 0;
       totalLikes += stats.like_count || 0;
     });
@@ -177,18 +195,19 @@ export async function getAdvertiserById(id: string): Promise<{
 
   try {
     const author = await authorRepo.findById(id);
+    if (!author) return null;
     const { data: posts } = await postRepo.findByAuthorId(id, 100);
 
     let totalViews = 0;
     let totalLikes = 0;
-    posts.forEach((p: any) => {
-      const stats = (p.stats as Record<string, number>) || {};
+    posts.forEach((p) => {
+      const stats = getPostStats(p);
       totalViews += stats.play_count || stats.view_count || 0;
       totalLikes += stats.like_count || 0;
     });
 
     const advertiser = mapAuthorToAdvertiser(author, posts.length, totalViews, totalLikes);
-    const ads = posts.map((p: any) => mapPostToCreativeAd(p, author));
+    const ads = posts.map((p) => mapPostToCreativeAd(p, author));
 
     return { advertiser, ads };
   } catch {

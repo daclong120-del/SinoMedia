@@ -1,7 +1,7 @@
 {
   "$meta": {
     "domain": "components",
-    "source": "init-fontend/components/ui/button.tsx, init-fontend/components/**",
+    "source": "init-design/components/ui/button.tsx, init-design/components/**",
     "extractedFrom": "code",
     "purpose": "Provide exact Tailwind utility combinations and states for standard elements"
   },

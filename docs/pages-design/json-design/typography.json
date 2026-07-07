@@ -1,7 +1,7 @@
 {
   "$meta": {
     "domain": "typography",
-    "source": "init-fontend/app/layout.tsx, init-fontend/app/globals.css",
+    "source": "init-design/app/layout.tsx, init-design/app/globals.css",
     "extractedFrom": "code",
     "purpose": "Specify font families, typographic sizes, weights, and rules for headers/labels"
   },

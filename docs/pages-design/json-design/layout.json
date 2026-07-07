@@ -1,7 +1,7 @@
 {
   "$meta": {
     "domain": "layout",
-    "source": "init-fontend/app/(main)/layout.tsx, init-fontend/components/**",
+    "source": "init-design/app/(main)/layout.tsx, init-design/components/**",
     "extractedFrom": "code",
     "purpose": "Provide global shell layout metrics, grid guidelines, and breakpoints"
   },

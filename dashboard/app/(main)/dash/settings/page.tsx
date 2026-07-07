@@ -29,7 +29,19 @@ export default function SettingsPage() {
     async function loadSettings() {
       setLoading(true);
       try {
-        const value = getSettings();
+        const value = getSettings() as {
+          apiKey?: string;
+          use2Captcha?: boolean;
+          collectComments?: boolean;
+          collectReplies?: boolean;
+          headlessMode?: boolean;
+          defaultPriority?: string;
+          maxConcurrentTasks?: number;
+          maxRetries?: number;
+          defaultWebhookUrl?: string;
+          notifyOnSuccess?: boolean;
+          alertOnFailure?: boolean;
+        };
         setApiKey(value.apiKey || "");
         setUse2Captcha(value.use2Captcha !== false);
         setCollectComments(value.collectComments !== false);

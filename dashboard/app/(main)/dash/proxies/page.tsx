@@ -32,7 +32,7 @@ export default function ProxiesPage() {
     }, 5000);
   };
 
-  const debouncedSaveRef = useRef<any>(null);
+  const debouncedSaveRef = useRef<((text: string) => void) | null>(null);
 
   useEffect(() => {
     debouncedSaveRef.current = debounce(async (text: string) => {
@@ -83,7 +83,10 @@ export default function ProxiesPage() {
   };
 
   useEffect(() => {
-    fetchList();
+    const timer = setTimeout(() => {
+      fetchList();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const activeCount = proxies.filter((p) => p.status === "active").length;

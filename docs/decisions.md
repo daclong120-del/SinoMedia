@@ -1,4 +1,6 @@
-# Decision Log — expo-supabase-ai-template
+# Decision Log — SinoMedia
+
+> Lưu ý: một số quyết định cũ được ghi lại từ giai đoạn template/Expo ban đầu. Kiến trúc hiện hành được khóa trong `docs/architecture/architecture.md`; nếu có mâu thuẫn, ưu tiên tài liệu kiến trúc hiện hành.
 
 ## 2026-07-01 — Chuẩn hóa và Phân tách biến môi trường (Client & Serverless)  [initiative: refactor-env-config]
 - **Bối cảnh:** Các file cấu hình môi trường `.env` và `.env.example` bị lẫn cấu hình của dự án Crawler cũ (MySQL, Redis, Proxy...). Cần làm sạch và đảm bảo an toàn bảo mật cho Client.

@@ -2,8 +2,7 @@
  * Repository — crawled_authors
  * Tầng duy nhất chạm bảng `crawled_authors` trong Supabase.
  */
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/types/supabase";
+import type { DbClient, TableRow } from "./types";
 
 export interface AuthorQueryOpts {
   platform?: string;
@@ -13,10 +12,13 @@ export interface AuthorQueryOpts {
 }
 
 export class AuthorRepository {
-  constructor(private db: any) {}
+  constructor(private readonly db: DbClient) {}
 
   /** Lấy danh sách tác giả có phân trang + lọc */
-  async findMany(opts: AuthorQueryOpts = {}) {
+  async findMany(opts: AuthorQueryOpts = {}): Promise<{
+    data: TableRow<"crawled_authors">[];
+    count: number;
+  }> {
     const limit = opts.limit ?? 50;
     let query = this.db
       .from("crawled_authors")
@@ -49,18 +51,18 @@ export class AuthorRepository {
   }
 
   /** Lấy chi tiết 1 tác giả theo ID */
-  async findById(id: string) {
+  async findById(id: string): Promise<TableRow<"crawled_authors"> | null> {
     const { data, error } = await this.db
       .from("crawled_authors")
       .select("*")
       .eq("id", id)
-      .single();
+      .maybeSingle();
     if (error) throw error;
     return data;
   }
 
   /** Lấy nhiều tác giả theo danh sách ID */
-  async findByIds(ids: string[]) {
+  async findByIds(ids: string[]): Promise<TableRow<"crawled_authors">[]> {
     if (ids.length === 0) return [];
     const { data, error } = await this.db
       .from("crawled_authors")

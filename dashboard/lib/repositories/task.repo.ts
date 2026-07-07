@@ -2,8 +2,7 @@
  * Repository — crawler_tasks
  * Tầng duy nhất chạm bảng `crawler_tasks` trong Supabase.
  */
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/types/supabase";
+import type { DbClient, TableRow, JsonValue } from "./types";
 
 export interface CreateTaskInput {
   platform: string;
@@ -15,10 +14,10 @@ export interface CreateTaskInput {
 }
 
 export class TaskRepository {
-  constructor(private db: any) {}
+  constructor(private readonly db: DbClient) {}
 
   /** Lấy tất cả task, sắp xếp theo ngày tạo mới nhất */
-  async findAll(limit = 100) {
+  async findAll(limit = 100): Promise<TableRow<"crawler_tasks">[]> {
     const { data, error } = await this.db
       .from("crawler_tasks")
       .select("*")
@@ -29,16 +28,16 @@ export class TaskRepository {
   }
 
   /** Lấy task với trạng thái cụ thể (dùng cho metrics) */
-  async findAllWithStatus() {
+  async findAllWithStatus(): Promise<Pick<TableRow<"crawler_tasks">, "id" | "status">[]> {
     const { data, error } = await this.db
       .from("crawler_tasks")
       .select("id, status");
     if (error) throw error;
-    return data ?? [];
+    return (data as Pick<TableRow<"crawler_tasks">, "id" | "status">[]) ?? [];
   }
 
   /** Tạo task mới */
-  async create(input: CreateTaskInput) {
+  async create(input: CreateTaskInput): Promise<TableRow<"crawler_tasks">> {
     const { data, error } = await this.db
       .from("crawler_tasks")
       .insert([{
@@ -48,7 +47,7 @@ export class TaskRepository {
         priority: input.priority ?? "normal",
         status: "pending",
         scheduled_at: input.scheduled_at ?? null,
-        metadata: (input.metadata ?? {}) as any,
+        metadata: (input.metadata ?? {}) as JsonValue,
       }])
       .select()
       .single();
@@ -57,7 +56,7 @@ export class TaskRepository {
   }
 
   /** Cập nhật trạng thái task */
-  async updateStatus(id: string, status: string) {
+  async updateStatus(id: string, status: TableRow<"crawler_tasks">["status"]): Promise<void> {
     const { error } = await this.db
       .from("crawler_tasks")
       .update({ status })
@@ -72,7 +71,7 @@ export class TaskRepository {
     errors: string[];
   } | null> {
     const { data, error } = await this.db
-      .rpc("create_crawler_tasks", { p_tasks: tasks as any });
+      .rpc("create_crawler_tasks", { p_tasks: tasks as unknown as JsonValue });
     if (error) throw error;
     return data as {
       inserted_count: number;
@@ -81,3 +80,4 @@ export class TaskRepository {
     };
   }
 }
+

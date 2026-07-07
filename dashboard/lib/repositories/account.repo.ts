@@ -2,14 +2,13 @@
  * Repository — crawler_accounts
  * Tầng duy nhất chạm bảng `crawler_accounts` trong Supabase.
  */
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/types/supabase";
+import type { DbClient, TableRow } from "./types";
 
 export class AccountRepository {
-  constructor(private db: any) {}
+  constructor(private readonly db: DbClient) {}
 
   /** Lấy tất cả tài khoản crawler */
-  async findAll() {
+  async findAll(): Promise<TableRow<"crawler_accounts">[]> {
     const { data, error } = await this.db
       .from("crawler_accounts")
       .select("*")
@@ -19,11 +18,11 @@ export class AccountRepository {
   }
 
   /** Lấy thông tin platform + status (cho platform health metrics) */
-  async findAllWithStatus() {
+  async findAllWithStatus(): Promise<Pick<TableRow<"crawler_accounts">, "platform" | "status">[]> {
     const { data, error } = await this.db
       .from("crawler_accounts")
       .select("platform, status");
     if (error) throw error;
-    return data ?? [];
+    return (data as Pick<TableRow<"crawler_accounts">, "platform" | "status">[]) ?? [];
   }
 }

@@ -1,194 +1,705 @@
-# 🏗️ Kiến Trúc Hệ Thống & Cấu Trúc Thư Mục Chi Tiết
+# SinoMedia Unified Architecture
 
-Tài liệu này cung cấp cái nhìn toàn diện về kiến trúc hệ thống, sơ đồ luồng dữ liệu và ý nghĩa của từng thư mục, tệp tin quan trọng trong dự án **Expo + Supabase + Cloudflare R2**.
+Trạng thái: **Accepted / Locked**  
+Ngày khóa: **2026-07-07**  
+Phạm vi: `dashboard`, `crawler-pipeline`, `supabase`, Cloudflare R2.
 
----
+Tài liệu này là **source of truth kiến trúc** cho SinoMedia. Nếu tài liệu cũ còn nhắc Expo template, client-side Supabase trực tiếp, `api.ts` monolith hoặc mock fallback, thì coi đó là ngữ cảnh lịch sử, không phải kiến trúc chuẩn hiện tại.
 
-## 🗺️ 1. Sơ Đồ Kiến Trúc Tổng Quan
+## 1. Tóm tắt quyết định
 
-Dự án tuân theo mô hình Client-Serverless-Database hiện đại, tách biệt hoàn toàn giao diện người dùng và các hệ thống lưu trữ dữ liệu:
+SinoMedia là hệ thống crawl, chuẩn hóa, lưu trữ và phân tích nội dung từ các nền tảng mạng xã hội/short-video Trung Quốc.
+
+Các khối chính:
+
+- **Dashboard**: Next.js 16 App Router, dùng để quản trị crawler, xem dữ liệu, Creative Hub, task/log/account/proxy/audit.
+- **Crawler Pipeline**: TypeScript worker độc lập, nhận task từ Supabase, crawl từng platform, ghi dữ liệu chuẩn hóa vào Supabase và media vào Cloudflare R2.
+- **Supabase**: PostgreSQL + Auth + PostgREST + Realtime + RPC, là control plane và data store chính.
+- **Cloudflare R2**: object storage cho media đã crawl.
+
+Quyết định khóa:
+
+1. Dashboard đọc dữ liệu theo đường **Server Component → Service → Repository → `createClientServer()` → Supabase**.
+2. Browser Supabase client chỉ dùng cho **Realtime WebSocket**, qua `dashboard/lib/realtime/subscriptions.ts`.
+3. Crawler giao tiếp database bằng worker/store layer, không đi qua Dashboard.
+4. Repository là lớp duy nhất trong Dashboard được chạm bảng Supabase.
+5. Service là lớp duy nhất map raw DB row sang domain/UI model.
+6. API routes không phải data-access mặc định; chỉ dùng cho mutation, webhook, export/download, hoặc compatibility tạm thời.
+7. Không dùng mock fallback để che lỗi DB trong production path.
+8. Legacy platform tables trong remote schema được giữ để tham chiếu/migration; Dashboard mới dùng bảng chuẩn hóa.
+
+## 2. Context đã quan sát
+
+Nguồn quan sát:
+
+- GitNexus repo `SinoMedia`, index 2026-07-07:
+  - 281 files
+  - 2,883 symbols
+  - 6,688 edges
+  - 236 execution flows
+- Các symbol/flow trung tâm:
+  - `createClientServer` tại `dashboard/lib/supabase/server.ts`
+  - `createClientBrowser` tại `dashboard/lib/supabase/client.ts`
+  - `subscribeToTasks`, `subscribeToTaskLogs` tại `dashboard/lib/realtime/subscriptions.ts`
+  - `PostRepository`, `TaskRepository`, `LogRepository`
+  - `searchAds`, `getDashboardMetrics`, `getTasks`
+  - `startQueueWorker`, `claimNextTask`, `writeLogToDb`
+  - `SupabaseWriter`, `R2Uploader`, `checkoutAccount`
+
+Tài liệu liên quan:
+
+- `docs/architecture/frontend-supabase-refactor-todo.md`
+- `docs/architecture/crawler-hybrid-architecture.md`
+- `docs/architecture/client-storage-strategy.md`
+- `docs/decisions.md`
+- `supabase/migrations/*`
+
+## 3. Sơ đồ tổng thể
+
+```mermaid
+flowchart LR
+  subgraph Browser["Browser"]
+    UI["Dashboard UI\nClient Components"]
+    RT["Realtime subscription\nsubscriptions.ts"]
+  end
+
+  subgraph Next["Next.js Dashboard Server"]
+    SC["Server Components\npage.tsx"]
+    ACT["Server Actions / API mutations"]
+    SVC["Services\nbusiness logic"]
+    REPO["Repositories\nDB access"]
+    SBS["Supabase SSR client\ncreateClientServer()"]
+  end
+
+  subgraph Supabase["Supabase"]
+    AUTH["Auth / Cookies"]
+    DB["PostgreSQL"]
+    RPC["RPC functions"]
+    REALTIME["Realtime publication"]
+  end
+
+  subgraph Crawler["Crawler Pipeline"]
+    QW["Queue Worker"]
+    FACTORY["Crawler Factory"]
+    PLATFORM["Platform Crawlers"]
+    STORE["SupabaseWriter"]
+    R2UP["R2Uploader"]
+    ACCOUNT["Account / Proxy Pool"]
+  end
+
+  R2["Cloudflare R2"]
+
+  UI --> ACT
+  UI --> RT
+  SC --> SVC
+  ACT --> SVC
+  SVC --> REPO
+  REPO --> SBS
+  SBS --> DB
+  SBS --> AUTH
+  RT --> REALTIME
+
+  QW --> RPC
+  QW --> FACTORY
+  FACTORY --> PLATFORM
+  PLATFORM --> ACCOUNT
+  PLATFORM --> STORE
+  STORE --> DB
+  STORE --> R2UP
+  R2UP --> R2
+  QW --> DB
+  DB --> REALTIME
+```
+
+## 4. Repository layout chuẩn
 
 ```text
-            +-----------------------------------------------+
-            |            📱 EXPO CLIENT (src/app)           |
-            |         React Native & Web App Frontend       |
-            +-------+---------------+---------------+-------+
-                    |               |               |
-         (1) Đăng ký|    (2) Truy vấn|    (3) Upload /|
-          Đăng nhập |        dữ liệu|       Download |
-                    |               |        ảnh/video|
-                    v               v               v
-            +-------+-------+   +---+---+   +-------+-------+
-            |  🔐 SUPABASE  |   | 🗄️ DB |   | 📦 CLOUDFLARE |
-            |      AUTH     |   | (Post |   |      R2       |
-            | (User Session)|   | gres) |   | (Lưu trữ file)|
-            +---------------+   +---+---+   +---------------+
+SinoMedia/
+├─ dashboard/
+│  ├─ app/
+│  │  ├─ (auth)/                       # login/sign-up/forgot password
+│  │  ├─ (main)/dash/                  # dashboard pages
+│  │  └─ api/                          # route handlers, ưu tiên mutation/compat only
+│  ├─ components/                      # shared UI
+│  ├─ lib/
+│  │  ├─ actions/                      # server actions callable từ client
+│  │  ├─ repositories/                 # lớp duy nhất chạm DB tables
+│  │  ├─ services/                     # business logic + mapping
+│  │  ├─ realtime/subscriptions.ts     # nơi duy nhất dùng browser Supabase client
+│  │  ├─ supabase/
+│  │  │  ├─ server.ts                  # createClientServer()
+│  │  │  ├─ client.ts                  # createClientBrowser(), realtime only
+│  │  │  └─ middleware.ts              # refresh session cookie
+│  │  ├─ stores/                       # Zustand UI state
+│  │  └─ utils/                        # helpers
+│  └─ types/                           # domain + generated Supabase types
+├─ crawler-pipeline/
+│  ├─ src/
+│  │  ├─ base/                         # crawler/client/store/login contracts
+│  │  ├─ cli/                          # command parser
+│  │  ├─ config/                       # base + per-platform configs
+│  │  ├─ crawl/                        # platform implementations
+│  │  ├─ model/                        # platform + storage types
+│  │  ├─ proxy/                        # proxy pool
+│  │  ├─ sign/                         # signing/session/browser helpers
+│  │  ├─ store/                        # Supabase + R2 writers
+│  │  ├─ queue_worker.ts               # task claim/run/log loop
+│  │  └─ index.ts                      # crawler entry
+│  └─ tests/                           # platform test cases
+├─ supabase/
+│  ├─ migrations/                      # schema/RPC/realtime/indexes
+│  └─ config.toml
+└─ docs/
+   └─ architecture/                    # source-of-truth architecture docs
 ```
 
----
+## 5. Dashboard architecture
 
-## 📂 2. Cấu Trúc Thư Mục Chi Tiết
+### 5.1 Data access boundary
 
-Dưới đây là sơ đồ hình cây của toàn bộ dự án và chức năng cụ thể của từng phần:
+Đường đọc dữ liệu chuẩn:
 
-```
-expo-supabase-ai-template/
-├── .agents/                   # Nhật ký hoạt động và kế hoạch của AI Agents
-├── dashboard/                 # 🖥️ SinoMedia Crawler Dashboard (Next.js 16 + Tailwind CSS v4)
-│   ├── app/                   # App Router định tuyến các trang Dashboard
-│   ├── components/            # Các UI component đặc thù của Dashboard (MetricCard, Badges, ConsolePanel)
-│   ├── lib/                   # Chứa mock-data, các utility, và platform config
-│   ├── types/                 # Hợp đồng TypeScript (Entities: Task, Account, Proxy, Author, Post,...)
-│   └── package.json           # Danh sách thư viện phụ thuộc của Dashboard
-├── assets/                    # Tài nguyên tĩnh của ứng dụng (logo, hình ảnh, splash screen)
-├── context/                   # Quản lý trạng thái toàn cục của React
-│   └── SessionProvider.tsx    # Cung cấp phiên đăng nhập (session) cho toàn bộ app
-├── lib/                       # Khởi tạo các thư viện dùng chung
-│   └── supabase.ts            # Khởi tạo Supabase Client (đã cấu hình bộ nhớ lưu trữ an toàn)
-├── src/                       # Thư mục mã nguồn chính của ứng dụng Expo
-│   ├── app/                   # Expo Router (Hệ thống định tuyến dạng thư mục)
-│   │   ├── (auth)/            # Nhóm màn hình xác thực (Chưa đăng nhập)
-│   │   │   ├── _layout.tsx    # Định dạng layout màn hình auth
-│   │   │   └── index.tsx      # Màn hình Đăng nhập / Đăng ký (Có sẵn Dev Bypass)
-│   │   ├── (tabs)/            # Nhóm màn hình chính sau khi đăng nhập
-│   │   │   ├── _layout.tsx    # Định dạng thanh Tab Bar phía dưới ứng dụng
-│   │   │   ├── index.tsx      # Tab Home: Bảng điều khiển (Dashboard)
-│   │   │   ├── feed.tsx       # Tab Feed: Danh sách video/bài đăng
-│   │   │   ├── account.tsx    # Tab Account: Cập nhật thông tin tài khoản
-│   │   │   └── openai.tsx     # Tab AI: Chat với AI
-│   │   ├── post/
-│   │   │   └── [id].tsx       # Màn hình chi tiết bài đăng
-│   │   ├── _layout.tsx        # File Layout gốc: Quản lý chuyển hướng Auth/Tabs
-│   │   ├── modal.tsx          # Modal toàn cục
-│   │   └── +not-found.tsx     # Màn hình hiển thị lỗi 404 (Không tìm thấy trang)
-│   ├── components/            # Các UI Component tái sử dụng (Button, Input, Card...)
-│   ├── hooks/                 # Custom React hooks
-│   │   ├── useAuth.ts         # Hook xác thực — trạng thái session + login/logout
-│   │   └── usePosts.ts        # Hook truy vấn posts — phân trang, lọc platform
-│   ├── services/              # Tầng giao tiếp dữ liệu (Supabase/R2 queries)
-│   │   ├── auth.service.ts    # Các thao tác Supabase Auth
-│   │   ├── post.service.ts    # CRUD posts/comments/authors
-│   │   └── media.service.ts   # Tương tác Cloudflare R2 (presigned URL)
-│   ├── types/                 # TypeScript type definitions cho app
-│   │   ├── post.ts            # Post, Comment, Author types
-│   │   ├── auth.ts            # User, Session types
-│   │   └── navigation.ts     # Route params types
-│   ├── constants/             # Chứa màu sắc, cấu hình font, kích thước chung của ứng dụng
-│   └── utils/                 # Các hàm tiện ích dùng chung (định dạng ngày tháng, tiền tệ...)
-│
-├── crawler-pipeline/          # 🕷️ Crawler Engine (chạy tách biệt trên VPS)
-│   └── src/
-│       ├── base/              # Abstract interfaces — hợp đồng chung cho mọi platform
-│       │   ├── base_crawler.ts    # ICrawler: start(), search(), launchBrowser()
-│       │   ├── base_client.ts     # IApiClient: request(), updateCookies()
-│       │   ├── base_store.ts      # IStore: storeContent(), storeComment(), storeCreator()
-│       │   └── base_login.ts      # ILogin: begin(), loginByQrcode(), loginByCookies()
-│       ├── config/            # Cấu hình phân tầng: base + override per platform
-│       │   ├── base.config.ts     # Config chung: headless, proxy, crawlType
-│       │   └── douyin.config.ts   # Config riêng Douyin: maxPage, sortType
-│       ├── constant/          # Enums và hằng số dùng chung
-│       │   └── index.ts           # PlatformType, CrawlType, SortType, MediaType
-│       ├── crawl/             # Logic cào dữ liệu theo platform
-│       │   ├── client.ts          # DouyinClient — HTTP via impit + CloakBrowser fallback
-│       │   └── douyin.ts          # DouyinCrawler — orchestrator: detail, creator, search
-│       ├── model/             # Type definitions cho dữ liệu cào
-│       │   ├── douyin.ts          # DouyinAweme, DouyinComment types
-│       │   └── storage.ts         # CrawledPostRow, R2/Supabase types
-│       ├── sign/              # Signature & session management
-│       │   ├── browser_sign.ts    # Bootstrap session qua CloakBrowser
-│       │   ├── js_sign.ts         # Sinh a_bogus bằng Node.js engine
-│       │   ├── session_store.ts   # Lưu/đọc session từ file
-│       │   └── douyin.js          # Script sinh chữ ký a_bogus
-│       ├── store/             # Tầng lưu trữ: Supabase DB + Cloudflare R2
-│       │   ├── supabase_writer.ts # Ghi dữ liệu vào Supabase DB
-│       │   └── r2_uploader.ts     # Upload media lên Cloudflare R2
-│       ├── proxy/             # Quản lý proxy pool
-│       │   ├── proxy_pool.ts      # Xoay vòng proxy, health check
-│       │   └── types.ts           # ProxyInfo, ProxyProvider types
-│       ├── utils/             # Tiện ích dùng chung cho crawler
-│       │   ├── browser.ts         # Browser context utilities
-│       │   ├── crawler.ts         # Retry, user-agent rotation, URL helpers
-│       │   └── time.ts            # Sleep, timestamp, duration format
-│       ├── index.ts           # Entry point + CLI command dispatcher
-│       └── config.ts          # Config loader (.env)
-│
-├── supabase/                  # Cấu hình backend Supabase chạy local và cloud
-│   ├── migrations/            # Các tệp SQL cấu hình Database (Tables, RLS, Triggers)
-│   └── config.toml            # File cấu hình hoạt động của Supabase CLI local
-├── .env                       # File cấu hình biến môi trường (không commit)
-├── .env.example               # File cấu hình mẫu biến môi trường
-├── app.json                   # Cấu hình ứng dụng Expo (Tên app, logo, phiên bản)
-├── babel.config.js            # Cấu hình biên dịch Babel
-├── global.css                 # CSS toàn cục (Tailwind/NativeWind)
-├── metro.config.js            # Cấu hình bundler Metro
-├── package.json               # Thư viện phụ thuộc và scripts
-├── tailwind.config.js         # Cấu hình Tailwind
-└── tsconfig.json              # Cấu hình TypeScript
+```text
+Browser GET /dash/...
+  -> Next.js render Server Component
+    -> service function
+      -> repository method
+        -> createClientServer()
+          -> Supabase PostgREST
 ```
 
----
+Đường ghi dữ liệu chuẩn:
 
-## 🛠️ 3. Chi Tiết Các Tệp Tin Cấu Hình Quan Trọng
-
-### 🔑 `lib/supabase.ts`
-*   Khởi tạo đối tượng kết nối `supabase` để gọi dữ liệu ở mọi nơi trong ứng dụng.
-*   Chứa cấu hình `customStorage` thông minh: Tự động dùng `localStorage` trên môi trường Web/SSR và dùng `AsyncStorage` trên thiết bị di động (iOS/Android).
-
-### 🛡️ `src/app/_layout.tsx`
-*   Đây là **"Trạm gác cổng"** của ứng dụng.
-*   Nó sẽ lắng nghe biến `session` từ `SessionProvider`. 
-*   Nếu `session = null` (chưa đăng nhập), nó sẽ ép ứng dụng điều hướng về thư mục `(auth)` để yêu cầu đăng nhập.
-*   Nếu `session` hợp lệ, nó cho phép người dùng vào khu vực `(tabs)` để sử dụng app.
-
----
-
-## 🌐 4. Mô Hình Triển Khai Thực Tế (Deployment Model)
-
-Trong thực tế phát triển phần mềm hiện đại, các cấu phần này sẽ được host ở các dịch vụ tối ưu nhất:
-
-```
-┌────────────────────────────────────────────────────────┐
-│             Hạ tầng triển khai (Deployment)            │
-├─────────────────┬───────────────────┬──────────────────┤
-│    Frontend     │   Backend (BaaS)  │   Media Storage  │
-├─────────────────┼───────────────────┼──────────────────┤
-│ Vercel / Netlify│     Supabase      │  Cloudflare R2   │
-│ (Tĩnh, CDN toàn │ (Auth, Database,  │ (Lưu trữ ảnh,    │
-│  cầu, giá rẻ)   │  Edge Functions)  │  video, $0 Egress│
-└─────────────────┴───────────────────┴──────────────────┘
+```text
+Client Component event
+  -> Server Action hoặc API Route POST/PUT/DELETE
+    -> service function
+      -> repository method / RPC
+        -> Supabase
 ```
 
-### 1. Frontend trên Vercel hoặc Netlify
-*   Các ứng dụng web Single Page (React/Next.js/Expo Web) sau khi build sẽ được đẩy lên Vercel/Netlify/Cloudflare Pages.
-*   Những nền tảng này sử dụng mạng lưới phân phối nội dung (CDN) giúp trang web tải tức thì ở bất kỳ đâu trên thế giới và chịu được hàng triệu lượt truy cập đồng thời với chi phí tối thiểu.
+Đường realtime chuẩn:
 
-### 2. Backend trên VPS so với Serverless (Supabase BaaS)
-*   **Mô hình truyền thống (VPS)**: Bạn phải thuê một máy chủ ảo (ví dụ: Ubuntu trên DigitalOcean), cài đặt Node.js/Python, cấu hình Nginx, cài Docker, quản lý bảo mật cổng mạng (Ports), cấu hình backup database... 
-*   **Mô hình hiện đại (BaaS - Supabase)**: Supabase cung cấp sẵn toàn bộ cơ sở hạ tầng được tối ưu hóa. Bạn không cần cấu hình VPS, không lo nâng cấp OS, việc mở rộng quy mô (Scale) và sao lưu cơ sở dữ liệu đều được tự động hóa hoàn toàn.
+```text
+Client Component mount
+  -> subscribeToTasks() / subscribeToTaskLogs()
+    -> createClientBrowser()
+      -> Supabase Realtime WebSocket
+```
 
----
+Luật import:
 
-## 📦 5. Tại sao chọn Cloudflare R2 để lưu trữ Media?
+| Module | Được import | Không được import |
+|---|---|---|
+| Server `page.tsx` | services, server-safe components | repositories trực tiếp, browser Supabase client |
+| Client Component | server actions, realtime subscriptions, UI utils | repositories, `createClientServer`, raw DB query |
+| Services | repositories, domain types, `createClientServer` | React/UI state |
+| Repositories | Supabase server client type, generated DB types | UI/domain mapper phức tạp |
+| Realtime | `createClientBrowser` | CRUD query business logic |
 
-Mặc dù Supabase có sẵn dịch vụ Storage (lưu trữ tệp tin), việc tích hợp **Cloudflare R2** cho các dự án thực tế là cực kỳ phổ biến vì lý do chi phí:
+### 5.2 Services
 
-1.  **Phí Băng thông tải xuống (Egress Fees)**:
-    *   Các dịch vụ lưu trữ thông thường (như AWS S3, Google Cloud Storage, Supabase Storage ở các gói lớn) đều tính phí truyền dữ liệu ra ngoài (ví dụ: cứ mỗi GB ảnh/video người dùng xem trên app, bạn phải trả khoảng $0.08 - $0.12).
-    *   **Cloudflare R2 hoàn toàn miễn phí băng thông tải xuống ($0 Egress Fee)**. Bạn chỉ cần trả tiền thuê dung lượng lưu trữ tĩnh thực tế (khoảng $0.015/GB/tháng).
-2.  **Tương thích hoàn toàn với AWS S3**:
-    *   R2 hỗ trợ giao thức S3 API tiêu chuẩn, giúp việc tích hợp vào mã nguồn Node.js/Python/Edge Functions cực kỳ dễ dàng qua SDK AWS S3.
-3.  **Cách hoạt động**:
-    *   Khi ứng dụng cần tải lên một file lớn (ví dụ: Video 50MB):
-        1. App gửi yêu cầu xin quyền tải file lên Edge Function.
-        2. Edge Function sinh ra một **Presigned URL** (đường dẫn tải lên tạm thời có chữ ký bảo mật tồn tại trong 5-10 phút) từ Cloudflare R2 và gửi lại cho App.
-        3. App sử dụng đường dẫn đó để tải trực tiếp file từ thiết bị lên Cloudflare R2 mà không cần đi qua Server trung gian, giúp tránh quá tải băng thông cho server.
+| Service | Vai trò | Repositories |
+|---|---|---|
+| `dashboard.service.ts` | Metrics, platform distribution, health cards | post, author, task, account |
+| `data.service.ts` | Posts/authors/comments data pages | post, author, comment |
+| `creative.service.ts` | Creative Hub search/trending/new/growth/advertisers/detail | post, author |
+| `crawler.service.ts` | Tasks, task logs, accounts | task, log, account |
+| `system.service.ts` | Proxies, audit logs, exports/settings support | proxy, audit |
+| `auth.service.ts` | Supabase auth orchestration | Supabase server client |
 
----
+### 5.3 Repositories
 
-## 💾 6. Chiến Lược Lưu Trữ Dữ Liệu Phía Client (Client Storage Strategy)
+| Repository | Table chính |
+|---|---|
+| `post.repo.ts` | `crawled_posts` |
+| `author.repo.ts` | `crawled_authors` |
+| `comment.repo.ts` | `crawled_comments` |
+| `task.repo.ts` | `crawler_tasks`, RPC `create_crawler_tasks` |
+| `log.repo.ts` | `crawler_logs` |
+| `account.repo.ts` | `crawler_accounts` |
+| `proxy.repo.ts` | `crawler_proxies`, `crawler_accounts` |
+| `audit.repo.ts` | `audit_logs`, `exported_files` |
 
-Hệ thống phân chia dữ liệu client thành 4 phân vùng lưu trữ dựa trên tính chất bảo mật, kích thước dữ liệu và vòng đời (lifetime) để bảo vệ chống XSS/CSRF, tránh chặn ghi trên Safari Private và chống flicker giao diện.
+Repository layer phải dùng generated types từ `dashboard/types/supabase.ts`. Không dùng `any` ở constructor hoặc public return type.
 
-Chi tiết thiết kế kiến trúc, mã nguồn cấu hình và xử lý các kịch bản biên được tài liệu hóa đầy đủ tại:
-👉 **[Chiến Lược Lưu Trữ Client](file:///d:/Python/SinoMedia/.agents/docs/architecture/client-storage-strategy.md)**
+### 5.4 Page ownership
 
+| Route | Owner service | Ghi chú kiến trúc |
+|---|---|---|
+| `/dash/home` | `dashboard.service` | Server read metrics; client chỉ render interaction nếu cần |
+| `/dash/data/posts` | `data.service` | Server read list; comments/detail lazy nếu cần |
+| `/dash/data/authors` | `data.service` | Server read list |
+| `/dash/data/management` | `data.service` | Server read/export/filter |
+| `/dash/creative/search` | `creative.service` | Server read initial data; client filter sync qua URL |
+| `/dash/creative/new` | `creative.service` | Server read initial data |
+| `/dash/creative/trending` | `creative.service` | Server read trending |
+| `/dash/creative/growth` | `creative.service` | Server read growth; growth thật cần history table sau |
+| `/dash/creative/advertisers` | `creative.service` | Server read advertisers |
+| `/dash/creative/advertisers/[id]` | `creative.service` | Server read advertiser + ads |
+| `/dash/creative/[id]` | `creative.service` | Server read detail; client media player allowed |
+| `/dash/tasks` | `crawler.service` + realtime | Server initial read, realtime updates in client island |
+| `/dash/accounts` | `crawler.service` | Server read; actions mutate |
+| `/dash/proxies` | `system.service` | Server read; actions mutate |
+| `/dash/audit-logs` | `system.service` | Server read |
+| `/dash/settings` | local UI/settings service | Local-only settings rõ ràng, không giả là DB nếu chưa persist |
+
+## 6. Crawler Pipeline architecture
+
+Crawler Pipeline là process TypeScript độc lập, không phụ thuộc lifecycle của Dashboard.
+
+```mermaid
+flowchart TD
+  START["queue_worker.ts"] --> CLAIM["claim_next_crawler_task() RPC"]
+  CLAIM --> LOCK["Task status = running"]
+  LOCK --> FACTORY["crawler_factory.ts"]
+  FACTORY --> CRAWLER["Platform crawler core.ts"]
+  CRAWLER --> CLIENT["Platform client.ts"]
+  CRAWLER --> LOGIN["login.ts / session_store.ts"]
+  CRAWLER --> ACCOUNT["account_pool.ts"]
+  CRAWLER --> PROXY["proxy_pool.ts"]
+  CRAWLER --> WRITER["supabase_writer.ts"]
+  WRITER --> POSTS["crawled_posts / crawled_authors / crawled_comments"]
+  WRITER --> R2["r2_uploader.ts -> Cloudflare R2"]
+  START --> LOGS["crawler_logs"]
+  CRAWLER --> DONE["Task completed / failed"]
+```
+
+### 6.1 Platform modules
+
+Mỗi platform nằm trong `crawler-pipeline/src/crawl/<platform>/` và nên giữ contract:
+
+```text
+client.ts      # HTTP/API client, request signing, cookies
+core.ts        # orchestrator crawl/search/creator/comments
+field.ts       # platform field constants/mapping
+login.ts       # QR/cookie/session login
+extractor.ts   # parsing/extraction nếu platform cần
+index.ts       # export boundary
+```
+
+Platforms hiện có:
+
+- `bilibili`
+- `douyin`
+- `kuaishou`
+- `tieba`
+- `weibo`
+- `xhs`
+- `zhihu`
+
+### 6.2 Queue worker contract
+
+Worker flow:
+
+1. Claim task pending bằng RPC `claim_next_crawler_task()`.
+2. Ghi log bắt đầu vào `crawler_logs`.
+3. Dựng crawler theo `platform` + `command`.
+4. Checkout account/proxy phù hợp.
+5. Crawl dữ liệu và normalize sang storage model.
+6. Upload media lên R2 nếu có.
+7. Upsert dữ liệu vào Supabase.
+8. Cập nhật task `completed` hoặc `failed`.
+9. Realtime publication đẩy task/log update về Dashboard.
+
+Dashboard không gọi trực tiếp crawler function trong cùng process. Dashboard chỉ tạo task và quan sát trạng thái.
+
+## 7. Database và storage contracts
+
+### 7.1 Bảng chuẩn hóa chính
+
+| Table | Vai trò |
+|---|---|
+| `crawled_posts` | Nội dung/bài viết/video đã crawl, normalized |
+| `crawled_authors` | Tác giả/creator normalized |
+| `crawled_comments` | Comments/sub-comments normalized |
+| `crawler_tasks` | Task queue control plane |
+| `crawler_logs` | Logs theo task |
+| `crawler_accounts` | Account pool |
+| `crawler_proxies` | Proxy pool và assignment |
+| `audit_logs` | Audit hành động dashboard/system |
+| `exported_files` | Metadata file export |
+| `creative_ads` | Creative-specific projection/analytics nếu cần |
+| `creative_advertisers` | Advertiser projection nếu cần |
+
+### 7.2 Legacy/raw platform tables
+
+Remote schema còn nhiều bảng raw như `douyin_aweme`, `xhs_note`, `weibo_note`, `bilibili_video`, `kuaishou_video`, `tieba_note`, `zhihu_content` và các bảng comment/creator tương ứng.
+
+Chúng không phải contract chính của Dashboard mới. Nếu cần dùng dữ liệu raw, phải đi qua migration/projection sang bảng chuẩn hóa hoặc repository riêng được ghi rõ.
+
+### 7.3 RPC
+
+| RPC | Consumer | Vai trò |
+|---|---|---|
+| `claim_next_crawler_task()` | queue worker | Atomic claim task pending/scheduled |
+| `create_crawler_tasks(p_tasks)` | Dashboard service/repository | Bulk create tasks, dedup, trả inserted/skipped/errors |
+
+### 7.4 Realtime
+
+Realtime publication bật cho:
+
+- `public.crawler_tasks`
+- `public.crawler_logs`
+
+Browser chỉ subscribe qua:
+
+- `subscribeToTasks`
+- `subscribeToTaskLogs`
+
+Không mở realtime bừa bãi cho bảng dữ liệu lớn như `crawled_posts` nếu chưa có use case rõ và filter chặt.
+
+### 7.5 Cloudflare R2
+
+R2 là nơi lưu media binary/object. Supabase lưu metadata/URL/reference.
+
+Luật:
+
+- Media upload/download lớn không đi qua Dashboard server nếu có thể tránh.
+- Crawler dùng `r2_uploader.ts` để upload.
+- Database chỉ lưu URL/path/checksum/metadata nếu cần.
+- Không lưu blob media trực tiếp trong PostgreSQL.
+
+## 8. Auth, session và client storage
+
+Dashboard dùng `@supabase/ssr`:
+
+- `dashboard/lib/supabase/server.ts`: server-side auth/session-aware client.
+- `dashboard/lib/supabase/middleware.ts`: refresh session cookie.
+- `dashboard/lib/supabase/client.ts`: browser client cho realtime only.
+
+Auth token không lưu trong localStorage production path. Cookie httpOnly/SameSite là hướng chính.
+
+POST/PUT/PATCH/DELETE từ browser phải có kiểm soát:
+
+- kiểm tra Origin/Referer hoặc CSRF token tùy endpoint;
+- không expose service role key ra browser;
+- validate payload ở action/route boundary.
+
+Zustand/localStorage/IndexedDB chỉ dùng cho UI preferences hoặc draft/input lớn:
+
+- sidebar collapsed;
+- theme;
+- temporary form drafts;
+- large paste input/proxy list trước khi submit.
+
+Không dùng localStorage làm nguồn dữ liệu authoritative cho business data.
+
+## 9. API route policy
+
+API route không phải mặc định cho read path.
+
+Được dùng khi:
+
+- mutation từ Client Component;
+- webhook/external callback;
+- file export/download action;
+- compatibility trong giai đoạn migrate, có comment rõ;
+- endpoint cần HTTP boundary độc lập.
+
+Không dùng khi:
+
+- Server Component có thể gọi service trực tiếp;
+- chỉ để vòng từ browser → API route → service cho GET list data;
+- chỉ để che lỗi typing hoặc tránh tách client/server component.
+
+Creative GET routes hiện có thể tồn tại tạm:
+
+- `app/api/creative/search/route.ts`
+- `app/api/creative/trending/route.ts`
+- `app/api/creative/new/route.ts`
+- `app/api/creative/growth/route.ts`
+- `app/api/creative/advertisers/route.ts`
+- `app/api/creative/advertisers/[id]/route.ts`
+- `app/api/creative/[id]/route.ts`
+
+Mục tiêu là migrate pages sang Server Component read path, rồi xóa/deprecate GET routes không còn consumer.
+
+## 10. Error handling và observability
+
+Luật lỗi:
+
+- Repository throw lỗi DB nguyên bản hoặc wrap bằng error có context.
+- Service quyết định user-facing fallback/empty state.
+- UI hiển thị empty/error state rõ ràng.
+- Không fallback mock data âm thầm khi DB lỗi.
+- Crawler luôn ghi `crawler_logs` khi start/success/fail và cập nhật `crawler_tasks.status`.
+
+Log levels:
+
+- `DEBUG`: chi tiết kỹ thuật, chỉ bật khi cần.
+- `INFO`: lifecycle chính.
+- `WARN`: retry, rate limit, thiếu dữ liệu không fatal.
+- `ERROR`: task fail hoặc lỗi cần can thiệp.
+
+## 11. Performance rules
+
+Dashboard:
+
+- Server-side read cho initial render.
+- Pagination bắt buộc cho list lớn.
+- Không preload detail/media cho toàn bộ list.
+- Creative detail lazy-load theo modal/detail route.
+- URL search params là nguồn sự thật cho filters có thể share/bookmark.
+- Chỉ subscribe realtime cho task/log đang xem.
+
+Database:
+
+- Dùng index cho `crawled_posts.tags`, `published_at`, `crawled_at`, JSON stats sort fields đã có migration.
+- Không query raw platform tables trực tiếp từ UI.
+- Bulk task create dùng RPC thay vì insert loop từ browser.
+
+Crawler:
+
+- Dùng account/proxy pool để giảm rate limit.
+- Retry có backoff, không loop vô hạn.
+- Upload media song song có giới hạn concurrency.
+
+## 12. Security rules
+
+1. Service role key chỉ ở server/crawler environment.
+2. Browser chỉ thấy anon key qua Supabase client dành cho Realtime.
+3. RLS/policies là lớp phòng thủ, không thay thế server-side validation.
+4. Secrets không commit vào repo.
+5. Cookie auth không được migrate ngược về localStorage.
+6. API mutation phải validate payload, platform, command, task metadata.
+7. Logs không chứa password, cookie, token, QR session secret.
+
+## 13. Architecture Decision Records
+
+### ADR-001: Dashboard dùng Repository + Service Pattern
+
+Status: **Accepted**
+
+Context:
+
+- Dashboard từng có nhiều đường data access song song: singleton Supabase client, API monolith, mock fallback, route handlers.
+- Điều này làm lộ boundary, khó type-safe và khó debug DB lỗi.
+
+Decision:
+
+- Repository là lớp duy nhất chạm table.
+- Service compose repository và map sang domain/UI models.
+- Server Component gọi service trực tiếp.
+
+Trade-off:
+
+- Tốn thêm file/layer.
+- Refactor ban đầu nhiều.
+
+Rationale:
+
+- Giảm coupling UI ↔ schema.
+- Dễ type hóa, test, audit.
+- Hợp với Next.js App Router/server data fetching.
+
+### ADR-002: Browser Supabase client chỉ dùng Realtime
+
+Status: **Accepted**
+
+Context:
+
+- Realtime cần browser WebSocket.
+- CRUD từ browser làm lẫn auth/session/security boundary.
+
+Decision:
+
+- `createClientBrowser()` chỉ được import ở `dashboard/lib/realtime/subscriptions.ts`.
+- CRUD đi qua server client.
+
+Trade-off:
+
+- Một số interactive page cần tách server/client rõ hơn.
+
+Rationale:
+
+- Dễ audit key exposure.
+- Giữ cookie-based auth path cho read/write.
+
+### ADR-003: Task Queue dùng Supabase RPC làm control plane
+
+Status: **Accepted**
+
+Context:
+
+- Dashboard cần tạo task.
+- Worker cần claim task an toàn, tránh hai worker xử lý cùng task.
+
+Decision:
+
+- Task lưu trong `crawler_tasks`.
+- Claim bằng RPC `claim_next_crawler_task()`.
+- Bulk create bằng RPC `create_crawler_tasks(p_tasks)`.
+
+Trade-off:
+
+- Logic queue nằm một phần trong DB function.
+
+Rationale:
+
+- Atomic, đơn giản, đủ cho scale hiện tại.
+- Không cần thêm Redis/BullMQ khi chưa chứng minh nhu cầu.
+
+Revisit trigger:
+
+- Cần throughput cao, delayed jobs phức tạp, retry policy đa tầng, hoặc multi-region worker.
+
+### ADR-004: Normalized crawled tables là contract Dashboard
+
+Status: **Accepted**
+
+Context:
+
+- Remote schema có nhiều bảng platform-specific.
+- Dashboard cần UI chung cho nhiều platform.
+
+Decision:
+
+- Dashboard đọc bảng chuẩn hóa `crawled_posts`, `crawled_authors`, `crawled_comments`.
+- Raw tables chỉ là legacy/migration source.
+
+Trade-off:
+
+- Crawler phải map field platform về schema chung.
+
+Rationale:
+
+- UI/service đơn giản.
+- Creative Hub query/index thống nhất.
+
+### ADR-005: Cloudflare R2 lưu media, Supabase lưu metadata
+
+Status: **Accepted**
+
+Context:
+
+- Media có dung lượng lớn, bandwidth cao.
+- PostgreSQL không phù hợp lưu blob.
+
+Decision:
+
+- Crawler upload media lên R2.
+- Supabase lưu URL/path/metadata.
+
+Trade-off:
+
+- Cần quản lý consistency DB ↔ object storage.
+
+Rationale:
+
+- Chi phí egress tốt.
+- Tách metadata và binary clean.
+
+### ADR-006: Client storage chỉ cho UI/draft, không cho business source of truth
+
+Status: **Accepted**
+
+Context:
+
+- Dashboard cần lưu theme/sidebar/draft lớn.
+- Auth token trong localStorage rủi ro XSS.
+
+Decision:
+
+- Auth dùng cookie qua `@supabase/ssr`.
+- Zustand/localStorage dùng UI preferences.
+- IndexedDB dùng draft/input lớn, có fallback.
+
+Trade-off:
+
+- Cần migration/versioning cho persisted UI store.
+
+Rationale:
+
+- An toàn hơn, ít hydration flicker hơn, không block main thread với payload lớn.
+
+## 14. Deprecated / không còn là kiến trúc chuẩn
+
+Các pattern sau không được dùng cho code mới:
+
+- Dashboard page import Supabase singleton để CRUD.
+- `lib/api.ts` monolith làm data access chính.
+- `mock-data.ts` fallback khi DB lỗi.
+- Client Component fetch `/api/creative/*` cho initial read data nếu Server Component có thể gọi service.
+- Lưu auth token trong localStorage.
+- UI đọc raw platform tables trực tiếp.
+- Crawler và Dashboard chạy chung process.
+- Thêm platform bằng copy-paste không qua `crawler_factory`/base contracts.
+
+## 15. Refactor backlog còn lại
+
+Chi tiết nằm ở `docs/architecture/frontend-supabase-refactor-todo.md`. Tóm tắt thứ tự ưu tiên:
+
+1. Convert `dashboard/types/supabase.ts` sang UTF-8 để ESLint đọc được.
+2. Tạo alias type `DbClient`, `TableRow`, `TableInsert`, `TableUpdate`.
+3. Type hóa repositories, bỏ `constructor(private db: any)`.
+4. Type hóa service mappers, đặc biệt `creative.service.ts` và `dashboard.service.ts`.
+5. Tách creative pages thành Server Component + client island.
+6. Deprecate/xóa creative GET API routes sau khi không còn caller.
+7. Sửa React lint `set-state-in-effect`, `immutability`.
+8. Chạy `tsc`, `lint`, `build`, smoke test các route chính.
+
+## 16. Validation commands
+
+Dashboard:
+
+```powershell
+cd D:\Python\SinoMedia\dashboard
+npx.cmd tsc --noEmit
+npm.cmd run lint
+npm.cmd run build
+```
+
+Crawler:
+
+```powershell
+cd D:\Python\SinoMedia\crawler-pipeline
+npx.cmd tsc --noEmit
+npm.cmd test
+```
+
+GitNexus:
+
+```powershell
+cd D:\Python\SinoMedia
+node .gitnexus\run.cjs analyze
+```
+
+Before refactor:
+
+```text
+impact({ repo: "SinoMedia", target: "<symbol>", direction: "upstream" })
+detect_changes({ repo: "SinoMedia", scope: "all" })
+```
+
+Quick boundary audit:
+
+```powershell
+rg 'createClientBrowser|createClientServer|constructor\(private db: any\)|/api/creative|mock-data|@/lib/supabase' dashboard\app dashboard\lib dashboard\components
+```
+
+## 17. Definition of Done cho kiến trúc
+
+Kiến trúc được coi là “khóa” khi:
+
+- Tài liệu này là source of truth được cập nhật khi có ADR mới.
+- Dashboard read path tuân thủ Server Component → Service → Repository.
+- Browser Supabase client chỉ nằm trong realtime subscriptions.
+- Repository/service layer type-safe, không dùng `any` ở public contracts.
+- Crawler task lifecycle hoạt động qua Supabase RPC + Realtime.
+- Không có mock fallback che lỗi DB trong production path.
+- `tsc`, `lint`, `build` pass cho Dashboard.
+- Worker smoke test pass cho ít nhất một platform và task lifecycle.
+
+## 18. Khi nào được thay đổi kiến trúc này
+
+Chỉ thay đổi khi có một trong các trigger:
+
+- Scale task vượt khả năng Supabase RPC queue.
+- Cần multi-worker scheduling phức tạp hơn.
+- Cần realtime trên dữ liệu lớn với fanout cao.
+- Cần phân quyền tenant/team phức tạp hơn RLS hiện tại.
+- Cần export/report pipeline riêng.
+- Cần tách service backend khỏi Next.js server vì workload vượt ngưỡng.
+
+Mọi thay đổi phải có ADR mới trong `docs/architecture/` hoặc cập nhật mục ADR của tài liệu này, ghi rõ context, options, decision, trade-off và migration plan.

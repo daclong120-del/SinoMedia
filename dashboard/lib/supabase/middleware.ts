@@ -48,7 +48,7 @@ export async function updateSession(request: NextRequest) {
       aud: "authenticated",
       created_at: new Date().toISOString()
     };
-    return { supabaseResponse, user: user as any };
+    return { supabaseResponse, user: user as import("@supabase/supabase-js").User };
   }
 
   let user = null;

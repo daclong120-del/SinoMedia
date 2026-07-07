@@ -1,7 +1,8 @@
 import { get, set, del } from "idb-keyval";
 
 // Cache tạm lưu trên RAM để fallback khi IndexedDB không khả dụng (ví dụ Safari Private)
-const inMemoryCache = new Map<string, any>();
+// Cache tạm lưu trên RAM để fallback khi IndexedDB không khả dụng (ví dụ Safari Private)
+const inMemoryCache = new Map<string, unknown>();
 let isIndexedDBAvailable: boolean | null = null;
 
 /**
@@ -34,7 +35,7 @@ async function checkIndexedDBAvailability(): Promise<boolean> {
  */
 export async function setLargeDraft(
   key: string,
-  value: any
+  value: unknown
 ): Promise<{ success: boolean; isFallback: boolean }> {
   const isAvailable = await checkIndexedDBAvailability();
   

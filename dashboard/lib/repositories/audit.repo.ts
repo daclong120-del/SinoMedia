@@ -2,8 +2,7 @@
  * Repository — audit_logs + exported_files
  * Tầng duy nhất chạm bảng `audit_logs` và `exported_files` trong Supabase.
  */
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/types/supabase";
+import type { DbClient, TableRow, JsonValue } from "./types";
 
 export interface AuditEventInput {
   actor_id: string;
@@ -24,12 +23,12 @@ export interface ExportFileInput {
 }
 
 export class AuditRepository {
-  constructor(private db: any) {}
+  constructor(private readonly db: DbClient) {}
 
   // ─── Audit Logs ──────────────────────────────────────────────
 
   /** Lấy danh sách audit log, mới nhất trước */
-  async getAuditLogs(limit = 100) {
+  async getAuditLogs(limit = 100): Promise<TableRow<"audit_logs">[]> {
     const { data, error } = await this.db
       .from("audit_logs")
       .select("*")
@@ -40,7 +39,7 @@ export class AuditRepository {
   }
 
   /** Ghi 1 sự kiện audit */
-  async logEvent(event: AuditEventInput) {
+  async logEvent(event: AuditEventInput): Promise<void> {
     const { error } = await this.db
       .from("audit_logs")
       .insert([{
@@ -48,7 +47,7 @@ export class AuditRepository {
         action: event.action,
         entity_type: event.entity_type,
         entity_id: event.entity_id,
-        payload: event.payload as any,
+        payload: event.payload as JsonValue,
         ip_address: event.ip_address,
       }]);
     if (error) throw error;
@@ -57,7 +56,7 @@ export class AuditRepository {
   // ─── Exported Files ──────────────────────────────────────────
 
   /** Lấy danh sách file đã xuất */
-  async getExports() {
+  async getExports(): Promise<TableRow<"exported_files">[]> {
     const { data, error } = await this.db
       .from("exported_files")
       .select("*")
@@ -67,13 +66,13 @@ export class AuditRepository {
   }
 
   /** Ghi 1 bản ghi file xuất mới */
-  async logExport(file: ExportFileInput) {
+  async logExport(file: ExportFileInput): Promise<void> {
     const { error } = await this.db
       .from("exported_files")
       .insert([{
         filename: file.filename,
         type: file.type,
-        filter_snapshot: file.filter_snapshot as any,
+        filter_snapshot: file.filter_snapshot as JsonValue,
         size_bytes: file.size_bytes,
         created_by: file.created_by,
         download_url: file.download_url,

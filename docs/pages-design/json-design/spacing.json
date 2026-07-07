@@ -1,7 +1,7 @@
 {
   "$meta": {
     "domain": "spacing",
-    "source": "init-fontend/app/(main)/page.tsx, init-fontend/components/**",
+    "source": "init-design/app/(main)/page.tsx, init-design/components/**",
     "extractedFrom": "code",
     "purpose": "Define spacing scale, layout dimensions, padding rules, and gaps between containers"
   },

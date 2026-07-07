@@ -20,7 +20,7 @@
 | debug-terminal-sandbox | debug | ✅ xong | - |
 | refactor-data-access-layer | refactor | ✅ xong | 4/4 phase |
 | refactor-auth-layer | refactor | ✅ xong | 2/2 phase |
-| refactor-frontend-supabase | refactor | 🔄 đang làm | 0/8 phase |
+| refactor-frontend-supabase | refactor | ✅ xong | 8/8 phase |
 
 
 > Marker: ⏳ chưa · 🔄 đang làm · ✅ xong · ⛔ chặn

@@ -190,7 +190,8 @@ export default function Sidebar({ isMobileOpen = false, onMobileClose }: Sidebar
   const { sidebarCollapsed, setSidebarCollapsed } = useUIStore();
 
   useEffect(() => {
-    setHasMounted(true);
+    const timer = setTimeout(() => setHasMounted(true), 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const isCollapsed = hasMounted ? sidebarCollapsed : false;

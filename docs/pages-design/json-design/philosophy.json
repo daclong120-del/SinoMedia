@@ -1,7 +1,7 @@
 {
   "$meta": {
     "domain": "philosophy",
-    "source": "init-fontend/app/globals.css, init-fontend/components/**",
+    "source": "init-design/app/globals.css, init-design/components/**",
     "extractedFrom": "code",
     "purpose": "Aesthetic rules and design DNA for future screen generation"
   },

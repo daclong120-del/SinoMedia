@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { getTrending, getAdvertisers } from "@/lib/actions/creative.actions";
-import type { CreativeAd, CreativeAdvertiser, Platform } from "@/types";
+import type { CreativeAd, CreativeAdvertiser } from "@/types";
 import { PlatformBadge } from "@/components/dashboard/Badges";
 import CreativeDetailView from "@/components/dashboard/CreativeDetailView";
 import { formatNumber, timeAgo, cn } from "@/lib/utils";
@@ -103,7 +103,6 @@ function TrendingPageContent() {
   const ranked = [...filtered].sort((a, b) => b.view_count - a.view_count);
 
   const top3 = ranked.slice(0, 3);
-  const tableData = ranked.slice(3);
 
   const getRankBadgeStyle = (rank: number) => {
     switch (rank) {

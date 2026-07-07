@@ -1,7 +1,7 @@
 {
   "$meta": {
     "domain": "radius-elevation",
-    "source": "init-fontend/app/globals.css, init-fontend/components/**",
+    "source": "init-design/app/globals.css, init-design/components/**",
     "extractedFrom": "code",
     "purpose": "Define border-radius mappings, shadow details, and design rules"
   },

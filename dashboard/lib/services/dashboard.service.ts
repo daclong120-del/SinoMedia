@@ -71,9 +71,9 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   return {
     totalPosts,
     totalAuthors,
-    runningTasks: tasks.filter((t: any) => t.status === "running").length,
-    pendingTasks: tasks.filter((t: any) => t.status === "pending").length,
-    activeAccounts: accounts.filter((a: any) => a.status === "active").length,
+    runningTasks: tasks.filter((t) => t.status === "running").length,
+    pendingTasks: tasks.filter((t) => t.status === "pending").length,
+    activeAccounts: accounts.filter((a) => a.status === "active").length,
     totalAccounts: accounts.length,
     postsTrend: 0,  // TODO: so sánh với tuần trước
     authorsTrend: 0,
@@ -109,8 +109,9 @@ export async function getPlatformHealth(): Promise<PlatformHealthItem[]> {
   const accounts = await accountRepo.findAllWithStatus();
 
   const agg: Record<string, { active: number; banned: number; total: number }> = {};
-  accounts.forEach((row: any) => {
+  accounts.forEach((row) => {
     const p = row.platform;
+    if (!p) return;
     if (!agg[p]) agg[p] = { active: 0, banned: 0, total: 0 };
     agg[p].total += 1;
     if (row.status === "active") agg[p].active += 1;

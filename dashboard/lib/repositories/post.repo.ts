@@ -2,8 +2,7 @@
  * Repository — crawled_posts
  * Tầng duy nhất chạm bảng `crawled_posts` trong Supabase.
  */
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/types/supabase";
+import type { DbClient, TableRow } from "./types";
 
 export interface PostQueryOpts {
   platform?: string;
@@ -18,10 +17,13 @@ export interface PostQueryOpts {
 }
 
 export class PostRepository {
-  constructor(private db: any) {}
+  constructor(private readonly db: DbClient) {}
 
   /** Lấy danh sách bài viết có phân trang + lọc + sắp xếp */
-  async findMany(opts: PostQueryOpts = {}) {
+  async findMany(opts: PostQueryOpts = {}): Promise<{
+    data: TableRow<"crawled_posts">[];
+    count: number;
+  }> {
     const limit = opts.limit ?? 50;
     let query = this.db
       .from("crawled_posts")
@@ -64,16 +66,20 @@ export class PostRepository {
 
     // Sắp xếp
     const sort = opts.sort ?? "newest";
+    // Supabase supports JSON path ordering at runtime, but generated table column types do not include it.
+    const orderByJsonStat = (column: "stats->play_count" | "stats->like_count" | "stats->comment_count") =>
+      column as unknown as "published_at";
+
     if (sort === "newest") {
       query = query.order("published_at", { ascending: false, nullsFirst: false });
     } else if (sort === "oldest") {
       query = query.order("published_at", { ascending: true, nullsFirst: true });
     } else if (sort === "views") {
-      query = query.order("stats->play_count", { ascending: false });
+      query = query.order(orderByJsonStat("stats->play_count"), { ascending: false });
     } else if (sort === "likes") {
-      query = query.order("stats->like_count", { ascending: false });
+      query = query.order(orderByJsonStat("stats->like_count"), { ascending: false });
     } else if (sort === "comments") {
-      query = query.order("stats->comment_count", { ascending: false });
+      query = query.order(orderByJsonStat("stats->comment_count"), { ascending: false });
     }
 
     // Phân trang
@@ -102,8 +108,10 @@ export class PostRepository {
     if (error) throw error;
 
     const counts: Record<string, number> = {};
-    (data ?? []).forEach((row: any) => {
-      counts[row.platform] = (counts[row.platform] || 0) + 1;
+    (data ?? []).forEach((row) => {
+      if (row.platform) {
+        counts[row.platform] = (counts[row.platform] || 0) + 1;
+      }
     });
     return counts;
   }
@@ -120,7 +128,7 @@ export class PostRepository {
     if (error) throw error;
 
     const counts: Record<string, number> = {};
-    (data ?? []).forEach((row: any) => {
+    (data ?? []).forEach((row) => {
       if (!row.published_at) return;
       const d = row.published_at.split("T")[0];
       counts[d] = (counts[d] || 0) + 1;
@@ -133,18 +141,21 @@ export class PostRepository {
   }
 
   /** Lấy chi tiết 1 bài viết theo ID */
-  async findById(id: string) {
+  async findById(id: string): Promise<TableRow<"crawled_posts"> | null> {
     const { data, error } = await this.db
       .from("crawled_posts")
       .select("*")
       .eq("id", id)
-      .single();
+      .maybeSingle();
     if (error) throw error;
     return data;
   }
 
   /** Lấy bài viết theo author_id */
-  async findByAuthorId(authorId: string, limit = 50) {
+  async findByAuthorId(authorId: string, limit = 50): Promise<{
+    data: TableRow<"crawled_posts">[];
+    count: number;
+  }> {
     const { data, error, count } = await this.db
       .from("crawled_posts")
       .select("*", { count: "exact" })

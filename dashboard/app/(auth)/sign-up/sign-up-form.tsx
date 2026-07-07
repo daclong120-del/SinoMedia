@@ -191,7 +191,7 @@ export default function SignUpForm() {
       }
       router.push("/dash/home");
       router.refresh();
-    } catch (err: any) {
+    } catch (err) {
       console.error("[Auth] Signup error:", err);
       setPasswordError("Đăng ký thất bại. Vui lòng thử lại.");
     } finally {
