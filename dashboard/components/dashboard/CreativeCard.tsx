@@ -45,7 +45,7 @@ export default function CreativeCard({ creative, advertiserName, className, onCl
     creative.media_type === "video"
       ? creative.cover_url || ""
       : creative.cover_url || creative.media_urls?.[0] || "";
-  const canShowThumbnail = !mediaError && !mediaUnavailable && Boolean(thumbnailUrl);
+  const canShowThumbnail = !mediaError && Boolean(thumbnailUrl);
   const canPreviewVideo =
     !mediaError &&
     !mediaUnavailable &&
@@ -139,6 +139,11 @@ export default function CreativeCard({ creative, advertiserName, className, onCl
         <div className="absolute top-2 left-2 z-10">
           <PlatformBadge platform={creative.platform} className="shadow-sm backdrop-blur-sm" />
         </div>
+        {mediaUnavailable && (
+          <div className="absolute top-2 right-2 z-20 rounded-md bg-amber-500/90 px-2 py-1 text-[10px] font-bold text-black shadow-sm">
+            Media chưa sẵn sàng
+          </div>
+        )}
         <div className="absolute bottom-2 right-2 z-10 flex items-center gap-1.5">
           <span className="h-5 px-1.5 rounded bg-zinc-900/80 text-white text-[10px] font-semibold flex items-center justify-center gap-1 backdrop-blur-sm shadow-sm">
             {renderMediaTypeIcon()}

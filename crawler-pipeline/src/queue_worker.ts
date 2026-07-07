@@ -104,16 +104,9 @@ export async function executeTask(task: CrawlerTask): Promise<void> {
     // Thiết lập cấu hình và metadata chạy crawler từ task
     process.env.CURRENT_TASK_TAGS = JSON.stringify(task.metadata?.tags || []);
     process.env.CURRENT_TASK_LANGUAGE = task.metadata?.language || "auto";
-    if (command === "cache_media") {
-      process.env.ENABLE_GET_COMMENTS = "false";
-      process.env.ENABLE_GET_SUB_COMMENTS = "false";
-      process.env.ENABLE_UPLOAD_R2 = "true";
-      process.env.ENABLE_GET_MEIDAS = "true";
-    } else {
-      process.env.ENABLE_GET_COMMENTS = String(task.metadata?.crawl_comments ?? true);
-      process.env.ENABLE_GET_SUB_COMMENTS = String(task.metadata?.crawl_sub_comments ?? true);
-      process.env.ENABLE_UPLOAD_R2 = String(task.metadata?.upload_r2 ?? true);
-    }
+    process.env.ENABLE_GET_COMMENTS = String(task.metadata?.crawl_comments ?? true);
+    process.env.ENABLE_GET_SUB_COMMENTS = String(task.metadata?.crawl_sub_comments ?? true);
+    process.env.ENABLE_UPLOAD_R2 = String(task.metadata?.upload_r2 ?? true);
     CONFIG.headless = task.metadata?.headless ?? true;
 
     const crawler = CrawlerFactory.create(platform);
@@ -123,21 +116,8 @@ export async function executeTask(task: CrawlerTask): Promise<void> {
         await crawler.crawl(target);
         break;
       case "cache_media":
-        await crawler.crawl(target);
-        const posts = await supabaseRest("crawled_posts", {
-          method: "GET",
-          params: {
-            platform: `eq.${platform}`,
-            platform_id: `eq.${target}`,
-            select: "id,media_status,media_source,media_error",
-            limit: "1",
-          },
-        });
-        const post = Array.isArray(posts) ? posts[0] : null;
-        if (!post || post.media_status !== "cached" || post.media_source !== "r2") {
-          throw new Error(post?.media_error || "Cache media không hoàn tất lên R2");
-        }
-        break;
+        throw new Error("Lệnh 'cache_media' đã bị bãi bỏ (deprecated). Vui lòng recrawl/backfill thông thường với metadata.upload_r2 = true.");
+
       case "creator":
         await crawler.creator(target);
         break;
@@ -163,7 +143,6 @@ export async function executeTask(task: CrawlerTask): Promise<void> {
     delete process.env.ENABLE_GET_COMMENTS;
     delete process.env.ENABLE_GET_SUB_COMMENTS;
     delete process.env.ENABLE_UPLOAD_R2;
-    delete process.env.ENABLE_GET_MEIDAS;
     CONFIG.headless = defaultHeadless;
     await closeBrowser().catch(() => { });
   }

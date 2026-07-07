@@ -1,5 +1,5 @@
 ---
-trigger: always_on
+trigger: manual
 ---
 
 Bắc buộc phải đọc architecture của dự án đầu tiên để hiểu dự án

@@ -1,3 +1,7 @@
+---
+trigger: manual
+---
+
 # 🧭 BRAINSTORM-FIRST — CỔNG BẮT BUỘC CHỌN & ĐỌC SKILL
 
 > HOOK chạy ĐẦU TIÊN mỗi lượt. Đây là **CỔNG CHẶN CỨNG**, KHÔNG phải gợi ý.

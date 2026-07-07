@@ -13,7 +13,6 @@ export type CrawlCommand =
   | "creator"
   | "search"
   | "comments"
-  | "cache_media"
   | "comment"
   | "ads";
 

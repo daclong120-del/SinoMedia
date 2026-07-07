@@ -177,17 +177,38 @@ export async function persistBilibiliVideo(
         fnval: 1,
         platform: "pc"
       }, true);
-      const durl = playUrlRes.durl;
+      const playUrlPayload = playUrlRes?.data ??
+                             (playUrlRes?.result && typeof playUrlRes.result === "object" ? playUrlRes.result : null) ??
+                             playUrlRes;
+      const durl = playUrlPayload?.durl;
       let maxUrl = "";
       let maxSize = -1;
+
       if (durl && Array.isArray(durl)) {
         for (const item of durl) {
-          if (item.size > maxSize) {
-            maxSize = item.size;
+          if ((item.size ?? 0) > maxSize) {
+            maxSize = item.size ?? 0;
             maxUrl = item.url;
           }
         }
       }
+
+      if (!maxUrl) {
+        const dashVideos = playUrlPayload?.dash?.video;
+        if (Array.isArray(dashVideos) && dashVideos.length > 0) {
+          const bestVideo = dashVideos
+            .slice()
+            .sort((a, b) => (b.bandwidth ?? 0) - (a.bandwidth ?? 0))[0];
+
+          maxUrl =
+            bestVideo.baseUrl ||
+            bestVideo.base_url ||
+            bestVideo.backupUrl?.[0] ||
+            bestVideo.backup_url?.[0] ||
+            "";
+        }
+      }
+
       if (maxUrl) {
         playUrl = maxUrl;
         originalMediaUrls.push(playUrl);
@@ -199,85 +220,65 @@ export async function persistBilibiliVideo(
 
   // 2. Xử lý R2 cache
   const mediaUrls: string[] = [];
-  let coverUrl = originalCoverUrl;
-  
   const uploadR2Enabled = process.env.ENABLE_UPLOAD_R2 !== "false";
+  let coverUrl: string | undefined = uploadR2Enabled ? undefined : originalCoverUrl;
+
   let mediaSource = "original";
   let mediaStatus = "original_only";
   let mediaError: string | null = null;
   let mediaCachedAt: string | null = null;
 
   if (uploadR2Enabled) {
-    let totalToUpload = 0;
-    let successUploads = 0;
-
     try {
       mediaSource = "r2";
-      
+
       // Xử lý cover R2
       if (originalCoverUrl) {
-        totalToUpload++;
         const exists = await checkMediaExistsInR2("bilibili", bvid, "cover.jpg");
         if (exists) {
           coverUrl = `bilibili/${bvid}/cover.jpg`;
-          successUploads++;
         } else {
-          const coverBuf = await downloadMedia(originalCoverUrl);
-          const r2CoverKey = await uploadMediaToR2("bilibili", bvid, "cover.jpg", coverBuf, "image/jpeg");
-          if (r2CoverKey) {
-            coverUrl = r2CoverKey;
-            successUploads++;
+          try {
+            const coverBuf = await downloadMedia(originalCoverUrl);
+            const r2CoverKey = await uploadMediaToR2("bilibili", bvid, "cover.jpg", coverBuf, "image/jpeg");
+            if (r2CoverKey) {
+              coverUrl = r2CoverKey;
+            }
+          } catch (coverErr: any) {
+            console.warn(`[Bilibili] Lỗi upload cover lên R2: ${coverErr.message}`);
           }
         }
       }
-      
-      // Xử lý video R2 (chỉ khi ENABLE_GET_MEIDAS === "true")
-      if (process.env.ENABLE_GET_MEIDAS === "true" && playUrl) {
-        totalToUpload++;
+
+      // Xử lý video R2 (bắt buộc)
+      if (playUrl) {
         const exists = await checkMediaExistsInR2("bilibili", bvid, "video.mp4");
         if (exists) {
           mediaUrls.push(`bilibili/${bvid}/video.mp4`);
-          successUploads++;
+          mediaStatus = "cached";
+          mediaCachedAt = new Date().toISOString();
         } else {
           const videoBuf = await downloadMedia(playUrl);
           const videoKey = await uploadMediaToR2("bilibili", bvid, "video.mp4", videoBuf, "video/mp4");
           if (videoKey) {
             mediaUrls.push(videoKey);
-            successUploads++;
+            mediaStatus = "cached";
+            mediaCachedAt = new Date().toISOString();
+          } else {
+            throw new Error("Không thể upload video lên R2");
           }
         }
-      } else if (playUrl) {
-        mediaUrls.push(playUrl);
-      }
-
-      // Đánh giá trạng thái thực tế sau upload
-      if (totalToUpload === 0) {
-        mediaSource = "none";
-        mediaStatus = "unavailable";
-      } else if (successUploads === totalToUpload) {
-        mediaStatus = "cached";
-        mediaCachedAt = new Date().toISOString();
-      } else if (successUploads === 0) {
-        mediaSource = "original";
-        mediaStatus = "failed";
-        mediaError = "Không có media nào upload thành công lên R2";
-        mediaUrls.length = 0;
-        if (playUrl) mediaUrls.push(playUrl);
-        coverUrl = originalCoverUrl;
       } else {
-        mediaSource = "mixed";
-        mediaStatus = "cached";
-        mediaCachedAt = new Date().toISOString();
+        throw new Error("Không tìm thấy URL video gốc (playUrl) để cache");
       }
-
     } catch (err: any) {
+      console.error(`[Bilibili] R2 cache failed: ${err.message}`);
       mediaSource = "original";
       mediaStatus = "failed";
       mediaError = err.message || "Lỗi upload R2";
-      
-      mediaUrls.length = 0;
-      if (playUrl) mediaUrls.push(playUrl);
-      coverUrl = originalCoverUrl;
+
+      mediaUrls.length = 0; // Cấm fallback CDN gốc trong media_urls
+      coverUrl = undefined; // Cấm fallback cover gốc trong cover_url
     }
   } else {
     if (playUrl) mediaUrls.push(playUrl);

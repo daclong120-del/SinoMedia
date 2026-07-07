@@ -409,38 +409,17 @@ Giữ cơ chế này, nhưng định nghĩa rõ:
 
 - `upload_r2: true`: cache media ngay khi crawl.
 - `upload_r2: false`: chỉ lưu original URL.
-- `upload_r2: "on_demand"`: lưu original URL trước, cache khi user mở detail hoặc đánh dấu.
+- `upload_r2: "on_demand"`: **[DEPRECATED / KHÔNG DÙNG]** Lưu original URL trước, cache khi user mở detail hoặc đánh dấu. Quyết định mới cấm tuyệt đối việc tạo task cache media từ Dashboard UI (CreativeDetailView).
 
-Nếu chưa làm on-demand ngay, chỉ cần hỗ trợ `true/false` sạch trước.
+## 8. On-demand cache giai đoạn sau (Bị bãi bỏ / Deprecated)
 
-## 8. On-demand cache giai đoạn sau
+Ý tưởng chạy on-demand cache từ UI đã bị loại bỏ để đảm bảo phân tách rõ ràng về mặt boundary (UI chỉ thực hiện GET media có sẵn, không tạo task mới).
 
-Đây là phase 2, không cần làm ngay.
-
-Flow đề xuất:
+Tất cả các flow dưới đây không còn được hỗ trợ:
 
 ```text
 User opens CreativeDetailView
-  -> media_status = original_only
-  -> UI tries original URL
-  -> if play fails or user clicks "Cache media"
-  -> Server Action creates cache task
-  -> Worker downloads original URL and uploads R2
-  -> Update crawled_posts.media_urls, media_status = cached
-```
-
-Không download media lớn trực tiếp trong Next.js request nếu tránh được. Hãy tạo task cho worker.
-
-Server action có thể là:
-
-```text
-dashboard/lib/actions/media.actions.ts
-```
-
-Mutation path:
-
-```text
-Client button -> Server Action -> TaskRepository.createBulk -> worker -> SupabaseWriter
+  -> [BỊ BÃI BỎ] Không còn nút "Tải & Cache media lên R2"
 ```
 
 ## 9. Backfill data hiện tại

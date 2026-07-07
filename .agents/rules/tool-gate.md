@@ -1,3 +1,7 @@
+---
+trigger: manual
+---
+
 # 🚧 HOOK CỔNG CÔNG CỤ — Không Đoán Mò & Đúng Ngay Lần Đầu
 
 > Đây là HOOK chạy mỗi lượt, song song với `hooks/brainstorm-first.md`.

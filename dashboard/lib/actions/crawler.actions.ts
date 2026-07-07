@@ -12,7 +12,6 @@ import {
   getTaskLogs,
   getAccounts,
   getTaskById,
-  requestMediaCache,
 } from "@/lib/services/crawler.service";
 
 export {
@@ -24,5 +23,4 @@ export {
   getTaskLogs,
   getAccounts,
   getTaskById,
-  requestMediaCache,
 };

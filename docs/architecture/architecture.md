@@ -304,6 +304,8 @@ Worker flow:
 
 Dashboard không gọi trực tiếp crawler function trong cùng process. Dashboard chỉ tạo task và quan sát trạng thái.
 
+> **Quy tắc Kiến trúc (R2 Media Cache)**: Creative detail không được phép tạo task cache media. Media URL phải được chuẩn bị đầy đủ bởi crawler/backfill trước khi UI render. Việc bấm nút play chỉ thực hiện GET media qua browser, không tạo task mới.
+
 ## 7. Database và storage contracts
 
 ### 7.1 Bảng chuẩn hóa chính

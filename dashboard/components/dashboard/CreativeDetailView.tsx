@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getAdById, getAdvertiserById, getSimilar } from "@/lib/actions/creative.actions";
-import { requestMediaCache, getTaskById } from "@/lib/actions/crawler.actions";
 import { PlatformBadge } from "./Badges";
 import { formatNumber, timeAgo, cn } from "@/lib/utils";
 import type { CreativeAd, CreativeAdvertiser } from "@/types";
@@ -33,11 +32,6 @@ export default function CreativeDetailView({
   const [tags, setTags] = useState<string[]>(["Hot", "Viral", "Ad"]);
   const [newTag, setNewTag] = useState("");
   const [isAddingTag, setIsAddingTag] = useState(false);
-
-  // States for R2 Media Caching
-  const [cacheStatus, setCacheStatus] = useState<"idle" | "pending" | "caching" | "success" | "error">("idle");
-  const [cacheError, setCacheError] = useState<string | null>(null);
-  const [cacheTaskId, setCacheTaskId] = useState<string | null>(null);
 
   const loadDetail = useCallback(async (showLoading = true) => {
     if (!id) return;
@@ -82,56 +76,6 @@ export default function CreativeDetailView({
       });
     }
   }, [creative]);
-
-  const handleCacheMedia = async () => {
-    if (!creative) return;
-    setCacheStatus("pending");
-    setCacheError(null);
-
-    try {
-      const task = await requestMediaCache(creative.platform, creative.platform_uid);
-
-      if (task && task.id) {
-        setCacheTaskId(task.id);
-        setCacheStatus("caching");
-      } else {
-        throw new Error("Không thể tạo hoặc lấy task cache.");
-      }
-    } catch (err: unknown) {
-      setCacheStatus("error");
-      const message = err instanceof Error ? err.message : "Lỗi tạo task cache";
-      setCacheError(message);
-    }
-  };
-
-  useEffect(() => {
-    if (cacheStatus !== "caching" || !cacheTaskId) return;
-
-    const intervalId = setInterval(async () => {
-      try {
-        const task = await getTaskById(cacheTaskId);
-        if (!task) return;
-
-        if (task.status === "completed") {
-          setCacheStatus("success");
-          clearInterval(intervalId);
-          await loadDetail(false);
-          setTimeout(() => {
-            setCacheStatus("idle");
-            setCacheTaskId(null);
-          }, 3000);
-        } else if (task.status === "failed") {
-          setCacheStatus("error");
-          setCacheError(task.error_message || task.metadata?.error_message || "Worker xử lý task thất bại");
-          clearInterval(intervalId);
-        }
-      } catch (err: unknown) {
-        console.error("Lỗi polling task cache:", err);
-      }
-    }, 4000);
-
-    return () => clearInterval(intervalId);
-  }, [cacheStatus, cacheTaskId, loadDetail]);
 
   const handleAddTag = (e: React.FormEvent) => {
     e.preventDefault();
@@ -206,6 +150,7 @@ export default function CreativeDetailView({
 
   const primaryMediaUrl = creative.media_urls?.[0] || "";
   const canRenderVideo = creative.media_type === "video" && primaryMediaUrl;
+  const canRenderVideoCoverFallback = creative.media_type === "video" && !primaryMediaUrl && creative.cover_url;
   const canRenderImage =
     (creative.media_type === "image" || creative.media_type === "carousel") &&
     (primaryMediaUrl || creative.cover_url);
@@ -236,6 +181,20 @@ export default function CreativeDetailView({
               </svg>
               Sao chép link
             </button>
+            {primaryMediaUrl && (
+              <a
+                href={primaryMediaUrl}
+                target="_blank"
+                rel="noreferrer"
+                download
+                className="h-8 px-3 text-xs font-semibold rounded-lg bg-card border border-border text-foreground hover:bg-muted transition-colors flex items-center gap-1.5"
+              >
+                <svg className="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                {creative.media_type === "video" ? "Tải video" : "Tải media"}
+              </a>
+            )}
             <button
               onClick={handleExport}
               className="h-8 px-3 text-xs font-semibold rounded-lg bg-card border border-border text-foreground hover:bg-muted transition-colors flex items-center gap-1.5"
@@ -258,7 +217,7 @@ export default function CreativeDetailView({
               <svg className="size-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
-              <span>Cảnh báo: Media gốc đã {creative.media_status === "expired" ? "hết hạn" : "lỗi tải"}. Vui lòng cache lại.</span>
+              <span>Cảnh báo: Media gốc đã {creative.media_status === "expired" ? "hết hạn" : "lỗi tải"}. Cần recrawl/backfill từ crawler pipeline.</span>
             </div>
           )}
 
@@ -268,12 +227,20 @@ export default function CreativeDetailView({
               src={primaryMediaUrl}
               poster={creative.cover_url}
               controls
-              muted
-              loop
               playsInline
-              preload="metadata"
+              preload="auto"
               className="max-h-[70vh] max-w-full w-auto h-auto object-contain rounded-2xl border border-border shadow-xl bg-zinc-950 dark:bg-black"
             />
+          ) : canRenderVideoCoverFallback ? (
+            <div className="relative w-full flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element -- Remote crawler media URLs are dynamic */}
+              <img
+                src={creative.cover_url}
+                alt={creative.title || "Creative cover"}
+                referrerPolicy="no-referrer"
+                className="max-h-[70vh] max-w-full w-auto h-auto object-contain rounded-2xl border border-border shadow-xl bg-zinc-950 dark:bg-black"
+              />
+            </div>
           ) : canRenderImage ? (
             <div className="relative w-full flex items-center justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element -- Remote crawler media URLs are dynamic */}
@@ -327,6 +294,20 @@ export default function CreativeDetailView({
                 </svg>
                 Sao chép link
               </button>
+              {primaryMediaUrl && (
+                <a
+                  href={primaryMediaUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  download
+                  className="h-8 px-3 text-xs font-semibold rounded-lg bg-card border border-border text-foreground hover:bg-muted transition-colors flex items-center gap-1.5 w-full justify-center"
+                >
+                  <svg className="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  {creative.media_type === "video" ? "Tải video" : "Tải media"}
+                </a>
+              )}
               <button
                 onClick={handleExport}
                 className="h-8 px-3 text-xs font-semibold rounded-lg bg-card border border-border text-foreground hover:bg-muted transition-colors flex items-center gap-1.5 w-full justify-center"
@@ -339,89 +320,7 @@ export default function CreativeDetailView({
             </div>
           )}
 
-          {/* R2 Cache Media Box */}
-          {creative.media_type === "video" && (
-            <div className="bg-card rounded-xl border border-border p-4 shadow-sm space-y-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="space-y-1">
-                  <h4 className="font-bold text-foreground text-xs">Trạng thái R2 Cache</h4>
-                  <p className="text-[10px] text-muted-foreground leading-normal">
-                    {creative.media_status === "cached" ? (
-                      <span className="text-emerald-500 font-semibold">✓ Đã cache lên Cloudflare R2 (Xem mượt & ổn định).</span>
-                    ) : creative.media_status === "failed" ? (
-                      <span className="text-amber-500 font-semibold">⚠ Cache lỗi ({creative.media_error || "terminated"}). Phát từ Bilibili CDN gốc dễ bị chặn.</span>
-                    ) : (
-                      <span className="text-zinc-500 font-semibold">⚠ Chưa được cache. Phát từ Bilibili CDN gốc dễ bị chặn/chậm.</span>
-                    )}
-                  </p>
-                </div>
-                {creative.media_status === "cached" && (
-                  <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-500">
-                    Cached
-                  </span>
-                )}
-              </div>
 
-              {cacheStatus === "idle" && creative.media_status !== "cached" && (
-                <button
-                  onClick={handleCacheMedia}
-                  className="w-full h-9 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/95 transition-colors flex items-center justify-center gap-1.5 shadow-sm font-bold"
-                >
-                  <svg className="size-3.5 fill-none stroke-[2]" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Tải & Cache media lên R2
-                </button>
-              )}
-
-              {cacheStatus === "pending" && (
-                <button
-                  disabled
-                  className="w-full h-9 text-xs font-semibold rounded-lg bg-muted text-muted-foreground transition-colors flex items-center justify-center gap-2"
-                >
-                  <span className="size-3 rounded-full border border-t-transparent border-muted-foreground animate-spin" />
-                  Đang khởi tạo task...
-                </button>
-              )}
-
-              {cacheStatus === "caching" && (
-                <div className="space-y-2">
-                  <button
-                    disabled
-                    className="w-full h-9 text-xs font-semibold rounded-lg bg-muted text-primary transition-colors flex items-center justify-center gap-2 border border-primary/20"
-                  >
-                    <span className="size-3 rounded-full border border-t-transparent border-primary animate-spin" />
-                    Đang tải & upload video (1-3 phút)...
-                  </button>
-                  <p className="text-[9px] text-center text-muted-foreground italic">Worker đang xử lý. Player sẽ tự reload khi hoàn tất.</p>
-                </div>
-              )}
-
-              {cacheStatus === "success" && (
-                <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-semibold rounded-lg text-center flex items-center justify-center gap-1.5 animate-pulse">
-                  <svg className="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                  Cache R2 hoàn tất! Đang reload...
-                </div>
-              )}
-
-              {cacheStatus === "error" && (
-                <div className="space-y-2">
-                  <div className="p-2.5 bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] rounded-lg leading-normal">
-                    <strong className="block mb-0.5 text-xs font-bold">Lỗi Cache:</strong>
-                    {cacheError}
-                  </div>
-                  <button
-                    onClick={handleCacheMedia}
-                    className="w-full h-9 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/95 transition-colors flex items-center justify-center gap-1.5 shadow-sm"
-                  >
-                    Thử lại
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
 
           {/* Platform & Author info */}
           <div className="bg-card rounded-xl border border-border p-4 shadow-sm flex items-center justify-between gap-4">
