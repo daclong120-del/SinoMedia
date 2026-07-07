@@ -369,10 +369,16 @@ export async function bilibiliGet(
  * # Tải xuống file media (video/audio) và trả về Buffer
  */
 export async function downloadMedia(url: string): Promise<Buffer> {
+  const headers = {
+    "User-Agent": activeUserAgent,
+    "Referer": "https://www.bilibili.com/",
+  };
+
   const inst = await getImpitInstance();
   if (inst) {
     const response = await inst.fetch(url, {
       method: "GET",
+      headers,
     });
     if (!response.ok) {
       throw new Error(`Không thể tải media qua impit từ ${url}, mã HTTP: ${response.status}`);
@@ -382,6 +388,7 @@ export async function downloadMedia(url: string): Promise<Buffer> {
   } else {
     const fetchOpts: any = {
       method: "GET",
+      headers,
     };
     if (dispatcher) {
       fetchOpts.dispatcher = dispatcher;

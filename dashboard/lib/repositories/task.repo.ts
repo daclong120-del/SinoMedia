@@ -36,6 +36,17 @@ export class TaskRepository {
     return (data as Pick<TableRow<"crawler_tasks">, "id" | "status">[]) ?? [];
   }
 
+  /** Lấy một task theo ID */
+  async findById(id: string): Promise<TableRow<"crawler_tasks"> | null> {
+    const { data, error } = await this.db
+      .from("crawler_tasks")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  }
+
   /** Tạo task mới */
   async create(input: CreateTaskInput): Promise<TableRow<"crawler_tasks">> {
     const { data, error } = await this.db

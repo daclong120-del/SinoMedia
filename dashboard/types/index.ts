@@ -8,7 +8,14 @@ export type TaskStatus = "scheduled" | "pending" | "running" | "completed" | "fa
 export type TaskPriority = "critical" | "high" | "normal" | "low";
 
 /** Loại cào */
-export type CrawlCommand = "creator" | "search" | "comment" | "ads";
+export type CrawlCommand =
+  | "crawl"
+  | "creator"
+  | "search"
+  | "comments"
+  | "cache_media"
+  | "comment"
+  | "ads";
 
 /** Trạng thái tài khoản */
 export type AccountStatus = "active" | "banned";
@@ -31,6 +38,7 @@ export interface CrawlerTask {
   scheduled_at: string | null;
   created_at: string;
   created_by: string;
+  error_message?: string | null;
   params?: Record<string, unknown>;
   metadata?: {
     tags?: string[];
@@ -38,6 +46,7 @@ export interface CrawlerTask {
     crawl_comments?: boolean;
     crawl_sub_comments?: boolean;
     headless?: boolean;
+    error_message?: string;
   };
 }
 

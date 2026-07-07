@@ -50,6 +50,7 @@ function mapDbTask(row: DbTask): CrawlerTask {
     scheduled_at: row.scheduled_at,
     created_at: row.created_at,
     created_by: "system",
+    error_message: row.error_message,
     metadata: (row.metadata as CrawlerTask["metadata"]) || {},
   };
 }
@@ -99,6 +100,20 @@ export async function createTask(input: CreateTaskInput): Promise<CrawlerTask> {
   const repo = new TaskRepository(db as unknown as DbClient);
   const data = await repo.create(input);
   return mapDbTask(data);
+}
+
+/** Lấy một task theo ID */
+export async function getTaskById(id: string): Promise<CrawlerTask | null> {
+  try {
+    const db = await createClientServer();
+    const repo = new TaskRepository(db as unknown as DbClient);
+    const data = await withSupabaseTimeout(repo.findById(id), "getTaskById");
+    return data ? mapDbTask(data) : null;
+  } catch (err) {
+    if (isDynamicServerUsageError(err)) throw err;
+    console.warn(`[CrawlerService] getTaskById failed for ${id}:`, err);
+    return null;
+  }
 }
 
 /** Tạo hàng loạt task qua RPC (atomic, dedup) */
@@ -157,4 +172,49 @@ export async function getAccounts(): Promise<CrawlerAccount[]> {
     console.warn("[CrawlerService] getAccounts failed; returning empty list:", err);
     return [];
   }
+}
+
+/** Tạo hoặc tái sử dụng task cache_media (Dedupe Task) */
+export async function requestMediaCache(
+  platform: Platform,
+  platformUid: string
+): Promise<CrawlerTask> {
+  const db = await createClientServer();
+  const repo = new TaskRepository(db as unknown as DbClient);
+
+  // 1. Check xem đã có task pending hoặc running cho platform, command = cache_media và target = platformUid chưa
+  const { data: existingTasks, error } = await db
+    .from("crawler_tasks")
+    .select("*")
+    .eq("platform", platform)
+    .eq("command", "cache_media")
+    .eq("target", platformUid)
+    .in("status", ["pending", "running"])
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  if (error) {
+    throw error;
+  }
+
+  const tasks = (existingTasks as unknown as DbTask[]) || [];
+  if (tasks.length > 0) {
+    console.log(`[CrawlerService] Tái sử dụng task cache_media đang hoạt động: ${tasks[0].id}`);
+    return mapDbTask(tasks[0]);
+  }
+
+  // 2. Nếu không có, tạo task mới
+  const newTask = await repo.create({
+    platform,
+    command: "cache_media",
+    target: platformUid,
+    priority: "high",
+    metadata: {
+      headless: true,
+      upload_r2: true,
+    },
+  });
+
+  console.log(`[CrawlerService] Tạo task cache_media mới: ${newTask.id}`);
+  return mapDbTask(newTask);
 }

@@ -11,6 +11,8 @@ import {
   retryTask,
   getTaskLogs,
   getAccounts,
+  getTaskById,
+  requestMediaCache,
 } from "@/lib/services/crawler.service";
 
 export {
@@ -21,4 +23,6 @@ export {
   retryTask,
   getTaskLogs,
   getAccounts,
+  getTaskById,
+  requestMediaCache,
 };
