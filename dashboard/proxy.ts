@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { supabaseResponse, user } = await updateSession(request);
   const path = request.nextUrl.pathname;
 
@@ -32,7 +32,7 @@ export async function middleware(request: NextRequest) {
   return supabaseResponse;
 }
 
-// Chỉ chạy middleware trên các dashboard routes và auth pages
+// Chỉ chạy proxy trên các dashboard routes và auth pages
 export const config = {
   matcher: [
     "/dash/:path*",

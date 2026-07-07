@@ -91,13 +91,16 @@ export default function CreativeCard({ creative, advertiserName, className, onCl
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : !mediaError && creative.cover_url ? (
-          <img
-            src={creative.cover_url}
-            alt={creative.title || "Creative Thumbnail"}
-            referrerPolicy="no-referrer"
-            onError={() => setMediaError(true)}
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element -- Remote crawler media URLs are dynamic; next/image domains are not locked yet. */}
+            <img
+              src={creative.cover_url}
+              alt={creative.title || "Creative Thumbnail"}
+              referrerPolicy="no-referrer"
+              onError={() => setMediaError(true)}
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          </>
         ) : (
           /* Mock Cover Placeholder */
           <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center select-none bg-gradient-to-br from-zinc-900 to-zinc-950 text-zinc-400 dark:text-zinc-500 transition-transform duration-500 group-hover:scale-105">

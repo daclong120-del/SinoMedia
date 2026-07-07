@@ -8,23 +8,6 @@ import { getPosts, getComments, getTags } from "@/lib/actions/data.actions";
 import { formatNumber, timeAgo, cn } from "@/lib/utils";
 import type { CrawledPost, CrawledComment } from "@/types";
 
-// Mock comments for detail view
-const mockComments = [
-  { id: "c1", content: "Bài viết chia sẻ rất chi tiết, cảm ơn bạn!", like: 342, author: "User A", created_at: "2026-07-02T12:00:00Z", replies: [] },
-  {
-    id: "c2",
-    content: "Cho mình hỏi mua sản phẩm này ở đâu uy tín ạ?",
-    like: 89,
-    author: "User B",
-    created_at: "2026-07-02T13:10:00Z",
-    replies: [
-      { id: "c2-1", content: "Bạn xem link bio của creator nhé.", like: 12, author: "User C", created_at: "2026-07-02T13:15:00Z" },
-      { id: "c2-2", content: "Mình thấy trên Douyin Mall có mall chính hãng đó.", like: 5, author: "User D", created_at: "2026-07-02T13:20:00Z" }
-    ]
-  },
-  { id: "c3", content: "Đã thử và hiệu quả thật sự nha mọi người.", like: 156, author: "User E", created_at: "2026-07-02T14:30:00Z", replies: [] }
-];
-
 function PostsPageContent() {
   const searchParams = useSearchParams();
   const authorFilterParam = searchParams.get("author");
@@ -89,7 +72,7 @@ function PostsPageContent() {
     return () => {
       active = false;
     };
-  }, [selectedPost?.id]);
+  }, [selectedPost]);
 
   // Rebuild comment tree from flat DB structure
   const commentTree = useMemo(() => {
@@ -184,7 +167,12 @@ function PostsPageContent() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Left Side: Post Feed List */}
         <div className="lg:col-span-3 space-y-3 max-h-[70vh] overflow-y-auto pr-2">
-          {filtered.map((post) => (
+          {loading ? (
+            <div className="py-20 text-center text-xs text-muted-foreground bg-card rounded-xl border border-border">
+              <div className="animate-spin size-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-3" />
+              Đang tải danh sách bài viết...
+            </div>
+          ) : filtered.map((post) => (
             <div
               key={post.id}
               onClick={() => setSelectedPost(post)}

@@ -201,12 +201,15 @@ export default function CreativeDetailView({
               className="max-h-[70vh] max-w-full w-auto h-auto object-contain rounded-2xl border border-border shadow-xl bg-zinc-950 dark:bg-black"
             />
           ) : (creative.media_type === "image" || creative.media_type === "carousel") && creative.media_urls?.[0] ? (
-            <img
-              src={creative.media_urls[0]}
-              alt={creative.title || "Creative Media"}
-              referrerPolicy="no-referrer"
-              className="max-h-[70vh] max-w-full w-auto h-auto object-contain rounded-2xl border border-border shadow-xl bg-zinc-950 dark:bg-black"
-            />
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element -- Remote crawler media URLs are dynamic; next/image domains are not locked yet. */}
+              <img
+                src={creative.media_urls[0]}
+                alt={creative.title || "Creative Media"}
+                referrerPolicy="no-referrer"
+                className="max-h-[70vh] max-w-full w-auto h-auto object-contain rounded-2xl border border-border shadow-xl bg-zinc-950 dark:bg-black"
+              />
+            </>
           ) : (
             <div className="w-full aspect-video bg-zinc-950 dark:bg-black rounded-2xl overflow-hidden flex flex-col items-center justify-center relative border border-border shadow-xl">
               <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center select-none text-zinc-400">
@@ -401,12 +404,15 @@ export default function CreativeDetailView({
               >
                 <div className="aspect-[9/16] rounded-lg bg-zinc-950 dark:bg-black overflow-hidden flex items-center justify-center text-[7px] text-zinc-500 uppercase font-bold relative">
                   {ad.cover_url ? (
-                    <img
-                      src={ad.cover_url}
-                      alt={ad.title || "Similar Creative"}
-                      referrerPolicy="no-referrer"
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element -- Remote crawler media URLs are dynamic; next/image domains are not locked yet. */}
+                      <img
+                        src={ad.cover_url}
+                        alt={ad.title || "Similar Creative"}
+                        referrerPolicy="no-referrer"
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </>
                   ) : (
                     "Thumbnail"
                   )}

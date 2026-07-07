@@ -7,6 +7,7 @@ import { PostRepository } from "@/lib/repositories/post.repo";
 import { AuthorRepository } from "@/lib/repositories/author.repo";
 import { TaskRepository } from "@/lib/repositories/task.repo";
 import { AccountRepository } from "@/lib/repositories/account.repo";
+import type { DbClient } from "@/lib/repositories/types";
 import type { Platform } from "@/types";
 
 // ─── Bảng màu platform (concern trình bày, không phải repo) ──
@@ -56,10 +57,10 @@ export interface PlatformHealthItem {
 /** Lấy tổng quan metrics cho trang Home */
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   const db = await createClientServer();
-  const postRepo = new PostRepository(db);
-  const authorRepo = new AuthorRepository(db);
-  const taskRepo = new TaskRepository(db);
-  const accountRepo = new AccountRepository(db);
+  const postRepo = new PostRepository(db as unknown as DbClient);
+  const authorRepo = new AuthorRepository(db as unknown as DbClient);
+  const taskRepo = new TaskRepository(db as unknown as DbClient);
+  const accountRepo = new AccountRepository(db as unknown as DbClient);
 
   const [totalPosts, totalAuthors, tasks, accounts] = await Promise.all([
     postRepo.count(),
@@ -83,7 +84,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
 /** Lấy phân bố bài viết theo platform (cho biểu đồ tròn) */
 export async function getPlatformDistribution(): Promise<PlatformDistItem[]> {
   const db = await createClientServer();
-  const postRepo = new PostRepository(db);
+  const postRepo = new PostRepository(db as unknown as DbClient);
   const counts = await postRepo.countByPlatform();
 
   return Object.entries(counts)
@@ -98,14 +99,14 @@ export async function getPlatformDistribution(): Promise<PlatformDistItem[]> {
 /** Lấy số bài viết theo ngày (cho biểu đồ xu hướng 7 ngày) */
 export async function getPostsPerDay(): Promise<{ date: string; count: number }[]> {
   const db = await createClientServer();
-  const postRepo = new PostRepository(db);
+  const postRepo = new PostRepository(db as unknown as DbClient);
   return postRepo.countByDay(7);
 }
 
 /** Lấy sức khỏe platform (số tài khoản active/banned) */
 export async function getPlatformHealth(): Promise<PlatformHealthItem[]> {
   const db = await createClientServer();
-  const accountRepo = new AccountRepository(db);
+  const accountRepo = new AccountRepository(db as unknown as DbClient);
   const accounts = await accountRepo.findAllWithStatus();
 
   const agg: Record<string, { active: number; banned: number; total: number }> = {};

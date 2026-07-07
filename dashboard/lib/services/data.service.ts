@@ -6,6 +6,7 @@ import { createClientServer } from "@/lib/supabase/server";
 import { PostRepository, type PostQueryOpts } from "@/lib/repositories/post.repo";
 import { AuthorRepository, type AuthorQueryOpts } from "@/lib/repositories/author.repo";
 import { CommentRepository } from "@/lib/repositories/comment.repo";
+import type { DbClient } from "@/lib/repositories/types";
 import type { CrawledPost, CrawledAuthor, CrawledComment, Platform } from "@/types";
 
 // ─── Mappers (chuyển DB row → app type) ──────────────────────
@@ -64,7 +65,7 @@ function mapDbComment(row: Record<string, unknown>): CrawledComment {
 /** Lấy danh sách bài viết đã map sang app type */
 export async function getPosts(opts?: PostQueryOpts): Promise<{ data: CrawledPost[]; total: number }> {
   const db = await createClientServer();
-  const repo = new PostRepository(db);
+  const repo = new PostRepository(db as unknown as DbClient);
   const { data, count } = await repo.findMany(opts);
   return { data: data.map(mapDbPost), total: count };
 }
@@ -72,7 +73,7 @@ export async function getPosts(opts?: PostQueryOpts): Promise<{ data: CrawledPos
 /** Lấy danh sách tác giả đã map sang app type */
 export async function getAuthors(opts?: AuthorQueryOpts): Promise<{ data: CrawledAuthor[]; total: number }> {
   const db = await createClientServer();
-  const repo = new AuthorRepository(db);
+  const repo = new AuthorRepository(db as unknown as DbClient);
   const { data, count } = await repo.findMany(opts);
   return { data: data.map(mapDbAuthor), total: count };
 }
@@ -80,7 +81,7 @@ export async function getAuthors(opts?: AuthorQueryOpts): Promise<{ data: Crawle
 /** Lấy danh sách bình luận theo bài viết */
 export async function getComments(postId: string): Promise<CrawledComment[]> {
   const db = await createClientServer();
-  const repo = new CommentRepository(db);
+  const repo = new CommentRepository(db as unknown as DbClient);
   const data = await repo.findByPostId(postId);
   return data.map(mapDbComment);
 }

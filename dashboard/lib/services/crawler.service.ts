@@ -6,6 +6,7 @@ import { createClientServer } from "@/lib/supabase/server";
 import { TaskRepository, type CreateTaskInput } from "@/lib/repositories/task.repo";
 import { AccountRepository } from "@/lib/repositories/account.repo";
 import { LogRepository } from "@/lib/repositories/log.repo";
+import type { DbClient } from "@/lib/repositories/types";
 import type { CrawlerTask, CrawlerAccount, CrawlerLogEntry, Platform } from "@/types";
 import { Database } from "@/types/supabase";
 
@@ -58,7 +59,7 @@ function mapDbLog(row: DbLog): CrawlerLogEntry {
 /** Lấy danh sách task crawler đã map sang app type */
 export async function getTasks(): Promise<CrawlerTask[]> {
   const db = await createClientServer();
-  const repo = new TaskRepository(db);
+  const repo = new TaskRepository(db as unknown as DbClient);
   const data = await repo.findAll();
   return data.map(mapDbTask);
 }
@@ -66,7 +67,7 @@ export async function getTasks(): Promise<CrawlerTask[]> {
 /** Tạo task crawler mới */
 export async function createTask(input: CreateTaskInput): Promise<CrawlerTask> {
   const db = await createClientServer();
-  const repo = new TaskRepository(db);
+  const repo = new TaskRepository(db as unknown as DbClient);
   const data = await repo.create(input);
   return mapDbTask(data);
 }
@@ -79,7 +80,7 @@ export async function createTasksBulk(tasks: CreateTaskInput[]): Promise<{
 } | null> {
   try {
     const db = await createClientServer();
-    const repo = new TaskRepository(db);
+    const repo = new TaskRepository(db as unknown as DbClient);
     return await repo.createBulk(tasks);
   } catch (err) {
     console.error("[CrawlerService] createTasksBulk thất bại:", err);
@@ -90,21 +91,21 @@ export async function createTasksBulk(tasks: CreateTaskInput[]): Promise<{
 /** Huỷ task (chuyển sang trạng thái "cancelled") */
 export async function cancelTask(id: string): Promise<void> {
   const db = await createClientServer();
-  const repo = new TaskRepository(db);
+  const repo = new TaskRepository(db as unknown as DbClient);
   await repo.updateStatus(id, "cancelled");
 }
 
 /** Thử lại task thất bại (chuyển sang trạng thái "pending") */
 export async function retryTask(id: string): Promise<void> {
   const db = await createClientServer();
-  const repo = new TaskRepository(db);
+  const repo = new TaskRepository(db as unknown as DbClient);
   await repo.updateStatus(id, "pending");
 }
 
 /** Lấy log của một task cụ thể */
 export async function getTaskLogs(taskId: string): Promise<CrawlerLogEntry[]> {
   const db = await createClientServer();
-  const repo = new LogRepository(db);
+  const repo = new LogRepository(db as unknown as DbClient);
   const data = await repo.findByTaskId(taskId);
   return data.map(mapDbLog);
 }
@@ -112,7 +113,7 @@ export async function getTaskLogs(taskId: string): Promise<CrawlerLogEntry[]> {
 /** Lấy danh sách tài khoản crawler */
 export async function getAccounts(): Promise<CrawlerAccount[]> {
   const db = await createClientServer();
-  const repo = new AccountRepository(db);
+  const repo = new AccountRepository(db as unknown as DbClient);
   const data = await repo.findAll();
   return data.map(mapDbAccount);
 }

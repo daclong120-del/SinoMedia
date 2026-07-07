@@ -6,7 +6,7 @@ import { createClientServer } from "@/lib/supabase/server";
 import { PostRepository, type PostQueryOpts } from "@/lib/repositories/post.repo";
 import { AuthorRepository } from "@/lib/repositories/author.repo";
 import type { CreativeAd, CreativeAdvertiser, Platform } from "@/types";
-import type { TableRow } from "@/lib/repositories/types";
+import type { TableRow, DbClient } from "@/lib/repositories/types";
 
 // ─── Mappers ─────────────────────────────────────────────────
 
@@ -98,8 +98,8 @@ export async function searchAds(opts: PostQueryOpts & { page?: number } = {}): P
   total: number;
 }> {
   const db = await createClientServer();
-  const postRepo = new PostRepository(db);
-  const authorRepo = new AuthorRepository(db);
+  const postRepo = new PostRepository(db as unknown as DbClient);
+  const authorRepo = new AuthorRepository(db as unknown as DbClient);
 
   const page = opts.page ?? 1;
   const limit = opts.limit ?? 20;
@@ -135,8 +135,8 @@ export async function searchAds(opts: PostQueryOpts & { page?: number } = {}): P
 /** Lấy chi tiết 1 creative ad */
 export async function getAdById(id: string): Promise<CreativeAd | null> {
   const db = await createClientServer();
-  const postRepo = new PostRepository(db);
-  const authorRepo = new AuthorRepository(db);
+  const postRepo = new PostRepository(db as unknown as DbClient);
+  const authorRepo = new AuthorRepository(db as unknown as DbClient);
 
   const row = await postRepo.findById(id);
   if (!row) return null;
@@ -157,8 +157,8 @@ export async function getAdvertisers(opts: {
   offset?: number;
 } = {}): Promise<{ data: CreativeAdvertiser[]; total: number }> {
   const db = await createClientServer();
-  const authorRepo = new AuthorRepository(db);
-  const postRepo = new PostRepository(db);
+  const authorRepo = new AuthorRepository(db as unknown as DbClient);
+  const postRepo = new PostRepository(db as unknown as DbClient);
 
   const { data: authors, count } = await authorRepo.findMany({
     platform: opts.platform,
@@ -190,8 +190,8 @@ export async function getAdvertiserById(id: string): Promise<{
   ads: CreativeAd[];
 } | null> {
   const db = await createClientServer();
-  const authorRepo = new AuthorRepository(db);
-  const postRepo = new PostRepository(db);
+  const authorRepo = new AuthorRepository(db as unknown as DbClient);
+  const postRepo = new PostRepository(db as unknown as DbClient);
 
   try {
     const author = await authorRepo.findById(id);

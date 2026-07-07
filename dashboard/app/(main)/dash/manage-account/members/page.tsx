@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { useAccount } from "@/lib/account-context";
 import {
   Search,
@@ -9,8 +8,6 @@ import {
   Users,
   Key,
   X,
-  Check,
-  ArrowUpDown,
   MoreHorizontal,
   UserPlus,
   ShieldCheck,

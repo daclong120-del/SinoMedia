@@ -5,6 +5,7 @@
 
 import { ProxyRepository, type CreateProxyInput } from "@/lib/repositories/proxy.repo";
 import { AuditRepository, type AuditEventInput, type ExportFileInput } from "@/lib/repositories/audit.repo";
+import type { DbClient } from "@/lib/repositories/types";
 import type { ProxyItem, AuditLogEntry, ExportedFile } from "@/types";
 
 // ─── Mappers ─────────────────────────────────────────────────
@@ -57,7 +58,7 @@ function mapDbExport(row: Record<string, unknown>): ExportedFile {
 export async function getProxies(): Promise<ProxyItem[]> {
   const { createClientServer } = await import("@/lib/supabase/server");
   const db = await createClientServer();
-  const repo = new ProxyRepository(db);
+  const repo = new ProxyRepository(db as unknown as DbClient);
   const data = await repo.findAll();
   return data.map(mapDbProxy);
 }
@@ -66,7 +67,7 @@ export async function getProxies(): Promise<ProxyItem[]> {
 export async function createProxies(proxies: CreateProxyInput[]): Promise<void> {
   const { createClientServer } = await import("@/lib/supabase/server");
   const db = await createClientServer();
-  const repo = new ProxyRepository(db);
+  const repo = new ProxyRepository(db as unknown as DbClient);
   await repo.createBulk(proxies);
 }
 
@@ -74,7 +75,7 @@ export async function createProxies(proxies: CreateProxyInput[]): Promise<void> 
 export async function deleteProxy(id: string): Promise<void> {
   const { createClientServer } = await import("@/lib/supabase/server");
   const db = await createClientServer();
-  const repo = new ProxyRepository(db);
+  const repo = new ProxyRepository(db as unknown as DbClient);
   await repo.deleteById(id);
 }
 
@@ -82,7 +83,7 @@ export async function deleteProxy(id: string): Promise<void> {
 export async function testProxy(id: string): Promise<ProxyItem["status"]> {
   const { createClientServer } = await import("@/lib/supabase/server");
   const db = await createClientServer();
-  const repo = new ProxyRepository(db);
+  const repo = new ProxyRepository(db as unknown as DbClient);
   return repo.testConnection(id);
 }
 
@@ -92,7 +93,7 @@ export async function testProxy(id: string): Promise<ProxyItem["status"]> {
 export async function getAuditLogs(): Promise<AuditLogEntry[]> {
   const { createClientServer } = await import("@/lib/supabase/server");
   const db = await createClientServer();
-  const repo = new AuditRepository(db);
+  const repo = new AuditRepository(db as unknown as DbClient);
   const data = await repo.getAuditLogs();
   return data.map(mapDbAuditLog);
 }
@@ -101,7 +102,7 @@ export async function getAuditLogs(): Promise<AuditLogEntry[]> {
 export async function logAuditEvent(event: AuditEventInput): Promise<void> {
   const { createClientServer } = await import("@/lib/supabase/server");
   const db = await createClientServer();
-  const repo = new AuditRepository(db);
+  const repo = new AuditRepository(db as unknown as DbClient);
   await repo.logEvent(event);
 }
 
@@ -111,7 +112,7 @@ export async function logAuditEvent(event: AuditEventInput): Promise<void> {
 export async function getExports(): Promise<ExportedFile[]> {
   const { createClientServer } = await import("@/lib/supabase/server");
   const db = await createClientServer();
-  const repo = new AuditRepository(db);
+  const repo = new AuditRepository(db as unknown as DbClient);
   const data = await repo.getExports();
   return data.map(mapDbExport);
 }
@@ -120,6 +121,6 @@ export async function getExports(): Promise<ExportedFile[]> {
 export async function logExport(file: ExportFileInput): Promise<void> {
   const { createClientServer } = await import("@/lib/supabase/server");
   const db = await createClientServer();
-  const repo = new AuditRepository(db);
+  const repo = new AuditRepository(db as unknown as DbClient);
   await repo.logExport(file);
 }

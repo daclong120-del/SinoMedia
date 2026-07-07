@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { getTags } from "@/lib/actions/data.actions";
 import { getExports } from "@/lib/actions/system.actions";
 import type { ExportedFile } from "@/types";
 import { formatNumber, formatFileSize, timeAgo } from "@/lib/utils";

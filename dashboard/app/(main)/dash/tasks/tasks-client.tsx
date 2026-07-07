@@ -62,6 +62,12 @@ export default function TasksClient({ initialTasks }: TasksClientProps) {
   const [taskLogs, setTaskLogs] = useState<CrawlerLogEntry[]>([]);
   const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
   
+  const [prevInitialTasks, setPrevInitialTasks] = useState(initialTasks);
+  if (initialTasks !== prevInitialTasks) {
+    setPrevInitialTasks(initialTasks);
+    setTasks(initialTasks);
+  }
+  
   // New task form states
   const [newPlatform, setNewPlatform] = useState("Douyin");
   const [newCategory, setNewCategory] = useState("Creator");
@@ -88,11 +94,6 @@ export default function TasksClient({ initialTasks }: TasksClientProps) {
   const tasksChannelRef = useRef<RealtimeChannel | null>(null);
   const logsChannelRef = useRef<RealtimeChannel | null>(null);
   const logsEndRef = useRef<HTMLDivElement | null>(null);
-
-  // Sync initialTasks from Server Component if it changes
-  useEffect(() => {
-    setTasks(initialTasks);
-  }, [initialTasks]);
 
   // ─── Realtime: Tasks table ─────────────────────────────────
   useEffect(() => {

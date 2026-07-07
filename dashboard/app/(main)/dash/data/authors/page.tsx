@@ -112,53 +112,60 @@ export default function AuthorsPage() {
       </div>
 
       {/* Grid List */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map((author) => (
-          <div key={author.id} className="rounded-xl border border-border bg-card p-4 flex flex-col justify-between hover:shadow-md transition-shadow">
-            <div className="space-y-3">
-              {/* Header card info */}
-              <div className="flex items-start gap-3">
-                <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-sm shrink-0 uppercase">
-                  {author.nickname.slice(0, 2)}
+      {loading ? (
+        <div className="py-20 text-center text-xs text-muted-foreground">
+          <div className="animate-spin size-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-3" />
+          Đang tải danh sách tác giả...
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.map((author) => (
+            <div key={author.id} className="rounded-xl border border-border bg-card p-4 flex flex-col justify-between hover:shadow-md transition-shadow">
+              <div className="space-y-3">
+                {/* Header card info */}
+                <div className="flex items-start gap-3">
+                  <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-sm shrink-0 uppercase">
+                    {author.nickname.slice(0, 2)}
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-xs font-bold text-card-foreground truncate leading-snug">{author.nickname}</h3>
+                    <p className="text-[10px] text-muted-foreground font-mono truncate mt-0.5">UID: {author.platform_uid}</p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <h3 className="text-xs font-bold text-card-foreground truncate leading-snug">{author.nickname}</h3>
-                  <p className="text-[10px] text-muted-foreground font-mono truncate mt-0.5">UID: {author.platform_uid}</p>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  <PlatformBadge platform={author.platform} />
+                  {author.ip_location && (
+                    <span className="text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded font-medium flex items-center gap-1">
+                      📍 {author.ip_location}
+                    </span>
+                  )}
                 </div>
+
+                <p className="text-[11px] text-muted-foreground line-clamp-2 h-8 leading-relaxed">
+                  {author.description || "Chưa có mô tả chi tiết."}
+                </p>
               </div>
 
-              <div className="flex items-center gap-2 flex-wrap">
-                <PlatformBadge platform={author.platform} />
-                {author.ip_location && (
-                  <span className="text-[10px] bg-muted text-muted-foreground px-2 py-0.5 rounded font-medium flex items-center gap-1">
-                    📍 {author.ip_location}
-                  </span>
-                )}
+              {/* Metrics & Actions */}
+              <div className="mt-4 pt-3 border-t border-border flex items-center justify-between gap-2">
+                <div className="text-[10px] leading-tight">
+                  <p className="text-muted-foreground">Người theo dõi</p>
+                  <p className="text-xs font-bold text-foreground mt-0.5 font-mono tabular-nums">{formatNumber(author.fans_count)}</p>
+                </div>
+                <Link href={`/dash/data/posts?author=${author.platform_uid}`} className="h-7 px-2.5 text-[10px] font-medium rounded bg-primary/10 text-primary hover:bg-primary/15 transition-colors flex items-center gap-1">
+                  Xem bài viết
+                </Link>
               </div>
-
-              <p className="text-[11px] text-muted-foreground line-clamp-2 h-8 leading-relaxed">
-                {author.description || "Chưa có mô tả chi tiết."}
-              </p>
             </div>
-
-            {/* Metrics & Actions */}
-            <div className="mt-4 pt-3 border-t border-border flex items-center justify-between gap-2">
-              <div className="text-[10px] leading-tight">
-                <p className="text-muted-foreground">Người theo dõi</p>
-                <p className="text-xs font-bold text-foreground mt-0.5 font-mono tabular-nums">{formatNumber(author.fans_count)}</p>
-              </div>
-              <Link href={`/dash/data/posts?author=${author.platform_uid}`} className="h-7 px-2.5 text-[10px] font-medium rounded bg-primary/10 text-primary hover:bg-primary/15 transition-colors flex items-center gap-1">
-                Xem bài viết
-              </Link>
+          ))}
+          {filtered.length === 0 && (
+            <div className="col-span-full py-16 text-center text-muted-foreground text-xs">
+              Không tìm thấy tác giả nào phù hợp với bộ lọc.
             </div>
-          </div>
-        ))}
-        {filtered.length === 0 && (
-          <div className="col-span-full py-16 text-center text-muted-foreground text-xs">
-            Không tìm thấy tác giả nào phù hợp với bộ lọc.
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
