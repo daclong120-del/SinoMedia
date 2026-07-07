@@ -222,15 +222,27 @@ export default function CreativeDetailView({
           )}
 
           {canRenderVideo ? (
-            <video
-              ref={videoRef}
-              src={primaryMediaUrl}
-              poster={creative.cover_url}
-              controls
-              playsInline
-              preload="auto"
-              className="max-h-[70vh] max-w-full w-auto h-auto object-contain rounded-2xl border border-border shadow-xl bg-zinc-950 dark:bg-black"
-            />
+            creative.platform === "bilibili" ? (
+              <iframe
+                src={`https://player.bilibili.com/player.html?bvid=${creative.platform_uid}&high_quality=1&as_wide=1&autoplay=0`}
+                scrolling="no"
+                border="0"
+                frameBorder="no"
+                framespacing="0"
+                allowFullScreen={true}
+                className="w-full aspect-video max-h-[70vh] rounded-2xl border border-border shadow-xl bg-zinc-950 dark:bg-black"
+              />
+            ) : (
+              <video
+                ref={videoRef}
+                src={primaryMediaUrl}
+                poster={creative.cover_url}
+                controls
+                playsInline
+                preload="auto"
+                className="max-h-[70vh] max-w-full w-auto h-auto object-contain rounded-2xl border border-border shadow-xl bg-zinc-950 dark:bg-black"
+              />
+            )
           ) : canRenderVideoCoverFallback ? (
             <div className="relative w-full flex items-center justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element -- Remote crawler media URLs are dynamic */}
@@ -451,7 +463,7 @@ export default function CreativeDetailView({
             <h3 className="text-sm font-bold text-foreground">Creative Tương Tự</h3>
             <p className="text-[10px] text-muted-foreground mt-0.5">Danh sách các creative cùng nền tảng hoặc nhà quảng cáo</p>
           </div>
-          
+
           <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin">
             {similarCreatives.map((ad) => (
               <div
@@ -498,7 +510,7 @@ export default function CreativeDetailView({
       <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-200">
         {/* Click outside to close */}
         <div className="absolute inset-0" onClick={onClose} />
-        
+
         <div className="relative bg-background border border-border rounded-2xl w-full max-w-[1300px] h-[90vh] flex flex-col shadow-2xl overflow-hidden z-10 animate-in zoom-in-95 duration-200">
           {/* Sticky Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/85 backdrop-blur-md sticky top-0 z-50 shrink-0">
@@ -520,7 +532,7 @@ export default function CreativeDetailView({
               </svg>
             </button>
           </div>
-          
+
           {/* Scrollable Content wrapper */}
           <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-thin">
             {renderContent()}

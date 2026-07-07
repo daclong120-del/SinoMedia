@@ -49,7 +49,20 @@ function getPostStats(row: TableRow<"crawled_posts">): PostStats {
 
 function resolveMediaUrl(value: string | null | undefined): string {
   if (!value) return "";
-  if (/^https?:\/\//i.test(value)) return value;
+  if (/^https?:\/\//i.test(value)) {
+    const lower = value.toLowerCase();
+    if (
+      lower.includes("bilibili") ||
+      lower.includes("bilivideo") ||
+      lower.includes("snssdk") ||
+      lower.includes("iesdouyin") ||
+      lower.includes("kuaishou") ||
+      lower.includes("xhscdn")
+    ) {
+      return `/api/video/proxy?url=${encodeURIComponent(value)}`;
+    }
+    return value;
+  }
   const r2PublicUrl = process.env.R2_PUBLIC_URL || 
                       process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 
                       process.env.EXPO_PUBLIC_R2_PUBLIC_URL || 
