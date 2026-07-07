@@ -34,6 +34,7 @@ export default function CreativeSearchClient({ initialData, initialFilters }: Cr
   const [isPending, startTransition] = useTransition();
 
   const viewId = searchParams.get("viewId") || "";
+  const currentQueryString = searchParams.toString();
 
   const handleCardClick = (id: string) => {
     const params = new URLSearchParams(window.location.search);
@@ -105,11 +106,17 @@ export default function CreativeSearchClient({ initialData, initialFilters }: Cr
     params.set("page", String(currentPage));
     params.set("limit", String(pageSize));
 
-    const currentViewId = searchParams.get("viewId");
+    const currentParams = new URLSearchParams(currentQueryString);
+    const currentViewId = currentParams.get("viewId");
     if (currentViewId) params.set("viewId", currentViewId);
 
+    const nextQueryString = params.toString();
+    if (nextQueryString === currentQueryString) {
+      return;
+    }
+
     startTransition(() => {
-      router.push(`?${params.toString()}`, { scroll: false });
+      router.push(`?${nextQueryString}`, { scroll: false });
     });
   }, [
     search,
@@ -120,7 +127,7 @@ export default function CreativeSearchClient({ initialData, initialFilters }: Cr
     currentPage,
     pageSize,
     router,
-    searchParams,
+    currentQueryString,
   ]);
 
   // Reset page when filters change
