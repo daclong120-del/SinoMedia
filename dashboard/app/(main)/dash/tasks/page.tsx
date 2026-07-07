@@ -1,7 +1,16 @@
 import { getTasks } from "@/lib/actions/crawler.actions";
 import TasksClient from "./tasks-client";
+import { CrawlerTask } from "@/types";
 
 export default async function TasksPage() {
-  const initialTasks = await getTasks();
-  return <TasksClient initialTasks={initialTasks} />;
+  let initialTasks: CrawlerTask[] = [];
+  let initialError: string | null = null;
+  
+  try {
+    initialTasks = await getTasks();
+  } catch (err) {
+    initialError = err instanceof Error ? err.message : String(err);
+  }
+
+  return <TasksClient initialTasks={initialTasks} initialError={initialError} />;
 }

@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { PlatformBadge, StatusBadge, PriorityBadge } from "@/components/dashboard/Badges";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
 import TagInput from "@/components/dashboard/TagInput";
-import { getTaskLogs, createTasksBulk } from "@/lib/actions/crawler.actions";
+import { getTasks, getTaskLogs, createTasksBulk, cancelTask, retryTask } from "@/lib/actions/crawler.actions";
 import { subscribeToTasks, subscribeToTaskLogs } from "@/lib/realtime/subscriptions";
 import { timeAgo, cn } from "@/lib/utils";
 import type { CrawlerTask, CrawlerLogEntry, Platform } from "@/types";
@@ -52,15 +52,17 @@ const LANGUAGE_MAP: Record<string, string> = {
 
 interface TasksClientProps {
   initialTasks: CrawlerTask[];
+  initialError?: string | null;
 }
 
-export default function TasksClient({ initialTasks }: TasksClientProps) {
+export default function TasksClient({ initialTasks, initialError }: TasksClientProps) {
   const [showModal, setShowModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [tasks, setTasks] = useState<CrawlerTask[]>(initialTasks);
   const [taskLogs, setTaskLogs] = useState<CrawlerLogEntry[]>([]);
-  const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
+  const [realtimeStatus, setRealtimeStatus] = useState<"connecting" | "subscribed" | "error">("connecting");
+  const [error, setError] = useState<string | null>(initialError || null);
   
   const [prevInitialTasks, setPrevInitialTasks] = useState(initialTasks);
   if (initialTasks !== prevInitialTasks) {
@@ -110,36 +112,118 @@ export default function TasksClient({ initialTasks }: TasksClientProps) {
           if (prev.some((t) => t.id === newTask.id)) return prev;
           return [newTask, ...prev];
         });
+      },
+      // onStatusChange
+      (status, err) => {
+        if (status === "SUBSCRIBED") {
+          setRealtimeStatus("subscribed");
+        } else if (status === "TIMED_OUT" || status === "CHANNEL_ERROR") {
+          setRealtimeStatus("error");
+          console.error("Tasks realtime subscription error:", status, err);
+        } else if (status === "CLOSED") {
+          setRealtimeStatus("connecting");
+        }
       }
     );
 
     tasksChannelRef.current = channel;
-    const timer = setTimeout(() => setIsRealtimeConnected(true), 0);
 
     return () => {
-      clearTimeout(timer);
       channel.unsubscribe();
       tasksChannelRef.current = null;
-      setTimeout(() => setIsRealtimeConnected(false), 0);
     };
+  }, []);
+
+  const showToast = useCallback((message: string, type: "success" | "error" | "info" = "success") => {
+    setNotification({ show: true, message, type });
+    setTimeout(() => {
+      setNotification(prev => ({ ...prev, show: false }));
+    }, 6000);
   }, []);
 
   // ─── Realtime: Task Logs (per selected task) ───────────────
   const loadAndSubscribeLogs = useCallback(async (taskId: string) => {
-    // Fetch existing logs first
-    const existingLogs = await getTaskLogs(taskId);
-    setTaskLogs(existingLogs);
+    try {
+      // Fetch existing logs first
+      const existingLogs = await getTaskLogs(taskId);
+      setTaskLogs(existingLogs);
+    } catch (err) {
+      console.error("Failed to load task logs:", err);
+      showToast("Không thể tải logs của nhiệm vụ: " + (err instanceof Error ? err.message : String(err)), "error");
+    }
 
     // Subscribe to new logs
-    const channel = subscribeToTaskLogs(taskId, (newLog) => {
-      setTaskLogs((prev) => {
-        if (prev.some((l) => l.id === newLog.id)) return prev;
-        return [...prev, newLog];
-      });
-    });
+    const channel = subscribeToTaskLogs(
+      taskId, 
+      (newLog) => {
+        setTaskLogs((prev) => {
+          if (prev.some((l) => l.id === newLog.id)) return prev;
+          return [...prev, newLog];
+        });
+      },
+      (status, err) => {
+        if (status === "TIMED_OUT" || status === "CHANNEL_ERROR") {
+          console.error("Logs realtime subscription error:", status, err);
+        }
+      }
+    );
 
     logsChannelRef.current = channel;
-  }, []);
+  }, [showToast]);
+
+  // ─── Control Actions: Cancel / Retry / Refresh ───────────────
+  const handleCancelTask = async (taskId: string) => {
+    const previousTasks = [...tasks];
+    // Optimistic update
+    setTasks((prev) =>
+      prev.map((t) => (t.id === taskId ? { ...t, status: "cancelled" } : t))
+    );
+    showToast("Đang huỷ nhiệm vụ...", "info");
+
+    try {
+      await cancelTask(taskId);
+      showToast("Đã gửi lệnh huỷ nhiệm vụ.", "success");
+      const freshTasks = await getTasks();
+      setTasks(freshTasks);
+      setError(null);
+    } catch (err) {
+      showToast("Huỷ nhiệm vụ thất bại: " + (err instanceof Error ? err.message : String(err)), "error");
+      setTasks(previousTasks); // rollback
+    }
+  };
+
+  const handleRetryTask = async (taskId: string) => {
+    const previousTasks = [...tasks];
+    // Optimistic update
+    setTasks((prev) =>
+      prev.map((t) => (t.id === taskId ? { ...t, status: "pending" } : t))
+    );
+    showToast("Đang đưa nhiệm vụ vào hàng chờ chạy lại...", "info");
+
+    try {
+      await retryTask(taskId);
+      showToast("Đã đưa nhiệm vụ vào hàng chờ chạy lại thành công.", "success");
+      const freshTasks = await getTasks();
+      setTasks(freshTasks);
+      setError(null);
+    } catch (err) {
+      showToast("Không thể chạy lại nhiệm vụ: " + (err instanceof Error ? err.message : String(err)), "error");
+      setTasks(previousTasks); // rollback
+    }
+  };
+
+  const handleRefreshTasks = async () => {
+    showToast("Đang tải lại danh sách nhiệm vụ...", "info");
+    try {
+      const freshTasks = await getTasks();
+      setTasks(freshTasks);
+      setError(null);
+      showToast("Đã tải lại danh sách nhiệm vụ thành công.", "success");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+      showToast("Tải lại danh sách thất bại: " + (err instanceof Error ? err.message : String(err)), "error");
+    }
+  };
 
   useEffect(() => {
     // Cleanup previous log subscription
@@ -170,12 +254,6 @@ export default function TasksClient({ initialTasks }: TasksClientProps) {
     logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [taskLogs]);
 
-  const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
-    setNotification({ show: true, message, type });
-    setTimeout(() => {
-      setNotification(prev => ({ ...prev, show: false }));
-    }, 6000);
-  };
 
   const handleCreateTasks = async () => {
     if (!newTargets.trim()) {
@@ -261,6 +339,15 @@ export default function TasksClient({ initialTasks }: TasksClientProps) {
       setUploadR2(true);
       setShowModal(false);
       setErrorsList([]);
+
+      // Fetch fresh tasks immediately instead of relying solely on realtime
+      try {
+        const freshTasks = await getTasks();
+        setTasks(freshTasks);
+        setError(null);
+      } catch (err) {
+        console.error("Failed to sync tasks after creation:", err);
+      }
     } else {
       showToast(`Không nhiệm vụ nào được thêm mới (bỏ qua ${skipped_count} nhiệm vụ trùng).`, "info");
       if (errors && errors.length > 0) {
@@ -299,10 +386,22 @@ export default function TasksClient({ initialTasks }: TasksClientProps) {
           <h1 className="text-lg font-bold text-foreground">Chiến dịch & Nhiệm vụ cào</h1>
           <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5">
             Tạo, lên lịch và giám sát crawler tasks
-            {isRealtimeConnected && (
+            {realtimeStatus === "subscribed" && (
               <span className="inline-flex items-center gap-1 text-emerald-500">
                 <Radio size={10} className="animate-pulse" />
                 <span className="text-[10px] font-medium">Live</span>
+              </span>
+            )}
+            {realtimeStatus === "connecting" && (
+              <span className="inline-flex items-center gap-1 text-amber-500">
+                <Radio size={10} className="animate-pulse" />
+                <span className="text-[10px] font-medium text-amber-500 animate-pulse">Connecting...</span>
+              </span>
+            )}
+            {realtimeStatus === "error" && (
+              <span className="inline-flex items-center gap-1 text-red-500">
+                <Radio size={10} />
+                <span className="text-[10px] font-medium">Offline</span>
               </span>
             )}
           </p>
@@ -312,6 +411,25 @@ export default function TasksClient({ initialTasks }: TasksClientProps) {
           Tạo nhiệm vụ mới
         </button>
       </div>
+
+      {/* Database Error Banner */}
+      {error && (
+        <div className="p-4 text-xs bg-red-500/10 border border-red-500/25 text-red-500 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-200 select-text">
+          <div className="flex gap-2.5 items-start">
+            <AlertCircle size={16} className="shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-sm text-red-500">Lỗi kết nối Cơ sở dữ liệu</p>
+              <p className="mt-0.5 text-red-400/90 font-mono text-[11.5px] whitespace-pre-wrap">{error}</p>
+            </div>
+          </div>
+          <button 
+            onClick={handleRefreshTasks} 
+            className="self-start sm:self-center px-3 h-7 text-xs font-semibold rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors cursor-pointer shrink-0"
+          >
+            Thử kết nối lại
+          </button>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex items-center gap-2 flex-wrap">
@@ -395,9 +513,21 @@ export default function TasksClient({ initialTasks }: TasksClientProps) {
                   </td>
                   <td className="px-4 py-2.5 text-muted-foreground">{timeAgo(task.created_at)}</td>
                   <td className="px-4 py-2.5">
-                    <button onClick={() => setSelectedTask(task.id === selectedTask ? null : task.id)} className="text-[10px] text-primary hover:underline font-medium cursor-pointer">
-                      {task.id === selectedTask ? "Ẩn Log" : "Xem Log"}
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => setSelectedTask(task.id === selectedTask ? null : task.id)} className="text-[10px] text-primary hover:underline font-medium cursor-pointer shrink-0">
+                        {task.id === selectedTask ? "Ẩn Log" : "Xem Log"}
+                      </button>
+                      {(task.status === "pending" || task.status === "running") && (
+                        <button onClick={() => handleCancelTask(task.id)} className="text-[10px] text-red-400 hover:text-red-500 hover:underline font-medium cursor-pointer shrink-0">
+                          Huỷ
+                        </button>
+                      )}
+                      {(task.status === "failed" || task.status === "cancelled") && (
+                        <button onClick={() => handleRetryTask(task.id)} className="text-[10px] text-emerald-400 hover:text-emerald-500 hover:underline font-medium cursor-pointer shrink-0">
+                          Chạy lại
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

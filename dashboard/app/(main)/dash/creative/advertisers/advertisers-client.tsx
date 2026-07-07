@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useTransition } from "react";
+import React, { useState, useEffect, useMemo, useRef, useTransition } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PlatformBadge } from "@/components/dashboard/Badges";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
 import { formatNumber, timeAgo, cn } from "@/lib/utils";
@@ -10,6 +10,7 @@ import type { Platform, CreativeAdvertiser } from "@/types";
 
 interface AdvertisersClientProps {
   initialData: CreativeAdvertiser[];
+  initialTotal: number;
   initialFilters: {
     q: string;
     platform: Platform[];
@@ -17,14 +18,31 @@ interface AdvertisersClientProps {
   };
 }
 
-export default function AdvertisersClient({ initialData, initialFilters }: AdvertisersClientProps) {
+const ADVERTISER_PLATFORMS: Platform[] = ["douyin", "xhs", "bilibili", "weibo", "kuaishou", "zhihu", "tieba", "tiktok"];
+
+export default function AdvertisersClient({ initialData, initialTotal, initialFilters }: AdvertisersClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const isFirstRender = useRef(true);
   const [isPending, startTransition] = useTransition();
+  const currentQueryString = searchParams.toString();
 
   const [search, setSearch] = useState(initialFilters.q);
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(initialFilters.platform);
   const [sortBy, setSortBy] = useState(initialFilters.sortBy);
+
+  const [prevFilters, setPrevFilters] = useState(initialFilters);
+  const platformKey = initialFilters.platform.join(",");
+  const prevPlatformKey = prevFilters.platform.join(",");
+
+  if (initialFilters.q !== prevFilters.q || 
+      platformKey !== prevPlatformKey || 
+      initialFilters.sortBy !== prevFilters.sortBy) {
+    setPrevFilters(initialFilters);
+    setSearch(initialFilters.q);
+    setSelectedPlatforms(initialFilters.platform);
+    setSortBy(initialFilters.sortBy);
+  }
 
   // Synchronize state filters to URL
   useEffect(() => {
@@ -40,10 +58,15 @@ export default function AdvertisersClient({ initialData, initialFilters }: Adver
     }
     params.set("sortBy", sortBy);
 
+    const nextQueryString = params.toString();
+    if (nextQueryString === currentQueryString) {
+      return;
+    }
+
     startTransition(() => {
-      router.push(`?${params.toString()}`, { scroll: false });
+      router.push(`?${nextQueryString}`, { scroll: false });
     });
-  }, [search, selectedPlatforms, sortBy, router]);
+  }, [search, selectedPlatforms, sortBy, router, currentQueryString]);
 
   const togglePlatform = (p: Platform) => {
     if (selectedPlatforms.includes(p)) {
@@ -56,6 +79,35 @@ export default function AdvertisersClient({ initialData, initialFilters }: Adver
   const handleExport = () => {
     alert("Tính năng đang được phát triển: Xuất danh sách advertiser dưới dạng CSV/Excel.");
   };
+
+  const handleResetFilters = () => {
+    setSearch("");
+    setSelectedPlatforms([]);
+    setSortBy("creative_count_desc");
+  };
+
+  const displayedData = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
+    const filteredData = initialData.filter((adv) => {
+      const matchesSearch =
+        !normalizedSearch ||
+        adv.nickname.toLowerCase().includes(normalizedSearch) ||
+        adv.description.toLowerCase().includes(normalizedSearch) ||
+        adv.platform_uid.toLowerCase().includes(normalizedSearch);
+      const matchesPlatform = selectedPlatforms.length === 0 || selectedPlatforms.includes(adv.platform);
+      return matchesSearch && matchesPlatform;
+    });
+
+    return filteredData.sort((a, b) => {
+      if (sortBy === "total_views_desc") return b.total_views - a.total_views;
+      if (sortBy === "last_active_desc") {
+        return new Date(b.last_active_at).getTime() - new Date(a.last_active_at).getTime();
+      }
+      return b.creative_count - a.creative_count;
+    });
+  }, [initialData, search, selectedPlatforms, sortBy]);
+
+  const hasActiveFilters = search.trim() !== "" || selectedPlatforms.length > 0 || sortBy !== "creative_count_desc";
 
   return (
     <div className="px-4 md:px-8 py-6 max-w-[1400px] mx-auto space-y-6">
@@ -102,7 +154,7 @@ export default function AdvertisersClient({ initialData, initialFilters }: Adver
           <div className="md:col-span-2 space-y-1.5">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">Nền tảng</span>
             <div className="flex flex-wrap gap-2">
-              {(["douyin", "xhs", "bilibili", "weibo", "kuaishou", "zhihu", "tieba", "tiktok"] as Platform[]).map((p) => {
+              {ADVERTISER_PLATFORMS.map((p) => {
                 const isSelected = selectedPlatforms.includes(p);
                 return (
                   <button
@@ -138,22 +190,29 @@ export default function AdvertisersClient({ initialData, initialFilters }: Adver
               fullWidth
             />
           </div>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="h-8 px-3 rounded-lg border border-border bg-background text-xs font-semibold text-foreground hover:bg-muted transition-colors self-end sm:self-auto"
+            >
+              Xóa lọc
+            </button>
+          )}
           <div className="text-xs text-muted-foreground self-end sm:self-auto font-mono">
-            Kết quả: <span className="font-bold text-foreground">{initialData.length}</span> advertisers
+            Kết quả: <span className="font-bold text-foreground">{displayedData.length}</span>
+            {initialTotal > displayedData.length && (
+              <span className="text-muted-foreground"> / {formatNumber(initialTotal)}</span>
+            )} advertisers
           </div>
         </div>
       </div>
 
       {/* Main Table view */}
       <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
-        {isPending ? (
-          <div className="py-20 text-center text-xs text-muted-foreground">
-            <div className="animate-spin size-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-3" />
-            Đang tải danh sách advertiser...
-          </div>
-        ) : initialData.length > 0 ? (
+        {displayedData.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
+            <table className={cn("w-full text-left border-collapse text-xs transition-opacity", isPending && "opacity-70")}>
               <thead>
                 <tr className="border-b border-border/50 text-[10px] font-semibold text-muted-foreground bg-muted/20 uppercase tracking-wider">
                   <th className="p-4 w-12 text-center">Avatar</th>
@@ -167,7 +226,7 @@ export default function AdvertisersClient({ initialData, initialFilters }: Adver
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/45">
-                {initialData.map((adv) => (
+                {displayedData.map((adv) => (
                   <tr
                     key={adv.id}
                     className="hover:bg-muted/30 transition-colors group cursor-pointer"

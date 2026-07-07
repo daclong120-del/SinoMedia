@@ -228,6 +228,7 @@ export async function getAdById(id: string): Promise<CreativeAd | null> {
 /** Lấy danh sách advertisers (tác giả + thống kê bài viết) */
 export async function getAdvertisers(opts: {
   platform?: string;
+  platforms?: string[];
   search?: string;
   limit?: number;
   offset?: number;
@@ -236,31 +237,38 @@ export async function getAdvertisers(opts: {
     const db = await createClientServer();
     const authorRepo = new AuthorRepository(db as unknown as DbClient);
     const postRepo = new PostRepository(db as unknown as DbClient);
+    const platforms =
+      opts.platforms ??
+      opts.platform
+        ?.split(",")
+        .map((platform) => platform.trim())
+        .filter((platform) => platform && platform !== "all");
 
-  const { data: authors, count } = await withSupabaseTimeout(authorRepo.findMany({
-    platform: opts.platform,
-    search: opts.search,
-    limit: opts.limit ?? 100,
-    offset: opts.offset,
-  }), "getAdvertisers.findMany");
+    const { data: authors, count } = await withSupabaseTimeout(authorRepo.findMany({
+      platform: platforms && platforms.length === 1 ? platforms[0] : opts.platform,
+      platforms: platforms && platforms.length > 1 ? platforms : undefined,
+      search: opts.search,
+      limit: opts.limit ?? 100,
+      offset: opts.offset,
+    }), "getAdvertisers.findMany");
 
-  // Tính thống kê bài viết cho mỗi tác giả
-  const advertiserPromises = authors.map(async (author) => {
-    const { data: posts } = await withSupabaseTimeout(
-      postRepo.findByAuthorId(author.id, 1000),
-      "getAdvertisers.findByAuthorId"
-    );
-    let totalViews = 0;
-    let totalLikes = 0;
-    posts.forEach((p) => {
-      const stats = getPostStats(p);
-      totalViews += stats.play_count || stats.view_count || 0;
-      totalLikes += stats.like_count || 0;
+    // Tính thống kê bài viết cho mỗi tác giả
+    const advertiserPromises = authors.map(async (author) => {
+      const { data: posts } = await withSupabaseTimeout(
+        postRepo.findByAuthorId(author.id, 1000),
+        "getAdvertisers.findByAuthorId"
+      );
+      let totalViews = 0;
+      let totalLikes = 0;
+      posts.forEach((p) => {
+        const stats = getPostStats(p);
+        totalViews += stats.play_count || stats.view_count || 0;
+        totalLikes += stats.like_count || 0;
+      });
+      return mapAuthorToAdvertiser(author, posts.length, totalViews, totalLikes);
     });
-    return mapAuthorToAdvertiser(author, posts.length, totalViews, totalLikes);
-  });
 
-  const data = await Promise.all(advertiserPromises);
+    const data = await Promise.all(advertiserPromises);
     return { data, total: count };
   } catch (err) {
     if (isDynamicServerUsageError(err)) throw err;

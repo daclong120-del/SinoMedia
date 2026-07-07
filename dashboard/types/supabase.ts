@@ -34,6 +34,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_tokens: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          role_id: string | null
+          token_hash: string
+          token_prefix: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          role_id?: string | null
+          token_hash: string
+          token_prefix: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          role_id?: string | null
+          token_hash?: string
+          token_prefix?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_tokens_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "api_tokens_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "team_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -1117,6 +1162,168 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id: string
+          name?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string | null
+        }
+        Relationships: []
+      }
+      team_invitations: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          role_id: string | null
+          token: string
+          workspace_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          role_id?: string | null
+          token: string
+          workspace_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          role_id?: string | null
+          token?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_invitations_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "team_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_invitations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_members: {
+        Row: {
+          created_at: string
+          id: string
+          role_id: string | null
+          status: string
+          user_id: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role_id?: string | null
+          status?: string
+          user_id?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role_id?: string | null
+          status?: string
+          user_id?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "team_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_role_permissions: {
+        Row: {
+          permission: string
+          role_id: string
+        }
+        Insert: {
+          permission: string
+          role_id: string
+        }
+        Update: {
+          permission?: string
+          role_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_role_permissions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "team_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_roles: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_locked: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id: string
+          is_locked?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_locked?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
       tieba_comment: {
         Row: {
           add_ts: number | null
@@ -1450,6 +1657,24 @@ export type Database = {
           profile_url?: string | null
           sub_comment_count?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      workspaces: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -1832,6 +2057,7 @@ export type Database = {
     Functions: {
       claim_next_crawler_task: { Args: never; Returns: Json }
       create_crawler_tasks: { Args: { p_tasks: Json }; Returns: Json }
+      is_admin: { Args: { user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
@@ -1967,4 +2193,11 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
+import { type SupabaseClient } from "@supabase/supabase-js";
+export type DbClient = SupabaseClient<Database>;
+export type TableRow<T extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][T]["Row"];
+export type TableInsert<T extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][T]["Insert"];
+export type TableUpdate<T extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][T]["Update"];
+
 

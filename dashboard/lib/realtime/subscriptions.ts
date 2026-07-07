@@ -42,6 +42,7 @@ function mapDbLog(row: Record<string, unknown>): CrawlerLogEntry {
 export function subscribeToTasks(
   onUpdate: (task: CrawlerTask) => void,
   onInsert?: (task: CrawlerTask) => void,
+  onStatusChange?: (status: "SUBSCRIBED" | "TIMED_OUT" | "CLOSED" | "CHANNEL_ERROR", err?: Error) => void,
 ): RealtimeChannel {
   const supabase = createClientBrowser();
 
@@ -63,7 +64,11 @@ export function subscribeToTasks(
         }
       },
     )
-    .subscribe();
+    .subscribe((status, err) => {
+      if (onStatusChange) {
+        onStatusChange(status as "SUBSCRIBED" | "TIMED_OUT" | "CLOSED" | "CHANNEL_ERROR", err);
+      }
+    });
 
   return channel;
 }
@@ -75,6 +80,7 @@ export function subscribeToTasks(
 export function subscribeToTaskLogs(
   taskId: string,
   onNewLog: (log: CrawlerLogEntry) => void,
+  onStatusChange?: (status: "SUBSCRIBED" | "TIMED_OUT" | "CLOSED" | "CHANNEL_ERROR", err?: Error) => void,
 ): RealtimeChannel {
   const supabase = createClientBrowser();
 
@@ -92,7 +98,11 @@ export function subscribeToTaskLogs(
         onNewLog(mapDbLog(payload.new as Record<string, unknown>));
       },
     )
-    .subscribe();
+    .subscribe((status, err) => {
+      if (onStatusChange) {
+        onStatusChange(status as "SUBSCRIBED" | "TIMED_OUT" | "CLOSED" | "CHANNEL_ERROR", err);
+      }
+    });
 
   return channel;
 }

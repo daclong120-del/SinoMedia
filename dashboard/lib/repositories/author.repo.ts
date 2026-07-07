@@ -6,6 +6,7 @@ import type { DbClient, TableRow } from "./types";
 
 export interface AuthorQueryOpts {
   platform?: string;
+  platforms?: string[];
   search?: string;
   limit?: number;
   offset?: number;
@@ -26,8 +27,15 @@ export class AuthorRepository {
       .order("updated_at", { ascending: false })
       .limit(limit);
 
-    if (opts.platform && opts.platform !== "all") {
-      query = query.eq("platform", opts.platform);
+    if (opts.platforms && opts.platforms.length > 0) {
+      query = query.in("platform", opts.platforms);
+    } else if (opts.platform && opts.platform !== "all") {
+      if (opts.platform.includes(",")) {
+        const parts = opts.platform.split(",").map((p) => p.trim()).filter(Boolean);
+        query = query.in("platform", parts);
+      } else {
+        query = query.eq("platform", opts.platform);
+      }
     }
     if (opts.search) {
       query = query.ilike("nickname", `%${opts.search}%`);

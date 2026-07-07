@@ -89,8 +89,8 @@ export async function getTasks(): Promise<CrawlerTask[]> {
     return data.map(mapDbTask);
   } catch (err) {
     if (isDynamicServerUsageError(err)) throw err;
-    console.warn("[CrawlerService] getTasks failed; returning empty list:", err);
-    return [];
+    console.error("[CrawlerService] getTasks failed:", err);
+    throw err;
   }
 }
 
@@ -155,8 +155,8 @@ export async function getTaskLogs(taskId: string): Promise<CrawlerLogEntry[]> {
     return data.map(mapDbLog);
   } catch (err) {
     if (isDynamicServerUsageError(err)) throw err;
-    console.warn("[CrawlerService] getTaskLogs failed; returning empty list:", err);
-    return [];
+    console.error(`[CrawlerService] getTaskLogs failed for task ${taskId}:`, err);
+    throw err;
   }
 }
 

@@ -35,6 +35,7 @@ export default async function AdvertisersPage({
     <Suspense fallback={<div className="p-8 text-center text-xs text-muted-foreground">Đang tải phân tích advertiser...</div>}>
       <AdvertisersClient
         initialData={sortedData}
+        initialTotal={result.total}
         initialFilters={{
           q,
           platform,
