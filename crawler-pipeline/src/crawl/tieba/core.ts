@@ -91,6 +91,11 @@ async function persistPost(note: TiebaNote, authorUuid?: string): Promise<string
     },
     raw: note,
     published_at: note.publish_time || new Date().toISOString(),
+    media_type: "unknown",
+    original_media_urls: [],
+    original_cover_url: undefined,
+    media_status: "unavailable",
+    media_source: "none",
   };
 
   await upsertPost(postData);

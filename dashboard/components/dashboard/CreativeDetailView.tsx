@@ -146,6 +146,12 @@ export default function CreativeDetailView({
     );
   }
 
+  const primaryMediaUrl = creative.media_urls?.[0] || "";
+  const canRenderVideo = creative.media_type === "video" && primaryMediaUrl;
+  const canRenderImage =
+    (creative.media_type === "image" || creative.media_type === "carousel") &&
+    (primaryMediaUrl || creative.cover_url);
+
   const renderContent = () => (
     <>
       {/* Back button & Action buttons (only when NOT inside modal) */}
@@ -189,27 +195,37 @@ export default function CreativeDetailView({
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
         {/* Left Side: Media Player (60% width span) */}
         <div className="lg:col-span-3 flex flex-col items-center justify-center relative group w-full max-h-[70vh]">
-          {creative.media_type === "video" && creative.media_urls?.[0] ? (
+          {(creative.media_status === "failed" || creative.media_status === "expired") && (
+            <div className="absolute top-4 left-4 right-4 z-10 bg-amber-500/90 text-black p-2.5 rounded-lg text-xs font-semibold backdrop-blur-sm flex items-center gap-2 shadow-lg">
+              <svg className="size-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>Cảnh báo: Media gốc đã {creative.media_status === "expired" ? "hết hạn" : "lỗi tải"}. Vui lòng cache lại.</span>
+            </div>
+          )}
+
+          {canRenderVideo ? (
             <video
               ref={videoRef}
-              src={creative.media_urls[0]}
+              src={primaryMediaUrl}
               poster={creative.cover_url}
               controls
-              autoPlay
+              muted
               loop
               playsInline
+              preload="metadata"
               className="max-h-[70vh] max-w-full w-auto h-auto object-contain rounded-2xl border border-border shadow-xl bg-zinc-950 dark:bg-black"
             />
-          ) : (creative.media_type === "image" || creative.media_type === "carousel") && creative.media_urls?.[0] ? (
-            <>
-              {/* eslint-disable-next-line @next/next/no-img-element -- Remote crawler media URLs are dynamic; next/image domains are not locked yet. */}
+          ) : canRenderImage ? (
+            <div className="relative w-full flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element -- Remote crawler media URLs are dynamic */}
               <img
-                src={creative.media_urls[0]}
+                src={primaryMediaUrl || creative.cover_url}
                 alt={creative.title || "Creative Media"}
                 referrerPolicy="no-referrer"
                 className="max-h-[70vh] max-w-full w-auto h-auto object-contain rounded-2xl border border-border shadow-xl bg-zinc-950 dark:bg-black"
               />
-            </>
+            </div>
           ) : (
             <div className="w-full aspect-video bg-zinc-950 dark:bg-black rounded-2xl overflow-hidden flex flex-col items-center justify-center relative border border-border shadow-xl">
               <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center select-none text-zinc-400">

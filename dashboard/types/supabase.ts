@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -353,7 +353,7 @@ export type Database = {
           fans_count?: number | null
           follows_count?: number | null
           gender?: string | null
-          id?: string
+          id: string
           interaction_count?: number | null
           ip_location?: string | null
           nickname?: string | null
@@ -438,7 +438,14 @@ export type Database = {
           crawled_at: string
           id: string
           language: string | null
+          media_cached_at: string | null
+          media_error: string | null
+          media_source: string | null
+          media_status: string | null
+          media_type: string | null
           media_urls: string[] | null
+          original_cover_url: string | null
+          original_media_urls: string[] | null
           platform: string
           platform_id: string | null
           published_at: string | null
@@ -451,9 +458,16 @@ export type Database = {
           caption?: string | null
           cover_url?: string | null
           crawled_at?: string
-          id?: string
+          id: string
           language?: string | null
+          media_cached_at?: string | null
+          media_error?: string | null
+          media_source?: string | null
+          media_status?: string | null
+          media_type?: string | null
           media_urls?: string[] | null
+          original_cover_url?: string | null
+          original_media_urls?: string[] | null
           platform: string
           platform_id?: string | null
           published_at?: string | null
@@ -468,7 +482,14 @@ export type Database = {
           crawled_at?: string
           id?: string
           language?: string | null
+          media_cached_at?: string | null
+          media_error?: string | null
+          media_source?: string | null
+          media_status?: string | null
+          media_type?: string | null
           media_urls?: string[] | null
+          original_cover_url?: string | null
+          original_media_urls?: string[] | null
           platform?: string
           platform_id?: string | null
           published_at?: string | null

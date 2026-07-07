@@ -159,59 +159,134 @@ export async function persistBilibiliVideo(
     });
   }
 
-  const mediaUrlsR2: string[] = [];
-  let coverUrlR2 = "";
-
-  const picUrl = view.pic;
-  if (picUrl) {
+  // 1. Xác định media type và URL gốc
+  const mediaType = "video";
+  const originalCoverUrl = view.pic || "";
+  const originalMediaUrls: string[] = [];
+  
+  let playUrl = "";
+  const cid = view.cid;
+  const aid = view.aid;
+  if (cid && aid) {
     try {
-      const exists = await checkMediaExistsInR2("bilibili", bvid, "cover.jpg");
-      if (exists) {
-        coverUrlR2 = `bilibili/${bvid}/cover.jpg`;
-      } else {
-        const coverBuf = await downloadMedia(picUrl);
-        coverUrlR2 = await uploadMediaToR2("bilibili", bvid, "cover.jpg", coverBuf, "image/jpeg");
-      }
-    } catch {}
-  }
-
-  if (process.env.ENABLE_GET_MEIDAS === "true") {
-    const cid = view.cid;
-    const aid = view.aid;
-    if (cid && aid) {
-      try {
-        const exists = await checkMediaExistsInR2("bilibili", bvid, "video.mp4");
-        if (exists) {
-          mediaUrlsR2.push(`bilibili/${bvid}/video.mp4`);
-        } else {
-          const playUrlRes = await bilibiliGet("/x/player/wbi/playurl", {
-            avid: aid,
-            cid: cid,
-            qn: 80,
-            fourk: 1,
-            fnval: 1,
-            platform: "pc"
-          }, true);
-          const durl = playUrlRes.durl;
-          let maxUrl = "";
-          let maxSize = -1;
-          if (durl && Array.isArray(durl)) {
-            for (const item of durl) {
-              if (item.size > maxSize) {
-                maxSize = item.size;
-                maxUrl = item.url;
-              }
-            }
-          }
-          if (maxUrl) {
-            const videoBuf = await downloadMedia(maxUrl);
-            const videoKey = await uploadMediaToR2("bilibili", bvid, "video.mp4", videoBuf, "video/mp4");
-            mediaUrlsR2.push(videoKey);
+      const playUrlRes = await bilibiliGet("/x/player/wbi/playurl", {
+        avid: aid,
+        cid: cid,
+        qn: 80,
+        fourk: 1,
+        fnval: 1,
+        platform: "pc"
+      }, true);
+      const durl = playUrlRes.durl;
+      let maxUrl = "";
+      let maxSize = -1;
+      if (durl && Array.isArray(durl)) {
+        for (const item of durl) {
+          if (item.size > maxSize) {
+            maxSize = item.size;
+            maxUrl = item.url;
           }
         }
-      } catch (err) {
-        console.log(`Lỗi tải video Bilibili: ${(err as Error).message}`);
       }
+      if (maxUrl) {
+        playUrl = maxUrl;
+        originalMediaUrls.push(playUrl);
+      }
+    } catch (err) {
+      console.log(`Lỗi lấy link playurl Bilibili: ${(err as Error).message}`);
+    }
+  }
+
+  // 2. Xử lý R2 cache
+  const mediaUrls: string[] = [];
+  let coverUrl = originalCoverUrl;
+  
+  const uploadR2Enabled = process.env.ENABLE_UPLOAD_R2 !== "false";
+  let mediaSource = "original";
+  let mediaStatus = "original_only";
+  let mediaError: string | null = null;
+  let mediaCachedAt: string | null = null;
+
+  if (uploadR2Enabled) {
+    let totalToUpload = 0;
+    let successUploads = 0;
+
+    try {
+      mediaSource = "r2";
+      
+      // Xử lý cover R2
+      if (originalCoverUrl) {
+        totalToUpload++;
+        const exists = await checkMediaExistsInR2("bilibili", bvid, "cover.jpg");
+        if (exists) {
+          coverUrl = `bilibili/${bvid}/cover.jpg`;
+          successUploads++;
+        } else {
+          const coverBuf = await downloadMedia(originalCoverUrl);
+          const r2CoverKey = await uploadMediaToR2("bilibili", bvid, "cover.jpg", coverBuf, "image/jpeg");
+          if (r2CoverKey) {
+            coverUrl = r2CoverKey;
+            successUploads++;
+          }
+        }
+      }
+      
+      // Xử lý video R2 (chỉ khi ENABLE_GET_MEIDAS === "true")
+      if (process.env.ENABLE_GET_MEIDAS === "true" && playUrl) {
+        totalToUpload++;
+        const exists = await checkMediaExistsInR2("bilibili", bvid, "video.mp4");
+        if (exists) {
+          mediaUrls.push(`bilibili/${bvid}/video.mp4`);
+          successUploads++;
+        } else {
+          const videoBuf = await downloadMedia(playUrl);
+          const videoKey = await uploadMediaToR2("bilibili", bvid, "video.mp4", videoBuf, "video/mp4");
+          if (videoKey) {
+            mediaUrls.push(videoKey);
+            successUploads++;
+          }
+        }
+      } else if (playUrl) {
+        mediaUrls.push(playUrl);
+      }
+
+      // Đánh giá trạng thái thực tế sau upload
+      if (totalToUpload === 0) {
+        mediaSource = "none";
+        mediaStatus = "unavailable";
+      } else if (successUploads === totalToUpload) {
+        mediaStatus = "cached";
+        mediaCachedAt = new Date().toISOString();
+      } else if (successUploads === 0) {
+        mediaSource = "original";
+        mediaStatus = "failed";
+        mediaError = "Không có media nào upload thành công lên R2";
+        mediaUrls.length = 0;
+        if (playUrl) mediaUrls.push(playUrl);
+        coverUrl = originalCoverUrl;
+      } else {
+        mediaSource = "mixed";
+        mediaStatus = "cached";
+        mediaCachedAt = new Date().toISOString();
+      }
+
+    } catch (err: any) {
+      mediaSource = "original";
+      mediaStatus = "failed";
+      mediaError = err.message || "Lỗi upload R2";
+      
+      mediaUrls.length = 0;
+      if (playUrl) mediaUrls.push(playUrl);
+      coverUrl = originalCoverUrl;
+    }
+  } else {
+    if (playUrl) mediaUrls.push(playUrl);
+    if (!playUrl && !originalCoverUrl) {
+      mediaSource = "none";
+      mediaStatus = "unavailable";
+    } else {
+      mediaSource = "original";
+      mediaStatus = "original_only";
     }
   }
 
@@ -223,8 +298,8 @@ export async function persistBilibiliVideo(
     platform_id: bvid,
     author_id: authorUuid,
     caption: view.desc || view.title || "",
-    media_urls: mediaUrlsR2,
-    cover_url: coverUrlR2 || undefined,
+    media_urls: mediaUrls,
+    cover_url: coverUrl || undefined,
     stats: {
       digg_count: stat.like ?? 0,
       comment_count: stat.reply ?? 0,
@@ -233,6 +308,13 @@ export async function persistBilibiliVideo(
     },
     raw: detailRes,
     published_at: publishedAt,
+    media_type: mediaType,
+    original_media_urls: originalMediaUrls,
+    original_cover_url: originalCoverUrl || undefined,
+    media_status: mediaStatus,
+    media_source: mediaSource,
+    media_error: mediaError,
+    media_cached_at: mediaCachedAt || undefined,
   };
 
   if (!options?.skipDbWrite) {

@@ -164,18 +164,76 @@ export async function crawlDetail(
     });
   }
 
-  let coverUrlR2 = "";
-  const coverUrl = contentObj.thumbnail || contentObj.imageUrl || contentObj.image_url;
-  if (coverUrl) {
+  // 1. Xác định media type và URL gốc
+  const mediaType = "image";
+  const originalCoverUrl = contentObj.thumbnail || contentObj.imageUrl || contentObj.image_url || "";
+  const originalMediaUrls: string[] = [];
+
+  // 2. Xử lý R2 cache
+  let coverUrl = originalCoverUrl;
+  const mediaUrls: string[] = [];
+
+  const uploadR2Enabled = process.env.ENABLE_UPLOAD_R2 !== "false";
+  let mediaSource = "original";
+  let mediaStatus = "original_only";
+  let mediaError: string | null = null;
+  let mediaCachedAt: string | null = null;
+
+  if (uploadR2Enabled) {
+    let totalToUpload = 0;
+    let successUploads = 0;
+
     try {
-      const exists = await checkMediaExistsInR2("zhihu", id, "cover.jpg");
-      if (exists) {
-        coverUrlR2 = `zhihu/${id}/cover.jpg`;
-      } else {
-        const coverBuf = await downloadMedia(coverUrl);
-        coverUrlR2 = await uploadMediaToR2("zhihu", id, "cover.jpg", coverBuf, "image/jpeg");
+      mediaSource = "r2";
+      if (originalCoverUrl) {
+        totalToUpload++;
+        const exists = await checkMediaExistsInR2("zhihu", id, "cover.jpg");
+        if (exists) {
+          coverUrl = `zhihu/${id}/cover.jpg`;
+          successUploads++;
+        } else {
+          const coverBuf = await downloadMedia(originalCoverUrl);
+          const r2CoverKey = await uploadMediaToR2("zhihu", id, "cover.jpg", coverBuf, "image/jpeg");
+          if (r2CoverKey) {
+            coverUrl = r2CoverKey;
+            successUploads++;
+          }
+        }
       }
-    } catch {}
+
+      // Đánh giá trạng thái thực tế sau upload
+      if (totalToUpload === 0) {
+        mediaSource = "none";
+        mediaStatus = "unavailable";
+      } else if (successUploads === totalToUpload) {
+        mediaStatus = "cached";
+        mediaCachedAt = new Date().toISOString();
+      } else if (successUploads === 0) {
+        mediaSource = "original";
+        mediaStatus = "failed";
+        mediaError = "Không có cover nào upload thành công lên R2";
+        coverUrl = originalCoverUrl;
+      } else {
+        mediaSource = "mixed";
+        mediaStatus = "cached";
+        mediaCachedAt = new Date().toISOString();
+      }
+
+    } catch (e: any) {
+      console.log(`[ZhihuCrawler] Lỗi upload cover R2 cho bài viết ${id}:`, e);
+      mediaSource = "original";
+      mediaStatus = "failed";
+      mediaError = e.message || "Lỗi upload R2";
+      coverUrl = originalCoverUrl;
+    }
+  } else {
+    if (!originalCoverUrl) {
+      mediaSource = "none";
+      mediaStatus = "unavailable";
+    } else {
+      mediaSource = "original";
+      mediaStatus = "original_only";
+    }
   }
 
   const publishedAt = contentObj.createdTime || contentObj.created || Math.floor(Date.now() / 1000);
@@ -186,8 +244,8 @@ export async function crawlDetail(
     platform_id: id,
     author_id: authorUuid,
     caption,
-    media_urls: [],
-    cover_url: coverUrlR2 || undefined,
+    media_urls: mediaUrls,
+    cover_url: coverUrl || undefined,
     stats: {
       digg_count: contentObj.voteupCount || contentObj.voteup_count || 0,
       comment_count: contentObj.commentCount || contentObj.comment_count || 0,
@@ -196,6 +254,13 @@ export async function crawlDetail(
     },
     raw: contentObj,
     published_at: new Date(publishedAt * 1000).toISOString(),
+    media_type: mediaType,
+    original_media_urls: originalMediaUrls,
+    original_cover_url: originalCoverUrl || undefined,
+    media_status: mediaStatus,
+    media_source: mediaSource,
+    media_error: mediaError,
+    media_cached_at: mediaCachedAt || undefined,
   };
 
   if (!options?.skipDbWrite) {

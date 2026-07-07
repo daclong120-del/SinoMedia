@@ -25,6 +25,13 @@ export interface CrawledPostRow {
   published_at?: string;
   tags?: string[];
   language?: string;
+  media_type?: string;
+  original_media_urls?: string[];
+  original_cover_url?: string;
+  media_status?: string;
+  media_source?: string;
+  media_error?: string | null;
+  media_cached_at?: string;
 }
 
 export interface CrawledCommentRow {

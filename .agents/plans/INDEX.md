@@ -22,6 +22,8 @@
 | refactor-auth-layer | refactor | ✅ xong | 2/2 phase |
 | refactor-frontend-supabase | refactor | ✅ xong | 8/8 phase |
 | debug-creative-infinite-render | debug | ✅ xong | - |
+| refactor-creative-media | refactor | ✅ xong | 5/5 phase |
+| debug-creative-media-findings | debug | ✅ xong | - |
 
 
 > Marker: ⏳ chưa · 🔄 đang làm · ✅ xong · ⛔ chặn

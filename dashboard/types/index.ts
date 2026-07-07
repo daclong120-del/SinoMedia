@@ -188,7 +188,7 @@ export interface CreativeAd {
   title: string;
   caption: string;
   cover_url: string;
-  media_type: "video" | "image" | "carousel";
+  media_type: "video" | "image" | "carousel" | "unknown";
   like_count: number;
   view_count: number;
   comment_count: number;
@@ -201,5 +201,10 @@ export interface CreativeAd {
   growth_rate: number;
   views_history: { date: string; count: number }[];
   author?: CreativeAdvertiser | null;
+  original_media_urls?: string[];
+  original_cover_url?: string;
+  media_status?: "original_only" | "cached" | "failed" | "expired" | "unavailable" | "unknown";
+  media_source?: "original" | "r2" | "mixed" | "none";
+  media_error?: string | null;
 }
 

@@ -169,54 +169,157 @@ export async function persistAweme(
     });
   }
 
-  const mediaUrlsR2: string[] = [];
-  let coverUrlR2 = "";
+  // 1. Xác định media type
+  let mediaType = "unknown";
+  if (detail.video) {
+    mediaType = "video";
+  } else if (detail.images && Array.isArray(detail.images)) {
+    mediaType = detail.images.length > 1 ? "carousel" : "image";
+  } else {
+    mediaType = "image";
+  }
+
+  // 2. Thu thập original URLs
+  const originalMediaUrls: string[] = [];
+  let originalCoverUrl = "";
 
   if (detail.video) {
     const videoUrl = detail.video.play_addr?.url_list?.[0];
-    if (videoUrl) {
-      try {
-        const exists = await checkMediaExistsInR2("douyin", awemeId, "video.mp4");
-        if (exists) {
-          mediaUrlsR2.push(`douyin/${awemeId}/video.mp4`);
-        } else {
-          const videoBuf = await downloadMedia(videoUrl);
-          const videoKey = await uploadMediaToR2("douyin", awemeId, "video.mp4", videoBuf, "video/mp4");
-          mediaUrlsR2.push(videoKey);
-        }
-      } catch {}
-    }
-
-    const coverUrl = detail.video.cover?.url_list?.[0];
-    if (coverUrl) {
-      try {
-        const exists = await checkMediaExistsInR2("douyin", awemeId, "cover.jpg");
-        if (exists) {
-          coverUrlR2 = `douyin/${awemeId}/cover.jpg`;
-        } else {
-          const coverBuf = await downloadMedia(coverUrl);
-          coverUrlR2 = await uploadMediaToR2("douyin", awemeId, "cover.jpg", coverBuf, "image/jpeg");
-        }
-      } catch {}
-    }
+    if (videoUrl) originalMediaUrls.push(videoUrl);
+    
+    const coverUrlVal = detail.video.cover?.url_list?.[0];
+    if (coverUrlVal) originalCoverUrl = coverUrlVal;
   }
 
   if (detail.images && Array.isArray(detail.images)) {
-    for (let i = 0; i < detail.images.length; i++) {
-      const imgUrl = detail.images[i].display_image_width_goods?.url_list?.[0] || detail.images[i].url_list?.[0];
+    for (const img of detail.images) {
+      const imgUrl = img.display_image_width_goods?.url_list?.[0] || img.url_list?.[0];
       if (imgUrl) {
-        try {
-          const filename = `image_${i}.jpg`;
-          const exists = await checkMediaExistsInR2("douyin", awemeId, filename);
-          if (exists) {
-            mediaUrlsR2.push(`douyin/${awemeId}/${filename}`);
-          } else {
-            const imgBuf = await downloadMedia(imgUrl);
-            const imgKey = await uploadMediaToR2("douyin", awemeId, filename, imgBuf, "image/jpeg");
-            mediaUrlsR2.push(imgKey);
-          }
-        } catch {}
+        originalMediaUrls.push(imgUrl);
       }
+    }
+    if (originalMediaUrls.length > 0 && !originalCoverUrl) {
+      originalCoverUrl = originalMediaUrls[0];
+    }
+  }
+
+  // 3. Xử lý R2 cache
+  const mediaUrls: string[] = [];
+  let coverUrl = originalCoverUrl;
+  
+  const uploadR2Enabled = process.env.ENABLE_UPLOAD_R2 !== "false";
+  let mediaSource = "original";
+  let mediaStatus = "original_only";
+  let mediaError: string | null = null;
+  let mediaCachedAt: string | null = null;
+
+  if (uploadR2Enabled) {
+    let totalToUpload = 0;
+    let successUploads = 0;
+
+    try {
+      mediaSource = "r2";
+      
+      // Xử lý video
+      if (detail.video) {
+        const videoUrl = detail.video.play_addr?.url_list?.[0];
+        if (videoUrl) {
+          totalToUpload++;
+          const exists = await checkMediaExistsInR2("douyin", awemeId, "video.mp4");
+          if (exists) {
+            mediaUrls.push(`douyin/${awemeId}/video.mp4`);
+            successUploads++;
+          } else {
+            const videoBuf = await downloadMedia(videoUrl);
+            const videoKey = await uploadMediaToR2("douyin", awemeId, "video.mp4", videoBuf, "video/mp4");
+            if (videoKey) {
+              mediaUrls.push(videoKey);
+              successUploads++;
+            }
+          }
+        }
+        
+        const coverUrlRaw = detail.video.cover?.url_list?.[0];
+        if (coverUrlRaw) {
+          totalToUpload++;
+          const exists = await checkMediaExistsInR2("douyin", awemeId, "cover.jpg");
+          if (exists) {
+            coverUrl = `douyin/${awemeId}/cover.jpg`;
+            successUploads++;
+          } else {
+            const coverBuf = await downloadMedia(coverUrlRaw);
+            const r2CoverKey = await uploadMediaToR2("douyin", awemeId, "cover.jpg", coverBuf, "image/jpeg");
+            if (r2CoverKey) {
+              coverUrl = r2CoverKey;
+              successUploads++;
+            }
+          }
+        }
+      }
+
+      // Xử lý images
+      if (detail.images && Array.isArray(detail.images)) {
+        for (let i = 0; i < detail.images.length; i++) {
+          const imgUrl = detail.images[i].display_image_width_goods?.url_list?.[0] || detail.images[i].url_list?.[0];
+          if (imgUrl) {
+            totalToUpload++;
+            const filename = `image_${i}.jpg`;
+            const exists = await checkMediaExistsInR2("douyin", awemeId, filename);
+            if (exists) {
+              mediaUrls.push(`douyin/${awemeId}/${filename}`);
+              successUploads++;
+            } else {
+              const imgBuf = await downloadMedia(imgUrl);
+              const imgKey = await uploadMediaToR2("douyin", awemeId, filename, imgBuf, "image/jpeg");
+              if (imgKey) {
+                mediaUrls.push(imgKey);
+                successUploads++;
+              }
+            }
+          }
+        }
+        if (mediaUrls.length > 0) {
+          coverUrl = mediaUrls[0];
+        }
+      }
+
+      // Đánh giá trạng thái thực tế sau upload
+      if (totalToUpload === 0) {
+        mediaSource = "none";
+        mediaStatus = "unavailable";
+      } else if (successUploads === totalToUpload) {
+        mediaStatus = "cached";
+        mediaCachedAt = new Date().toISOString();
+      } else if (successUploads === 0) {
+        mediaSource = "original";
+        mediaStatus = "failed";
+        mediaError = "Không có media nào upload thành công lên R2";
+        mediaUrls.length = 0;
+        mediaUrls.push(...originalMediaUrls);
+        coverUrl = originalCoverUrl;
+      } else {
+        mediaSource = "mixed";
+        mediaStatus = "cached";
+        mediaCachedAt = new Date().toISOString();
+      }
+
+    } catch (err: any) {
+      mediaSource = "original";
+      mediaStatus = "failed";
+      mediaError = err.message || "Lỗi upload R2";
+      
+      mediaUrls.length = 0;
+      mediaUrls.push(...originalMediaUrls);
+      coverUrl = originalCoverUrl;
+    }
+  } else {
+    mediaUrls.push(...originalMediaUrls);
+    if (originalMediaUrls.length === 0 && !originalCoverUrl) {
+      mediaSource = "none";
+      mediaStatus = "unavailable";
+    } else {
+      mediaSource = "original";
+      mediaStatus = "original_only";
     }
   }
 
@@ -227,8 +330,8 @@ export async function persistAweme(
     platform_id: awemeId,
     author_id: authorUuid,
     caption: detail.desc || "",
-    media_urls: mediaUrlsR2,
-    cover_url: coverUrlR2 || undefined,
+    media_urls: mediaUrls,
+    cover_url: coverUrl || undefined,
     stats: {
       digg_count: detail.statistics?.digg_count ?? 0,
       comment_count: detail.statistics?.comment_count ?? 0,
@@ -237,6 +340,13 @@ export async function persistAweme(
     },
     raw: detail,
     published_at: publishedAt,
+    media_type: mediaType,
+    original_media_urls: originalMediaUrls,
+    original_cover_url: originalCoverUrl || undefined,
+    media_status: mediaStatus,
+    media_source: mediaSource,
+    media_error: mediaError,
+    media_cached_at: mediaCachedAt || undefined,
   };
 
   if (!options?.skipDbWrite) {

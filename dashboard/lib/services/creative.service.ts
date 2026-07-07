@@ -47,6 +47,35 @@ function getPostStats(row: TableRow<"crawled_posts">): PostStats {
     : {};
 }
 
+function resolveMediaUrl(value: string | null | undefined): string {
+  if (!value) return "";
+  if (/^https?:\/\//i.test(value)) return value;
+  const r2PublicUrl = process.env.R2_PUBLIC_URL || 
+                      process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 
+                      process.env.EXPO_PUBLIC_R2_PUBLIC_URL || 
+                      "";
+  if (!r2PublicUrl) {
+    console.error(`[resolveMediaUrl] Critical Error: R2 public URL environment variable is missing. Cannot resolve R2 key: ${value}`);
+    return "";
+  }
+  return `${r2PublicUrl.replace(/\/$/, "")}/${value.replace(/^\//, "")}`;
+}
+
+function inferMediaType(row: TableRow<"crawled_posts">): CreativeAd["media_type"] {
+  const explicit = row.media_type;
+  if (explicit === "video" || explicit === "image" || explicit === "carousel" || explicit === "unknown") {
+    return explicit as CreativeAd["media_type"];
+  }
+
+  const urls = Array.isArray(row.media_urls) ? (row.media_urls as string[]) : [];
+  const firstUrl = urls[0] ?? "";
+
+  if (/\.(mp4|webm|mov|m3u8)(\?|$)/i.test(firstUrl)) return "video";
+  if (urls.length > 1) return "carousel";
+  if (firstUrl || row.cover_url) return "image";
+  return "unknown";
+}
+
 function mapPostToCreativeAd(row: TableRow<"crawled_posts">, author?: TableRow<"crawled_authors"> | null): CreativeAd {
   const stats = getPostStats(row);
   const views = stats.play_count || stats.view_count || 0;
@@ -64,6 +93,14 @@ function mapPostToCreativeAd(row: TableRow<"crawled_posts">, author?: TableRow<"
     };
   });
 
+  const mediaUrls = Array.isArray(row.media_urls) ? (row.media_urls as string[]) : [];
+  const originalMediaUrls = Array.isArray(row.original_media_urls) ? (row.original_media_urls as string[]) : mediaUrls;
+
+  // Resolve các URL tương đối (R2) sang URL đầy đủ để UI render
+  const resolvedMediaUrls = mediaUrls.map(url => resolveMediaUrl(url));
+  const resolvedCoverUrl = resolveMediaUrl(row.cover_url);
+  const resolvedOriginalCoverUrl = resolveMediaUrl(row.original_cover_url || row.cover_url);
+
   return {
     id: row.id,
     platform: row.platform as Platform,
@@ -71,13 +108,13 @@ function mapPostToCreativeAd(row: TableRow<"crawled_posts">, author?: TableRow<"
     platform_uid: row.platform_id || "",
     title: row.caption?.slice(0, 30) || "",
     caption: row.caption || "",
-    cover_url: row.cover_url || "",
-    media_type: row.cover_url ? "video" : "image",
+    cover_url: resolvedCoverUrl,
+    media_type: inferMediaType(row),
     like_count: likes,
     view_count: views,
     comment_count: comments,
     share_count: shares,
-    media_urls: (row.media_urls as string[]) || [],
+    media_urls: resolvedMediaUrls,
     tags: (row.tags as string[]) || [],
     published_at: row.published_at || row.crawled_at || "",
     crawled_at: row.crawled_at || "",
@@ -85,6 +122,11 @@ function mapPostToCreativeAd(row: TableRow<"crawled_posts">, author?: TableRow<"
     growth_rate: Math.min(999, Math.round((likes / Math.max(1, (Date.now() - new Date(row.published_at || row.crawled_at || Date.now()).getTime()) / (1000 * 60 * 60))) * 10 + 15)),
     views_history: viewsHistory,
     author: author ? mapAuthorToAdvertiser(author, 0, 0, 0) : null,
+    original_media_urls: originalMediaUrls,
+    original_cover_url: resolvedOriginalCoverUrl,
+    media_status: (row.media_status as CreativeAd["media_status"]) || "unknown",
+    media_source: (row.media_source as CreativeAd["media_source"]) || "original",
+    media_error: row.media_error || null,
   };
 }
 

@@ -79,7 +79,7 @@ export default function CreativeCard({ creative, advertiserName, className, onCl
         onMouseLeave={handleMouseLeave}
         onClick={handleClick}
       >
-        {!mediaError && creative.media_type === "video" && creative.media_urls?.[0] ? (
+        {!mediaError && creative.media_status !== "failed" && creative.media_status !== "expired" && creative.media_status !== "unavailable" && creative.media_type === "video" && creative.media_urls?.[0] ? (
           <video
             ref={videoRef}
             src={`${creative.media_urls[0]}#t=0.001`}
@@ -90,11 +90,11 @@ export default function CreativeCard({ creative, advertiserName, className, onCl
             onError={() => setMediaError(true)}
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
-        ) : !mediaError && creative.cover_url ? (
+        ) : !mediaError && creative.media_status !== "failed" && creative.media_status !== "expired" && creative.media_status !== "unavailable" && (creative.cover_url || creative.media_urls?.[0]) ? (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element -- Remote crawler media URLs are dynamic; next/image domains are not locked yet. */}
             <img
-              src={creative.cover_url}
+              src={creative.cover_url || creative.media_urls[0]}
               alt={creative.title || "Creative Thumbnail"}
               referrerPolicy="no-referrer"
               onError={() => setMediaError(true)}

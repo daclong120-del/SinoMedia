@@ -59,6 +59,13 @@ export async function upsertPost(post: CrawledPostRow): Promise<void> {
       published_at: post.published_at,
       tags: mergedTags,
       language: mergedLang,
+      media_type: post.media_type || "unknown",
+      original_media_urls: post.original_media_urls || post.media_urls || [],
+      original_cover_url: post.original_cover_url || post.cover_url,
+      media_status: post.media_status || "original_only",
+      media_source: post.media_source || "original",
+      media_error: post.media_error || null,
+      media_cached_at: post.media_cached_at || null,
     },
   });
 }
@@ -93,6 +100,13 @@ export async function upsertPosts(posts: CrawledPostRow[]): Promise<void> {
         published_at: post.published_at,
         tags: mergedTags,
         language: mergedLang,
+        media_type: post.media_type || "unknown",
+        original_media_urls: post.original_media_urls || post.media_urls || [],
+        original_cover_url: post.original_cover_url || post.cover_url,
+        media_status: post.media_status || "original_only",
+        media_source: post.media_source || "original",
+        media_error: post.media_error || null,
+        media_cached_at: post.media_cached_at || null,
       };
     }),
   });
