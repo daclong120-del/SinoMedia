@@ -23,6 +23,7 @@ export default function GrowthClient({ initialData, initialFilters }: GrowthClie
   const [isPending, startTransition] = useTransition();
 
   const viewId = searchParams.get("viewId") || "";
+  const currentQueryString = searchParams.toString();
 
   const handleCardClick = (id: string) => {
     const params = new URLSearchParams(window.location.search);
@@ -59,13 +60,19 @@ export default function GrowthClient({ initialData, initialFilters }: GrowthClie
     }
     params.set("sortBy", sortBy);
 
-    const currentViewId = searchParams.get("viewId");
+    const currentParams = new URLSearchParams(currentQueryString);
+    const currentViewId = currentParams.get("viewId");
     if (currentViewId) params.set("viewId", currentViewId);
 
+    const nextQueryString = params.toString();
+    if (nextQueryString === currentQueryString) {
+      return;
+    }
+
     startTransition(() => {
-      router.push(`?${params.toString()}`, { scroll: false });
+      router.push(`?${nextQueryString}`, { scroll: false });
     });
-  }, [selectedPlatform, sortBy, router, searchParams]);
+  }, [selectedPlatform, sortBy, router, currentQueryString]);
 
   return (
     <div className="px-4 md:px-8 py-6 max-w-[1400px] mx-auto space-y-6">

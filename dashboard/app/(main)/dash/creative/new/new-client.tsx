@@ -29,6 +29,7 @@ export default function NewCreativesClient({ initialData, initialFilters }: NewC
   const [isPending, startTransition] = useTransition();
 
   const viewId = searchParams.get("viewId") || "";
+  const currentQueryString = searchParams.toString();
 
   const handleCardClick = (id: string) => {
     const params = new URLSearchParams(window.location.search);
@@ -68,13 +69,19 @@ export default function NewCreativesClient({ initialData, initialFilters }: NewC
     params.set("page", String(currentPage));
     params.set("limit", String(pageSize));
 
-    const currentViewId = searchParams.get("viewId");
+    const currentParams = new URLSearchParams(currentQueryString);
+    const currentViewId = currentParams.get("viewId");
     if (currentViewId) params.set("viewId", currentViewId);
 
+    const nextQueryString = params.toString();
+    if (nextQueryString === currentQueryString) {
+      return;
+    }
+
     startTransition(() => {
-      router.push(`?${params.toString()}`, { scroll: false });
+      router.push(`?${nextQueryString}`, { scroll: false });
     });
-  }, [selectedPlatform, currentPage, pageSize, router, searchParams]);
+  }, [selectedPlatform, currentPage, pageSize, router, currentQueryString]);
 
   // Reset page when platform changes
   const handlePlatformChange = (p: string) => {
