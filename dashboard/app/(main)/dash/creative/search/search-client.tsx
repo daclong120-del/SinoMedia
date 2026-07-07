@@ -161,7 +161,7 @@ export default function CreativeSearchClient({ initialData, initialFilters }: Cr
       setSearch("");
       setSelectedPlatforms([]);
       setSelectedMediaTypes([]);
-      setTimeRange("30d");
+      setTimeRange("all");
       setSortBy("view_count_desc");
       setContentType("all");
       setMinViews("");
@@ -293,10 +293,10 @@ export default function CreativeSearchClient({ initialData, initialFilters }: Cr
               value={timeRange}
               onChange={(val) => handleFilterChange(() => setTimeRange(val))}
               options={[
+                { value: "all", label: "Tất cả thời gian" },
                 { value: "7d", label: "7 ngày vừa qua" },
                 { value: "30d", label: "30 ngày vừa qua" },
                 { value: "90d", label: "90 ngày vừa qua" },
-                { value: "1y", label: "1 năm vừa qua" },
               ]}
               fullWidth
             />
@@ -417,7 +417,7 @@ export default function CreativeSearchClient({ initialData, initialFilters }: Cr
         minViews ||
         minLikes ||
         language !== "all" ||
-        timeRange !== "30d" ||
+        timeRange !== "all" ||
         sortBy !== "view_count_desc") && (
         <div className="flex items-center justify-between bg-orange-500/5 border border-orange-500/10 rounded-xl p-3 text-xs text-orange-600 dark:text-orange-400">
           <span>Bạn đang áp dụng bộ lọc tùy chọn.</span>

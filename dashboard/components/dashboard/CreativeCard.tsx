@@ -37,6 +37,22 @@ export default function CreativeCard({ creative, advertiserName, className, onCl
   };
 
   const [mediaError, setMediaError] = React.useState(false);
+  const mediaUnavailable =
+    creative.media_status === "failed" ||
+    creative.media_status === "expired" ||
+    creative.media_status === "unavailable";
+  const thumbnailUrl =
+    creative.media_type === "video"
+      ? creative.cover_url || ""
+      : creative.cover_url || creative.media_urls?.[0] || "";
+  const canShowThumbnail = !mediaError && !mediaUnavailable && Boolean(thumbnailUrl);
+  const canPreviewVideo =
+    !mediaError &&
+    !mediaUnavailable &&
+    creative.media_type === "video" &&
+    creative.media_source === "r2" &&
+    creative.media_status === "cached" &&
+    Boolean(creative.media_urls?.[0]);
 
   // Determine media type icon
   const renderMediaTypeIcon = () => {
@@ -79,7 +95,18 @@ export default function CreativeCard({ creative, advertiserName, className, onCl
         onMouseLeave={handleMouseLeave}
         onClick={handleClick}
       >
-        {!mediaError && creative.media_status !== "failed" && creative.media_status !== "expired" && creative.media_status !== "unavailable" && creative.media_type === "video" && creative.media_urls?.[0] ? (
+        {canShowThumbnail ? (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element -- Remote crawler media URLs are dynamic; next/image domains are not locked yet. */}
+            <img
+              src={thumbnailUrl}
+              alt={creative.title || "Creative Thumbnail"}
+              referrerPolicy="no-referrer"
+              onError={() => setMediaError(true)}
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          </>
+        ) : canPreviewVideo ? (
           <video
             ref={videoRef}
             src={`${creative.media_urls[0]}#t=0.001`}
@@ -90,17 +117,6 @@ export default function CreativeCard({ creative, advertiserName, className, onCl
             onError={() => setMediaError(true)}
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
-        ) : !mediaError && creative.media_status !== "failed" && creative.media_status !== "expired" && creative.media_status !== "unavailable" && (creative.cover_url || creative.media_urls?.[0]) ? (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element -- Remote crawler media URLs are dynamic; next/image domains are not locked yet. */}
-            <img
-              src={creative.cover_url || creative.media_urls[0]}
-              alt={creative.title || "Creative Thumbnail"}
-              referrerPolicy="no-referrer"
-              onError={() => setMediaError(true)}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          </>
         ) : (
           /* Mock Cover Placeholder */
           <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center select-none bg-gradient-to-br from-zinc-900 to-zinc-950 text-zinc-400 dark:text-zinc-500 transition-transform duration-500 group-hover:scale-105">

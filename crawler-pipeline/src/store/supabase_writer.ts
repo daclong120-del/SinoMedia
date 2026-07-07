@@ -5,10 +5,12 @@ import { CrawledAuthorRow, CrawledPostRow, CrawledCommentRow } from "../model/st
  * # Thêm mới hoặc cập nhật thông tin tác giả và trả về UUID tương ứng
  */
 export async function upsertAuthor(author: CrawledAuthorRow): Promise<string> {
+  const authorId = `${author.platform}_${author.platform_uid}`;
   const result = await supabaseRest("crawled_authors", {
     method: "POST",
     params: { on_conflict: "platform,platform_uid" },
     body: {
+      id: authorId,
       platform: author.platform,
       platform_uid: author.platform_uid,
       nickname: author.nickname,
@@ -47,6 +49,7 @@ export async function upsertPost(post: CrawledPostRow): Promise<void> {
     method: "POST",
     params: { on_conflict: "platform,platform_id" },
     body: {
+      id: `${post.platform}_${post.platform_id}`,
       platform: post.platform,
       platform_id: post.platform_id,
       author_id: post.author_id,
@@ -61,13 +64,17 @@ export async function upsertPost(post: CrawledPostRow): Promise<void> {
       language: mergedLang,
       media_type: post.media_type || "unknown",
       original_media_urls: post.original_media_urls || post.media_urls || [],
-      original_cover_url: post.original_cover_url || post.cover_url,
+      original_cover_url: originalCoverUrlHelper(post),
       media_status: post.media_status || "original_only",
       media_source: post.media_source || "original",
       media_error: post.media_error || null,
       media_cached_at: post.media_cached_at || null,
     },
   });
+}
+
+function originalCoverUrlHelper(post: CrawledPostRow): string | null {
+  return post.original_cover_url || post.cover_url || null;
 }
 
 /**
@@ -88,6 +95,7 @@ export async function upsertPosts(posts: CrawledPostRow[]): Promise<void> {
       const mergedTags = Array.from(new Set([...(post.tags || []), ...taskTags]));
       const mergedLang = post.language && post.language !== "auto" ? post.language : (taskLang || "auto");
       return {
+        id: `${post.platform}_${post.platform_id}`,
         platform: post.platform,
         platform_id: post.platform_id,
         author_id: post.author_id,

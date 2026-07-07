@@ -15,11 +15,15 @@ export default async function CreativeSearchPage({
   const sort = params.sort || "views";
   const page = params.page ? parseInt(params.page, 10) : 1;
   const limit = params.limit ? parseInt(params.limit, 10) : 60;
-  const timeRange = params.timeRange || "30d";
+  
+  const validTimeRanges = ["7d", "30d", "90d", "all"] as const;
+  const timeRange = validTimeRanges.includes(params.timeRange as typeof validTimeRanges[number])
+    ? params.timeRange!
+    : "all";
 
   const rawMediaType = mediaType.length > 0 ? mediaType[0] : undefined;
   const mappedMediaType = rawMediaType === "carousel" ? "image" : (rawMediaType as "video" | "image" | "all" | undefined);
-  const mappedTimeRange = timeRange === "1y" ? "all" : (timeRange as "7d" | "30d" | "90d" | "all" | undefined);
+  const mappedTimeRange = timeRange as "7d" | "30d" | "90d" | "all";
 
   const result = await searchAds({
     search: q,
