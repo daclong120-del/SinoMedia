@@ -147,7 +147,7 @@ export async function getPostsPerDay(): Promise<{ date: string; count: number }[
   try {
     const db = await createClientServer();
     const postRepo = new PostRepository(db as unknown as DbClient);
-    return withSupabaseTimeout(postRepo.countByDay(7), "getPostsPerDay");
+    return await withSupabaseTimeout(postRepo.countByDay(7), "getPostsPerDay");
   } catch (err) {
     if (isDynamicServerUsageError(err)) throw err;
     console.warn("[DashboardService] getPostsPerDay failed; returning empty list:", err);

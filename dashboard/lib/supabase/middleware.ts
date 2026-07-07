@@ -52,7 +52,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   let user = null;
-  const hasAuthCookie = request.cookies.getAll().some(c => c.name.startsWith("sb-") && c.name.endsWith("-auth-token"));
+  const hasAuthCookie = request.cookies.getAll().some(c => c.name.startsWith("sb-") && c.name.includes("auth-token"));
 
   if (hasAuthCookie) {
     try {
@@ -61,7 +61,9 @@ export async function updateSession(request: NextRequest) {
         setTimeout(() => reject(new Error("Supabase auth connection timeout")), 2000)
       );
       
-      const getUserPromise = supabase.auth.getUser().then(({ data }) => data?.user || null);
+      const getUserPromise = supabase.auth.getUser()
+        .then(({ data }) => data?.user || null)
+        .catch(() => null);
       
       user = await Promise.race([getUserPromise, timeoutPromise]);
     } catch (err) {

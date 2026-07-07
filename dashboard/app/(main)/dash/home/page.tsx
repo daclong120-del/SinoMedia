@@ -154,20 +154,29 @@ export default function HomePage() {
     async function load() {
       setLoading(true);
       try {
-        const [m, d, t, pData, hData] = await Promise.all([
+        const results = await Promise.allSettled([
           getDashboardMetrics(),
           getPlatformDistribution(),
           getTasks(),
           getPostsPerDay(),
           getPlatformHealth(),
         ]);
-        setMetrics(m);
+
+        const m = results[0].status === "fulfilled" ? results[0].value : null;
+        const d = results[1].status === "fulfilled" ? results[1].value : [];
+        const t = results[2].status === "fulfilled" ? results[2].value : [];
+        const pData = results[3].status === "fulfilled" ? results[3].value : [];
+        const hData = results[4].status === "fulfilled" ? results[4].value : [];
+
+        if (m) {
+          setMetrics(m);
+        }
         setDistribution(d);
         setRecentTasks(t.slice(0, 5));
         setPostsPerDayData(pData);
         setPlatformHealthData(hData);
       } catch (err) {
-        console.error("Error loading home metrics:", err);
+        console.warn("Error loading home metrics:", err);
       } finally {
         setLoading(false);
       }

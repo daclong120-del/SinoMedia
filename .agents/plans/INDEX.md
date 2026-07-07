@@ -21,6 +21,7 @@
 | refactor-data-access-layer | refactor | ✅ xong | 4/4 phase |
 | refactor-auth-layer | refactor | ✅ xong | 2/2 phase |
 | refactor-frontend-supabase | refactor | ✅ xong | 8/8 phase |
+| debug-getpostsperday-timeout | debug | ✅ xong | - |
 
 
 > Marker: ⏳ chưa · 🔄 đang làm · ✅ xong · ⛔ chặn

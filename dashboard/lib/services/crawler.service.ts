@@ -147,8 +147,14 @@ export async function getTaskLogs(taskId: string): Promise<CrawlerLogEntry[]> {
 
 /** Lấy danh sách tài khoản crawler */
 export async function getAccounts(): Promise<CrawlerAccount[]> {
-  const db = await createClientServer();
-  const repo = new AccountRepository(db as unknown as DbClient);
-  const data = await repo.findAll();
-  return data.map(mapDbAccount);
+  try {
+    const db = await createClientServer();
+    const repo = new AccountRepository(db as unknown as DbClient);
+    const data = await withSupabaseTimeout(repo.findAll(), "getAccounts.findAll");
+    return data.map(mapDbAccount);
+  } catch (err) {
+    if (isDynamicServerUsageError(err)) throw err;
+    console.warn("[CrawlerService] getAccounts failed; returning empty list:", err);
+    return [];
+  }
 }
