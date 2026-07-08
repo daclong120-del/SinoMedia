@@ -18,7 +18,7 @@ export default function PlatformHealthCard({ platform, active, banned, total, cl
   const statusConfig = {
     healthy:  { label: "Bình thường", color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-500", barBg: "bg-emerald-500" },
     warning:  { label: "Cảnh báo", color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500", barBg: "bg-amber-500" },
-    critical: { label: "Nguy hiểm", color: "text-red-600 dark:text-red-400", bg: "bg-red-500", barBg: "bg-red-500" },
+    critical: { label: "", color: "text-muted-foreground", bg: "bg-muted-foreground/30", barBg: "bg-muted-foreground/30" },
   }[status];
 
   return (
@@ -34,9 +34,11 @@ export default function PlatformHealthCard({ platform, active, banned, total, cl
       <div className="flex items-center gap-2 mb-3">
         <div className="size-2.5 rounded-full shrink-0" style={{ backgroundColor: config.color }} />
         <span className="text-xs font-semibold text-card-foreground">{config.label}</span>
-        <span className={cn("ml-auto text-[10px] font-medium", statusConfig.color)}>
-          {statusConfig.label}
-        </span>
+        {statusConfig.label && (
+          <span className={cn("ml-auto text-[10px] font-medium", statusConfig.color)}>
+            {statusConfig.label}
+          </span>
+        )}
       </div>
 
       {/* Progress bar */}
