@@ -38,20 +38,30 @@ Xảy ra khi commit code khi đang ở trạng thái Detached HEAD (không gắn
    ```
    *(Tìm dòng tương tự: `31ef2b5 HEAD@{2}: commit: feat...`)*
 
-2. **Gắn nhánh vào commit đó để khôi phục:**
-   - **Cách A: Tạo một nhánh mới từ commit đó:**
+2. **Cách khôi phục về nhánh chính (`main`) và đẩy lên Remote:**
+   - **Bước 2.1: Chuyển về nhánh `main`:**
+     ```bash
+     git checkout main
+     ```
+   - **Bước 2.2: Gộp commit bị ẩn vào `main`:**
+     *(Sử dụng mã hash tìm được ở Bước 1 kèm cờ `-m` để tạo Merge Commit)*
+     ```bash
+     git merge <ma-commit-hash> -m "merge: gộp commit khôi phục vào main"
+     ```
+   - **Bước 2.3: Đẩy lên Remote Github:**
+     ```bash
+     git push origin main
+     ```
+
+3. **Cách khôi phục về một nhánh phụ khác:**
+   - **Tạo nhánh mới từ commit đó:**
      ```bash
      git branch <ten-nhanh-moi> <ma-commit-hash>
      ```
-   - **Cách B: Đẩy một nhánh sẵn có tới commit đó (ghi đè pointer):**
+   - **Hoặc cập nhật nhánh phụ có sẵn tới commit đó:**
      ```bash
      git branch -f <ten-nhanh-co-san> <ma-commit-hash>
      ```
-
-3. **Chuyển sang nhánh đó để tiếp tục làm việc:**
-   ```bash
-   git checkout <ten-nhanh>
-   ```
 
 ---
 
