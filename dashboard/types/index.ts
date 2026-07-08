@@ -46,8 +46,12 @@ export interface CrawlerTask {
     crawl_sub_comments?: boolean;
     headless?: boolean;
     error_message?: string;
-    media_strategy?: string;
+    phase?: string;
     progress?: {
+      current: number;
+      target: number;
+    };
+    comment_progress?: {
       current: number;
       target: number;
     };

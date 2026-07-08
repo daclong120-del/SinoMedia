@@ -11,6 +11,8 @@ export {
   getPostUuid,
   isTaskCancelled,
   updateTaskProgress,
+  updateTaskPhase,
+  updateTaskCommentProgress,
 } from "./supabase_writer.js";
 
 

@@ -242,3 +242,63 @@ export async function updateTaskProgress(taskId: string | null | undefined, curr
     console.error(`Lỗi khi cập nhật tiến độ task: ${(err as Error).message}`);
   }
 }
+
+/**
+ * # Cập nhật phase hiện tại của task vào metadata
+ */
+export async function updateTaskPhase(taskId: string | null | undefined, phase: string): Promise<void> {
+  if (!taskId) return;
+  try {
+    const res = await supabaseRest("crawler_tasks", {
+      method: "GET",
+      params: {
+        id: `eq.${taskId}`,
+        select: "metadata"
+      }
+    });
+    if (Array.isArray(res) && res[0]) {
+      const metadata = res[0].metadata || {};
+      metadata.phase = phase;
+      await supabaseRest("crawler_tasks", {
+        method: "PATCH",
+        params: { id: `eq.${taskId}` },
+        body: {
+          metadata,
+          updated_at: new Date().toISOString(),
+        }
+      });
+    }
+  } catch (err) {
+    console.error(`Lỗi khi cập nhật phase của task: ${(err as Error).message}`);
+  }
+}
+
+/**
+ * # Cập nhật tiến độ cào bình luận của task vào metadata
+ */
+export async function updateTaskCommentProgress(taskId: string | null | undefined, current: number, target: number): Promise<void> {
+  if (!taskId) return;
+  try {
+    const res = await supabaseRest("crawler_tasks", {
+      method: "GET",
+      params: {
+        id: `eq.${taskId}`,
+        select: "metadata"
+      }
+    });
+    if (Array.isArray(res) && res[0]) {
+      const metadata = res[0].metadata || {};
+      metadata.comment_progress = { current, target };
+      await supabaseRest("crawler_tasks", {
+        method: "PATCH",
+        params: { id: `eq.${taskId}` },
+        body: {
+          metadata,
+          updated_at: new Date().toISOString(),
+        }
+      });
+    }
+  } catch (err) {
+    console.error(`Lỗi khi cập nhật tiến độ bình luận task: ${(err as Error).message}`);
+  }
+}
