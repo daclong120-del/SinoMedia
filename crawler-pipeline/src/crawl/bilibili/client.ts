@@ -248,6 +248,7 @@ export async function bilibiliRequest(
   const fetchOptions: any = {
     method: options.method || "GET",
     headers,
+    signal: AbortSignal.timeout(30000), // Timeout 30 giây
   };
 
   if (options.body) {
@@ -268,6 +269,7 @@ export async function bilibiliRequest(
       const nativeOpts: any = {
         method: fetchOptions.method,
         headers: fetchOptions.headers,
+        signal: fetchOptions.signal,
       };
       if (fetchOptions.body) {
         nativeOpts.body = fetchOptions.body;

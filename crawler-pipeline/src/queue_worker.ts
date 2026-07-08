@@ -99,9 +99,18 @@ export async function executeTask(task: CrawlerTask): Promise<void> {
   logger.info(`Bắt đầu xử lý task ${id} - Platform: ${platform}, Command: ${command}, Target: ${target}`, "Worker");
 
   const defaultHeadless = CONFIG.headless;
+  const TASK_TIMEOUT_MS = 90000; // 90 giây
+  let timeoutId: NodeJS.Timeout;
+
+  const timeoutPromise = new Promise<void>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`Nhiệm vụ bị treo quá thời gian cho phép (Timeout ${TASK_TIMEOUT_MS / 1000} giây)`));
+    }, TASK_TIMEOUT_MS);
+  });
 
   try {
     // Thiết lập cấu hình và metadata chạy crawler từ task
+    process.env.CURRENT_TASK_ID = id;
     process.env.CURRENT_TASK_TAGS = JSON.stringify(task.metadata?.tags || []);
     process.env.CURRENT_TASK_LANGUAGE = task.metadata?.language || "auto";
     process.env.ENABLE_GET_COMMENTS = String(task.metadata?.crawl_comments ?? true);
@@ -110,33 +119,45 @@ export async function executeTask(task: CrawlerTask): Promise<void> {
 
     const crawler = CrawlerFactory.create(platform);
 
-    switch (command) {
-      case "crawl":
-        await crawler.crawl(target);
-        break;
-      case "cache_media":
-        throw new Error("Lệnh 'cache_media' đã bị bãi bỏ (deprecated). Vui lòng recrawl/backfill thông thường.");
+    const runCrawler = async () => {
+      switch (command) {
+        case "crawl":
+          await crawler.crawl(target);
+          break;
+        case "cache_media":
+          throw new Error("Lệnh 'cache_media' đã bị bãi bỏ (deprecated). Vui lòng recrawl/backfill thông thường.");
+        case "creator":
+          await crawler.creator(target);
+          break;
+        case "search":
+          await crawler.search(target, max_count || 20);
+          break;
+        case "comments":
+          await crawler.comments(target, max_count || 50);
+          break;
+        default:
+          throw new Error(`Lệnh "${command}" không được hỗ trợ.`);
+      }
+    };
 
-      case "creator":
-        await crawler.creator(target);
-        break;
-      case "search":
-        await crawler.search(target, max_count || 20);
-        break;
-      case "comments":
-        await crawler.comments(target, max_count || 50);
-        break;
-      default:
-        throw new Error(`Lệnh "${command}" không được hỗ trợ.`);
-    }
+    await Promise.race([
+      runCrawler(),
+      timeoutPromise
+    ]);
 
     logger.info(`Hoàn thành task ${id} thành công!`, "Worker");
     await updateTaskStatus(id, "completed");
   } catch (err: any) {
     logger.error(`Thất bại khi xử lý task ${id}: ${err.message}`, "Worker");
     await updateTaskStatus(id, "failed", err.message);
+    if (err.message.includes("Nhiệm vụ bị treo quá thời gian")) {
+      logger.warn("Tự động thoát process để dọn sạch tài nguyên và restart worker mới...", "Worker");
+      setTimeout(() => process.exit(1), 1000);
+    }
   } finally {
+    clearTimeout(timeoutId!);
     currentTaskId = null;
+    delete process.env.CURRENT_TASK_ID;
     delete process.env.CURRENT_TASK_TAGS;
     delete process.env.CURRENT_TASK_LANGUAGE;
     delete process.env.ENABLE_GET_COMMENTS;

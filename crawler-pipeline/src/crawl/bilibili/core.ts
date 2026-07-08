@@ -3,7 +3,7 @@
  */
 
 import { bilibiliGet, downloadMedia, pong, setBilibiliCookie } from "./client.js";
-import { upsertAuthor, upsertPost, upsertPosts, getPostUuid, upsertComments, checkoutAccount, checkinAccount, releaseAccount } from "../../store/index.js";
+import { upsertAuthor, upsertPost, upsertPosts, getPostUuid, upsertComments, checkoutAccount, checkinAccount, releaseAccount, isTaskCancelled } from "../../store/index.js";
 import { CrawledPostRow } from "../../model/storage.js";
 import type { ICrawler, BrowserLaunchOptions } from "../../base/base_crawler.js";
 import type { BrowserContext } from "playwright-core";
@@ -220,6 +220,11 @@ export async function crawlComments(
   let nextCursor = 0;
 
   while (commentsHasMore && collected.length < maxCount) {
+    if (await isTaskCancelled(process.env.CURRENT_TASK_ID)) {
+      console.log("Nhiệm vụ đã bị hủy từ giao diện. Dừng cào bình luận.");
+      return;
+    }
+
     const commentsRes = await bilibiliGet(
       "/x/v2/reply/wbi/main",
       {
@@ -258,6 +263,11 @@ export async function crawlComments(
           let subHasMore = true;
 
           while (subHasMore) {
+            if (await isTaskCancelled(process.env.CURRENT_TASK_ID)) {
+              console.log("Nhiệm vụ đã bị hủy từ giao diện. Dừng cào bình luận phụ.");
+              return;
+            }
+
             const subRes = await bilibiliGet(
               "/x/v2/reply/reply",
               {
@@ -321,6 +331,11 @@ export async function crawlCreator(urlOrUid: string): Promise<void> {
   console.log(`Bắt đầu cào danh sách video của creator, giới hạn tối đa: ${maxPosts}`);
 
   while (crawlCount < maxPosts) {
+    if (await isTaskCancelled(process.env.CURRENT_TASK_ID)) {
+      console.log("Nhiệm vụ đã bị hủy từ giao diện. Dừng cào danh sách video creator space.");
+      return;
+    }
+
     const searchRes = await bilibiliGet("/x/space/wbi/arc/search", {
       mid: creatorId,
       pn: String(pn),
@@ -338,6 +353,10 @@ export async function crawlCreator(urlOrUid: string): Promise<void> {
     for (const item of vlist) {
       if (crawlCount >= maxPosts) {
         break;
+      }
+      if (await isTaskCancelled(process.env.CURRENT_TASK_ID)) {
+        console.log("Nhiệm vụ đã bị hủy từ giao diện. Dừng xử lý video creator.");
+        return;
       }
 
       console.log(`Đang xử lý video thứ ${crawlCount + 1}: ${item.bvid} - ${item.title || "Không tiêu đề"}`);
@@ -392,6 +411,11 @@ export async function crawlSearch(keyword: string, maxCount = 20): Promise<void>
   console.log(`Bắt đầu cào tìm kiếm với từ khóa: "${keyword}", giới hạn tối đa: ${maxCount}`);
 
   while (collected < maxCount) {
+    if (await isTaskCancelled(process.env.CURRENT_TASK_ID)) {
+      console.log("Nhiệm vụ đã bị hủy từ giao diện. Dừng cào tìm kiếm.");
+      return;
+    }
+
     const res = await bilibiliGet(
       "/x/web-interface/wbi/search/type",
       {
@@ -415,6 +439,10 @@ export async function crawlSearch(keyword: string, maxCount = 20): Promise<void>
     for (const item of resultList) {
       if (collected >= maxCount) {
         break;
+      }
+      if (await isTaskCancelled(process.env.CURRENT_TASK_ID)) {
+        console.log("Nhiệm vụ đã bị hủy từ giao diện. Dừng xử lý video tìm kiếm.");
+        return;
       }
 
       console.log(`Đang xử lý video tìm kiếm thứ ${collected + 1}: ${item.bvid} - ${item.title || "Không tiêu đề"}`);

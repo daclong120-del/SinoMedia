@@ -160,3 +160,25 @@ export async function upsertComments(comments: CrawledCommentRow[]): Promise<voi
     })),
   });
 }
+
+/**
+ * # Kiểm tra xem task đã bị huỷ ngoài UI hay chưa
+ */
+export async function isTaskCancelled(taskId: string | null | undefined): Promise<boolean> {
+  if (!taskId) return false;
+  try {
+    const res = await supabaseRest("crawler_tasks", {
+      method: "GET",
+      params: {
+        id: `eq.${taskId}`,
+        select: "status"
+      }
+    });
+    if (Array.isArray(res) && res[0]) {
+      return res[0].status === "cancelled";
+    }
+  } catch (err) {
+    console.error(`Lỗi khi check trạng thái huỷ của task: ${(err as Error).message}`);
+  }
+  return false;
+}
