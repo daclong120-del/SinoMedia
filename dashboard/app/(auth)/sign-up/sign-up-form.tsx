@@ -75,9 +75,10 @@ const DICT: Record<string, typeof ENGLISH_DICT> = {
 export default function SignUpForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const initialEmail = searchParams.get("email") ?? "";
 
   const [lang, setLang] = useState("English (US)");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -163,7 +164,7 @@ export default function SignUpForm() {
     setIsLoading(true);
 
     try {
-      const res = await signUpAction(email, password);
+      const res = await signUpAction(email, password, searchParams.get("invite") || undefined);
 
       if (!res.success) {
         setPasswordError(res.error || "Đăng ký thất bại. Vui lòng thử lại.");
@@ -223,9 +224,14 @@ export default function SignUpForm() {
             className={`w-full px-3 py-2 rounded-lg border bg-white dark:bg-zinc-800 text-sm font-medium transition-all outline-none focus:ring-1 focus:ring-primary ${
               emailError ? "border-destructive focus:ring-destructive" : "border-neutral-300 dark:border-zinc-700 hover:border-neutral-400 focus:border-primary"
             }`}
-            disabled={isLoading}
+            disabled={isLoading || !!searchParams.get("invite")}
             autoComplete="email"
           />
+          {searchParams.get("invite") && (
+            <p className="text-[11px] text-primary/85 font-medium mt-1 select-none">
+              {lang === "Tiếng Việt" ? "Đăng ký theo liên kết lời mời" : "Registering via invitation link"}
+            </p>
+          )}
           {emailError && (
             <p className="text-xs font-medium text-destructive mt-1 animate-in fade-in slide-in-from-top-1 duration-150">
               {emailError}

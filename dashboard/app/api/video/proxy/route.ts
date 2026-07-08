@@ -97,13 +97,18 @@ export async function GET(req: NextRequest) {
       status: res.status,
       headers: responseHeaders,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[VideoProxy] Error streaming video:", error);
-    let causeMsg = error.cause ? (error.cause.message || error.cause.toString()) : "No cause";
-    if (error.cause && Array.isArray((error.cause as any).errors)) {
-      causeMsg += " [ " + (error.cause as any).errors.map((e: any) => `${e.code}: ${e.message}`).join(", ") + " ]";
+    const err = error as Error & { cause?: { message?: string; errors?: Array<{ code: string; message: string }> } | null | undefined };
+    let causeMsg = err.cause ? (err.cause.message || String(err.cause)) : "No cause";
+    if (err.cause && Array.isArray(err.cause.errors)) {
+      causeMsg += " [ " + err.cause.errors.map(e => `${e.code || "unknown"}: ${e.message || "unknown"}`).join(", ") + " ]";
     }
-    return new Response(`Internal Server Error: ${error.message}\nCause: ${causeMsg}\n${error.stack}`, { status: 500 });
+    const isDev = process.env.NODE_ENV === "development";
+    const body = isDev 
+      ? `Internal Server Error: ${err.message}\nCause: ${causeMsg}\n${err.stack || "No stack"}`
+      : "Internal Server Error";
+    return new Response(body, { status: 500 });
   }
 }
 

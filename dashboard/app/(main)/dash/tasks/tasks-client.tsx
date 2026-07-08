@@ -9,7 +9,7 @@ import { subscribeToTasks, subscribeToTaskLogs } from "@/lib/realtime/subscripti
 import { timeAgo, cn } from "@/lib/utils";
 import type { CrawlerTask, CrawlerLogEntry, Platform } from "@/types";
 import type { RealtimeChannel } from "@supabase/supabase-js";
-import { X, AlertCircle, Radio } from "lucide-react";
+import { X, AlertCircle, Radio, Eye, EyeOff, XCircle, RotateCcw } from "lucide-react";
 
 const LOG_COLORS: Record<string, string> = {
   INFO: "text-green-400",
@@ -32,7 +32,7 @@ const PLATFORM_MAP: Record<string, Platform> = {
 const COMMAND_MAP: Record<string, string> = {
   "Creator": "creator",
   "Search": "search",
-  "Comment": "comment",
+  "Comment": "comments",
   "Ads Target": "ads"
 };
 
@@ -83,6 +83,15 @@ export default function TasksClient({ initialTasks, initialError }: TasksClientP
   const [headlessMode, setHeadlessMode] = useState(true);
   const [uploadR2, setUploadR2] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Default uploadR2 to false for Bilibili tasks
+  useEffect(() => {
+    if (newPlatform === "Bilibili") {
+      setUploadR2(false);
+    } else {
+      setUploadR2(true);
+    }
+  }, [newPlatform]);
   
   // Notification & Feedback States
   const [notification, setNotification] = useState<{ show: boolean; message: string; type: "success" | "error" | "info" }>({
@@ -307,7 +316,8 @@ export default function TasksClient({ initialTasks, initialError }: TasksClientP
         crawl_comments: crawlComments,
         crawl_sub_comments: crawlSubComments,
         headless: headlessMode,
-        upload_r2: uploadR2
+        upload_r2: uploadR2,
+        media_strategy: platformKey === "bilibili" ? "embed" : (uploadR2 ? "r2" : "original")
       }
     }));
 
@@ -456,7 +466,7 @@ export default function TasksClient({ initialTasks, initialError }: TasksClientP
                 <th className="text-left px-4 py-2.5 text-muted-foreground font-medium">Ưu tiên</th>
                 <th className="text-left px-4 py-2.5 text-muted-foreground font-medium">Trạng thái</th>
                 <th className="text-left px-4 py-2.5 text-muted-foreground font-medium">Tạo lúc</th>
-                <th className="text-left px-4 py-2.5 text-muted-foreground font-medium w-20"></th>
+                <th className="text-right px-4 py-2.5 text-muted-foreground font-medium w-40">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -513,17 +523,45 @@ export default function TasksClient({ initialTasks, initialError }: TasksClientP
                   </td>
                   <td className="px-4 py-2.5 text-muted-foreground">{timeAgo(task.created_at)}</td>
                   <td className="px-4 py-2.5">
-                    <div className="flex items-center gap-3">
-                      <button onClick={() => setSelectedTask(task.id === selectedTask ? null : task.id)} className="text-[10px] text-primary hover:underline font-medium cursor-pointer shrink-0">
-                        {task.id === selectedTask ? "Ẩn Log" : "Xem Log"}
+                    <div className="flex items-center justify-end gap-1.5">
+                      <button 
+                        onClick={() => setSelectedTask(task.id === selectedTask ? null : task.id)} 
+                        className={cn(
+                          "h-6 gap-1 rounded-[10px] px-2 text-[11px] inline-flex items-center justify-center font-semibold transition-all cursor-pointer border shrink-0",
+                          task.id === selectedTask 
+                            ? "bg-muted text-foreground border-border" 
+                            : "bg-background border-border hover:bg-muted text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        {task.id === selectedTask ? (
+                          <>
+                            <EyeOff size={11} />
+                            Ẩn Log
+                          </>
+                        ) : (
+                          <>
+                            <Eye size={11} />
+                            Xem Log
+                          </>
+                        )}
                       </button>
+                      
                       {(task.status === "pending" || task.status === "running") && (
-                        <button onClick={() => handleCancelTask(task.id)} className="text-[10px] text-red-400 hover:text-red-500 hover:underline font-medium cursor-pointer shrink-0">
+                        <button 
+                          onClick={() => handleCancelTask(task.id)} 
+                          className="h-6 gap-1 rounded-[10px] px-2 text-[11px] inline-flex items-center justify-center font-semibold bg-destructive/10 text-destructive hover:bg-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 transition-all cursor-pointer shrink-0"
+                        >
+                          <XCircle size={11} />
                           Huỷ
                         </button>
                       )}
+                      
                       {(task.status === "failed" || task.status === "cancelled") && (
-                        <button onClick={() => handleRetryTask(task.id)} className="text-[10px] text-emerald-400 hover:text-emerald-500 hover:underline font-medium cursor-pointer shrink-0">
+                        <button 
+                          onClick={() => handleRetryTask(task.id)} 
+                          className="h-6 gap-1 rounded-[10px] px-2 text-[11px] inline-flex items-center justify-center font-semibold bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 dark:bg-emerald-500/20 dark:text-emerald-400 dark:hover:bg-emerald-500/30 transition-all cursor-pointer shrink-0"
+                        >
+                          <RotateCcw size={11} />
                           Chạy lại
                         </button>
                       )}

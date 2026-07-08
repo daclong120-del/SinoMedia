@@ -2,9 +2,11 @@
 
 Trạng thái: **Accepted / Locked**  
 Ngày khóa: **2026-07-07**  
-Phạm vi: `dashboard`, `crawler-pipeline`, `supabase`, Cloudflare R2.
+Phạm vi: `dashboard`, `crawler-pipeline`, `supabase`, external media embeds/original URLs, optional Cloudflare R2.
 
 Tài liệu này là **source of truth kiến trúc** cho SinoMedia. Nếu tài liệu cũ còn nhắc Expo template, client-side Supabase trực tiếp, `api.ts` monolith hoặc mock fallback, thì coi đó là ngữ cảnh lịch sử, không phải kiến trúc chuẩn hiện tại.
+
+> Trạng thái triển khai theo thời gian thực nằm ở `docs/project-status.md`. Tài liệu này khóa boundary kiến trúc; không dùng nó để suy luận rằng mọi trang/tính năng đã hoàn thiện.
 
 ## 1. Tóm tắt quyết định
 
@@ -13,9 +15,10 @@ SinoMedia là hệ thống crawl, chuẩn hóa, lưu trữ và phân tích nội
 Các khối chính:
 
 - **Dashboard**: Next.js 16 App Router, dùng để quản trị crawler, xem dữ liệu, Creative Hub, task/log/account/proxy/audit.
-- **Crawler Pipeline**: TypeScript worker độc lập, nhận task từ Supabase, crawl từng platform, ghi dữ liệu chuẩn hóa vào Supabase và media vào Cloudflare R2.
+- **Crawler Pipeline**: TypeScript worker độc lập, nhận task từ Supabase, crawl từng platform, ghi dữ liệu chuẩn hóa vào Supabase, lưu external media identifiers/URLs và chỉ upload R2 khi cần archive/cache.
 - **Supabase**: PostgreSQL + Auth + PostgREST + Realtime + RPC, là control plane và data store chính.
-- **Cloudflare R2**: object storage cho media đã crawl.
+- **Cloudflare R2**: object storage tùy chọn cho media cần archive/cache. Không còn là điều kiện bắt buộc để phát Bilibili trên Dashboard.
+- **Desktop App**: Pake desktop shell cho Dashboard ở giai đoạn đầu; tương lai có thể điều phối local/remote worker và video downloader service, nhưng không nhúng crawler nặng vào UI process.
 
 Quyết định khóa:
 
@@ -27,6 +30,8 @@ Quyết định khóa:
 6. API routes không phải data-access mặc định; chỉ dùng cho mutation, webhook, export/download, hoặc compatibility tạm thời.
 7. Không dùng mock fallback để che lỗi DB trong production path.
 8. Legacy platform tables trong remote schema được giữ để tham chiếu/migration; Dashboard mới dùng bảng chuẩn hóa.
+9. Desktop app là control surface. Nếu cần crawl/download trên máy người dùng, chạy worker/downloader như process/service riêng được điều phối qua Supabase.
+10. Platform có official embedded player, trước mắt là Bilibili, ưu tiên lưu identifier/link gốc và render iframe thay vì tải video về R2 mặc định.
 
 ## 2. Context đã quan sát
 
@@ -48,7 +53,10 @@ Nguồn quan sát:
 
 Tài liệu liên quan:
 
-- `docs/architecture/frontend-supabase-refactor-todo.md`
+- `docs/project-status.md`
+- `docs/roadmap.md`
+- `docs/agent-handbook.md`
+- `docs/architecture/embedded-iframe-player-strategy.md`
 - `docs/architecture/crawler-hybrid-architecture.md`
 - `docs/architecture/client-storage-strategy.md`
 - `docs/decisions.md`
@@ -297,14 +305,40 @@ Worker flow:
 3. Dựng crawler theo `platform` + `command`.
 4. Checkout account/proxy phù hợp.
 5. Crawl dữ liệu và normalize sang storage model.
-6. Upload media lên R2 nếu có.
+6. Lưu media identifier/link gốc; upload media lên R2 chỉ khi task/strategy yêu cầu archive/cache.
 7. Upsert dữ liệu vào Supabase.
 8. Cập nhật task `completed` hoặc `failed`.
 9. Realtime publication đẩy task/log update về Dashboard.
 
 Dashboard không gọi trực tiếp crawler function trong cùng process. Dashboard chỉ tạo task và quan sát trạng thái.
 
-> **Quy tắc Kiến trúc (R2 Media Cache)**: Creative detail không được phép tạo task cache media. Media URL phải được chuẩn bị đầy đủ bởi crawler/backfill trước khi UI render. Việc bấm nút play chỉ thực hiện GET media qua browser, không tạo task mới.
+> **Quy tắc Kiến trúc (Media Playback)**: Creative detail không được phép tạo task cache media. Với platform có official embedded player như Bilibili, UI render iframe từ identifier/link gốc. Với direct media URL, URL phải được crawler/backfill chuẩn bị trước khi UI render. Việc bấm nút play chỉ thực hiện GET/embed media qua browser, không tạo task mới.
+
+## 6.5 Desktop app, local worker và video downloader
+
+Desktop app hiện tại không thay đổi boundary của hệ thống. Nó là lớp đóng gói/điều khiển, không phải nơi chạy logic crawl trong React/Next request lifecycle.
+
+Định hướng:
+
+```text
+Desktop App (Pake)
+  -> Dashboard local/remote
+  -> Supabase control plane
+  -> local crawler worker / remote crawler worker
+  -> video downloader worker
+```
+
+Quy tắc:
+
+- Pake là hướng packaging mặc định ở giai đoạn đầu.
+- Electron chỉ là phương án fallback nếu cần native capability mà Pake/Tauri shell không đáp ứng.
+- Local worker phải chạy như process/service riêng, dùng cùng contract với worker VPS: claim task, ghi log, update status.
+- Video downloader service phải tách khỏi crawler chính nếu download lớn hoặc cần tải về local folder.
+- Với Bilibili, desktop/dashboard chỉ cần BVID/canonical URL để mở nguồn hoặc render iframe; tải binary thật là việc của downloader service sau này nếu user chủ động cần.
+- Dashboard/Desktop chỉ bật/tắt/cấu hình/quan sát worker; không import trực tiếp crawler core vào UI component.
+- Secrets Supabase/R2/cookie/account không lưu trong localStorage browser.
+
+Các thành phần chưa hoàn thiện phải được đánh dấu trong `docs/project-status.md`, không được ghi như tính năng Done.
 
 ## 7. Database và storage contracts
 
@@ -351,16 +385,31 @@ Browser chỉ subscribe qua:
 
 Không mở realtime bừa bãi cho bảng dữ liệu lớn như `crawled_posts` nếu chưa có use case rõ và filter chặt.
 
-### 7.5 Cloudflare R2
+### 7.5 External media embeds và original URLs
 
-R2 là nơi lưu media binary/object. Supabase lưu metadata/URL/reference.
+Với platform có official embedded player, Dashboard ưu tiên embed thay vì tự phát direct CDN URL.
+
+Luật cho Bilibili:
+
+- Crawler phải lưu BVID trong `platform_uid`.
+- Crawler nên lưu canonical URL dạng `https://www.bilibili.com/video/<BVID>`.
+- Dashboard build iframe từ `https://player.bilibili.com/player.html?bvid=<BVID>`.
+- `media_urls` không cần là direct CDN video URL để playback Bilibili hoạt động.
+- Nút tải/mở nguồn dùng canonical URL nếu chưa có downloader service thật.
+
+Chi tiết nằm ở `docs/architecture/embedded-iframe-player-strategy.md`.
+
+### 7.6 Cloudflare R2
+
+R2 là nơi lưu media binary/object khi cần archive/cache. Supabase lưu metadata/URL/reference.
 
 Luật:
 
 - Media upload/download lớn không đi qua Dashboard server nếu có thể tránh.
-- Crawler dùng `r2_uploader.ts` để upload.
+- Crawler dùng `r2_uploader.ts` để upload khi `upload_r2` hoặc archive flow được bật.
 - Database chỉ lưu URL/path/checksum/metadata nếu cần.
 - Không lưu blob media trực tiếp trong PostgreSQL.
+- Không dùng R2 như điều kiện bắt buộc cho Bilibili playback.
 
 ## 8. Auth, session và client storage
 
@@ -569,7 +618,7 @@ Rationale:
 - UI/service đơn giản.
 - Creative Hub query/index thống nhất.
 
-### ADR-005: Cloudflare R2 lưu media, Supabase lưu metadata
+### ADR-005: Media binary không lưu trong PostgreSQL; R2 là archive/cache tùy chọn
 
 Status: **Accepted**
 
@@ -577,20 +626,24 @@ Context:
 
 - Media có dung lượng lớn, bandwidth cao.
 - PostgreSQL không phù hợp lưu blob.
+- Một số platform, như Bilibili, có official embedded player nên không cần tải binary về R2 để playback.
 
 Decision:
 
-- Crawler upload media lên R2.
-- Supabase lưu URL/path/metadata.
+- Supabase lưu metadata, platform identifier, canonical/original URL và trạng thái media.
+- Dashboard ưu tiên official embed/original URL khi platform hỗ trợ.
+- Crawler/downloader chỉ upload media lên R2 khi task/flow yêu cầu archive/cache/offline/report.
 
 Trade-off:
 
-- Cần quản lý consistency DB ↔ object storage.
+- Cần quản lý nhiều media strategy: embed, original URL, proxy/direct URL, R2 archive.
+- Nếu user cần file thật, cần downloader worker riêng thay vì giả định Dashboard đã có binary.
 
 Rationale:
 
 - Chi phí egress tốt.
 - Tách metadata và binary clean.
+- Tránh tải/upload video không cần thiết cho platform đã có player chính thức.
 
 ### ADR-006: Client storage chỉ cho UI/draft, không cho business source of truth
 
@@ -630,7 +683,7 @@ Các pattern sau không được dùng cho code mới:
 
 ## 15. Refactor backlog còn lại
 
-Chi tiết nằm ở `docs/architecture/frontend-supabase-refactor-todo.md`. Tóm tắt thứ tự ưu tiên:
+Theo dõi trạng thái sống ở `docs/project-status.md` và hướng đi ở `docs/roadmap.md`. Tóm tắt thứ tự ưu tiên:
 
 1. Convert `dashboard/types/supabase.ts` sang UTF-8 để ESLint đọc được.
 2. Tạo alias type `DbClient`, `TableRow`, `TableInsert`, `TableUpdate`.

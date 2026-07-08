@@ -1,5 +1,9 @@
 # Giải pháp khắc phục lỗi phát Video Bilibili trên Dashboard
 
+> **Cập nhật 2026-07-08 / quyết định hiện tại:** Với Bilibili, Dashboard ưu tiên **Embedded Iframe Player** và **không dùng R2 mặc định** để phát video. Crawler chỉ cần lưu BVID (`platform_uid`), canonical URL/link gốc, cover/thumbnail và metadata. Nút tải/mở nguồn nên đưa người dùng tới link gốc Bilibili hoặc copy link; tải binary thật về máy là việc của video downloader service sau này, không phải Creative Detail hoặc R2 cache mặc định.
+>
+> Source of truth chính thức: `docs/architecture/embedded-iframe-player-strategy.md`.
+
 Tài liệu này đúc kết quá trình chẩn đoán lỗi, phân tích nguyên nhân gốc rễ và giải thích hướng giải quyết triệt để giúp các video Bilibili chạy mượt mà trên giao diện dashboard.
 
 ---

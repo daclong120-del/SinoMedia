@@ -164,63 +164,68 @@ export async function persistBilibiliVideo(
   const originalCoverUrl = view.pic || "";
   const originalMediaUrls: string[] = [];
   
+  const uploadR2Enabled = process.env.ENABLE_UPLOAD_R2 !== "false";
   let playUrl = "";
-  const cid = view.cid;
-  const aid = view.aid;
-  if (cid && aid) {
-    try {
-      const playUrlRes = await bilibiliGet("/x/player/wbi/playurl", {
-        avid: aid,
-        cid: cid,
-        qn: 80,
-        fourk: 1,
-        fnval: 1,
-        platform: "pc"
-      }, true);
-      const playUrlPayload = playUrlRes?.data ??
-                             (playUrlRes?.result && typeof playUrlRes.result === "object" ? playUrlRes.result : null) ??
-                             playUrlRes;
-      const durl = playUrlPayload?.durl;
-      let maxUrl = "";
-      let maxSize = -1;
 
-      if (durl && Array.isArray(durl)) {
-        for (const item of durl) {
-          if ((item.size ?? 0) > maxSize) {
-            maxSize = item.size ?? 0;
-            maxUrl = item.url;
+  if (uploadR2Enabled) {
+    const cid = view.cid;
+    const aid = view.aid;
+    if (cid && aid) {
+      try {
+        const playUrlRes = await bilibiliGet("/x/player/wbi/playurl", {
+          avid: aid,
+          cid: cid,
+          qn: 80,
+          fourk: 1,
+          fnval: 1,
+          platform: "pc"
+        }, true);
+        const playUrlPayload = playUrlRes?.data ??
+                               (playUrlRes?.result && typeof playUrlRes.result === "object" ? playUrlRes.result : null) ??
+                               playUrlRes;
+        const durl = playUrlPayload?.durl;
+        let maxUrl = "";
+        let maxSize = -1;
+
+        if (durl && Array.isArray(durl)) {
+          for (const item of durl) {
+            if ((item.size ?? 0) > maxSize) {
+              maxSize = item.size ?? 0;
+              maxUrl = item.url;
+            }
           }
         }
-      }
 
-      if (!maxUrl) {
-        const dashVideos = playUrlPayload?.dash?.video;
-        if (Array.isArray(dashVideos) && dashVideos.length > 0) {
-          const bestVideo = dashVideos
-            .slice()
-            .sort((a, b) => (b.bandwidth ?? 0) - (a.bandwidth ?? 0))[0];
+        if (!maxUrl) {
+          const dashVideos = playUrlPayload?.dash?.video;
+          if (Array.isArray(dashVideos) && dashVideos.length > 0) {
+            const bestVideo = dashVideos
+              .slice()
+              .sort((a, b) => (b.bandwidth ?? 0) - (a.bandwidth ?? 0))[0];
 
-          maxUrl =
-            bestVideo.baseUrl ||
-            bestVideo.base_url ||
-            bestVideo.backupUrl?.[0] ||
-            bestVideo.backup_url?.[0] ||
-            "";
+            maxUrl =
+              bestVideo.baseUrl ||
+              bestVideo.base_url ||
+              bestVideo.backupUrl?.[0] ||
+              bestVideo.backup_url?.[0] ||
+              "";
+          }
         }
-      }
 
-      if (maxUrl) {
-        playUrl = maxUrl;
-        originalMediaUrls.push(playUrl);
+        if (maxUrl) {
+          playUrl = maxUrl;
+          originalMediaUrls.push(playUrl);
+        }
+      } catch (err) {
+        console.log(`Lỗi lấy link playurl Bilibili: ${(err as Error).message}`);
       }
-    } catch (err) {
-      console.log(`Lỗi lấy link playurl Bilibili: ${(err as Error).message}`);
     }
+  } else {
+    originalMediaUrls.push(`https://www.bilibili.com/video/${bvid}`);
   }
 
   // 2. Xử lý R2 cache
   const mediaUrls: string[] = [];
-  const uploadR2Enabled = process.env.ENABLE_UPLOAD_R2 !== "false";
   let coverUrl: string | undefined = uploadR2Enabled ? undefined : originalCoverUrl;
 
   let mediaSource = "original";
@@ -281,14 +286,8 @@ export async function persistBilibiliVideo(
       coverUrl = undefined; // Cấm fallback cover gốc trong cover_url
     }
   } else {
-    if (playUrl) mediaUrls.push(playUrl);
-    if (!playUrl && !originalCoverUrl) {
-      mediaSource = "none";
-      mediaStatus = "unavailable";
-    } else {
-      mediaSource = "original";
-      mediaStatus = "original_only";
-    }
+    mediaSource = "original";
+    mediaStatus = "original_only";
   }
 
   const publishedAt = view.pubdate ? new Date(view.pubdate * 1000).toISOString() : new Date().toISOString();

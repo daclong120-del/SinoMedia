@@ -98,4 +98,4 @@
 ---
 
 ## 5. Bàn giao cho bước tiếp theo
-Sau khi bạn đồng ý cấu trúc sitemap tinh giản ở trên, chúng ta sẽ chuyển sang **Bước 2/3**: Cập nhật file cấu hình JSON của trang tại `.agents/docs/pages-design/navigation.json` và code cấu trúc tại `Sidebar.tsx`.
+Tài liệu này là bản thiết kế sitemap lịch sử. Nếu tiếp tục chỉnh Settings/Sidebar, không dùng các file `pages-design` cũ làm source of truth; hãy đối chiếu `docs/project-status.md`, `docs/architecture/architecture.md` và code hiện tại trước khi sửa `Sidebar.tsx` hoặc cấu hình navigation.

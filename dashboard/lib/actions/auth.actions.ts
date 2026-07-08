@@ -25,9 +25,9 @@ export async function loginAction(email: string, password: string) {
   }
 }
 
-export async function signUpAction(email: string, password: string) {
+export async function signUpAction(email: string, password: string, inviteToken?: string) {
   try {
-    const result = await AuthService.signUp(email, password);
+    const result = await AuthService.signUp(email, password, inviteToken);
     return { success: true, user: result.user, hasSession: !!result.session };
   } catch (err) {
     return { success: false, error: (err as Error).message || "Đăng ký thất bại." };

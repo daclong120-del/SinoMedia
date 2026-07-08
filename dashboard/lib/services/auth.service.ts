@@ -3,6 +3,9 @@
  * Đóng gói logic nghiệp vụ xác thực và chế độ bypass demo local.
  */
 import { createClientServer } from "@/lib/supabase/server";
+import { InvitationRepository } from "@/lib/repositories/invitation.repo";
+import { MemberRepository } from "@/lib/repositories/member.repo";
+import type { DbClient } from "@/lib/repositories/types";
 
 export class AuthService {
   /**
@@ -44,14 +47,47 @@ export class AuthService {
   /**
    * Đăng ký tài khoản
    */
-  static async signUp(email: string, password: string) {
+  static async signUp(email: string, password: string, inviteToken?: string) {
     const supabase = await createClientServer();
+
+    // Nếu đăng ký theo lời mời, kiểm tra token trước
+    let invitation = null;
+    if (inviteToken) {
+      const inviteRepo = new InvitationRepository(supabase as unknown as DbClient);
+      invitation = await inviteRepo.getInvitationByToken(inviteToken);
+      if (!invitation) {
+        throw new Error("Liên kết lời mời không hợp lệ hoặc đã hết hạn.");
+      }
+      if (invitation.email.toLowerCase() !== email.toLowerCase()) {
+        throw new Error(`Lời mời này dành cho email ${invitation.email}, không phải ${email}.`);
+      }
+      if (new Date(invitation.expires_at) < new Date()) {
+        throw new Error("Liên kết lời mời đã hết hạn.");
+      }
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
 
     if (error) throw error;
+
+    // Nếu đăng ký thành công và có lời mời hợp lệ, tiến hành gán quyền và xóa lời mời
+    if (data.user && invitation) {
+      const memberRepo = new MemberRepository(supabase as unknown as DbClient);
+      const inviteRepo = new InvitationRepository(supabase as unknown as DbClient);
+      
+      const workspaceId = invitation.workspace_id || "00000000-0000-0000-0000-000000000000";
+      const roleId = invitation.role_id || "user";
+      
+      // Thêm user vào workspace team_members
+      await memberRepo.addMember(workspaceId, data.user.id, roleId, "active");
+      
+      // Xoá/tiêu thụ lời mời
+      await inviteRepo.deleteInvitation(workspaceId, invitation.email);
+    }
+
     return { user: data.user, session: data.session };
   }
 }

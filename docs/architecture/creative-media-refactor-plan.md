@@ -1,10 +1,12 @@
 # Creative Media Refactor Plan
 
-Trạng thái: **Draft / Implementation Guide**  
+Trạng thái: **Draft / Superseded for Bilibili playback**  
 Ngày tạo: **2026-07-07**  
 Phạm vi: `dashboard`, `crawler-pipeline`, `supabase`, Cloudflare R2.
 
 Tài liệu này hướng dẫn refactor luồng media của Creative Hub để sửa lỗi video không play, giảm phụ thuộc upload R2 ngay lập tức, nhưng vẫn giữ khả năng lưu trữ ổn định khi cần.
+
+> Cập nhật 2026-07-08: Với Bilibili, hướng ưu tiên đã đổi sang **Embedded Iframe Player**. Không cần upload R2 hoặc direct CDN URL để phát video trên Dashboard nếu có BVID (`platform_uid`). Xem `docs/architecture/embedded-iframe-player-strategy.md`.
 
 ## 1. Vấn đề hiện tại
 
@@ -58,8 +60,8 @@ Kết quả là Dashboard phải đoán, còn crawler có platform thì upload R
 
 1. Dashboard không đoán `media_type` từ `cover_url`.
 2. Detail player chỉ render `<video>` khi có video URL thật.
-3. Cho phép dùng URL gốc để tiết kiệm R2 ở giai đoạn MVP/dev.
-4. Vẫn có đường cache sang R2 cho creative quan trọng hoặc khi URL gốc chết.
+3. Cho phép dùng URL gốc hoặc official embed để tiết kiệm R2 ở giai đoạn MVP/dev.
+4. Vẫn có đường cache sang R2 cho creative quan trọng, platform không có embed, hoặc khi user cần archive/offline.
 5. Giữ kiến trúc chuẩn: Dashboard đọc qua `Service -> Repository`, crawler ghi qua store layer.
 6. Không query raw platform tables trực tiếp từ UI.
 
@@ -68,17 +70,19 @@ Kết quả là Dashboard phải đoán, còn crawler có platform thì upload R
 Dùng mô hình hybrid:
 
 ```text
-Crawler extracts original media URLs
+Crawler extracts original media URLs / platform identifiers
   -> Normalize into crawled_posts
   -> Store original URLs + media metadata
-  -> Optionally cache to R2
-  -> Dashboard prefers cached URL, falls back to original URL
+  -> For embed-capable platform: Dashboard renders official iframe
+  -> For direct-media platform: Dashboard uses playable URL/proxy if needed
+  -> Optionally cache to R2 only for archive/offline
 ```
 
 Nguyên tắc:
 
 - `original_media_urls`: nguồn gốc từ platform, có thể hết hạn.
-- `media_urls`: URL Dashboard dùng để render, ưu tiên URL stable như R2.
+- `media_urls`: URL Dashboard dùng để render khi cần direct media. Với platform embed như Bilibili, `platform_uid`/canonical URL quan trọng hơn direct CDN URL.
+- `platform_uid`: với Bilibili là BVID, dùng để render iframe official player.
 - `cover_url`: thumbnail/poster render nhanh.
 - `media_type`: loại media thật, không suy luận từ cover.
 - `media_status`: trạng thái khả dụng của media.
@@ -408,7 +412,7 @@ process.env.ENABLE_UPLOAD_R2 = String(task.metadata?.upload_r2 ?? true);
 Giữ cơ chế này, nhưng định nghĩa rõ:
 
 - `upload_r2: true`: cache media ngay khi crawl.
-- `upload_r2: false`: chỉ lưu original URL.
+- `upload_r2: false`: chỉ lưu original URL/platform identifier. Đây là default mong muốn cho Bilibili playback bằng iframe.
 - `upload_r2: "on_demand"`: **[DEPRECATED / KHÔNG DÙNG]** Lưu original URL trước, cache khi user mở detail hoặc đánh dấu. Quyết định mới cấm tuyệt đối việc tạo task cache media từ Dashboard UI (CreativeDetailView).
 
 ## 8. On-demand cache giai đoạn sau (Bị bãi bỏ / Deprecated)
@@ -580,7 +584,9 @@ Refactor hoàn tất khi:
 
 ## 14. Khi nào vẫn nên dùng R2
 
-Dùng original URL giúp tiết kiệm nhanh, nhưng không đủ bền cho production vì:
+Dùng original URL hoặc embedded player giúp tiết kiệm nhanh. R2 vẫn hữu ích trong một số ca, nhưng không phải đường phát mặc định cho Bilibili.
+
+Vấn đề của direct original URL:
 
 - URL gốc có thể hết hạn.
 - Một số CDN chặn hotlink.
@@ -595,5 +601,6 @@ Vì vậy R2 nên là cache/stable storage cho:
 - Creative dùng trong report/export.
 - Media có original URL hay chết.
 - Media cần giữ lâu dài.
+- Platform không có official embed ổn định.
 
-Không cần upload mọi thứ lên R2 ngay từ đầu. Hãy dùng R2 có chọn lọc.
+Không cần upload mọi thứ lên R2 ngay từ đầu. Với Bilibili, ưu tiên iframe + canonical URL; R2 chỉ dùng nếu user thật sự cần archive/offline.

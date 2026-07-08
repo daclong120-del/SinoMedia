@@ -1,0 +1,99 @@
+# Project Status
+
+Cập nhật lần cuối: 2026-07-08  
+Mục đích: một trang sống để biết SinoMedia đã làm được gì, phần nào đang chạy, phần nào chỉ là phác thảo, và phần nào cần agent kiểm tra trước khi phát triển tiếp.
+
+## Legend
+
+| Trạng thái | Nghĩa |
+|---|---|
+| Done | Có code/luồng chính rõ ràng, đã nối vào kiến trúc hiện hành. Vẫn cần test khi sửa. |
+| Partial | Có UI hoặc backend một phần, nhưng còn thiếu mutation, persistence, dữ liệu thật, hoặc kiểm chứng end-to-end. |
+| Draft | Chủ yếu là thiết kế/UI/local state/hard-code, chưa nên coi là tính năng hoàn chỉnh. |
+| Planned | Định hướng đã rõ, code chưa có hoặc mới có placeholder. |
+| Deprecated | Không dùng cho code mới. |
+
+## Snapshot
+
+SinoMedia hiện là hệ thống gồm 4 khối:
+
+| Khối | Trạng thái | Ghi chú |
+|---|---|---|
+| Dashboard | Partial | Next.js App Router, nhiều trang đã có service/repository và server actions, nhưng một số trang vẫn là UI/local state hoặc còn fallback rỗng khi DB lỗi. |
+| Crawler Pipeline | Partial | Worker TypeScript độc lập đã có queue loop, claim task qua Supabase RPC, platform factory, account/proxy pool và tùy chọn upload R2. Với Bilibili, hướng mới là metadata + iframe embed, không upload R2 mặc định. |
+| Supabase/Media | Partial | Supabase là control plane/data store. Media ưu tiên external embed/link gốc khi platform hỗ trợ; R2 chỉ là archive/cache tùy chọn. |
+| Desktop App | Draft | Hiện là packaging bằng Pake cho dashboard local. Chưa phải desktop runtime có worker manager/video downloader service tích hợp. |
+
+## Product direction hiện tại
+
+- Dashboard là control plane: tạo task, xem dữ liệu, xem log, quản lý account/proxy/settings.
+- `crawler-pipeline` là worker độc lập: claim task từ Supabase, crawl, normalize, ghi DB; chỉ upload R2 khi task/flow thật sự cần archive/cache.
+- Bilibili playback dùng Embedded Iframe Player khi có BVID (`platform_uid`), không cần direct CDN URL hoặc R2 để phát.
+- Tương lai desktop app được build bằng Pake trước. Desktop app cần có khả năng kích hoạt thêm local worker hoặc cấu hình remote worker.
+- Tương lai có video downloader service riêng để máy khác hoặc local desktop tải video, không nhét toàn bộ logic download vào UI.
+- Media cache/download không tạo task `cache_media`; task này đã bị deprecated trong worker. Với Bilibili, UI chỉ cần BVID/canonical URL để render iframe hoặc mở nguồn.
+
+## Dashboard page status
+
+| Route | Trạng thái | Ghi chú |
+|---|---|---|
+| `/` | Done | Redirect/entrypoint dashboard. |
+| `/login`, `/sign-up`, `/forgot-password` | Partial | Có server actions/auth service. Vẫn còn mock-session path phục vụ dev, không coi là production auth hoàn chỉnh. |
+| `/dash/home` | Partial | Có service metrics, một số trend còn TODO hoặc phụ thuộc dữ liệu thật. |
+| `/dash/tasks` | Partial | Có task UI, bulk create/task metadata/server actions/realtime logs. Cần smoke test worker end-to-end với Supabase thật sau mỗi thay đổi lớn. |
+| `/dash/accounts` | Draft | Đọc account qua action, nhưng modal nạp tài khoản và nút unban/xóa chưa nối mutation thật. |
+| `/dash/proxies` | Partial | Có service/actions cho proxy; health check hiện vẫn là TODO/fake ở repository. |
+| `/dash/audit-logs` | Partial | Có audit repository/service, cần dữ liệu thật và policy rõ. |
+| `/dash/settings` | Draft | Chủ yếu local/UI settings; không giả định đã persist DB nếu chưa thấy service/migration. |
+| `/dash/manage-account/members` | Partial | Có member/role/api-token UI và repositories. Cần test permission/RLS và invite flow thật. |
+| `/dash/data/posts` | Partial | Có trang list/detail UI, nhưng còn comment `Cover mock`/`Player mockup`; cần nối media/detail hoàn chỉnh. |
+| `/dash/data/authors` | Partial | Có server/service read path, cần kiểm chứng dữ liệu thật/filter. |
+| `/dash/data/management` | Draft | Nhiều chỉ số storage hard-code; tag manager local state; cleanup buttons chưa nối backend thật. |
+| `/dash/creative/search` | Partial | Có service read, filter client, modal detail. Một số API GET creative vẫn tồn tại để compatibility. |
+| `/dash/creative/new` | Partial | Có service read và client view. |
+| `/dash/creative/trending` | Partial | Có sort theo views; cần kiểm chứng metric/index. |
+| `/dash/creative/growth` | Draft | `getGrowth()` hiện dựa vào views; chưa có bảng lịch sử views để tính growth thật. |
+| `/dash/creative/calendar` | Draft | Có calendar UI từ dữ liệu creative, export chỉ alert "đang phát triển". |
+| `/dash/creative/advertisers` | Partial | Có list/profile service, thống kê tính từ posts; cần tối ưu nếu dữ liệu lớn. |
+| `/dash/creative/[id]` | Partial | Có detail view. Bilibili đi theo hướng iframe embed khi có BVID; các platform khác vẫn cần kiểm chứng original URL/proxy/R2 tùy strategy. |
+
+## Crawler Pipeline status
+
+| Capability | Trạng thái | Ghi chú |
+|---|---|---|
+| CLI entrypoint | Done | `bootstrap`, `crawl`, `creator`, `search`, `comments`, `add-account`. `crawl` không target sẽ khởi chạy queue worker. |
+| Queue worker | Partial | `startQueueWorker()` polling 5 giây, claim task qua `claim_next_crawler_task`, execute và update status. Cần graceful shutdown/heartbeat/worker identity sau. |
+| Task metadata | Partial | Worker đọc tags, language, crawl_comments, crawl_sub_comments, upload_r2, headless từ `task.metadata`. |
+| Platform factory | Partial | Có factory cho nhiều platform; platform không hỗ trợ sẽ throw rõ ràng. |
+| Platforms | Partial | Có module cho Bilibili, Douyin, Kuaishou, Tieba, Weibo, XHS, Zhihu. Mức ổn định từng platform chưa đồng đều. |
+| Login/session | Partial | Một số platform còn báo QR auto-login chưa hỗ trợ hoặc cần cookie cục bộ. |
+| Account/proxy pool | Partial | Có pool/account rotation, nhưng cần health policy và dashboard mutation hoàn chỉnh hơn. |
+| R2 upload | Optional | Có uploader/dedup, nhưng không còn là đường phát mặc định cho Bilibili. Dùng khi cần archive/cache/report/offline. |
+| Cache media task | Deprecated | Worker đã throw nếu command là `cache_media`. Không thêm UI tạo task này nữa. |
+
+## Desktop App status
+
+| Capability | Trạng thái | Ghi chú |
+|---|---|---|
+| Pake packaging | Draft | `desktop-app/build.bat` và README hướng dẫn đóng dashboard local thành app. |
+| Bundled dashboard server | Planned | Cần quyết định cách khởi chạy Next server local trong desktop distribution. |
+| Activate local worker | Planned | Desktop cần UI/config để bật/tắt worker local, nhưng hiện chưa có worker manager trong app. |
+| Remote worker management | Planned | Cần worker registration/heartbeat/capabilities để máy khác nhận task. |
+| Video downloader service | Planned | Với Bilibili hiện chỉ cần canonical URL/BVID để mở nguồn. Tải file thật về máy là việc của downloader service sau này, không phải R2 cache mặc định. |
+
+## Known gaps
+
+- Thiếu status automation: chưa có script tự sinh page status từ routes/services.
+- GitNexus index hiện có thể chậm hơn HEAD vài commit; agent phải đọc file thật trước khi kết luận.
+- Root README từng đóng vai trò docs index; `docs/README.md` mới là cửa vào của thư mục docs.
+- Một số docs cũ hoặc design JSON đã bị xóa/di chuyển; không dùng đường dẫn cũ làm source of truth.
+- Không coi "route tồn tại" là "feature xong". Phải kiểm tra data path, mutation path, empty/error state và persistence.
+
+## Update checklist
+
+Khi hoàn thành một tính năng:
+
+1. Cập nhật trạng thái route/capability ở file này.
+2. Nếu thay đổi hướng kiến trúc, cập nhật `docs/roadmap.md` hoặc `docs/decisions.md`.
+3. Nếu phát hiện bẫy cho agent, cập nhật `docs/agent-handbook.md`.
+4. Nếu sửa code symbol, tuân thủ GitNexus impact analysis trước khi sửa và `detect_changes()` trước khi commit.
