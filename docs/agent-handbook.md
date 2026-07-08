@@ -82,6 +82,8 @@ Ví dụ bẫy hiện tại:
 - Không migrate auth token về localStorage.
 - Mutation từ browser phải validate payload và chống CSRF/Origin abuse.
 - Logs không chứa cookie, password, token, QR secret.
+- Không xóa vai trò hệ thống mặc định (`admin`, `user`) kể cả khi đã gỡ khóa sửa quyền (`is_locked = false`). Chặn xóa ở cả backend (`deleteRole`) và UI (`roles-panel.tsx`).
+- Tránh chạy `supabase db reset` ở local dev vì làm mất dữ liệu cào thử nghiệm. Ưu tiên chạy trực tiếp SQL `UPDATE` hoặc `supabase db push` khi thay đổi schema/data nhỏ.
 
 ## Documentation rule
 

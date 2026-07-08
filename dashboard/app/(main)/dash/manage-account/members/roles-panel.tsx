@@ -252,7 +252,7 @@ export function RolesPanel({ roles, showToast }: RolesPanelProps) {
           {/* Save Button */}
           <div className="border-t border-border pt-4 mt-6 flex justify-between items-center">
             <div>
-              {!activeRole.isLocked && (
+              {!activeRole.isLocked && activeRole.roleId !== "user" && activeRole.roleId !== "admin" && (
                 <button
                   type="button"
                   disabled={loading}

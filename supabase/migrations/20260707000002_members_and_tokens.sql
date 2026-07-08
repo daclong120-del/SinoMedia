@@ -43,7 +43,7 @@ ALTER TABLE public.team_roles OWNER TO postgres;
 INSERT INTO public.team_roles (id, name, description, is_locked)
 VALUES 
   ('admin', 'Admin', 'Có toàn quyền quản trị, cấu hình hệ thống, quản lý tác vụ crawl và thành viên.', true),
-  ('user', 'User', 'Chỉ xem dữ liệu, giám sát trạng thái và xem dữ liệu đã thu thập.', true)
+  ('user', 'User', 'Chỉ xem dữ liệu, giám sát trạng thái và xem dữ liệu đã thu thập.', false)
 ON CONFLICT (id) DO NOTHING;
 
 -- Create team_role_permissions table
