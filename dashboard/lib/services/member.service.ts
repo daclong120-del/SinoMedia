@@ -271,6 +271,10 @@ export async function updateRolePermissions(roleId: string, permissions: Permiss
 
 /** Xoá vai trò tùy chỉnh */
 export async function deleteRole(roleId: string): Promise<void> {
+  if (roleId === "admin" || roleId === "user") {
+    throw new Error("Không thể xóa vai trò hệ thống mặc định.");
+  }
+
   const { createClientServer } = await import("@/lib/supabase/server");
   const db = await createClientServer();
   const roleRepo = new RoleRepository(db as unknown as DbClient);
