@@ -47,5 +47,4 @@ crawler-pipeline/.env
 crawler-pipeline/output/
 
 assets_test/
-
-artifact/
+#artifact/
