@@ -19,6 +19,7 @@ Trang này là cửa vào cho tài liệu hiện hành của SinoMedia. Nếu c�
 - [Creative Media Refactor Plan](architecture/creative-media-refactor-plan.md)
 - [Embedded Iframe Player Strategy](architecture/embedded-iframe-player-strategy.md)
 - [Role Management Strategy](architecture/role-management.md)
+- [Desktop App Packaging & Strategy](architecture/desktop-app.md)
 
 ## Workflows
 
