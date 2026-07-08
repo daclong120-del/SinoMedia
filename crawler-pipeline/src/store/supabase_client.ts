@@ -67,7 +67,9 @@ export async function supabaseRest(
     throw new Error(`Supabase REST error ${res.status}: ${errText}`);
   }
 
-  // Xử lý 204 No Content (PATCH/DELETE thường trả về 204)
+  // Xử lý response body rỗng (PATCH/DELETE thường trả về 204, POST với return=minimal trả về 201 không có body)
   if (res.status === 204) return null;
-  return res.json();
+  const text = await res.text();
+  if (!text) return null;
+  return JSON.parse(text);
 }

@@ -68,9 +68,13 @@ export class TaskRepository {
 
   /** Cập nhật trạng thái task */
   async updateStatus(id: string, status: TableRow<"crawler_tasks">["status"]): Promise<void> {
+    const updates: Partial<TableRow<"crawler_tasks">> = { status };
+    if (status === "pending") {
+      updates.error_message = null;
+    }
     const { error } = await this.db
       .from("crawler_tasks")
-      .update({ status })
+      .update(updates)
       .eq("id", id);
     if (error) throw error;
   }

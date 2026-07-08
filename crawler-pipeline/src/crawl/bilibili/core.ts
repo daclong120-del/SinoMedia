@@ -3,8 +3,7 @@
  */
 
 import { bilibiliGet, downloadMedia, pong, setBilibiliCookie } from "./client.js";
-import { uploadMediaToR2, checkMediaExistsInR2 } from "../../store/r2_uploader.js";
-import { upsertAuthor, upsertPost, upsertPosts, getPostUuid, upsertComments, checkoutAccount, checkinAccount } from "../../store/index.js";
+import { upsertAuthor, upsertPost, upsertPosts, getPostUuid, upsertComments, checkoutAccount, checkinAccount, releaseAccount } from "../../store/index.js";
 import { CrawledPostRow } from "../../model/storage.js";
 import type { ICrawler, BrowserLaunchOptions } from "../../base/base_crawler.js";
 import type { BrowserContext } from "playwright-core";
@@ -13,12 +12,12 @@ function sleep(ms: number): Promise<void> {
   return new Promise(r => setTimeout(r, ms));
 }
 
-let currentAccountId: string | null = null;
+type LoginSession = { mode: "account"; accountId: string } | { mode: "guest" };
 
 /**
  * # Đảm bảo trạng thái đăng nhập hợp lệ trước khi cào
  */
-async function ensureLogin(): Promise<void> {
+async function ensureLogin(): Promise<LoginSession> {
   let attempts = 0;
   const maxAttempts = 5;
   while (attempts < maxAttempts) {
@@ -31,12 +30,10 @@ async function ensureLogin(): Promise<void> {
     const isActive = await pong();
     if (isActive) {
       console.log(`Tài khoản ${account.username} hoạt động tốt. Sẵn sàng cào.`);
-      currentAccountId = account.id;
-      return;
+      return { mode: "account", accountId: account.id };
     } else {
       console.log(`Tài khoản ${account.username} không hoạt động hoặc bị chặn. Đang đánh dấu lỗi...`);
       await checkinAccount(account.id, false);
-      currentAccountId = null;
       attempts++;
     }
   }
@@ -45,8 +42,7 @@ async function ensureLogin(): Promise<void> {
   const localIsActive = await pong();
   if (localIsActive) {
     console.log("Cookie cục bộ/môi trường hoạt động tốt.");
-    currentAccountId = null;
-    return;
+    return { mode: "guest" };
   }
   console.log("Cookie cục bộ hết hạn hoặc chưa đăng nhập. Tiến hành khởi chạy trình duyệt để thực hiện đăng nhập...");
   const { getBrowserContext, saveBilibiliCookie, closeBrowser } = await import("./client.js");
@@ -63,12 +59,14 @@ async function ensureLogin(): Promise<void> {
       const cookieStr = result.cookies.map(c => `${c.name}=${c.value}`).join("; ");
       await saveBilibiliCookie(cookieStr);
       console.log("Đăng nhập thành công. Đã cập nhật và lưu cookie mới.");
+      setBilibiliCookie(cookieStr);
     }
   } catch (err) {
     console.log(`Không thể hoàn thành đăng nhập: ${(err as Error).message}. Tiếp tục bằng chế độ ẩn danh (Guest)...`);
   } finally {
     await closeBrowser();
   }
+  return { mode: "guest" };
 }
 
 /**
@@ -133,28 +131,13 @@ export async function persistBilibiliVideo(
   const bvid = view.bvid;
   const owner = view.owner || {};
 
-  let avatarUrlR2 = "";
-  const faceUrl = owner.face;
-  if (faceUrl) {
-    try {
-      const midStr = String(owner.mid);
-      const exists = await checkMediaExistsInR2("bilibili", midStr, "avatar.jpg");
-      if (exists) {
-        avatarUrlR2 = `bilibili/${midStr}/avatar.jpg`;
-      } else {
-        const avatarBuf = await downloadMedia(faceUrl);
-        avatarUrlR2 = await uploadMediaToR2("bilibili", midStr, "avatar.jpg", avatarBuf, "image/jpeg");
-      }
-    } catch {}
-  }
-
   let authorUuid = options?.authorUuid;
   if (!authorUuid) {
     authorUuid = await upsertAuthor({
       platform: "bilibili",
       platform_uid: String(owner.mid || "unknown"),
       nickname: owner.name || "Người dùng Bilibili",
-      avatar_url: avatarUrlR2 || undefined,
+      avatar_url: owner.face || undefined,
       raw: owner,
     });
   }
@@ -162,133 +145,15 @@ export async function persistBilibiliVideo(
   // 1. Xác định media type và URL gốc
   const mediaType = "video";
   const originalCoverUrl = view.pic || "";
-  const originalMediaUrls: string[] = [];
+  const canonicalUrl = `https://www.bilibili.com/video/${bvid}`;
+  const originalMediaUrls = [canonicalUrl];
   
-  const uploadR2Enabled = process.env.ENABLE_UPLOAD_R2 !== "false";
-  let playUrl = "";
-
-  if (uploadR2Enabled) {
-    const cid = view.cid;
-    const aid = view.aid;
-    if (cid && aid) {
-      try {
-        const playUrlRes = await bilibiliGet("/x/player/wbi/playurl", {
-          avid: aid,
-          cid: cid,
-          qn: 80,
-          fourk: 1,
-          fnval: 1,
-          platform: "pc"
-        }, true);
-        const playUrlPayload = playUrlRes?.data ??
-                               (playUrlRes?.result && typeof playUrlRes.result === "object" ? playUrlRes.result : null) ??
-                               playUrlRes;
-        const durl = playUrlPayload?.durl;
-        let maxUrl = "";
-        let maxSize = -1;
-
-        if (durl && Array.isArray(durl)) {
-          for (const item of durl) {
-            if ((item.size ?? 0) > maxSize) {
-              maxSize = item.size ?? 0;
-              maxUrl = item.url;
-            }
-          }
-        }
-
-        if (!maxUrl) {
-          const dashVideos = playUrlPayload?.dash?.video;
-          if (Array.isArray(dashVideos) && dashVideos.length > 0) {
-            const bestVideo = dashVideos
-              .slice()
-              .sort((a, b) => (b.bandwidth ?? 0) - (a.bandwidth ?? 0))[0];
-
-            maxUrl =
-              bestVideo.baseUrl ||
-              bestVideo.base_url ||
-              bestVideo.backupUrl?.[0] ||
-              bestVideo.backup_url?.[0] ||
-              "";
-          }
-        }
-
-        if (maxUrl) {
-          playUrl = maxUrl;
-          originalMediaUrls.push(playUrl);
-        }
-      } catch (err) {
-        console.log(`Lỗi lấy link playurl Bilibili: ${(err as Error).message}`);
-      }
-    }
-  } else {
-    originalMediaUrls.push(`https://www.bilibili.com/video/${bvid}`);
-  }
-
-  // 2. Xử lý R2 cache
-  const mediaUrls: string[] = [];
-  let coverUrl: string | undefined = uploadR2Enabled ? undefined : originalCoverUrl;
-
-  let mediaSource = "original";
-  let mediaStatus = "original_only";
-  let mediaError: string | null = null;
-  let mediaCachedAt: string | null = null;
-
-  if (uploadR2Enabled) {
-    try {
-      mediaSource = "r2";
-
-      // Xử lý cover R2
-      if (originalCoverUrl) {
-        const exists = await checkMediaExistsInR2("bilibili", bvid, "cover.jpg");
-        if (exists) {
-          coverUrl = `bilibili/${bvid}/cover.jpg`;
-        } else {
-          try {
-            const coverBuf = await downloadMedia(originalCoverUrl);
-            const r2CoverKey = await uploadMediaToR2("bilibili", bvid, "cover.jpg", coverBuf, "image/jpeg");
-            if (r2CoverKey) {
-              coverUrl = r2CoverKey;
-            }
-          } catch (coverErr: any) {
-            console.warn(`[Bilibili] Lỗi upload cover lên R2: ${coverErr.message}`);
-          }
-        }
-      }
-
-      // Xử lý video R2 (bắt buộc)
-      if (playUrl) {
-        const exists = await checkMediaExistsInR2("bilibili", bvid, "video.mp4");
-        if (exists) {
-          mediaUrls.push(`bilibili/${bvid}/video.mp4`);
-          mediaStatus = "cached";
-          mediaCachedAt = new Date().toISOString();
-        } else {
-          const videoBuf = await downloadMedia(playUrl);
-          const videoKey = await uploadMediaToR2("bilibili", bvid, "video.mp4", videoBuf, "video/mp4");
-          if (videoKey) {
-            mediaUrls.push(videoKey);
-            mediaStatus = "cached";
-            mediaCachedAt = new Date().toISOString();
-          } else {
-            throw new Error("Không thể upload video lên R2");
-          }
-        }
-      } else {
-        throw new Error("Không tìm thấy URL video gốc (playUrl) để cache");
-      }
-    } catch (err: any) {
-      console.error(`[Bilibili] R2 cache failed: ${err.message}`);
-      mediaSource = "original";
-      mediaStatus = "failed";
-      mediaError = err.message || "Lỗi upload R2";
-
-      mediaUrls.length = 0; // Cấm fallback CDN gốc trong media_urls
-      coverUrl = undefined; // Cấm fallback cover gốc trong cover_url
-    }
-  } else {
-    mediaSource = "original";
-    mediaStatus = "original_only";
-  }
+  const mediaUrls = [canonicalUrl];
+  const coverUrl = originalCoverUrl;
+  const mediaSource = "original";
+  const mediaStatus = "original_only";
+  const mediaError = null;
+  const mediaCachedAt = null;
 
   const publishedAt = view.pubdate ? new Date(view.pubdate * 1000).toISOString() : new Date().toISOString();
   const stat = view.stat || {};
@@ -439,26 +304,11 @@ export async function crawlCreator(urlOrUid: string): Promise<void> {
   const nickname = creatorInfoRes.name || "Người dùng Bilibili";
   const faceUrl = creatorInfoRes.face;
 
-  let avatarUrlR2 = "";
-  if (faceUrl) {
-    try {
-      const exists = await checkMediaExistsInR2("bilibili", creatorId, "avatar.jpg");
-      if (exists) {
-        avatarUrlR2 = `bilibili/${creatorId}/avatar.jpg`;
-      } else {
-        const avatarBuf = await downloadMedia(faceUrl);
-        avatarUrlR2 = await uploadMediaToR2("bilibili", creatorId, "avatar.jpg", avatarBuf, "image/jpeg");
-      }
-    } catch (err) {
-      console.log(`Lỗi tải avatar creator: ${(err as Error).message}`);
-    }
-  }
-
   const authorUuid = await upsertAuthor({
     platform: "bilibili",
     platform_uid: creatorId,
     nickname,
-    avatar_url: avatarUrlR2 || undefined,
+    avatar_url: faceUrl || undefined,
     description: creatorInfoRes.sign || undefined,
     raw: creatorInfoRes,
   });
@@ -604,13 +454,23 @@ export async function crawlSearch(keyword: string, maxCount = 20): Promise<void>
   console.log(`Hoàn thành cào tìm kiếm từ khóa "${keyword}". Tổng số video đã xử lý: ${collected}`);
 }
 
+function isInputOrTargetError(err: any): boolean {
+  const msg = err?.message || "";
+  return (
+    msg.includes("Không thể trích xuất UID từ link kênh") ||
+    msg.includes("Không thể trích xuất mã BV từ link video") ||
+    msg.includes("Không thể lấy thông tin video để cào bình luận")
+  );
+}
+
 export class BilibiliCrawler implements ICrawler {
   /**
    * # Thực hiện cào chi tiết video/bài đăng Bilibili
    */
   async crawl(target: string): Promise<void> {
+    let session: LoginSession = { mode: "guest" };
     try {
-      await ensureLogin();
+      session = await ensureLogin();
       const bvid = parseVideoInfoFromUrl(target);
       const detailRes = await bilibiliGet("/x/web-interface/view/detail", { bvid }, false);
       const post = await persistBilibiliVideo(detailRes);
@@ -624,12 +484,16 @@ export class BilibiliCrawler implements ICrawler {
           console.log(`Lỗi khi cào bình luận cho video ${post.platform_id}: ${(err as Error).message}`);
         }
       }
-      if (currentAccountId) {
-        await checkinAccount(currentAccountId, true);
+      if (session.mode === "account") {
+        await checkinAccount(session.accountId, true);
       }
     } catch (err) {
-      if (currentAccountId) {
-        await checkinAccount(currentAccountId, false);
+      if (session.mode === "account") {
+        if (isInputOrTargetError(err)) {
+          await releaseAccount(session.accountId);
+        } else {
+          await checkinAccount(session.accountId, false);
+        }
       }
       throw err;
     }
@@ -639,15 +503,20 @@ export class BilibiliCrawler implements ICrawler {
    * # Thực hiện cào profile creator và video của họ trên Bilibili
    */
   async creator(target: string): Promise<void> {
+    let session: LoginSession = { mode: "guest" };
     try {
-      await ensureLogin();
+      session = await ensureLogin();
       await crawlCreator(target);
-      if (currentAccountId) {
-        await checkinAccount(currentAccountId, true);
+      if (session.mode === "account") {
+        await checkinAccount(session.accountId, true);
       }
     } catch (err) {
-      if (currentAccountId) {
-        await checkinAccount(currentAccountId, false);
+      if (session.mode === "account") {
+        if (isInputOrTargetError(err)) {
+          await releaseAccount(session.accountId);
+        } else {
+          await checkinAccount(session.accountId, false);
+        }
       }
       throw err;
     }
@@ -657,15 +526,20 @@ export class BilibiliCrawler implements ICrawler {
    * # Tìm kiếm video Bilibili theo từ khóa
    */
   async search(keyword: string, maxCount?: number): Promise<void> {
+    let session: LoginSession = { mode: "guest" };
     try {
-      await ensureLogin();
+      session = await ensureLogin();
       await crawlSearch(keyword, maxCount);
-      if (currentAccountId) {
-        await checkinAccount(currentAccountId, true);
+      if (session.mode === "account") {
+        await checkinAccount(session.accountId, true);
       }
     } catch (err) {
-      if (currentAccountId) {
-        await checkinAccount(currentAccountId, false);
+      if (session.mode === "account") {
+        if (isInputOrTargetError(err)) {
+          await releaseAccount(session.accountId);
+        } else {
+          await checkinAccount(session.accountId, false);
+        }
       }
       throw err;
     }
@@ -675,15 +549,20 @@ export class BilibiliCrawler implements ICrawler {
    * # Cào bình luận của video Bilibili
    */
   async comments(target: string, maxCount?: number): Promise<void> {
+    let session: LoginSession = { mode: "guest" };
     try {
-      await ensureLogin();
+      session = await ensureLogin();
       await crawlComments(target, { maxCount, withReplies: process.env.ENABLE_GET_SUB_COMMENTS === "true" });
-      if (currentAccountId) {
-        await checkinAccount(currentAccountId, true);
+      if (session.mode === "account") {
+        await checkinAccount(session.accountId, true);
       }
     } catch (err) {
-      if (currentAccountId) {
-        await checkinAccount(currentAccountId, false);
+      if (session.mode === "account") {
+        if (isInputOrTargetError(err)) {
+          await releaseAccount(session.accountId);
+        } else {
+          await checkinAccount(session.accountId, false);
+        }
       }
       throw err;
     }

@@ -29,7 +29,7 @@
   4. Verify the extracted output mapping contains: `id`, `title` (or question title), `content`, `author`, `like_count`, `comment_count`.
 - **Expected Results**:
   - The crawler successfully parses the HTML.
-  - Media/Images inside the content are queued and uploaded to Cloudflare R2.
+  - Media/Images inside the content are stored as original URLs.
   - The post and author profiles are correctly prepared to be written to Supabase DB.
 - **Postconditions**: Post details stored/logged correctly.
 
@@ -44,7 +44,7 @@
   3. Verify extraction of title, content, published time, and stats from `js-initialData`.
 - **Expected Results**:
   - Crawler extracts the correct article content.
-  - Article cover image is downloaded and uploaded to Cloudflare R2.
+  - Article cover image is stored as original URL.
   - Entity structures are successfully mapped to `CrawledPostRow` format.
 - **Postconditions**: Article metadata generated successfully.
 
@@ -58,7 +58,7 @@
   2. Verify parsing of video download link, title, and creator information.
 - **Expected Results**:
   - Raw video URL is extracted.
-  - The video file is downloaded, cached, and uploaded to Cloudflare R2 (`zhihu/<id>/video.mp4`).
+  - The video file URL is stored directly as original media URL.
   - Target data matches original zvideo specifications.
 - **Postconditions**: Zvideo raw and processed fields persisted.
 
@@ -74,7 +74,7 @@
   4. Verify detail crawling for each post under creator profile.
 - **Expected Results**:
   - Creator metadata is extracted and saved to DB.
-  - Creator's avatar and cover images are uploaded to Cloudflare R2.
+  - Creator's avatar and cover images are stored as original platform URLs.
   - Sub-posts (articles, answers, videos) are crawled and upserted.
 - **Postconditions**: Creator and their posts are fully updated in the database.
 

@@ -38,12 +38,6 @@ export const CONFIG = {
     url: getEnv("SUPABASE_URL") ?? getEnv("EXPO_PUBLIC_SUPABASE_URL") ?? (() => { throw new Error("Thiếu biến SUPABASE_URL — vui lòng cấu hình trong file .env"); })(),
     serviceRoleKey: getEnv("SUPABASE_SERVICE_ROLE_KEY") ?? (() => { throw new Error("Thiếu biến SUPABASE_SERVICE_ROLE_KEY — vui lòng cấu hình trong file .env"); })(),
   },
-  r2: {
-    accessKeyId: getEnv("R2_ACCESS_KEY_ID") ?? "",
-    secretAccessKey: getEnv("R2_SECRET_ACCESS_KEY") ?? "",
-    endpointUrl: getEnv("R2_ENDPOINT_URL") ?? "",
-    bucketName: getEnv("R2_BUCKET_NAME") ?? "media-crawler-bucket",
-  },
   proxy: getEnv("CRAWLER_PROXY") ?? "",
   headless: getEnv("CRAWLER_HEADLESS") !== "false",
 };

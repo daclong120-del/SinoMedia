@@ -1,5 +1,4 @@
 import { douyinGet, downloadMedia, sleep, CRAWL_SLEEP_MS, setDouyinSession, checkSessionAlive } from "./client.js";
-import { uploadMediaToR2, checkMediaExistsInR2 } from "../../store/r2_uploader.js";
 import { upsertAuthor, upsertPost, upsertPosts, getPostUuid, upsertComments, checkoutAccount, checkinAccount } from "../../store/index.js";
 import { DouyinAweme } from "../../model/douyin.js";
 import { CrawledPostRow } from "../../model/storage.js";
@@ -141,30 +140,14 @@ export async function persistAweme(
 ): Promise<CrawledPostRow> {
   const awemeId = detail.aweme_id;
   const authorData = detail.author;
-  let avatarUrlR2 = "";
-  if (authorData) {
-    const rawAvatarUrl = authorData.avatar_thumb?.url_list?.[0] || authorData.avatar_larger?.url_list?.[0];
-    if (rawAvatarUrl) {
-      try {
-        const secUid = authorData.sec_uid || "unknown";
-        const exists = await checkMediaExistsInR2("douyin", secUid, "avatar.jpg");
-        if (exists) {
-          avatarUrlR2 = `douyin/${secUid}/avatar.jpg`;
-        } else {
-          const avatarBuf = await downloadMedia(rawAvatarUrl);
-          avatarUrlR2 = await uploadMediaToR2("douyin", secUid, "avatar.jpg", avatarBuf, "image/jpeg");
-        }
-      } catch {}
-    }
-  }
-
   let authorUuid = options?.authorUuid;
   if (!authorUuid) {
+    const rawAvatarUrl = authorData?.avatar_thumb?.url_list?.[0] || authorData?.avatar_larger?.url_list?.[0];
     authorUuid = await upsertAuthor({
       platform: "douyin",
       platform_uid: authorData?.sec_uid || "unknown",
       nickname: authorData?.nickname || "Người dùng Douyin",
-      avatar_url: avatarUrlR2 || undefined,
+      avatar_url: rawAvatarUrl || undefined,
       raw: authorData,
     });
   }
@@ -203,124 +186,18 @@ export async function persistAweme(
     }
   }
 
-  // 3. Xử lý R2 cache
-  const mediaUrls: string[] = [];
+  // 3. Xử lý R2 cache (removed)
+  const mediaUrls: string[] = [...originalMediaUrls];
   let coverUrl = originalCoverUrl;
   
-  const uploadR2Enabled = process.env.ENABLE_UPLOAD_R2 !== "false";
   let mediaSource = "original";
   let mediaStatus = "original_only";
   let mediaError: string | null = null;
   let mediaCachedAt: string | null = null;
 
-  if (uploadR2Enabled) {
-    let totalToUpload = 0;
-    let successUploads = 0;
-
-    try {
-      mediaSource = "r2";
-      
-      // Xử lý video
-      if (detail.video) {
-        const videoUrl = detail.video.play_addr?.url_list?.[0];
-        if (videoUrl) {
-          totalToUpload++;
-          const exists = await checkMediaExistsInR2("douyin", awemeId, "video.mp4");
-          if (exists) {
-            mediaUrls.push(`douyin/${awemeId}/video.mp4`);
-            successUploads++;
-          } else {
-            const videoBuf = await downloadMedia(videoUrl);
-            const videoKey = await uploadMediaToR2("douyin", awemeId, "video.mp4", videoBuf, "video/mp4");
-            if (videoKey) {
-              mediaUrls.push(videoKey);
-              successUploads++;
-            }
-          }
-        }
-        
-        const coverUrlRaw = detail.video.cover?.url_list?.[0];
-        if (coverUrlRaw) {
-          totalToUpload++;
-          const exists = await checkMediaExistsInR2("douyin", awemeId, "cover.jpg");
-          if (exists) {
-            coverUrl = `douyin/${awemeId}/cover.jpg`;
-            successUploads++;
-          } else {
-            const coverBuf = await downloadMedia(coverUrlRaw);
-            const r2CoverKey = await uploadMediaToR2("douyin", awemeId, "cover.jpg", coverBuf, "image/jpeg");
-            if (r2CoverKey) {
-              coverUrl = r2CoverKey;
-              successUploads++;
-            }
-          }
-        }
-      }
-
-      // Xử lý images
-      if (detail.images && Array.isArray(detail.images)) {
-        for (let i = 0; i < detail.images.length; i++) {
-          const imgUrl = detail.images[i].display_image_width_goods?.url_list?.[0] || detail.images[i].url_list?.[0];
-          if (imgUrl) {
-            totalToUpload++;
-            const filename = `image_${i}.jpg`;
-            const exists = await checkMediaExistsInR2("douyin", awemeId, filename);
-            if (exists) {
-              mediaUrls.push(`douyin/${awemeId}/${filename}`);
-              successUploads++;
-            } else {
-              const imgBuf = await downloadMedia(imgUrl);
-              const imgKey = await uploadMediaToR2("douyin", awemeId, filename, imgBuf, "image/jpeg");
-              if (imgKey) {
-                mediaUrls.push(imgKey);
-                successUploads++;
-              }
-            }
-          }
-        }
-        if (mediaUrls.length > 0) {
-          coverUrl = mediaUrls[0];
-        }
-      }
-
-      // Đánh giá trạng thái thực tế sau upload
-      if (totalToUpload === 0) {
-        mediaSource = "none";
-        mediaStatus = "unavailable";
-      } else if (successUploads === totalToUpload) {
-        mediaStatus = "cached";
-        mediaCachedAt = new Date().toISOString();
-      } else if (successUploads === 0) {
-        mediaSource = "original";
-        mediaStatus = "failed";
-        mediaError = "Không có media nào upload thành công lên R2";
-        mediaUrls.length = 0;
-        mediaUrls.push(...originalMediaUrls);
-        coverUrl = originalCoverUrl;
-      } else {
-        mediaSource = "mixed";
-        mediaStatus = "cached";
-        mediaCachedAt = new Date().toISOString();
-      }
-
-    } catch (err: any) {
-      mediaSource = "original";
-      mediaStatus = "failed";
-      mediaError = err.message || "Lỗi upload R2";
-      
-      mediaUrls.length = 0;
-      mediaUrls.push(...originalMediaUrls);
-      coverUrl = originalCoverUrl;
-    }
-  } else {
-    mediaUrls.push(...originalMediaUrls);
-    if (originalMediaUrls.length === 0 && !originalCoverUrl) {
-      mediaSource = "none";
-      mediaStatus = "unavailable";
-    } else {
-      mediaSource = "original";
-      mediaStatus = "original_only";
-    }
+  if (originalMediaUrls.length === 0 && !originalCoverUrl) {
+    mediaSource = "none";
+    mediaStatus = "unavailable";
   }
 
   const publishedAt = detail.create_time ? new Date(detail.create_time * 1000).toISOString() : new Date().toISOString();
@@ -435,27 +312,11 @@ export async function crawlCreator(urlOrSecUid: string): Promise<void> {
   const user = userProfileRes.user;
 
   console.log(`Tìm thấy creator: ${user.nickname}`);
-  let avatarUrlR2 = "";
-  const rawAvatarUrl = user.avatar_thumb?.url_list?.[0] || user.avatar_larger?.url_list?.[0];
-  if (rawAvatarUrl) {
-    try {
-      const exists = await checkMediaExistsInR2("douyin", secUserId, "avatar.jpg");
-      if (exists) {
-        avatarUrlR2 = `douyin/${secUserId}/avatar.jpg`;
-      } else {
-        const avatarBuf = await downloadMedia(rawAvatarUrl);
-        avatarUrlR2 = await uploadMediaToR2("douyin", secUserId, "avatar.jpg", avatarBuf, "image/jpeg");
-      }
-    } catch (err) {
-      console.log(`Lỗi tải avatar creator: ${(err as Error).message}`);
-    }
-  }
-
   const authorUuid = await upsertAuthor({
     platform: "douyin",
     platform_uid: secUserId,
     nickname: user.nickname || "Người dùng Douyin",
-    avatar_url: avatarUrlR2 || undefined,
+    avatar_url: user.avatar_thumb?.url_list?.[0] || user.avatar_larger?.url_list?.[0] || undefined,
     raw: user,
   });
 

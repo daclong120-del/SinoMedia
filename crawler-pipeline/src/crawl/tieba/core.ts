@@ -3,10 +3,10 @@
  */
 
 import { TiebaClient } from "./client.js";
-import { uploadMediaToR2, checkMediaExistsInR2 } from "../../store/r2_uploader.js";
 import {
   upsertAuthor,
   upsertPost,
+  upsertPosts,
   upsertComments,
   getPostUuid,
   checkoutAccount,
@@ -45,27 +45,11 @@ async function persistAuthor(authorInfo: {
   ipLocation?: string;
   raw?: any;
 }): Promise<string> {
-  let avatarUrlR2 = "";
-  if (authorInfo.avatarUrl) {
-    try {
-      const exists = await checkMediaExistsInR2("tieba", authorInfo.uid, "avatar.jpg");
-      if (exists) {
-        avatarUrlR2 = `tieba/${authorInfo.uid}/avatar.jpg`;
-      } else {
-        const avatarBuf = await downloadMedia(authorInfo.avatarUrl);
-        avatarUrlR2 = await uploadMediaToR2("tieba", authorInfo.uid, "avatar.jpg", avatarBuf, "image/jpeg");
-      }
-    } catch (e) {
-      console.log(`[TiebaCrawler] Không thể tải avatar của tác giả lên R2:`, e);
-      avatarUrlR2 = authorInfo.avatarUrl; // fallback to original
-    }
-  }
-
   return await upsertAuthor({
     platform: "tieba",
     platform_uid: authorInfo.uid,
     nickname: authorInfo.nickname,
-    avatar_url: avatarUrlR2 || undefined,
+    avatar_url: authorInfo.avatarUrl || undefined,
     gender: authorInfo.gender,
     description: authorInfo.description,
     follows_count: authorInfo.followsCount,

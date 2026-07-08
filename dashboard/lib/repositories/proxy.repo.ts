@@ -77,4 +77,54 @@ export class ProxyRepository {
     if (error) throw error;
     return newStatus;
   }
+
+  /** Tìm proxy theo host và port */
+  async findByHostAndPort(host: string, port: number): Promise<TableRow<"crawler_proxies"> | null> {
+    const { data, error } = await this.db
+      .from("crawler_proxies")
+      .select("*")
+      .eq("host", host)
+      .eq("port", port);
+    if (error) throw error;
+    return data && data.length > 0 ? data[0] : null;
+  }
+
+  /** Tạo một proxy mới */
+  async create(proxy: Omit<TableRow<"crawler_proxies">, "id" | "created_at" | "last_used_at">): Promise<TableRow<"crawler_proxies">> {
+    const { data, error } = await this.db
+      .from("crawler_proxies")
+      .insert(proxy)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  /** Cập nhật thông tin proxy */
+  async update(id: string, updates: Partial<TableRow<"crawler_proxies">>): Promise<void> {
+    const { error } = await this.db
+      .from("crawler_proxies")
+      .update(updates)
+      .eq("id", id);
+    if (error) throw error;
+  }
+
+  /** Gỡ gán proxy của account này trên các proxy khác */
+  async unassignOtherProxies(accountId: string, currentProxyId: string): Promise<void> {
+    const { error } = await this.db
+      .from("crawler_proxies")
+      .update({ assigned_account_id: null })
+      .eq("assigned_account_id", accountId)
+      .neq("id", currentProxyId);
+    if (error) throw error;
+  }
+
+  /** Gỡ gán toàn bộ proxy cho một account */
+  async unassignAllProxiesForAccount(accountId: string): Promise<void> {
+    const { error } = await this.db
+      .from("crawler_proxies")
+      .update({ assigned_account_id: null })
+      .eq("assigned_account_id", accountId);
+    if (error) throw error;
+  }
 }

@@ -46,7 +46,6 @@ export interface CrawlerTask {
     crawl_sub_comments?: boolean;
     headless?: boolean;
     error_message?: string;
-    upload_r2?: boolean;
     media_strategy?: string;
   };
 }

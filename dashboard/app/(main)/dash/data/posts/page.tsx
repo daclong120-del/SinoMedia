@@ -223,7 +223,7 @@ function PostsPageContent() {
               <div className="aspect-video w-full rounded bg-black flex flex-col items-center justify-center text-zinc-400 gap-1.5 p-4 text-center border border-border">
                 <svg className="size-8 text-zinc-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="23 7 16 12 23 17 23 7" /><rect width="15" height="14" x="1" y="5" rx="2" ry="2" /></svg>
                 <span className="text-[11px] font-semibold text-zinc-200">Video Player Mockup</span>
-                <span className="text-[9px] text-zinc-500">Dữ liệu media gốc được lưu tại Cloudflare R2</span>
+                <span className="text-[9px] text-zinc-500">Dữ liệu media được phát từ link gốc hoặc iframe embed</span>
               </div>
 
               <div className="space-y-2">

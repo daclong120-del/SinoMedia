@@ -11,14 +11,11 @@ export {
   getPostUuid,
 } from "./supabase_writer.js";
 
-export {
-  uploadMediaToR2,
-  checkMediaExistsInR2,
-} from "./r2_uploader.js";
 
 export {
   checkoutAccount,
   checkinAccount,
+  releaseAccount,
   addOrUpdateAccount,
 } from "./account_pool.js";
 

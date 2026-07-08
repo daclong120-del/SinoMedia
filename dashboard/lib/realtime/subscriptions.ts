@@ -19,6 +19,7 @@ function mapDbTask(row: Record<string, unknown>): CrawlerTask {
     scheduled_at: (row.scheduled_at as string) || null,
     created_at: (row.created_at as string) || "",
     created_by: "system",
+    error_message: (row.error_message as string) || null,
     metadata: (row.metadata as CrawlerTask["metadata"]) || {},
   };
 }

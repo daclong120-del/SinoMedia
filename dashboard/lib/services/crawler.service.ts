@@ -5,6 +5,7 @@
 import { createClientServer } from "@/lib/supabase/server";
 import { TaskRepository, type CreateTaskInput } from "@/lib/repositories/task.repo";
 import { AccountRepository } from "@/lib/repositories/account.repo";
+import { ProxyRepository } from "@/lib/repositories/proxy.repo";
 import { LogRepository } from "@/lib/repositories/log.repo";
 import type { DbClient } from "@/lib/repositories/types";
 import type { CrawlerTask, CrawlerAccount, CrawlerLogEntry, Platform } from "@/types";
@@ -55,14 +56,14 @@ function mapDbTask(row: DbTask): CrawlerTask {
   };
 }
 
-function mapDbAccount(row: DbAccount): CrawlerAccount {
+function mapDbAccount(row: DbAccount & { proxy?: string | null }): CrawlerAccount {
   return {
     id: row.id,
     platform: row.platform as Platform,
     alias: row.username || "unknown",
     status: (row.status as CrawlerAccount["status"]) || "active",
     failure_count: row.failure_count || 0,
-    proxy: null,
+    proxy: row.proxy || null,
     last_used_at: row.last_used_at,
     created_at: row.created_at || "",
   };
@@ -169,7 +170,113 @@ export async function getAccounts(): Promise<CrawlerAccount[]> {
     return data.map(mapDbAccount);
   } catch (err) {
     if (isDynamicServerUsageError(err)) throw err;
-    console.warn("[CrawlerService] getAccounts failed; returning empty list:", err);
-    return [];
+    console.error("[CrawlerService] getAccounts failed:", err);
+    throw err;
   }
+}
+
+/** Helper parse chuỗi proxy format host:port[:user:pass] */
+function parseProxyString(proxyStr: string) {
+  const parts = proxyStr.trim().split(":");
+  if (parts.length < 2) return null;
+  const host = parts[0];
+  const port = parseInt(parts[1], 10);
+  if (isNaN(port)) return null;
+  const username = parts[2] || null;
+  const password = parts[3] || null;
+  return {
+    host,
+    port,
+    username,
+    password,
+    protocol: "http" as const,
+    status: "active" as const,
+  };
+}
+
+/** Thêm hoặc cập nhật tài khoản crawler */
+export async function createAccount(
+  platform: string,
+  username: string,
+  cookieData: string,
+  proxyStr?: string | null
+): Promise<void> {
+  const db = await createClientServer();
+  const accountRepo = new AccountRepository(db as unknown as DbClient);
+  const proxyRepo = new ProxyRepository(db as unknown as DbClient);
+
+  // Normalize platform sang lowercase (ví dụ: Douyin -> douyin)
+  const normalizedPlatform = platform.toLowerCase();
+
+  // Kiểm tra xem tài khoản đã tồn tại chưa
+  const existingAccount = await accountRepo.findByPlatformAndUsername(normalizedPlatform, username);
+  const isNew = !existingAccount;
+
+  // 1. Lưu hoặc cập nhật tài khoản
+  const account = await accountRepo.createOrUpdate(normalizedPlatform, username, cookieData);
+
+  // 2. Xử lý proxy riêng nếu có
+  try {
+    if (proxyStr && proxyStr.trim()) {
+      const parsed = parseProxyString(proxyStr);
+      if (parsed) {
+        // Tìm xem proxy đã tồn tại chưa
+        const existingProxy = await proxyRepo.findByHostAndPort(parsed.host, parsed.port);
+        let proxyId: string;
+
+        if (existingProxy) {
+          proxyId = existingProxy.id;
+          // Cập nhật assigned_account_id và thông tin xác thực
+          await proxyRepo.update(proxyId, {
+            assigned_account_id: account.id,
+            username: parsed.username,
+            password: parsed.password,
+            status: "active"
+          });
+        } else {
+          // Tạo proxy mới
+          const newProxy = await proxyRepo.create({
+            host: parsed.host,
+            port: parsed.port,
+            username: parsed.username,
+            password: parsed.password,
+            protocol: parsed.protocol,
+            status: parsed.status,
+            assigned_account_id: account.id
+          });
+          proxyId = newProxy.id;
+        }
+
+        // Gỡ gán tài khoản này khỏi các proxy khác
+        await proxyRepo.unassignOtherProxies(account.id, proxyId);
+      }
+    } else {
+      // Nếu không nhập proxy, gỡ gán toàn bộ proxy cũ của account này
+      await proxyRepo.unassignAllProxiesForAccount(account.id);
+    }
+  } catch (proxyError) {
+    console.error("[CrawlerService] Proxy assignment failed, rolling back account creation:", proxyError);
+    if (isNew) {
+      try {
+        await accountRepo.deleteById(account.id);
+      } catch (rollbackError) {
+        console.error("[CrawlerService] Rollback failed (failed to delete account):", rollbackError);
+      }
+    }
+    throw new Error(`Xử lý proxy thất bại, đã ${isNew ? "rollback nạp tài khoản mới" : "khôi phục tài khoản cũ"}: ${(proxyError as Error).message}`);
+  }
+}
+
+/** Kích hoạt lại (unban) tài khoản */
+export async function unbanAccount(id: string): Promise<void> {
+  const db = await createClientServer();
+  const repo = new AccountRepository(db as unknown as DbClient);
+  await repo.updateStatus(id, "active");
+}
+
+/** Xóa tài khoản */
+export async function deleteAccount(id: string): Promise<void> {
+  const db = await createClientServer();
+  const repo = new AccountRepository(db as unknown as DbClient);
+  await repo.deleteById(id);
 }

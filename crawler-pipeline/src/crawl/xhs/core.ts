@@ -4,10 +4,10 @@
 
 import { XhsClient } from "./client.js";
 import { XhsExtractor } from "./extractor.js";
-import { uploadMediaToR2, checkMediaExistsInR2 } from "../../store/r2_uploader.js";
 import {
   upsertAuthor,
   upsertPost,
+  upsertPosts,
   upsertComments,
   getPostUuid,
   checkoutAccount,
@@ -142,24 +142,6 @@ async function downloadXhsMedia(url: string): Promise<Buffer> {
 
 async function persistAuthor(rawCreator: any): Promise<string> {
   const authorRow = XhsExtractor.extractAuthor(rawCreator);
-
-  let avatarUrlR2 = "";
-  if (authorRow.avatar_url) {
-    try {
-      const exists = await checkMediaExistsInR2("xhs", authorRow.platform_uid, "avatar.jpg");
-      if (exists) {
-        avatarUrlR2 = `xhs/${authorRow.platform_uid}/avatar.jpg`;
-      } else {
-        const avatarBuf = await downloadXhsMedia(authorRow.avatar_url);
-        avatarUrlR2 = await uploadMediaToR2("xhs", authorRow.platform_uid, "avatar.jpg", avatarBuf, "image/jpeg");
-      }
-    } catch (e) {
-      console.log(`[XhsCrawler] Không thể tải avatar của tác giả lên R2:`, e);
-      avatarUrlR2 = authorRow.avatar_url;
-    }
-  }
-
-  authorRow.avatar_url = avatarUrlR2 || undefined;
   return await upsertAuthor(authorRow);
 }
 
@@ -173,103 +155,18 @@ async function persistPost(rawNote: any, authorUuid?: string): Promise<string> {
   const originalMediaUrls = [...(postRow.media_urls || [])];
   const originalCoverUrl = postRow.cover_url || "";
 
-  // 2. Xử lý R2 cache
-  const mediaUrls: string[] = [];
+  // 2. Xử lý R2 cache (removed)
+  const mediaUrls: string[] = [...originalMediaUrls];
   let coverUrl = originalCoverUrl;
-
-  const uploadR2Enabled = process.env.ENABLE_UPLOAD_R2 !== "false";
+  
   let mediaSource = "original";
   let mediaStatus = "original_only";
   let mediaError: string | null = null;
   let mediaCachedAt: string | null = null;
 
-  if (uploadR2Enabled) {
-    let totalToUpload = 0;
-    let successUploads = 0;
-
-    try {
-      mediaSource = "r2";
-
-      // Upload media URLs lên R2
-      if (originalMediaUrls && originalMediaUrls.length > 0) {
-        for (let i = 0; i < originalMediaUrls.length; i++) {
-          const originalUrl = originalMediaUrls[i];
-          const ext = originalUrl.split(".").pop()?.split("?")[0] || "jpg";
-          const filename = `media_${i}.${ext}`;
-          totalToUpload++;
-          const exists = await checkMediaExistsInR2("xhs", postRow.platform_id, filename);
-          if (exists) {
-            mediaUrls.push(`xhs/${postRow.platform_id}/${filename}`);
-            successUploads++;
-          } else {
-            const buf = await downloadXhsMedia(originalUrl);
-            const mimeType = isVideo ? "video/mp4" : "image/jpeg";
-            const r2Url = await uploadMediaToR2("xhs", postRow.platform_id, filename, buf, mimeType);
-            if (r2Url) {
-              mediaUrls.push(r2Url);
-              successUploads++;
-            }
-          }
-        }
-      }
-
-      // Upload cover URL lên R2
-      if (originalCoverUrl) {
-        const filename = "cover.jpg";
-        totalToUpload++;
-        const exists = await checkMediaExistsInR2("xhs", postRow.platform_id, filename);
-        if (exists) {
-          coverUrl = `xhs/${postRow.platform_id}/${filename}`;
-          successUploads++;
-        } else {
-          const buf = await downloadXhsMedia(originalCoverUrl);
-          const r2CoverUrl = await uploadMediaToR2("xhs", postRow.platform_id, filename, buf, "image/jpeg");
-          if (r2CoverUrl) {
-            coverUrl = r2CoverUrl;
-            successUploads++;
-          }
-        }
-      }
-
-      // Đánh giá trạng thái thực tế sau upload
-      if (totalToUpload === 0) {
-        mediaSource = "none";
-        mediaStatus = "unavailable";
-      } else if (successUploads === totalToUpload) {
-        mediaStatus = "cached";
-        mediaCachedAt = new Date().toISOString();
-      } else if (successUploads === 0) {
-        mediaSource = "original";
-        mediaStatus = "failed";
-        mediaError = "Không có media nào upload thành công lên R2";
-        mediaUrls.length = 0;
-        mediaUrls.push(...originalMediaUrls);
-        coverUrl = originalCoverUrl;
-      } else {
-        mediaSource = "mixed";
-        mediaStatus = "cached";
-        mediaCachedAt = new Date().toISOString();
-      }
-
-    } catch (e: any) {
-      console.log(`[XhsCrawler] Lỗi upload R2 cho bài viết ${postRow.platform_id}:`, e);
-      mediaSource = "original";
-      mediaStatus = "failed";
-      mediaError = e.message || "Lỗi upload R2";
-      
-      mediaUrls.length = 0;
-      mediaUrls.push(...originalMediaUrls);
-      coverUrl = originalCoverUrl;
-    }
-  } else {
-    mediaUrls.push(...originalMediaUrls);
-    if (originalMediaUrls.length === 0 && !originalCoverUrl) {
-      mediaSource = "none";
-      mediaStatus = "unavailable";
-    } else {
-      mediaSource = "original";
-      mediaStatus = "original_only";
-    }
+  if (originalMediaUrls.length === 0 && !originalCoverUrl) {
+    mediaSource = "none";
+    mediaStatus = "unavailable";
   }
 
   // Cập nhật postRow với dữ liệu mới

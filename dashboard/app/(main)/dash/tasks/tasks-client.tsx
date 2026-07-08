@@ -81,17 +81,7 @@ export default function TasksClient({ initialTasks, initialError }: TasksClientP
   const [crawlComments, setCrawlComments] = useState(true);
   const [crawlSubComments, setCrawlSubComments] = useState(true);
   const [headlessMode, setHeadlessMode] = useState(true);
-  const [uploadR2, setUploadR2] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Default uploadR2 to false for Bilibili tasks
-  useEffect(() => {
-    if (newPlatform === "Bilibili") {
-      setUploadR2(false);
-    } else {
-      setUploadR2(true);
-    }
-  }, [newPlatform]);
   
   // Notification & Feedback States
   const [notification, setNotification] = useState<{ show: boolean; message: string; type: "success" | "error" | "info" }>({
@@ -264,6 +254,28 @@ export default function TasksClient({ initialTasks, initialError }: TasksClientP
   }, [taskLogs]);
 
 
+  const getPlaceholderText = () => {
+    const platformKey = PLATFORM_MAP[newPlatform] || "douyin";
+    const commandKey = COMMAND_MAP[newCategory] || "creator";
+    if (platformKey === "bilibili") {
+      if (commandKey === "creator") {
+        return "Nhập mỗi UID số hoặc link space của creator một dòng...\nVí dụ:\n3546578405361883\nhttps://space.bilibili.com/3546578405361883";
+      } else if (commandKey === "search") {
+        return "Nhập mỗi từ khóa tìm kiếm một dòng...\nVí dụ:\ncar\ntechnology";
+      }
+    }
+    return "Nhập mỗi target một dòng...\nVí dụ:\nhttps://www.douyin.com/user/MS4wLjABAAAA...\ntừ khóa tìm kiếm";
+  };
+
+  const getLabelText = () => {
+    const platformKey = PLATFORM_MAP[newPlatform] || "douyin";
+    const commandKey = COMMAND_MAP[newCategory] || "creator";
+    if (platformKey === "bilibili" && commandKey === "creator") {
+      return "UID số hoặc Link Space của Creator * (Mỗi mục một dòng, tối đa 50 dòng)";
+    }
+    return "Target / Từ khóa * (Nhập mỗi mục một dòng, tối đa 50 dòng, tối đa 500 ký tự/dòng)";
+  };
+
   const handleCreateTasks = async () => {
     if (!newTargets.trim()) {
       showToast("Vui lòng nhập mục tiêu cào (Target / Từ khóa).", "error");
@@ -297,11 +309,28 @@ export default function TasksClient({ initialTasks, initialError }: TasksClientP
       return;
     }
 
+    const platformKey = PLATFORM_MAP[newPlatform] || "douyin";
+    const commandKey = COMMAND_MAP[newCategory] || "creator";
+
+    // Frontend validation for Bilibili + Creator target format
+    if (platformKey === "bilibili" && commandKey === "creator") {
+      const invalidTarget = uniqueLines.find(line => {
+        const isNumeric = /^\d+$/.test(line);
+        const isSpaceUrl = /space\.bilibili\.com\/\d+/.test(line);
+        return !isNumeric && !isSpaceUrl;
+      });
+      if (invalidTarget) {
+        showToast(
+          `Mục tiêu "${invalidTarget}" không hợp lệ. Danh mục Creator của Bilibili chỉ hỗ trợ UID số (ví dụ: 3546578405361883) hoặc link space (ví dụ: space.bilibili.com/3546578405361883). Nếu muốn dùng từ khóa, vui lòng đổi danh mục sang "Search".`,
+          "error"
+        );
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     setErrorsList([]);
 
-    const platformKey = PLATFORM_MAP[newPlatform] || "douyin";
-    const commandKey = COMMAND_MAP[newCategory] || "creator";
     const priorityKey = PRIORITY_MAP[newPriority] || "normal";
 
     const payload = uniqueLines.map(target => ({
@@ -316,8 +345,7 @@ export default function TasksClient({ initialTasks, initialError }: TasksClientP
         crawl_comments: crawlComments,
         crawl_sub_comments: crawlSubComments,
         headless: headlessMode,
-        upload_r2: uploadR2,
-        media_strategy: platformKey === "bilibili" ? "embed" : (uploadR2 ? "r2" : "original")
+        media_strategy: platformKey === "bilibili" ? "embed" : "original"
       }
     }));
 
@@ -346,7 +374,6 @@ export default function TasksClient({ initialTasks, initialError }: TasksClientP
       setCrawlComments(true);
       setCrawlSubComments(true);
       setHeadlessMode(true);
-      setUploadR2(true);
       setShowModal(false);
       setErrorsList([]);
 
@@ -516,10 +543,19 @@ export default function TasksClient({ initialTasks, initialError }: TasksClientP
                   </td>
                   <td className="px-4 py-2.5"><PriorityBadge priority={task.priority} /></td>
                   <td className="px-4 py-2.5">
-                    <StatusBadge status={task.status} />
-                    {task.status === "running" && (
-                      <span className="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
-                    )}
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-center gap-1.5">
+                        <StatusBadge status={task.status} />
+                        {task.status === "running" && (
+                          <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                        )}
+                      </div>
+                      {task.status === "failed" && task.error_message && (
+                        <p className="text-[10px] text-red-500 dark:text-red-400 font-medium max-w-[180px] break-words line-clamp-2" title={task.error_message}>
+                          {task.error_message}
+                        </p>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-2.5 text-muted-foreground">{timeAgo(task.created_at)}</td>
                   <td className="px-4 py-2.5">
@@ -672,10 +708,10 @@ export default function TasksClient({ initialTasks, initialError }: TasksClientP
                 </div>
                 
                 <label className="space-y-1 block">
-                  <span className="text-[11px] font-medium text-muted-foreground">Target / Từ khóa * (Nhập mỗi mục một dòng, tối đa 50 dòng, tối đa 500 ký tự/dòng)</span>
+                  <span className="text-[11px] font-medium text-muted-foreground">{getLabelText()}</span>
                   <textarea 
                     rows={4} 
-                    placeholder={"Nhập mỗi target một dòng...\nVí dụ:\nhttps://www.douyin.com/user/MS4wLjABAAAA...\ntừ khóa tìm kiếm"} 
+                    placeholder={getPlaceholderText()} 
                     value={newTargets}
                     onChange={(e) => setNewTargets(e.target.value)}
                     className="w-full px-3 py-2 text-xs border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono" 
@@ -764,15 +800,7 @@ export default function TasksClient({ initialTasks, initialError }: TasksClientP
                       Cào bình luận phụ (Crawl Sub-comments)
                     </label>
                   )}
-                  <label className="flex items-center gap-2 text-xs text-card-foreground cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={uploadR2}
-                      onChange={(e) => setUploadR2(e.target.checked)}
-                      className="rounded border-border text-primary focus:ring-primary size-3.5 bg-background" 
-                    />
-                    Tải Media về R2 Storage
-                  </label>
+
                 </div>
               </div>
             </div>

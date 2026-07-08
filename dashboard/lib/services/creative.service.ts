@@ -63,15 +63,7 @@ function resolveMediaUrl(value: string | null | undefined): string {
     }
     return value;
   }
-  const r2PublicUrl = process.env.R2_PUBLIC_URL || 
-                      process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 
-                      process.env.EXPO_PUBLIC_R2_PUBLIC_URL || 
-                      "";
-  if (!r2PublicUrl) {
-    console.error(`[resolveMediaUrl] Critical Error: R2 public URL environment variable is missing. Cannot resolve R2 key: ${value}`);
-    return "";
-  }
-  return `${r2PublicUrl.replace(/\/$/, "")}/${value.replace(/^\//, "")}`;
+  return "";
 }
 
 function inferMediaType(row: TableRow<"crawled_posts">): CreativeAd["media_type"] {

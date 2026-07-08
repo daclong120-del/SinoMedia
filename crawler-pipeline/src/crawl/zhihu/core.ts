@@ -11,8 +11,6 @@ import {
   upsertComments,
   checkoutAccount,
   checkinAccount,
-  uploadMediaToR2,
-  checkMediaExistsInR2,
 } from "../../store/index.js";
 import { CrawledPostRow } from "../../model/storage.js";
 import type { ICrawler, BrowserLaunchOptions } from "../../base/base_crawler.js";
@@ -137,27 +135,13 @@ export async function crawlDetail(
   const platformUid = String(authorMember.urlToken || authorMember.url_token || authorMember.id || "unknown");
   const nickname = authorMember.name || "Người dùng Zhihu";
 
-  let avatarUrlR2 = "";
-  const avatarUrl = authorMember.avatarUrl || authorMember.avatar_url;
-  if (avatarUrl) {
-    try {
-      const exists = await checkMediaExistsInR2("zhihu", platformUid, "avatar.jpg");
-      if (exists) {
-        avatarUrlR2 = `zhihu/${platformUid}/avatar.jpg`;
-      } else {
-        const avatarBuf = await downloadMedia(avatarUrl);
-        avatarUrlR2 = await uploadMediaToR2("zhihu", platformUid, "avatar.jpg", avatarBuf, "image/jpeg");
-      }
-    } catch {}
-  }
-
   let authorUuid = options?.authorUuid;
   if (!authorUuid) {
     authorUuid = await upsertAuthor({
       platform: "zhihu",
       platform_uid: platformUid,
       nickname,
-      avatar_url: avatarUrlR2 || undefined,
+      avatar_url: authorMember.avatarUrl || authorMember.avatar_url || undefined,
       gender: authorMember.gender === 1 ? "Male" : (authorMember.gender === 0 ? "Female" : "Unknown"),
       description: authorMember.headline || authorMember.description || undefined,
       raw: authorMember,
@@ -169,71 +153,18 @@ export async function crawlDetail(
   const originalCoverUrl = contentObj.thumbnail || contentObj.imageUrl || contentObj.image_url || "";
   const originalMediaUrls: string[] = [];
 
-  // 2. Xử lý R2 cache
+  // 2. Xử lý R2 cache (removed)
   let coverUrl = originalCoverUrl;
-  const mediaUrls: string[] = [];
-
-  const uploadR2Enabled = process.env.ENABLE_UPLOAD_R2 !== "false";
+  const mediaUrls: string[] = [...originalMediaUrls];
+  
   let mediaSource = "original";
   let mediaStatus = "original_only";
   let mediaError: string | null = null;
   let mediaCachedAt: string | null = null;
 
-  if (uploadR2Enabled) {
-    let totalToUpload = 0;
-    let successUploads = 0;
-
-    try {
-      mediaSource = "r2";
-      if (originalCoverUrl) {
-        totalToUpload++;
-        const exists = await checkMediaExistsInR2("zhihu", id, "cover.jpg");
-        if (exists) {
-          coverUrl = `zhihu/${id}/cover.jpg`;
-          successUploads++;
-        } else {
-          const coverBuf = await downloadMedia(originalCoverUrl);
-          const r2CoverKey = await uploadMediaToR2("zhihu", id, "cover.jpg", coverBuf, "image/jpeg");
-          if (r2CoverKey) {
-            coverUrl = r2CoverKey;
-            successUploads++;
-          }
-        }
-      }
-
-      // Đánh giá trạng thái thực tế sau upload
-      if (totalToUpload === 0) {
-        mediaSource = "none";
-        mediaStatus = "unavailable";
-      } else if (successUploads === totalToUpload) {
-        mediaStatus = "cached";
-        mediaCachedAt = new Date().toISOString();
-      } else if (successUploads === 0) {
-        mediaSource = "original";
-        mediaStatus = "failed";
-        mediaError = "Không có cover nào upload thành công lên R2";
-        coverUrl = originalCoverUrl;
-      } else {
-        mediaSource = "mixed";
-        mediaStatus = "cached";
-        mediaCachedAt = new Date().toISOString();
-      }
-
-    } catch (e: any) {
-      console.log(`[ZhihuCrawler] Lỗi upload cover R2 cho bài viết ${id}:`, e);
-      mediaSource = "original";
-      mediaStatus = "failed";
-      mediaError = e.message || "Lỗi upload R2";
-      coverUrl = originalCoverUrl;
-    }
-  } else {
-    if (!originalCoverUrl) {
-      mediaSource = "none";
-      mediaStatus = "unavailable";
-    } else {
-      mediaSource = "original";
-      mediaStatus = "original_only";
-    }
+  if (!originalCoverUrl) {
+    mediaSource = "none";
+    mediaStatus = "unavailable";
   }
 
   const publishedAt = contentObj.createdTime || contentObj.created || Math.floor(Date.now() / 1000);
@@ -396,25 +327,11 @@ export async function crawlCreator(urlOrToken: string): Promise<void> {
     throw new Error(`Không tìm thấy thông tin creator ${urlToken} trong js-initialData`);
   }
 
-  let avatarUrlR2 = "";
-  const avatarUrl = creatorInfo.avatarUrl || creatorInfo.avatar_url;
-  if (avatarUrl) {
-    try {
-      const exists = await checkMediaExistsInR2("zhihu", urlToken, "avatar.jpg");
-      if (exists) {
-        avatarUrlR2 = `zhihu/${urlToken}/avatar.jpg`;
-      } else {
-        const avatarBuf = await downloadMedia(avatarUrl);
-        avatarUrlR2 = await uploadMediaToR2("zhihu", urlToken, "avatar.jpg", avatarBuf, "image/jpeg");
-      }
-    } catch {}
-  }
-
   const authorUuid = await upsertAuthor({
     platform: "zhihu",
     platform_uid: urlToken,
     nickname: creatorInfo.name || "Người dùng Zhihu",
-    avatar_url: avatarUrlR2 || undefined,
+    avatar_url: creatorInfo.avatarUrl || creatorInfo.avatar_url || undefined,
     gender: creatorInfo.gender === 1 ? "Male" : (creatorInfo.gender === 0 ? "Female" : "Unknown"),
     description: creatorInfo.headline || creatorInfo.description || undefined,
     follows_count: creatorInfo.followingCount || 0,

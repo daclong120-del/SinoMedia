@@ -56,24 +56,66 @@ export function setBilibiliCookie(cookie: string): void {
   tempCookieOverride = cookie;
 }
 
+function formatCookie(cookieStr: string): string {
+  if (!cookieStr) return "";
+  let trimmed = cookieStr.trim();
+  // Nếu chuỗi bị bọc ngoài bởi dấu nháy kép (ví dụ: "...") do lưu trữ hoặc parse lỗi
+  if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    try {
+      const unescaped = JSON.parse(trimmed);
+      if (typeof unescaped === "string") {
+        trimmed = unescaped.trim();
+      }
+    } catch {}
+  }
+  // Nếu là JSON array (ví dụ Chrome Cookies export)
+  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+    try {
+      const arr = JSON.parse(trimmed);
+      if (Array.isArray(arr)) {
+        return arr
+          .map((c: any) => {
+            const name = c.name || c.key || "";
+            const value = c.value || "";
+            return name && value ? `${name}=${value}` : "";
+          })
+          .filter(Boolean)
+          .join("; ");
+      }
+    } catch {}
+  }
+  // Nếu là JSON object
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      const obj = JSON.parse(trimmed);
+      return Object.entries(obj)
+        .map(([k, v]) => `${k}=${v}`)
+        .join("; ");
+    } catch {}
+  }
+  return trimmed;
+}
+
 /**
  * # Đọc cookie Bilibili từ bộ nhớ tạm, môi trường hoặc tệp session
  */
 export async function loadBilibiliCookie(): Promise<string> {
+  let cookie = "";
   if (tempCookieOverride) {
-    return tempCookieOverride;
+    cookie = tempCookieOverride;
+  } else if (process.env.BILIBILI_COOKIE) {
+    cookie = process.env.BILIBILI_COOKIE;
+  } else {
+    try {
+      const sessionPath = join(process.cwd(), "output", "bilibili_session.json");
+      const content = await readFile(sessionPath, "utf8");
+      const data = JSON.parse(content);
+      cookie = data.cookie || "";
+    } catch {
+      cookie = "";
+    }
   }
-  if (process.env.BILIBILI_COOKIE) {
-    return process.env.BILIBILI_COOKIE;
-  }
-  try {
-    const sessionPath = join(process.cwd(), "output", "bilibili_session.json");
-    const content = await readFile(sessionPath, "utf8");
-    const data = JSON.parse(content);
-    return data.cookie || "";
-  } catch {
-    return "";
-  }
+  return formatCookie(cookie);
 }
 
 /**
@@ -269,11 +311,11 @@ export async function pong(): Promise<boolean> {
         "Referer": "https://www.bilibili.com/"
       }
     });
-    if (resp && typeof resp.isLogin === "boolean") {
-      console.log(`Trạng thái đăng nhập Bilibili: Hoạt động (isLogin: ${resp.isLogin})`);
+    if (resp && resp.isLogin === true) {
+      console.log("Trạng thái đăng nhập Bilibili: Hoạt động (isLogin: true)");
       return true;
     }
-    console.log("Trạng thái đăng nhập Bilibili: Không xác định");
+    console.log("Trạng thái đăng nhập Bilibili: Không xác định hoặc chưa đăng nhập");
     return false;
   } catch (err) {
     console.log(`Kiểm tra trạng thái đăng nhập thất bại hoặc bị chặn: ${(err as Error).message}`);

@@ -87,6 +87,24 @@ export async function checkinAccount(accountId: string, isSuccess: boolean): Pro
 }
 
 /**
+ * # Giải phóng tài khoản ở trạng thái trung lập (lỗi input/target, không đếm lỗi)
+ */
+export async function releaseAccount(accountId: string): Promise<void> {
+  try {
+    await supabaseRest("crawler_accounts", {
+      method: "PATCH",
+      params: { id: `eq.${accountId}` },
+      body: {
+        updated_at: new Date().toISOString(),
+      },
+    });
+    console.log(`Đã giải phóng tài khoản ID ${accountId} (trung lập)`);
+  } catch (err) {
+    console.log(`Lỗi khi giải phóng tài khoản (neutral): ${(err as Error).message}`);
+  }
+}
+
+/**
  * # Thêm hoặc cập nhật tài khoản cào trong hệ thống
  */
 export async function addOrUpdateAccount(platform: string, username: string, cookieData: string): Promise<void> {

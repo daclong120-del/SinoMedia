@@ -106,7 +106,6 @@ export async function executeTask(task: CrawlerTask): Promise<void> {
     process.env.CURRENT_TASK_LANGUAGE = task.metadata?.language || "auto";
     process.env.ENABLE_GET_COMMENTS = String(task.metadata?.crawl_comments ?? true);
     process.env.ENABLE_GET_SUB_COMMENTS = String(task.metadata?.crawl_sub_comments ?? true);
-    process.env.ENABLE_UPLOAD_R2 = String(task.metadata?.upload_r2 ?? true);
     CONFIG.headless = task.metadata?.headless ?? true;
 
     const crawler = CrawlerFactory.create(platform);
@@ -116,7 +115,7 @@ export async function executeTask(task: CrawlerTask): Promise<void> {
         await crawler.crawl(target);
         break;
       case "cache_media":
-        throw new Error("Lệnh 'cache_media' đã bị bãi bỏ (deprecated). Vui lòng recrawl/backfill thông thường với metadata.upload_r2 = true.");
+        throw new Error("Lệnh 'cache_media' đã bị bãi bỏ (deprecated). Vui lòng recrawl/backfill thông thường.");
 
       case "creator":
         await crawler.creator(target);
@@ -142,7 +141,6 @@ export async function executeTask(task: CrawlerTask): Promise<void> {
     delete process.env.CURRENT_TASK_LANGUAGE;
     delete process.env.ENABLE_GET_COMMENTS;
     delete process.env.ENABLE_GET_SUB_COMMENTS;
-    delete process.env.ENABLE_UPLOAD_R2;
     CONFIG.headless = defaultHeadless;
     await closeBrowser().catch(() => { });
   }

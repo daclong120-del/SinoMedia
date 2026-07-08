@@ -107,21 +107,6 @@
   - The record's `language` column is set to `"zh"`.
 - **Postconditions**: Post inherits categorization metadata successfully.
 
-#### TC-F-007: Disable Cloudflare R2 Uploads
-- **Requirement**: Bypass AWS S3 API calls entirely when `upload_r2` is disabled.
-- **Priority**: High
-- **Preconditions**:
-  - `process.env.ENABLE_UPLOAD_R2` is set to `"false"`.
-- **Test Steps**:
-  1. Invoke `uploadMediaToR2` or `checkMediaExistsInR2` with target media.
-- **Expected Results**:
-  - The functions exit immediately and return `""` or `false` without making network calls to AWS S3.
-- **Postconditions**: Media upload is bypassed successfully.
-
----
-
-### 2. Edge Case Tests
-
 #### TC-E-001: Task without Metadata Configuration (Null/Empty)
 - **Requirement**: Use default values if no metadata is specified.
 - **Priority**: High
@@ -130,7 +115,7 @@
 - **Test Steps**:
   1. Claim and execute the task with empty metadata.
 - **Expected Results**:
-  - Worker falls back to default values: `headless: true`, `crawl_comments: true`, `upload_r2: true`, `language: auto`, `tags: []`.
+  - Worker falls back to default values: `headless: true`, `crawl_comments: true`, `language: auto`, `tags: []`.
 - **Postconditions**: Crawler executes normally with default options.
 
 #### TC-E-002: Paste Malformed Tag Strings
