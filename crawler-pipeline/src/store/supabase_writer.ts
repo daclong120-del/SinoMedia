@@ -182,3 +182,33 @@ export async function isTaskCancelled(taskId: string | null | undefined): Promis
   }
   return false;
 }
+
+/**
+ * # Cập nhật tiến độ của task hiện tại vào metadata
+ */
+export async function updateTaskProgress(taskId: string | null | undefined, current: number, target: number): Promise<void> {
+  if (!taskId) return;
+  try {
+    const res = await supabaseRest("crawler_tasks", {
+      method: "GET",
+      params: {
+        id: `eq.${taskId}`,
+        select: "metadata"
+      }
+    });
+    if (Array.isArray(res) && res[0]) {
+      const metadata = res[0].metadata || {};
+      metadata.progress = { current, target };
+      await supabaseRest("crawler_tasks", {
+        method: "PATCH",
+        params: { id: `eq.${taskId}` },
+        body: {
+          metadata,
+          updated_at: new Date().toISOString(),
+        }
+      });
+    }
+  } catch (err) {
+    console.error(`Lỗi khi cập nhật tiến độ task: ${(err as Error).message}`);
+  }
+}

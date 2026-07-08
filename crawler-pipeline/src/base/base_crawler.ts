@@ -13,7 +13,7 @@ export interface ICrawler {
   /**
    * # Cào thông tin người sáng tạo nội dung (creator) và danh sách bài đăng của họ
    */
-  creator(target: string): Promise<void>;
+  creator(target: string, maxCount?: number): Promise<void>;
 
   /**
    * # Tìm kiếm bài viết/video theo từ khóa
