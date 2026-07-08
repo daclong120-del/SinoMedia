@@ -47,6 +47,10 @@ export interface CrawlerTask {
     headless?: boolean;
     error_message?: string;
     media_strategy?: string;
+    progress?: {
+      current: number;
+      target: number;
+    };
   };
 }
 

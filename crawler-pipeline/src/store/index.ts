@@ -10,6 +10,7 @@ export {
   upsertComments,
   getPostUuid,
   isTaskCancelled,
+  updateTaskProgress,
 } from "./supabase_writer.js";
 
 
