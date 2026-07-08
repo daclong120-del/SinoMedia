@@ -10,7 +10,8 @@
     "creator": "tsx src/index.ts creator",
     "search": "tsx src/index.ts search",
     "comments": "tsx src/index.ts comments",
-    "add-account": "tsx src/index.ts add-account"
+    "add-account": "tsx src/index.ts add-account",
+    "refresh": "tsx src/index.ts refresh"
   },
   "engines": {
     "node": ">=18"

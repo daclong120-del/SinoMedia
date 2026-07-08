@@ -19,8 +19,8 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 
 | Khối | Trạng thái | Ghi chú |
 |---|---|---|
-| Dashboard | Partial | Next.js App Router, nhiều trang đã có service/repository và server actions, nhưng một số trang vẫn là UI/local state hoặc còn fallback rỗng khi DB lỗi. |
-| Crawler Pipeline | Partial | Worker TypeScript độc lập đã có queue loop, claim task qua Supabase RPC, platform factory, account/proxy pool và tùy chọn upload R2. Với Bilibili, hướng mới là metadata + iframe embed, không upload R2 mặc định. |
+| Dashboard | Partial | Next.js App Router, nhiều trang đã có service/repository và server actions. Cột mốc quan trọng: `/dash/tasks` đã Done (nối realtime và xử lý tasks thật). |
+| Crawler Pipeline | Partial | Worker TypeScript độc lập có queue loop, claim task qua Supabase RPC, platform factory, account/proxy pool. Bilibili crawler có đầy đủ phase, log và cào bình luận ổn định. |
 | Supabase/Media | Partial | Supabase là control plane/data store. Media ưu tiên external embed/link gốc khi platform hỗ trợ; R2 chỉ là archive/cache tùy chọn. |
 | Desktop App | Draft | Hiện là packaging bằng Pake cho dashboard local. Chưa phải desktop runtime có worker manager/video downloader service tích hợp. |
 
@@ -40,21 +40,21 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 | `/` | Done | Redirect/entrypoint dashboard. |
 | `/login`, `/sign-up`, `/forgot-password` | Partial | Có server actions/auth service. Vẫn còn mock-session path phục vụ dev, không coi là production auth hoàn chỉnh. |
 | `/dash/home` | Partial | Có service metrics, một số trend còn TODO hoặc phụ thuộc dữ liệu thật. |
-| `/dash/tasks` | Partial | Có task UI, bulk create/task metadata/server actions/realtime logs. Cần smoke test worker end-to-end với Supabase thật sau mỗi thay đổi lớn. |
+| `/dash/tasks` | Done | Giao diện quản lý task hoàn chỉnh, kết nối DB thật, realtime status thật, nút Cancel/Retry (Optimistic), hiển thị phase và tiến trình cào bình luận (comment_progress) thời gian thực. |
 | `/dash/accounts` | Draft | Đọc account qua action, nhưng modal nạp tài khoản và nút unban/xóa chưa nối mutation thật. |
 | `/dash/proxies` | Partial | Có service/actions cho proxy; health check hiện vẫn là TODO/fake ở repository. |
 | `/dash/audit-logs` | Partial | Có audit repository/service, cần dữ liệu thật và policy rõ. |
 | `/dash/settings` | Draft | Chủ yếu local/UI settings; không giả định đã persist DB nếu chưa thấy service/migration. |
-| `/dash/manage-account/members` | Partial | Có member/role/api-token UI và repositories. Cần test permission/RLS và invite flow thật. |
+| `/dash/manage-account/members` | Done | Đã nối invite flow thật: tạo link invite token dạng query string, verify & consume token khi đăng ký, tự động gán role/workspace khi tạo thành viên thành công. |
 | `/dash/data/posts` | Partial | Có trang list/detail UI, nhưng còn comment `Cover mock`/`Player mockup`; cần nối media/detail hoàn chỉnh. |
 | `/dash/data/authors` | Partial | Có server/service read path, cần kiểm chứng dữ liệu thật/filter. |
 | `/dash/data/management` | Draft | Nhiều chỉ số storage hard-code; tag manager local state; cleanup buttons chưa nối backend thật. |
 | `/dash/creative/search` | Partial | Có service read, filter client, modal detail. Một số API GET creative vẫn tồn tại để compatibility. |
 | `/dash/creative/new` | Partial | Có service read và client view. |
 | `/dash/creative/trending` | Partial | Có sort theo views; cần kiểm chứng metric/index. |
-| `/dash/creative/growth` | Draft | `getGrowth()` hiện dựa vào views; chưa có bảng lịch sử views để tính growth thật. |
+| `/dash/creative/growth` | Partial | Đã có bảng lịch sử `post_metric_snapshots`, cần hoàn thiện logic tính toán growth thật từ lịch sử thay vì views hiện tại. |
 | `/dash/creative/calendar` | Draft | Có calendar UI từ dữ liệu creative, export chỉ alert "đang phát triển". |
-| `/dash/creative/advertisers` | Partial | Có list/profile service, thống kê tính từ posts; cần tối ưu nếu dữ liệu lớn. |
+| `/dash/creative/advertisers` | Partial | List/profile service lấy thống kê thực tế. Trang chi tiết (`/dash/creative/advertisers/[id]`) vẽ biểu đồ xu hướng từ dữ liệu lịch sử `post_metric_snapshots` thật với badge phân biệt "Thực tế" / "Ước tính". |
 | `/dash/creative/[id]` | Partial | Có detail view. Bilibili đi theo hướng iframe embed khi có BVID; các platform khác vẫn cần kiểm chứng original URL/proxy/R2 tùy strategy. |
 
 ## Crawler Pipeline status
@@ -62,7 +62,7 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 | Capability | Trạng thái | Ghi chú |
 |---|---|---|
 | CLI entrypoint | Done | `bootstrap`, `crawl`, `creator`, `search`, `comments`, `add-account`. `crawl` không target sẽ khởi chạy queue worker. |
-| Queue worker | Partial | `startQueueWorker()` polling 5 giây, claim task qua `claim_next_crawler_task`, execute và update status. Cần graceful shutdown/heartbeat/worker identity sau. |
+| Queue worker | Done | Khởi chạy qua CLI, claim task Supabase RPC, chạy ts-node ở background, cập nhật progress, phase, comment_progress. Capped sub-comments (tối đa 2 trang) và timeout 60s/video comments. |
 | Task metadata | Partial | Worker đọc tags, language, crawl_comments, crawl_sub_comments, upload_r2, headless từ `task.metadata`. |
 | Platform factory | Partial | Có factory cho nhiều platform; platform không hỗ trợ sẽ throw rõ ràng. |
 | Platforms | Partial | Có module cho Bilibili, Douyin, Kuaishou, Tieba, Weibo, XHS, Zhihu. Mức ổn định từng platform chưa đồng đều. |
@@ -70,6 +70,7 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 | Account/proxy pool | Partial | Có pool/account rotation, nhưng cần health policy và dashboard mutation hoàn chỉnh hơn. |
 | R2 upload | Optional | Có uploader/dedup, nhưng không còn là đường phát mặc định cho Bilibili. Dùng khi cần archive/cache/report/offline. |
 | Cache media task | Deprecated | Worker đã throw nếu command là `cache_media`. Không thêm UI tạo task này nữa. |
+| Metric Refresh | Done | CLI refresh `npm run refresh` quét toàn bộ post/author và cập nhật vào các bảng snapshot lịch sử, chống ghi đè 0 hoặc mất dữ liệu khi lỗi API. |
 
 ## Desktop App status
 

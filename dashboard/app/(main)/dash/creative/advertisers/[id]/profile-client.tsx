@@ -57,6 +57,10 @@ export default function AdvertiserProfileClient({ advertiser, advertiserCreative
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [advertiserCreatives]);
 
+  const hasRealHistory = useMemo(() => {
+    return advertiserCreatives.some((ad) => ad.historySource === "snapshot");
+  }, [advertiserCreatives]);
+
   // Render SVG Line Chart for trends
   const renderTrendChart = () => {
     if (trendData.length < 2) {
@@ -98,7 +102,11 @@ export default function AdvertiserProfileClient({ advertiser, advertiserCreative
       <div className="bg-card rounded-xl border border-border p-6 space-y-4">
         <div className="flex items-center gap-2">
           <h3 className="text-sm font-bold text-foreground">Tổng lượt xem theo thời gian</h3>
-          <span className="text-[10px] bg-secondary/80 text-secondary-foreground px-2 py-0.5 rounded font-bold uppercase tracking-wider scale-[0.9]">Ước tính</span>
+          {hasRealHistory ? (
+            <span className="text-[10px] bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-bold uppercase tracking-wider scale-[0.9]">Thực tế</span>
+          ) : (
+            <span className="text-[10px] bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded font-bold uppercase tracking-wider scale-[0.9]">Ước tính</span>
+          )}
         </div>
         <div className="w-full overflow-x-auto">
           <svg viewBox={`0 0 ${width} ${height}`} className="w-full min-w-[600px] h-[300px] overflow-visible select-none">
@@ -292,7 +300,7 @@ export default function AdvertiserProfileClient({ advertiser, advertiserCreative
             activeTab === "trends" ? "text-primary" : "text-muted-foreground hover:text-foreground"
           )}
         >
-          Xu hướng hiệu suất (Ước tính)
+          Xu hướng hiệu suất
           {activeTab === "trends" && <span className="absolute bottom-0 inset-x-0 h-0.5 bg-primary" />}
         </button>
       </div>

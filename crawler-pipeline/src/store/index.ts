@@ -13,6 +13,8 @@ export {
   updateTaskProgress,
   updateTaskPhase,
   updateTaskCommentProgress,
+  insertPostMetricSnapshot,
+  insertAuthorMetricSnapshot,
 } from "./supabase_writer.js";
 
 

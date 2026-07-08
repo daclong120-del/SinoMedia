@@ -62,3 +62,19 @@
   - Triển khai Phase 1: Tạo các service/repo mới song song mà không xóa file cũ để giảm rủi ro.
   - Realtime: Tách riêng `lib/realtime/subscriptions.ts` là nơi duy nhất dùng browser Supabase client.
   - Auth: Chuyển logic login/sign-up lên Server Actions qua `AuthService` để ghi cookie httpOnly an toàn.
+
+## 2026-07-08 — Kiến trúc Metric Snapshots & Refresh Task
+- **Bối cảnh:** Biểu đồ xu hướng và số lượng tương tác trên Dashboard cần độ chính xác thực tế từ dữ liệu lịch sử thay vì giả lập mock.
+- **Quyết định:**
+  - Thiết kế 2 bảng snapshot lịch sử: `post_metric_snapshots` và `author_metric_snapshots` trong Supabase DB.
+  - Xây dựng `MetricCollectorFactory` và `BilibiliMetricCollector` độc lập để refresh chỉ số từ API nền tảng.
+  - Tích hợp ghi nhận snapshot khi cào mới (`upsertPost`, `upsertPosts`, `upsertAuthor`), được bảo vệ bởi guard `hasRecognizedMetric(stats)` cho bài viết và kiểm tra độ tin cậy của followers cho tác giả để tránh lưu dữ liệu 0 giả làm sai lệch lịch sử.
+  - Trên Frontend, gom nhóm snapshots theo ngày (`latest-per-day`) để tránh double-count, chỉ hiển thị badge "Thực tế" khi có dữ liệu thật.
+
+## 2026-07-08 — Giới hạn cào bình luận & Theo dõi tiến độ Task phụ (Tasks Phase & Comment Limit)
+- **Bối cảnh:** Khi cào Creator/Search với số lượng video lớn, việc cào bình luận phụ (sub-comments) quá sâu hoặc gặp video bị lỗi làm worker bị treo rất lâu, giữ task ở trạng thái Running vượt thời hạn. UI Dashboard cũng không hiển thị được tiến độ cào bình luận mà chỉ giữ nguyên nhãn Video: 50/50.
+- **Quyết định:**
+  - **Giới hạn cào:** Giới hạn vòng lặp cào sub-comments dừng lại ở tối đa 2 trang (khoảng 40 bình luận phụ) cho mỗi root comment.
+  - **Timeout từng video:** Bọc việc cào bình luận của từng video trong `Promise.race` với timeout 60 giây. Quá 60s tự động bỏ qua và chuyển sang video tiếp theo.
+  - **Tiến độ & Phase:** Lưu thêm trường metadata `phase` (`collecting_posts` / `crawling_comments`) và `comment_progress` (`current`/`target`).
+  - **Cải tiến UI:** Đổi nhãn tiến độ từ `(50/50)` thành `Video: 50/50`, hiển thị text nhấp nháy xanh: `Đang cào bình luận X/Y video` ngay dưới Status Badge của task đang chạy.

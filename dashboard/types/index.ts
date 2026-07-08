@@ -217,6 +217,7 @@ export interface CreativeAd {
   is_ad: boolean;
   growth_rate: number;
   views_history: { date: string; count: number }[];
+  historySource?: "snapshot" | "fallback";
   author?: CreativeAdvertiser | null;
   original_media_urls?: string[];
   original_cover_url?: string;
