@@ -27,48 +27,59 @@ Tránh cơ chế **Fast-Forward Merge** mặc định của Git làm gộp toàn
 
 ## 2. Khôi phục Commit bị ẩn (Detached HEAD Recovery)
 
-Xảy ra khi commit code khi đang ở trạng thái Detached HEAD (không gắn vào nhánh nào, thường do checkout bằng mã hash của commit), sau đó checkout sang nhánh khác làm các commit đó bị ẩn đi.
+Xảy ra khi commit code khi đang ở trạng thái Detached HEAD (không gắn vào nhánh nào, thường do checkout bằng mã hash của commit hoặc do công cụ GUI tự động checkout), sau đó checkout sang nhánh khác làm các commit đó bị ẩn đi.
 
-### Các bước khôi phục:
+### Cách 1: Sử dụng nhánh tạm thời (Khuyên dùng - An toàn & Trực quan nhất)
+Nếu bạn nhận ra mình vừa commit ở trạng thái Detached HEAD:
+1. **Tạo ngay một nhánh tạm tại commit đó** (trước khi checkout đi nơi khác):
+   ```bash
+   git branch temp-recovery
+   ```
+2. **Chuyển về nhánh chính `main`:**
+   ```bash
+   git checkout main
+   ```
+3. **Gộp nhánh tạm vào `main`:**
+   ```bash
+   git merge temp-recovery
+   ```
+4. **Xóa nhánh tạm sau khi đã gộp thành công:**
+   ```bash
+   git branch -d temp-recovery
+   ```
 
-1. **Tìm mã hash commit bị ẩn:**
+### Cách 2: Khôi phục bằng mã hash commit (Khi lỡ checkout đi chỗ khác làm mất commit)
+1. **Tìm lại mã hash commit bị ẩn:**
    Chạy lệnh xem lịch sử hành động để tìm commit mới nhất trước khi checkout:
    ```bash
    git reflog -n 20
    ```
-   *(Tìm dòng tương tự: `31ef2b5 HEAD@{2}: commit: feat...`)*
+   *(Tìm dòng có nội dung tương tự: `40bdf4c HEAD@{1}: commit: chore: ngung theo doi thu muc artifact`)*
 
-2. **Cách khôi phục về nhánh chính (`main`) và đẩy lên Remote:**
-   - **Bước 2.1: Chuyển về nhánh `main`:**
+2. **Khôi phục về nhánh chính (`main`):**
+   - **Chuyển về nhánh `main`:**
      ```bash
      git checkout main
      ```
-   - **Bước 2.2: Gộp commit bị ẩn vào `main`:**
-     *(Sử dụng mã hash tìm được ở Bước 1 kèm cờ `-m` để tạo Merge Commit)*
+   - **Gộp commit bị ẩn vào `main`:**
      ```bash
-     git merge <ma-commit-hash> -m "merge: gộp commit khôi phục vào main"
+     git merge <ma-commit-hash>
      ```
-   - **Bước 2.3: Đẩy lên Remote Github:**
+     *(Ví dụ: `git merge 40bdf4c`)*
+   - **Đẩy lên Remote GitHub:**
      ```bash
      git push origin main
-     ```
-
-3. **Cách khôi phục về một nhánh phụ khác:**
-   - **Tạo nhánh mới từ commit đó:**
-     ```bash
-     git branch <ten-nhanh-moi> <ma-commit-hash>
-     ```
-   - **Hoặc cập nhật nhánh phụ có sẵn tới commit đó:**
-     ```bash
-     git branch -f <ten-nhanh-co-san> <ma-commit-hash>
      ```
 
 ---
 
 ## 3. Cách phòng ngừa Detached HEAD
 
-- **Quy tắc:** Luôn checkout bằng **tên nhánh** (ví dụ: `git checkout main`), không checkout bằng **mã commit** (ví dụ: `git checkout fffd195`).
-- Nếu muốn nháp thử từ một commit cũ, hãy tạo nhánh ngay từ đầu bằng lệnh:
+- **Quy tắc vàng:** Luôn luôn kiểm tra trạng thái nhánh trước khi sửa code bằng lệnh `git status`. Hãy chắc chắn bạn đang ở `On branch main` (hoặc nhánh làm việc mong muốn).
+- Luôn checkout bằng **tên nhánh** (ví dụ: `git checkout main`), **không** checkout bằng **mã commit** (ví dụ: `git checkout fffd195`).
+- Nếu muốn thử nghiệm hoặc nháp từ một commit cũ, hãy tạo nhánh ngay từ đầu:
   ```bash
-  git checkout -b <ten-nhanh-moi>
+  git checkout -b <ten-nhanh-moi> <ma-commit-hash>
+  ```
+
   ```
