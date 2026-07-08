@@ -42,9 +42,30 @@ async function withSupabaseTimeout<T>(promise: Promise<T>, label: string): Promi
 }
 
 function getPostStats(row: TableRow<"crawled_posts">): PostStats {
-  return typeof row.stats === "object" && row.stats !== null && !Array.isArray(row.stats)
-    ? (row.stats as unknown as PostStats)
-    : {};
+  if (typeof row.stats !== "object" || row.stats === null || Array.isArray(row.stats)) {
+    return {};
+  }
+  
+  const rawStats = row.stats as Record<string, unknown>;
+  const play_count = Number(rawStats.play_count || rawStats.view_count || rawStats.playCount || 0);
+  const like_count = Number(
+    rawStats.like_count || 
+    rawStats.digg_count || 
+    rawStats.liked_count || 
+    rawStats.voteup_count || 
+    rawStats.voteupCount || 
+    0
+  );
+  const comment_count = Number(rawStats.comment_count || rawStats.comments_count || rawStats.commentCount || 0);
+  const share_count = Number(rawStats.share_count || rawStats.shared_count || rawStats.shareCount || 0);
+
+  return {
+    play_count,
+    view_count: play_count,
+    like_count,
+    comment_count,
+    share_count,
+  };
 }
 
 function resolveMediaUrl(value: string | null | undefined): string {
@@ -152,7 +173,7 @@ function mapAuthorToAdvertiser(
     total_views: totalViews,
     total_likes: totalLikes,
     follows_count: author.follows_count || 0,
-    fans_count: author.fans_count || 0,
+    fans_count: author.fans_count !== null && author.fans_count !== undefined ? author.fans_count : null,
     crawled_at: author.updated_at || author.created_at || "",
     last_active_at: author.updated_at || "",
   };

@@ -34,6 +34,36 @@ export async function upsertAuthor(author: CrawledAuthorRow): Promise<string> {
   return result[0].id;
 }
 
+function normalizeStats(stats: any): any {
+  if (typeof stats !== "object" || stats === null || Array.isArray(stats)) {
+    return stats;
+  }
+  const normalized = { ...stats };
+  
+  // Normalize likes
+  const likes = stats.like_count || stats.digg_count || stats.liked_count || stats.voteup_count || stats.voteupCount || 0;
+  normalized.like_count = likes;
+  normalized.digg_count = likes;
+  normalized.liked_count = likes;
+  
+  // Normalize views
+  const views = stats.play_count || stats.view_count || stats.playCount || 0;
+  normalized.play_count = views;
+  normalized.view_count = views;
+  
+  // Normalize comments
+  const comments = stats.comment_count || stats.comments_count || stats.commentCount || 0;
+  normalized.comment_count = comments;
+  normalized.comments_count = comments;
+  
+  // Normalize shares
+  const shares = stats.share_count || stats.shared_count || stats.shareCount || 0;
+  normalized.share_count = shares;
+  normalized.shared_count = shares;
+  
+  return normalized;
+}
+
 /**
  * # Thêm mới hoặc cập nhật thông tin bài đăng/video
  */
@@ -56,7 +86,7 @@ export async function upsertPost(post: CrawledPostRow): Promise<void> {
       caption: post.caption,
       media_urls: post.media_urls || [],
       cover_url: post.cover_url,
-      stats: post.stats,
+      stats: normalizeStats(post.stats),
       raw: post.raw,
       crawled_at: new Date().toISOString(),
       published_at: post.published_at,
@@ -102,7 +132,7 @@ export async function upsertPosts(posts: CrawledPostRow[]): Promise<void> {
         caption: post.caption || null,
         media_urls: post.media_urls || [],
         cover_url: post.cover_url || null,
-        stats: post.stats || null,
+        stats: normalizeStats(post.stats) || null,
         raw: post.raw || null,
         crawled_at: new Date().toISOString(),
         published_at: post.published_at || null,

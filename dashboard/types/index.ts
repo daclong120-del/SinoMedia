@@ -188,7 +188,7 @@ export interface CreativeAdvertiser {
   total_views: number;
   total_likes: number;
   follows_count: number;
-  fans_count: number;
+  fans_count: number | null;
   crawled_at: string;
   last_active_at: string;
 }
