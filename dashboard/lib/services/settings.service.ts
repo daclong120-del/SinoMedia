@@ -16,7 +16,8 @@ export interface SanitizedSettings {
   defaultPriority: string;
   maxConcurrentTasks: number;
   maxRetries: number;
-  defaultWebhookUrl: string;
+  defaultWebhookUrlConfigured: boolean;
+  defaultWebhookUrlPreview: string;
   notifyOnSuccess: boolean;
   alertOnFailure: boolean;
 }
@@ -30,7 +31,7 @@ const DEFAULT_SETTINGS = {
   default_priority: "normal",
   max_concurrent_tasks: 3,
   max_retries: 2,
-  default_webhook_url: "",
+  default_webhook_url: null,
   notify_on_success: true,
   alert_on_failure: true,
 };
@@ -48,7 +49,27 @@ function maskApiKey(key: string | null | undefined): { captchaApiKeyConfigured: 
   };
 }
 
-/** Lấy cấu hình hệ thống đã che dấu API Key nhạy cảm */
+function maskWebhookUrl(url: string | null | undefined): { defaultWebhookUrlConfigured: boolean; defaultWebhookUrlPreview: string } {
+  if (!url) {
+    return { defaultWebhookUrlConfigured: false, defaultWebhookUrlPreview: "" };
+  }
+  try {
+    const parsed = new URL(url);
+    const domain = parsed.host;
+    const pathPart = parsed.pathname.length > 12 ? parsed.pathname.slice(0, 12) + "..." : parsed.pathname;
+    return {
+      defaultWebhookUrlConfigured: true,
+      defaultWebhookUrlPreview: `${parsed.protocol}//${domain}${pathPart}`
+    };
+  } catch {
+    return {
+      defaultWebhookUrlConfigured: true,
+      defaultWebhookUrlPreview: url.length > 15 ? `${url.slice(0, 15)}...` : "****"
+    };
+  }
+}
+
+/** Lấy cấu hình hệ thống đã che dấu các secret nhạy cảm */
 export async function getSanitizedSettings(): Promise<SanitizedSettings> {
   const { createClientServer } = await import("@/lib/supabase/server");
   const db = await createClientServer();
@@ -56,8 +77,12 @@ export async function getSanitizedSettings(): Promise<SanitizedSettings> {
   
   const raw = await repo.get();
   const settings = raw || DEFAULT_SETTINGS;
+  
   const decryptedKey = settings.api_key ? decryptSettings(settings.api_key) : null;
   const { captchaApiKeyConfigured, captchaApiKeyPreview } = maskApiKey(decryptedKey);
+
+  const decryptedWebhook = settings.default_webhook_url ? decryptSettings(settings.default_webhook_url) : null;
+  const { defaultWebhookUrlConfigured, defaultWebhookUrlPreview } = maskWebhookUrl(decryptedWebhook);
 
   return {
     use2Captcha: settings.use_2captcha,
@@ -69,24 +94,28 @@ export async function getSanitizedSettings(): Promise<SanitizedSettings> {
     defaultPriority: settings.default_priority,
     maxConcurrentTasks: settings.max_concurrent_tasks,
     maxRetries: settings.max_retries,
-    defaultWebhookUrl: settings.default_webhook_url,
+    defaultWebhookUrlConfigured,
+    defaultWebhookUrlPreview,
     notifyOnSuccess: settings.notify_on_success,
     alertOnFailure: settings.alert_on_failure,
   };
 }
 
-/** Lấy cấu hình hệ thống thô bao gồm API Key đã giải mã (chỉ dùng phía Server) */
-export async function getRawSettings(): Promise<{ apiKey: string | null }> {
+/** Lấy cấu hình hệ thống thô bao gồm các secret đã giải mã (chỉ dùng phía Server) */
+export async function getRawSettings(): Promise<{ apiKey: string | null; defaultWebhookUrl: string | null }> {
   const { createClientServer } = await import("@/lib/supabase/server");
   const db = await createClientServer();
   const repo = new SettingsRepository(db as unknown as DbClient);
   
   const raw = await repo.get();
   const settings = raw || DEFAULT_SETTINGS;
+  
   const decryptedKey = settings.api_key ? decryptSettings(settings.api_key) : null;
+  const decryptedWebhook = settings.default_webhook_url ? decryptSettings(settings.default_webhook_url) : null;
 
   return {
-    apiKey: decryptedKey
+    apiKey: decryptedKey,
+    defaultWebhookUrl: decryptedWebhook
   };
 }
 
@@ -100,7 +129,7 @@ export async function saveSettings(payload: {
   defaultPriority: string;
   maxConcurrentTasks: number;
   maxRetries: number;
-  defaultWebhookUrl: string;
+  defaultWebhookUrl?: string;
   notifyOnSuccess: boolean;
   alertOnFailure: boolean;
 }): Promise<void> {
@@ -116,6 +145,12 @@ export async function saveSettings(payload: {
     finalApiKey = encryptSettings(payload.apiKey);
   }
 
+  let finalWebhookUrl = existing?.default_webhook_url || null;
+  // Chỉ cập nhật Webhook mới nếu user chủ động nhập khác trống
+  if (payload.defaultWebhookUrl !== undefined && payload.defaultWebhookUrl !== "") {
+    finalWebhookUrl = encryptSettings(payload.defaultWebhookUrl);
+  }
+
   await repo.upsert({
     use_2captcha: payload.use2Captcha,
     api_key: finalApiKey,
@@ -125,7 +160,7 @@ export async function saveSettings(payload: {
     default_priority: payload.defaultPriority,
     max_concurrent_tasks: payload.maxConcurrentTasks,
     max_retries: payload.maxRetries,
-    default_webhook_url: payload.defaultWebhookUrl,
+    default_webhook_url: finalWebhookUrl,
     notify_on_success: payload.notifyOnSuccess,
     alert_on_failure: payload.alertOnFailure,
   });

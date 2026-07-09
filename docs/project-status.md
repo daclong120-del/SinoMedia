@@ -38,17 +38,17 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 | Route | Trạng thái | Ghi chú |
 |---|---|---|
 | `/` | Done | Redirect/entrypoint dashboard. |
-| `/login`, `/sign-up`, `/forgot-password` | Done | Đã thắt chặt bảo mật Mock Auth (fail-closed trên production, chỉ cho phép ở dev mode với cờ ENABLE_MOCK_AUTH=true), Next.js Middleware chạy thực sự (proxy.ts) và bảo vệ các route `/dash/*`. |
+| `/login`, `/sign-up`, `/forgot-password` | Done | Gỡ bỏ hoàn toàn Mock Auth Bypass. Dev bắt buộc sử dụng tài khoản Supabase local/test thật. Next.js Middleware chạy thực sự (proxy.ts) bảo vệ các route `/dash/*`. |
 | `/dash/home` | Partial | Có service metrics, một số trend còn TODO hoặc phụ thuộc dữ liệu thật. |
 | `/dash/tasks` | Done | Giao diện quản lý task hoàn chỉnh, kết nối DB thật, realtime status thật, nút Cancel/Retry (Optimistic). Đã thắt chặt bảo mật 2 lớp: Admin-only Next.js Middleware và Admin-only RLS trên DB. |
 | `/dash/accounts` | Draft | Đọc account qua action, modal nạp tài khoản và nút unban/xóa chưa nối mutation thật. Được bảo vệ bởi Admin-only Middleware & RLS. |
-| `/dash/proxies` | Partial | Có service/actions cho proxy; health check hiện vẫn là TODO/fake ở repository. |
-| `/dash/audit-logs` | Partial | Có audit repository/service, dữ liệu đã được bảo vệ bằng RLS admin-only. Cần dữ liệu thật. |
-| `/dash/settings` | Draft | Chủ yếu local/UI settings; RLS cho exported_files đã được thắt chặt theo owner (`created_by`). |
+| `/dash/proxies` | Done | Đã bọc `requireAdmin()` ở cấp Server Component Page và Server Action, thêm `verifyCSRF()` bảo vệ đột biến. Được bảo vệ bởi Middleware & RLS. |
+| `/dash/audit-logs` | Done | Đọc nhật ký thật, đã bọc `requireAdmin()` ở Server Component Page và Middleware. RLS DB đã được bật cho Admin-only. |
+| `/dash/settings` | Done | Đã bọc `requireAdmin()` ở Server Component Page và Middleware. Cấu hình nhạy cảm (`api_key`, `default_webhook_url`) được mã hóa ở DB và che dấu (masking) khi hiển thị. |
 | `/dash/manage-account/members` | Done | Đã nối invite flow thật, tự động gán role. Tích hợp quản lý **API Tokens Panel** có thời hạn, status (active/revoked), ngày dùng cuối. Đã có **Token Guard Runtime Enforcement** bảo vệ API Proxy. |
 | `/dash/data/posts` | Partial | Có trang list/detail UI, nhưng còn comment `Cover mock`/`Player mockup`; cần nối media/detail hoàn chỉnh. |
 | `/dash/data/authors` | Partial | Có server/service read path, cần kiểm chứng dữ liệu thật/filter. |
-| `/dash/data/management` | Draft | Nhiều chỉ số storage hard-code; tag manager local state; cleanup buttons chưa nối backend thật. |
+| `/dash/data/management` | Partial | Đã bọc `requireAdmin()` ở Server Component Page và Middleware. Các nút dọn dẹp và tag manager vẫn là Draft (chưa nối backend thật). |
 | `/dash/creative/search` | Partial | Có service read, filter client, modal detail. Một số API GET creative vẫn tồn tại để compatibility. |
 | `/dash/creative/new` | Partial | Có service read và client view. |
 | `/dash/creative/trending` | Partial | Có sort theo views; cần kiểm chứng metric/index. |

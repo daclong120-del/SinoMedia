@@ -16,7 +16,7 @@ async function getClientIp(): Promise<string> {
   }
 }
 
-/** Server Action: Lấy cấu hình hệ thống đã che dấu API Key */
+/** Server Action: Lấy cấu hình hệ thống đã che dấu API Key và Webhook */
 export async function getSettingsAction() {
   await requireAdmin();
   return settingsService.getSanitizedSettings();
@@ -32,7 +32,7 @@ export async function saveSettingsAction(payload: {
   defaultPriority: string;
   maxConcurrentTasks: number;
   maxRetries: number;
-  defaultWebhookUrl: string;
+  defaultWebhookUrl?: string;
   notifyOnSuccess: boolean;
   alertOnFailure: boolean;
 }) {
@@ -74,10 +74,10 @@ export async function saveSettingsAction(payload: {
         defaultPriority: sanitizedPayload.defaultPriority,
         maxConcurrentTasks: sanitizedPayload.maxConcurrentTasks,
         maxRetries: sanitizedPayload.maxRetries,
-        defaultWebhookUrl: sanitizedPayload.defaultWebhookUrl,
+        defaultWebhookUrlConfigured: sanitizedPayload.defaultWebhookUrl !== "",
         notifyOnSuccess: sanitizedPayload.notifyOnSuccess,
         alertOnFailure: sanitizedPayload.alertOnFailure,
-        // Tuyệt đối không log api_key hoặc masked preview vào audit logs
+        // Tuyệt đối không log api_key hoặc default_webhook_url thô vào audit logs
       },
       ip_address: ipAddress
     });
@@ -93,6 +93,9 @@ export async function saveSettingsAction(payload: {
 /** Server Action: Lấy số dư tài khoản 2Captcha thực tế từ server */
 export async function get2CaptchaBalanceAction() {
   try {
+    if (!(await verifyCSRF())) {
+      return { error: "Xác thực bảo mật CSRF thất bại." };
+    }
     await requireAdmin();
     const balance = await settingsService.get2CaptchaBalance();
     return { success: true, balance };

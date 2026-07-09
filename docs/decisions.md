@@ -326,8 +326,8 @@
 - **Quyết định:**
   1. Phát triển script build idempotent `build-runtime-package.ps1` hỗ trợ chế độ `Scaffold` và `Full`. Khi chạy chế độ `Full`, tự động biên dịch Launcher C# (`SinoMedia.exe` từ `src/Launcher.cs` qua `csc.exe`) và gom dashboard standalone build cùng crawler worker đầy đủ.
   2. Phát triển script `health-check.ps1` hỗ trợ static checks và dynamic `Smoke Test` (`-Smoke`).
-  3. Để tránh lỗi trùng lặp key `Path`/`PATH` khi nhân bản environment trong PowerShell/.NET, các script launcher thực hiện dọn dẹp các biến môi trường trùng lặp trước khi khởi chạy.
-  4. Khởi chạy trực tiếp `$NodeExe` (không qua `cmd.exe`) để quản lý PID của Node chính xác. Ghi logs background không đồng bộ bằng redirection của PowerShell `Start-Process`.
+  3. Để tránh lỗi trùng lặp key `Path`/`PATH` khi nhân bản environment trong PowerShell/.NET (lỗi ném ra ngay khi gọi `Get-ChildItem env:` hoặc dùng `Start-Process`), các script launcher loại bỏ việc truy vấn env của PowerShell và không thực hiện clone env.
+  4. Khởi chạy trực tiếp `$NodeExe` (không qua `cmd.exe` hay `Start-Process`) bằng phương thức `$Process.Start()` của lớp .NET `System.Diagnostics.Process` để thu thập chính xác PID của Node thật, tránh nghẽn buffer bằng cách không redirect IO ở script PowerShell launcher fallback.
   5. Sửa đổi smoke test để verify sự tồn tại của file PID trước khi kiểm tra port nhằm tránh false positive từ các server cũ. Tự động skip có cảnh báo nếu thiếu `API_TOKEN` trong `.env`.
 
 ## 2026-07-09 — Thắt chặt API Proxy & Kiểm thử Bảo mật nâng cao [initiative: Security Hardening]
@@ -350,3 +350,27 @@
   2. **Thứ tự thực thi**: Chốt Portable Runtime -> Smoke test sạch -> Inno Setup (.exe installer) -> Config UI -> Worker control UI -> Supabase Cloud Integration -> Auto-update/Ký bộ cài.
   3. **Tách biệt Cloud và Config**: Giữ kết nối Supabase Cloud ở sau cùng, hiện tại chỉ định nghĩa contract qua biến môi trường để đảm bảo tính linh hoạt khi triển khai.
 - **Đánh đổi:** UI shell của ứng dụng máy tính tạm thời sử dụng script launcher và Launcher C# CLI (`SinoMedia.exe`) thay vì Tauri/Electron UI xịn ngay từ đầu.
+
+## 2026-07-09 — Loại bỏ Mock Auth Bypass & Gia cố Server Actions Hệ thống [initiative: Security Hardening]
+- **Bối cảnh:** Việc sử dụng các mock session cookies (`sb-mock-session` / `sb-mock-user`) cho phép bypass xác thực trên môi trường local, gây rò rỉ cơ chế bảo mật nếu lọt cấu hình lên môi trường production. Đồng thời, Server Actions của hệ thống (`system.actions.ts`) trước đây export trực tiếp các hàm service mà không kiểm tra quyền và chống tấn công CSRF ở mức ứng dụng.
+- **Quyết định:**
+  1. **Loại bỏ triệt để Mock Auth**: Gỡ bỏ hoàn toàn logic mock và check cookies khỏi `auth.service.ts`, `auth.actions.ts`, `login-form.tsx`, `auth-helper.ts`, `middleware.ts`, và `proxy.ts`. 
+  2. **Yêu cầu Xác thực thật**: Các hoạt động phát triển, kiểm thử local bắt buộc đăng nhập bằng tài khoản Supabase thật (local/test). Viết script `create-dev-admin.ts` để tự động tạo và phân quyền admin cục bộ dựa trên cấu hình `.env.local`.
+  3. **Lớp Guard App-level cho System Actions**: Bọc toàn bộ các action trong `system.actions.ts` bằng kiểm tra `requireAdmin()`. Riêng các hành động đột biến (`createProxies`, `deleteProxy`, `testProxy`, `logExport`) bắt buộc thực hiện kiểm tra `assertCsrf(await verifyCSRF())`.
+  4. **Không leak Audit Action**: Gỡ bỏ việc export action `logAuditEvent` để ngăn client gọi trực tiếp, chuyển hoàn toàn sang sử dụng service nội bộ.
+- **Hậu quả:** Hệ thống đạt chuẩn bảo mật fail-closed tuyệt đối. Tăng cường khả năng chống giả mạo request (CSRF) ở lớp Server Actions của Admin.
+- **Đánh đổi:** Lập trình viên local cần chạy Supabase local và cấu hình tài khoản kiểm thử thật thay vì sử dụng mock click-through.
+
+## 2026-07-09 — Bảo mật Cấu hình hệ thống (Settings Server Boundary & Webhook Encryption) [initiative: Security Hardening]
+- **Bối cảnh:** Trước đây, cấu hình hệ thống (bao gồm API Key của 2Captcha và Webhook URL cho Telegram/Discord) được lưu trữ tại `localStorage` ở phía client trình duyệt và trả thô API Key/Webhook URL về giao diện, tạo ra rò rỉ bảo mật nghiêm trọng. Hơn nữa, lần lưu settings đầu tiên có thể thất bại do phân quyền INSERT thiếu và thiếu bản ghi seed mặc định.
+- **Quyết định:**
+  1. Di chuyển toàn bộ cấu hình từ `localStorage` sang bảng `system_settings` trong cơ sở dữ liệu Supabase, được bảo vệ nghiêm ngặt bằng Row Level Security (RLS) chỉ cho phép vai trò `admin` và `service_role` truy cập.
+  2. Mã hóa `api_key` và `default_webhook_url` tại máy chủ bằng thuật toán `aes-256-cbc` trước khi ghi vào cơ sở dữ liệu.
+  3. Browser client chỉ nhận thông tin cấu hình đã che dấu (sanitized props): `captchaApiKeyConfigured`, `captchaApiKeyPreview`, `defaultWebhookUrlConfigured`, `defaultWebhookUrlPreview`.
+  4. Server Action `saveSettingsAction` áp dụng đầy đủ guards (`requireAdmin()`, `verifyCSRF()`, whitelist payload) và ghi log audit event không lưu URL/Key thô.
+  5. Cập nhật migration chèn sẵn dòng seed mặc định `id = 'default'` và cấp quyền `INSERT` cho vai trò `authenticated` (đã qua RLS admin policy check).
+  6. Action `get2CaptchaBalanceAction` gọi API 2Captcha từ phía server, được bổ sung `verifyCSRF()` và `requireAdmin()`.
+- **Hậu quả:** Bảo vệ tuyệt đối secrets của cấu hình hệ thống ở cả REST API, database và audit logs.
+- **Đánh đổi:** Trình duyệt không còn lưu trữ cục bộ các cấu hình, mọi cập nhật cài đặt buộc phải gọi Server Action. Input trên UI sẽ để trống nếu đã cấu hình sẵn và chỉ ghi nhận cập nhật nếu người dùng nhập giá trị mới.
+
+

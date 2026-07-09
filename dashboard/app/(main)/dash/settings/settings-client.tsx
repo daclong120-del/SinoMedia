@@ -15,7 +15,8 @@ interface SettingsClientProps {
     defaultPriority: string;
     maxConcurrentTasks: number;
     maxRetries: number;
-    defaultWebhookUrl: string;
+    defaultWebhookUrlConfigured: boolean;
+    defaultWebhookUrlPreview: string;
     notifyOnSuccess: boolean;
     alertOnFailure: boolean;
   };
@@ -37,7 +38,12 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
 
   const [maxConcurrentTasks, setMaxConcurrentTasks] = useState(initialSettings.maxConcurrentTasks);
   const [maxRetries, setMaxRetries] = useState(initialSettings.maxRetries);
-  const [defaultWebhookUrl, setDefaultWebhookUrl] = useState(initialSettings.defaultWebhookUrl);
+  
+  // Trạng thái Webhook tương tự như API Key
+  const [defaultWebhookUrl, setDefaultWebhookUrl] = useState("");
+  const [defaultWebhookUrlConfigured, setDefaultWebhookUrlConfigured] = useState(initialSettings.defaultWebhookUrlConfigured);
+  const [defaultWebhookUrlPreview, setDefaultWebhookUrlPreview] = useState(initialSettings.defaultWebhookUrlPreview);
+
   const [notifyOnSuccess, setNotifyOnSuccess] = useState(initialSettings.notifyOnSuccess);
   const [alertOnFailure, setAlertOnFailure] = useState(initialSettings.alertOnFailure);
 
@@ -70,7 +76,7 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
         defaultPriority,
         maxConcurrentTasks,
         maxRetries,
-        defaultWebhookUrl,
+        defaultWebhookUrl, // Sẽ trống nếu user không chỉnh sửa
         notifyOnSuccess,
         alertOnFailure,
       };
@@ -88,6 +94,20 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
         setCaptchaApiKeyConfigured(true);
         setCaptchaApiKeyPreview(apiKey.length > 8 ? `${apiKey.slice(0, 4)}...${apiKey.slice(-4)}` : "****");
         setApiKey("");
+      }
+
+      // Cập nhật lại UI state nếu người dùng vừa mới nhập Webhook mới thành công
+      if (defaultWebhookUrl !== "") {
+        setDefaultWebhookUrlConfigured(true);
+        try {
+          const parsed = new URL(defaultWebhookUrl);
+          const domain = parsed.host;
+          const pathPart = parsed.pathname.length > 12 ? parsed.pathname.slice(0, 12) + "..." : parsed.pathname;
+          setDefaultWebhookUrlPreview(`${parsed.protocol}//${domain}${pathPart}`);
+        } catch {
+          setDefaultWebhookUrlPreview(defaultWebhookUrl.length > 15 ? `${defaultWebhookUrl.slice(0, 15)}...` : "****");
+        }
+        setDefaultWebhookUrl("");
       }
     } catch (err) {
       console.error("Error saving settings:", err);
@@ -264,7 +284,13 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
           <div className="p-4 space-y-4 text-xs">
             <label className="space-y-1 block">
               <span className="font-medium text-foreground">Default Webhook URL</span>
-              <input type="url" value={defaultWebhookUrl} onChange={(e) => setDefaultWebhookUrl(e.target.value)} placeholder="https://api.telegram.org/bot.../sendMessage hoặc Discord Webhook" className="w-full max-w-xl h-8 px-3 border border-border rounded-lg bg-background text-foreground font-mono focus:outline-none" />
+              <input
+                type="url"
+                value={defaultWebhookUrl}
+                onChange={(e) => setDefaultWebhookUrl(e.target.value)}
+                placeholder={defaultWebhookUrlConfigured ? `Đã cấu hình: ${defaultWebhookUrlPreview}` : "https://api.telegram.org/bot.../sendMessage hoặc Discord Webhook"}
+                className="w-full max-w-xl h-8 px-3 border border-border rounded-lg bg-background text-foreground font-mono focus:outline-none"
+              />
             </label>
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-card-foreground">

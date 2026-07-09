@@ -1209,7 +1209,7 @@ export type Database = {
           default_priority: string
           max_concurrent_tasks: number
           max_retries: number
-          default_webhook_url: string
+          default_webhook_url: string | null
           notify_on_success: boolean
           alert_on_failure: boolean
           updated_at: string
@@ -1224,7 +1224,7 @@ export type Database = {
           default_priority?: string
           max_concurrent_tasks?: number
           max_retries?: number
-          default_webhook_url?: string
+          default_webhook_url?: string | null
           notify_on_success?: boolean
           alert_on_failure?: boolean
           updated_at?: string
@@ -1239,7 +1239,7 @@ export type Database = {
           default_priority?: string
           max_concurrent_tasks?: number
           max_retries?: number
-          default_webhook_url?: string
+          default_webhook_url?: string | null
           notify_on_success?: boolean
           alert_on_failure?: boolean
           updated_at?: string

@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS public.system_settings (
     default_priority text DEFAULT 'normal' NOT NULL,
     max_concurrent_tasks integer DEFAULT 3 NOT NULL,
     max_retries integer DEFAULT 2 NOT NULL,
-    default_webhook_url text DEFAULT '' NOT NULL,
+    default_webhook_url text, -- encrypted Webhook URL
     notify_on_success boolean DEFAULT true NOT NULL,
     alert_on_failure boolean DEFAULT true NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
@@ -40,4 +40,7 @@ CREATE POLICY "Allow write of system settings for admin users" ON public.system_
 -- Revoke default privileges and grant to specific roles
 REVOKE ALL ON public.system_settings FROM anon, public;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.system_settings TO service_role;
-GRANT SELECT, UPDATE ON public.system_settings TO authenticated;
+GRANT SELECT, INSERT, UPDATE ON public.system_settings TO authenticated;
+
+-- Seed default settings row if not exists
+INSERT INTO public.system_settings (id) VALUES ('default') ON CONFLICT DO NOTHING;
