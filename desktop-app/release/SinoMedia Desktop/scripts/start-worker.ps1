@@ -3,13 +3,6 @@
 $ErrorActionPreference = 'Continue'
 $PSScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Definition
 
-# Dọn dẹp biến môi trường trùng lặp Path/PATH để tránh lỗi của Start-Process/NET
-if ($env:PATH -and $env:Path) {
-    Get-ChildItem env: | Where-Object { $_.Name -eq "PATH" } | ForEach-Object {
-        Remove-Item "env:$($_.Name)" -ErrorAction SilentlyContinue
-    }
-}
-
 Write-Host "=============================================================" -ForegroundColor Cyan
 Write-Host "          Starting SinoMedia Crawler Worker...               " -ForegroundColor Cyan
 Write-Host "=============================================================" -ForegroundColor Cyan
@@ -34,7 +27,8 @@ if (!(Test-Path $NodeExe)) {
     exit 1
 }
 
-# 2. Đọc file .env cấu hình và gán trực tiếp vào environment của session
+# 2. Đọc file .env cấu hình
+$EnvVars = @{}
 $EnvFile = Join-Path $PSScriptRoot "..\config\.env"
 if (Test-Path $EnvFile) {
     Write-Host "Loading environment variables from config/.env..." -ForegroundColor Gray
@@ -48,7 +42,7 @@ if (Test-Path $EnvFile) {
             if ($value.StartsWith('"') -and $value.EndsWith('"')) {
                 $value = $value.Substring(1, $value.Length - 2)
             }
-            [System.Environment]::SetEnvironmentVariable($name, $value)
+            $EnvVars[$name] = $value
         }
     }
 } else {
@@ -56,28 +50,42 @@ if (Test-Path $EnvFile) {
 }
 
 # Đảm bảo các biến môi trường bắt buộc cho worker được định nghĩa
-if (![System.Environment]::GetEnvironmentVariable("INTERNAL_API_URL")) {
-    [System.Environment]::SetEnvironmentVariable("INTERNAL_API_URL", "http://localhost:3000/api/worker")
+if (!$EnvVars.ContainsKey("INTERNAL_API_URL") -and ![System.Environment]::GetEnvironmentVariable("INTERNAL_API_URL")) {
+    $EnvVars["INTERNAL_API_URL"] = "http://localhost:3000/api/worker"
 }
 
-# 3. Khởi chạy tiến trình background bằng Start-Process trực tiếp
-$LogFile = Join-Path $PSScriptRoot "..\logs\worker.log"
-$ErrLogFile = Join-Path $PSScriptRoot "..\logs\worker.err.log"
+# 3. Khởi chạy tiến trình background bằng ProcessStartInfo
 $PidFile = Join-Path $PSScriptRoot "..\logs\worker.pid"
 
 Write-Host "Starting Crawler Worker (running 'crawl' action)..." -ForegroundColor Green
-Write-Host "Logs redirected to: logs/worker.log and logs/worker.err.log" -ForegroundColor Gray
 
-# Xóa logs cũ trước khi khởi động
-Remove-Item $LogFile -ErrorAction SilentlyContinue | Out-Null
-Remove-Item $ErrLogFile -ErrorAction SilentlyContinue | Out-Null
+# Cấu hình khởi chạy trực tiếp node.exe để lấy PID thật của node
+$StartInfo = New-Object System.Diagnostics.ProcessStartInfo
+$StartInfo.FileName = $NodeExe
+$StartInfo.Arguments = "`"$TsxCli`" `"$IndexTs`" crawl"
+$StartInfo.WorkingDirectory = $WorkerRoot
+$StartInfo.UseShellExecute = $false
+$StartInfo.CreateNoWindow = $true
 
-$Process = Start-Process -FilePath $NodeExe -ArgumentList "`"$TsxCli`"", "`"$IndexTs`"", "crawl" -WorkingDirectory $WorkerRoot -NoNewWindow -RedirectStandardOutput $LogFile -RedirectStandardError $ErrLogFile -PassThru
+# Không dùng Clear(), không clone toàn bộ env để tránh lỗi duplicate env key của PowerShell.
+# Chỉ gán các custom env variables từ config/.env
+foreach ($key in $EnvVars.Keys) {
+    $StartInfo.EnvironmentVariables[$key] = $EnvVars[$key]
+}
 
-if ($Process) {
-    $Process.Id | Out-File -FilePath $PidFile -Force
-    Write-Host "Crawler Worker started successfully with PID: $($Process.Id)" -ForegroundColor Green
-} else {
-    Write-Error "Failed to start Worker process!"
+$Process = New-Object System.Diagnostics.Process
+$Process.StartInfo = $StartInfo
+
+try {
+    [void]$Process.Start()
+    if ($Process.Id) {
+        $Process.Id | Out-File -FilePath $PidFile -Force
+        Write-Host "Crawler Worker started successfully with PID: $($Process.Id)" -ForegroundColor Green
+    } else {
+        Write-Error "Failed to retrieve PID for Worker process!"
+        exit 1
+    }
+} catch {
+    Write-Error "Failed to start Worker process: $_"
     exit 1
 }
