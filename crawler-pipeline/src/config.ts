@@ -35,8 +35,8 @@ function getEnv(key: string): string | undefined {
 
 export const CONFIG = {
   supabase: {
-    url: getEnv("SUPABASE_URL") ?? getEnv("EXPO_PUBLIC_SUPABASE_URL") ?? (() => { throw new Error("Thiếu biến SUPABASE_URL — vui lòng cấu hình trong file .env"); })(),
-    serviceRoleKey: getEnv("SUPABASE_SERVICE_ROLE_KEY") ?? (() => { throw new Error("Thiếu biến SUPABASE_SERVICE_ROLE_KEY — vui lòng cấu hình trong file .env"); })(),
+    url: getEnv("INTERNAL_API_URL") ?? (() => { throw new Error("Thiếu biến INTERNAL_API_URL — vui lòng cấu hình trong file .env để kết nối qua Token Guard"); })(),
+    apiToken: getEnv("API_TOKEN") ?? (() => { throw new Error("Thiếu biến API_TOKEN — vui lòng cấu hình token trong file .env để bảo mật runtime"); })(),
   },
   proxy: getEnv("CRAWLER_PROXY") ?? "",
   headless: getEnv("CRAWLER_HEADLESS") !== "false",

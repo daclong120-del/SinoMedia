@@ -34,14 +34,16 @@ npx playwright install chromium --with-deps
 ### Bước 4: Thiết lập biến môi trường
 Tạo tệp `/opt/crawler-pipeline/.env` chứa đầy đủ thông tin kết nối Supabase và Cloudflare R2 giống như file `.env` cục bộ của bạn:
 ```ini
+INTERNAL_API_URL="http://your_dashboard_domain_or_ip:3000"
+API_TOKEN="your_secure_api_token"
 EXPO_PUBLIC_SUPABASE_URL="https://ejwqyycoycyzuxseecck.supabase.co"
 EXPO_PUBLIC_SUPABASE_ANON_KEY="your_supabase_anon_key_here"
 R2_ACCESS_KEY_ID="your_r2_access_key"
 R2_SECRET_ACCESS_KEY="your_r2_secret"
 R2_ENDPOINT_URL="https://61ef6f7c6215df3616424def03fa7070.r2.cloudflarestorage.com"
 R2_BUCKET_NAME="media-crawler-bucket"
-SUPABASE_SERVICE_ROLE_KEY="your_supabase_service_role_key"
 ```
+*(Lưu ý: Tuyệt đối không cấu hình `SUPABASE_SERVICE_ROLE_KEY` ở Worker, mọi request phải đi qua Token Guard của Dashboard Next.js.)*
 
 ### Bước 5: Cấu hình Systemd Services
 Sao chép và kích hoạt các dịch vụ hệ thống của systemd:

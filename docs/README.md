@@ -20,6 +20,8 @@ Trang này là cửa vào cho tài liệu hiện hành của SinoMedia. Nếu c�
 - [Embedded Iframe Player Strategy](architecture/embedded-iframe-player-strategy.md)
 - [Role Management Strategy](architecture/role-management.md)
 - [Desktop App Packaging & Strategy](architecture/desktop-app.md)
+- [Module Extraction Contract](../desktop-app/MODULE_EXTRACTION_CONTRACT.md)
+- [Build Artifact Contract](../desktop-app/BUILD_ARTIFACT_CONTRACT.md)
 
 ## Workflows
 

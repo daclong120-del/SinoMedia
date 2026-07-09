@@ -1,5 +1,13 @@
 # Decision Log — SinoMedia
 
+## Decision: API Token Runtime Enforcement (2026-07-09)
+**Context**: We need to secure the worker's access to the database. Previously, workers used the `SUPABASE_SERVICE_ROLE_KEY` to directly call PostgREST APIs, bypassing RLS and gaining full access.
+**Decision**: 
+1. Implement a unified `Token Guard` in Next.js (`dashboard/lib/guards/token.guard.ts`) that validates raw tokens via SHA-256 hash against the `api_tokens` table.
+2. Verify token active status, expiration, and required scopes (e.g., `crawler:claim`, `crawler:write_logs`).
+3. Set up a Next.js proxy route (`/api/worker/rest/v1/[...path]`) that intercepts the worker's PostgREST requests, validates the token, and uses the Service Role key to forward the request to Supabase.
+**Consequences**: Workers no longer hold the Service Role key. They only need an `API_TOKEN`. Next.js API acts as the single security gateway (Token Guard) for all internal API access, ensuring auditability (`last_used_at`) and scope-based authorization.
+
 ## 2026-07-01 — Chuẩn hóa & Phân tách biến môi trường
 - **Bối cảnh:** `.env` bị lẫn cấu hình Crawler cũ (MySQL, Redis, Proxy...).
 - **Quyết định:** Tách riêng `.env` ở root cho Expo Client (`EXPO_PUBLIC_`) và `supabase/.env.local` cho Edge Functions (R2, OpenAI).
@@ -132,4 +140,10 @@
   - Chỉ cho phép insert snapshot vào `post_metric_snapshots` và `author_metric_snapshots` khi vượt qua được guard của hai hàm helper này.
   - Sửa đổi Bilibili metric collector để lưu trữ trực tiếp phản hồi `relationRes` nguyên bản thay vì fallback object rỗng để lưu vết đầy đủ.
 
-
+## 2026-07-09 — Chuyển đổi chiến lược Desktop App (Desktop Runtime Package)
+- **Bối cảnh:** Bản build Pake cũ chỉ wrap `localhost:3000`, đòi hỏi người dùng tự khởi chạy dashboard và các service môi trường.
+- **Quyết định:**
+  - Hủy bỏ hướng đi Pake bọc `localhost` thô sơ.
+  - Chuyển `desktop-app/` thành **Packaging Workspace** thực thụ.
+  - Xây dựng **SinoMedia Desktop Runtime Package** có khả năng tự bundle dashboard, worker, và embedded runtime (Node/Electron/Tauri) thành một khối độc lập (không cần cài Node/Rust).
+  - Khởi tạo trước các `MODULE_EXTRACTION_CONTRACT.md` và `BUILD_ARTIFACT_CONTRACT.md` làm tiêu chuẩn cho các build script tiếp theo.

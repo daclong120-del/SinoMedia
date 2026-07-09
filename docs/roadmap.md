@@ -105,20 +105,21 @@ Hiện trạng:
 - Chưa có service tải video độc lập.
 - Chưa có local folder/download manager trong desktop.
 
-## Phase 4: Desktop App with Pake
+## Phase 4: Desktop Runtime Package
 
 Trạng thái: Draft -> Planned
 
 Mục tiêu:
 
-- Dùng Pake để build desktop shell trước vì nhẹ và hợp hướng hiện tại.
+- Sử dụng Desktop Runtime Package để đóng gói Next.js dashboard và crawler worker thành ứng dụng độc lập.
+- Pake đã bị loại bỏ vì không phù hợp với yêu cầu.
 - Desktop app mở dashboard local/remote.
 - Sau đó mới thêm worker controls: bật local crawler worker, bật downloader worker, xem logs.
 
 Quyết định hiện tại:
 
-- Pake là hướng packaging chính.
-- Electron chỉ là fallback nếu cần quyền native sâu hơn hoặc không muốn cài Rust trong pipeline build.
+- Desktop Runtime Package là hướng packaging chính.
+- Không sử dụng Pake. Electron chỉ là fallback nếu cần quyền native sâu hơn.
 
 Các câu hỏi cần chốt:
 
@@ -152,6 +153,6 @@ Xem lại roadmap khi có một trong các dấu hiệu:
 
 - Supabase RPC queue không đủ throughput.
 - Cần scheduling phức tạp hơn polling worker.
-- Desktop cần quyền native vượt quá Pake/Tauri shell.
+- Desktop cần quyền native vượt quá khả năng của Runtime Package hiện tại.
 - Download media cần resume/chunk/checksum/local library management.
 - Multi-tenant/team permission trở thành yêu cầu thật.

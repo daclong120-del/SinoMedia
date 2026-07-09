@@ -369,7 +369,18 @@ export async function createApiToken(
     expiresAt = expDate.toISOString();
   }
 
-  await tokenRepo.createApiToken(name, tokenHash, tokenPrefix, roleId, user.id, expiresAt, ["*"]);
+  const defaultScopes = [
+    "crawler:claim", 
+    "crawler:write_logs", 
+    "crawler:update_task", 
+    "crawler:read_task",
+    "crawler:write_data",
+    "crawler:read_data",
+    "crawler:read_accounts",
+    "crawler:update_accounts",
+    "crawler:write_accounts"
+  ];
+  await tokenRepo.createApiToken(name, tokenHash, tokenPrefix, roleId, user.id, expiresAt, defaultScopes);
 
   return { rawToken };
 }

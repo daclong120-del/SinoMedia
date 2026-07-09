@@ -22,14 +22,14 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 | Dashboard | Partial | Next.js App Router, nhiều trang đã có service/repository và server actions. Cột mốc quan trọng: `/dash/tasks` đã Done (nối realtime và xử lý tasks thật). |
 | Crawler Pipeline | Partial | Worker TypeScript độc lập có queue loop, claim task qua Supabase RPC, platform factory, account/proxy pool. Bilibili crawler có đầy đủ phase, log và cào bình luận ổn định. |
 | Supabase/Media | Partial | Supabase là control plane/data store. Đã hoàn thành khóa quyền truy cập thô của anon key, bật RLS cho toàn bộ bảng (kể cả audit_logs, exported_files, crawled_comments) và thắt chặt các RPC nhạy cảm. E2E test cho admin/non-admin đạt 100%. |
-| Desktop App | Draft | Hiện là packaging bằng Pake cho dashboard local. Chưa phải desktop runtime có worker manager/video downloader service tích hợp. |
+| Desktop App | Draft | Đang xây dựng SinoMedia Desktop Runtime Package architecture. Đã có spec/contract cho module extraction và build artifact, sẽ dần thay thế bản Pake draft cũ. |
 
 ## Product direction hiện tại
 
 - Dashboard là control plane: tạo task, xem dữ liệu, xem log, quản lý account/proxy/settings.
 - `crawler-pipeline` là worker độc lập: claim task từ Supabase, crawl, normalize, ghi DB; chỉ upload R2 khi task/flow thật sự cần archive/cache.
 - Bilibili playback dùng Embedded Iframe Player khi có BVID (`platform_uid`), không cần direct CDN URL hoặc R2 để phát.
-- Tương lai desktop app được build bằng Pake trước. Desktop app cần có khả năng kích hoạt thêm local worker hoặc cấu hình remote worker.
+- Tương lai: Chuyển từ Pake draft sang SinoMedia Desktop Runtime Package. Mục tiêu đóng gói độc lập toàn bộ Dashboard, Worker và embedded runtime, không yêu cầu cài môi trường.
 - Tương lai có video downloader service riêng để máy khác hoặc local desktop tải video, không nhét toàn bộ logic download vào UI.
 - Media cache/download không tạo task `cache_media`; task này đã bị deprecated trong worker. Với Bilibili, UI chỉ cần BVID/canonical URL để render iframe hoặc mở nguồn.
 
@@ -45,7 +45,7 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 | `/dash/proxies` | Partial | Có service/actions cho proxy; health check hiện vẫn là TODO/fake ở repository. |
 | `/dash/audit-logs` | Partial | Có audit repository/service, dữ liệu đã được bảo vệ bằng RLS admin-only. Cần dữ liệu thật. |
 | `/dash/settings` | Draft | Chủ yếu local/UI settings; RLS cho exported_files đã được thắt chặt theo owner (`created_by`). |
-| `/dash/manage-account/members` | Done | Đã nối invite flow thật, tự động gán role. Đồng thời tích hợp quản lý **API Tokens Panel** có thời hạn, status (active/revoked), ngày dùng cuối, và Server actions thắt chặt CSRF. |
+| `/dash/manage-account/members` | Done | Đã nối invite flow thật, tự động gán role. Tích hợp quản lý **API Tokens Panel** có thời hạn, status (active/revoked), ngày dùng cuối. Đã có **Token Guard Runtime Enforcement** bảo vệ API Proxy. |
 | `/dash/data/posts` | Partial | Có trang list/detail UI, nhưng còn comment `Cover mock`/`Player mockup`; cần nối media/detail hoàn chỉnh. |
 | `/dash/data/authors` | Partial | Có server/service read path, cần kiểm chứng dữ liệu thật/filter. |
 | `/dash/data/management` | Draft | Nhiều chỉ số storage hard-code; tag manager local state; cleanup buttons chưa nối backend thật. |
@@ -62,7 +62,7 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 | Capability | Trạng thái | Ghi chú |
 |---|---|---|
 | CLI entrypoint | Done | `bootstrap`, `crawl`, `creator`, `search`, `comments`, `add-account`. `crawl` không target sẽ khởi chạy queue worker. |
-| Queue worker | Done | Claim task Supabase RPC, cập nhật progress/phase. Đã **gia cố log redaction** (mask cookie nhiều cặp, msToken kèm từ nối, generic token redactor >= 20 ký tự) và chuyển dev check scripts sang logger. |
+| Queue worker | Done | Claim task Supabase RPC. Đã **gia cố log redaction** và bảo mật **API Token Runtime Enforcement** (dùng `API_TOKEN` gọi qua Next.js Proxy thay vì Service Role Key trực tiếp). Đã pass Security Gate (Deny-by-default, Strict Scopes, Structural Validation). |
 | Task metadata | Partial | Worker đọc tags, language, crawl_comments, crawl_sub_comments, upload_r2, headless từ `task.metadata`. |
 | Platform factory | Partial | Có factory cho nhiều platform; platform không hỗ trợ sẽ throw rõ ràng. |
 | Platforms | Partial | Có module cho Bilibili, Douyin, Kuaishou, Tieba, Weibo, XHS, Zhihu. Mức ổn định từng platform chưa đồng đều. |
@@ -76,8 +76,8 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 
 | Capability | Trạng thái | Ghi chú |
 |---|---|---|
-| Pake packaging | Draft | `desktop-app/build.bat` và README hướng dẫn đóng dashboard local thành app. |
-| Bundled dashboard server | Planned | Cần quyết định cách khởi chạy Next server local trong desktop distribution. |
+| Desktop Runtime Package | Draft | Đã định nghĩa Module Extraction Contract và Build Artifact Contract. Định hướng package mới thay thế cho Pake cũ. |
+| Bundled dashboard server | Planned | Trích xuất dashboard theo Module Extraction Contract. |
 | Activate local worker | Planned | Desktop cần UI/config để bật/tắt worker local, nhưng hiện chưa có worker manager trong app. |
 | Remote worker management | Planned | Cần worker registration/heartbeat/capabilities để máy khác nhận task. |
 | Video downloader service | Planned | Với Bilibili hiện chỉ cần canonical URL/BVID để mở nguồn. Tải file thật về máy là việc của downloader service sau này, không phải R2 cache mặc định. |

@@ -47,6 +47,13 @@ Docs-only edits không sửa code symbol, nhưng vẫn nên chạy `detect_chang
 - Database client của worker (`supabaseRest`) phải đọc response dưới dạng text trước khi parse JSON để tránh crash (`Unexpected end of JSON input`) khi PostgREST trả về response body trống (ví dụ: HTTP 201 Created với Prefer: return=minimal).
 - Worker cập nhật task status completed/failed.
 - Tương lai worker cần heartbeat, worker_id, capabilities và graceful shutdown.
+
+## 4. Bảo mật & Xác thực
+
+- **Luôn bảo vệ các Server Actions/API bằng `requireAdmin()` hoặc `requireUser()`**.
+- **Internal APIs (Next.js)**: Nếu viết API nội bộ cho Worker gọi (như webhook, crawl callbacks), phải đưa vào `/api/worker/[...path]` hoặc tự check bằng `verifyApiToken(req, ["required_scope"])` từ `token.guard.ts`. KHÔNG được phép cho worker truyền Service Role Key trực tiếp.
+- **Worker Authentication**: Crawler Pipeline sử dụng biến môi trường `API_TOKEN`. Token này sẽ được `token.guard.ts` ở Next.js kiểm tra. Next.js đóng vai trò **Token Guard Runtime Enforcement**. Worker truy cập Supabase qua proxy này.
+- **Không bao giờ tin tưởng input từ client**. Validate cẩn thận, đặc biệt với Supabase RPC parameters.
 - Desktop app có thể bật thêm worker, nhưng hiện chưa có worker manager.
 
 ## Media/download rules
@@ -75,7 +82,7 @@ Ví dụ bẫy hiện tại:
 - `/dash/accounts` có modal nạp tài khoản nhưng chưa nối mutation thật.
 - `/dash/data/management` có storage metrics hard-code và tag manager local state.
 - `/dash/creative/growth` đã có bảng history `post_metric_snapshots`, nhưng chưa tối ưu logic tính toán tăng trưởng thật cho `/dash/creative/growth`.
-- Desktop app hiện mới là Pake packaging draft.
+- Desktop app hiện mới là Desktop Runtime Package draft, Pake là legacy experiment.
 - Bilibili đã có hướng iframe embed; đừng kéo lại về R2/direct CDN playback nếu không có lý do mới.
 
 ## Security reminders

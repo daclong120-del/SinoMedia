@@ -27,8 +27,8 @@ async function main() {
   const insertRes = await fetch(rpcUrl, {
     method: "POST",
     headers: {
-      "apikey": CONFIG.supabase.serviceRoleKey,
-      "Authorization": `Bearer ${CONFIG.supabase.serviceRoleKey}`,
+      "x-api-key": CONFIG.supabase.apiToken,
+      "Authorization": `Bearer ${CONFIG.supabase.apiToken}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ p_tasks: testTasks })
@@ -47,8 +47,8 @@ async function main() {
   const url = `${CONFIG.supabase.url}/rest/v1/crawler_tasks?order=created_at.desc&limit=10`;
   const res = await fetch(url, {
     headers: {
-      "apikey": CONFIG.supabase.serviceRoleKey,
-      "Authorization": `Bearer ${CONFIG.supabase.serviceRoleKey}`,
+      "x-api-key": CONFIG.supabase.apiToken,
+      "Authorization": `Bearer ${CONFIG.supabase.apiToken}`,
       "Content-Type": "application/json",
     }
   });

@@ -1,0 +1,9 @@
+{
+  "name": "SinoMedia Desktop Runtime Package",
+  "status": "scaffold",
+  "includes": {
+    "dashboard": false,
+    "worker": false,
+    "embeddedRuntime": false
+  }
+}

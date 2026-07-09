@@ -33,8 +33,8 @@ export async function supabaseRest(
   }
 
   const headers: Record<string, string> = {
-    "apikey": CONFIG.supabase.serviceRoleKey,
-    "Authorization": `Bearer ${CONFIG.supabase.serviceRoleKey}`,
+    "x-api-key": CONFIG.supabase.apiToken,
+    "Authorization": `Bearer ${CONFIG.supabase.apiToken}`,
     "Content-Type": "application/json",
     ...options.headers,
   };

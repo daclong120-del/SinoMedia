@@ -1,67 +1,34 @@
-# SinoMedia Desktop App Packaging
+# SinoMedia Desktop Runtime Package
 
-Thư mục này chứa toàn bộ tài nguyên và công cụ phục vụ việc đóng gói hệ thống **SinoMedia Dashboard** thành ứng dụng máy tính (Desktop App) chạy độc lập.
-
----
-
-## 0. Trạng thái hiện tại
-
-Desktop app hiện đang ở mức **Draft**:
-
-- Có hướng đóng gói bằng Pake/Tauri shell.
-- Có `build.bat` để tạo app từ dashboard đang chạy local.
-- Chưa có worker manager tích hợp.
-- Chưa có video downloader service độc lập.
-- Chưa có cơ chế tự khởi chạy Next server/crawler worker khi mở app.
-
-Định hướng dài hạn nằm ở [`../docs/roadmap.md`](../docs/roadmap.md). Trạng thái tính năng nằm ở [`../docs/project-status.md`](../docs/project-status.md).
+Thư mục này là **packaging workspace** phục vụ việc đóng gói hệ thống SinoMedia thành một ứng dụng máy tính (Desktop App) chạy độc lập. 
+Mục tiêu là tạo ra một hệ thống đóng gói có thể gom các module từ project chính thành artifact có thể chạy mà người dùng không phải cài Node/Rust/npm thủ công.
 
 ---
 
-## 1. Hướng dẫn đóng gói bằng Pake (Tauri-based)
+## 1. Trạng thái hiện tại (Packaging Workspace)
 
-Pake là công cụ đóng gói website siêu nhẹ (chỉ khoảng 10-15MB) sử dụng **Tauri** và **Rust**.
+Hiện tại thư mục này đóng vai trò là workspace định nghĩa các tài liệu/build spec (hợp đồng đóng gói) trước khi triển khai script build thật.
+Các giải pháp trước đây (như Pake CLI bọc `localhost:3000`) chỉ là draft/thử nghiệm shell ban đầu và **đã bị thay thế** bởi định hướng Desktop Runtime Package.
 
-### Yêu cầu hệ thống (Prerequisites):
-1. **Node.js** (để chạy lệnh npm/npx).
-2. **Rust & Cargo** (bắt buộc để biên dịch ứng dụng):
-   * Mở PowerShell chạy lệnh sau để cài: `winget install Rustlang.Rustup`
-   * Hoặc cài từ trang chủ: [https://rustup.rs/](https://rustup.rs/)
-
-### Các bước đóng gói:
-1. Đảm bảo Dashboard đang chạy cục bộ ở cổng `3000`:
-   ```bash
-   cd dashboard
-   npm run dev
-   ```
-2. Nhấn đúp chuột chạy file [build.bat](file:///d:/Python/SinoMedia/desktop-app/build.bat) trong thư mục này.
-3. Khi hoàn tất, file **`SinoMedia.exe`** sẽ xuất hiện ngay trong thư mục này.
+**Kiến trúc build hướng tới:**
+1. Trích xuất module từ repo chính (Dashboard, Crawler, Config).
+2. Đóng gói runtime (Node/Electron/Tauri tuỳ phase) đi kèm.
+3. Tạo ra cấu trúc thư mục release chạy được ngay.
 
 ---
 
-## 2. Xem và mở video Bilibili
-* Hướng hiện tại cho Bilibili là dùng **Embedded Iframe Player** chính thức: `https://player.bilibili.com/player.html?bvid=...`.
-* Dashboard/Desktop chỉ cần BVID (`platform_uid`), canonical URL và thumbnail; không cần tải video lên R2 để phát.
-* Nút tải/mở nguồn nên đưa người dùng tới đường dẫn gốc Bilibili hoặc sao chép link nếu chưa có downloader service thật.
-* `/api/video/proxy?url=...` chỉ còn là helper cho các platform/direct URL cần proxy; không phải đường phát mặc định cho Bilibili.
-* Video downloader service có queue, resume, checksum, local folder hoặc upload R2 vẫn là tính năng tương lai.
+## 2. Hợp đồng đóng gói (Contracts)
+
+Để đảm bảo tính độc lập và khả năng mở rộng, quá trình build phải tuân thủ 2 hợp đồng chính:
+- [Module Extraction Contract](./MODULE_EXTRACTION_CONTRACT.md): Quy định cách trích xuất các module từ project gốc.
+- [Build Artifact Contract](./BUILD_ARTIFACT_CONTRACT.md): Quy định cấu trúc đầu ra sau khi build.
 
 ---
 
-## 3. Hướng worker trong tương lai
+## 3. Lựa chọn công nghệ App Shell (Tương lai)
 
-Mục tiêu tương lai là desktop app có thể bật thêm worker trên máy người dùng:
+Khi tiến hành viết build script, shell của ứng dụng sẽ được chọn giữa:
+- **Tauri**: Nhẹ, sạch, phù hợp app desktop nghiêm túc, nhưng build pipeline phức tạp hơn (cần Rust).
+- **Electron**: Nặng hơn, nhưng dễ bundle Node/dashboard/worker hơn, phù hợp giai đoạn build nhanh và tương thích cao.
 
-1. Dashboard/Desktop tạo task trong Supabase.
-2. Local worker claim task giống worker VPS.
-3. Worker ghi log/status về Supabase để Dashboard realtime cập nhật.
-4. Video downloader worker tải media về local hoặc upload R2 theo cấu hình khi người dùng chủ động cần file thật.
-
-Crawler/download không chạy trực tiếp trong React component hoặc Next.js page render.
-
----
-
-## 4. Hướng phát triển trong tương lai (Electron)
-Nếu bạn muốn đóng gói ứng dụng mà **không cần cài đặt Rust**, bạn có thể tạo một dự án **Electron** tại thư mục này:
-1. Cài đặt Electron: `npm install electron --save-dev`
-2. Cấu hình file `main.js` để load `http://localhost:3000` và tắt `webSecurity` để bypass CORS trực tiếp trên frontend.
+Ưu tiên hiện tại là hoàn thiện Contract, chưa đụng vào source code ứng dụng chính.

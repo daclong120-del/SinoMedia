@@ -1,24 +1,55 @@
-# Desktop App Packaging & Strategy
+# SinoMedia Desktop Runtime Package
 
-Hướng dẫn và chiến lược đóng gói SinoMedia Dashboard thành Desktop App.
+Tài liệu này mô tả kiến trúc đóng gói của **SinoMedia Desktop Runtime Package**. Mục tiêu là biến `desktop-app/` thành hệ thống đóng gói độc lập, gom các module từ project chính thành artifact có thể chạy trực tiếp mà người dùng không phải cài đặt môi trường (Node/Rust/npm).
 
-## 1. Trạng thái hiện tại (Draft)
-- **Công nghệ:** Đóng gói bằng Pake (Tauri-based) siêu nhẹ (10-15MB).
-- **Trạng thái:** Mới chỉ là draft đóng gói Dashboard chạy ở cổng local `3000`. Chưa tích hợp Next.js server local hoặc worker control.
-- **Tài nguyên:** Chi tiết tại [desktop-app/README.md](file:///d:/Python/SinoMedia/desktop-app/README.md).
+---
 
-## 2. Hướng dẫn đóng gói (Pake)
-### Yêu cầu:
-- **Rust & Cargo:** Cài qua `winget install Rustlang.Rustup` hoặc từ trang chủ.
-- **Node.js**
+## 1. Kiến trúc hệ thống
 
-### Các bước thực hiện:
-1. Chạy Dashboard local: `cd dashboard && npm run dev`
-2. Nhấn đúp file [build.bat](file:///d:/Python/SinoMedia/desktop-app/build.bat) ở thư mục `desktop-app/`.
-3. Nhận file `SinoMedia.exe` tại thư mục đóng gói.
+```text
+desktop-app
+├─ build system
+│  ├─ copy/extract dashboard artifact
+│  ├─ copy/extract crawler-pipeline artifact
+│  ├─ package embedded runtime
+│  └─ generate release folder
+│
+├─ runtime
+│  ├─ dashboard server (Next.js standalone)
+│  ├─ worker launcher (Crawler Worker)
+│  ├─ downloader launcher (Tương lai)
+│  └─ config loader
+│
+├─ app shell
+│  ├─ mở UI
+│  ├─ start/stop local services
+│  └─ show status/logs
+│
+└─ release
+   └─ SinoMedia Desktop/
+      ├─ SinoMedia.exe
+      ├─ app/
+      ├─ worker/
+      ├─ runtime/
+      ├─ config/
+      ├─ logs/
+      └─ data/
+```
 
-## 3. Kiến trúc tích hợp tương lai
-- **Phát video Bilibili:** Dùng Embedded Iframe Player chính thức. Không tải video về R2 để phát.
-- **Worker local:** Chạy như process/service riêng, claim task và báo cáo log về Supabase.
-- **Video Downloader Service:** Tải video độc lập khi user yêu cầu file vật lý, tránh block crawler.
-- **Giải pháp Electron (Không cần Rust):** Khởi tạo Electron dự án tại `desktop-app/`, cấu hình `main.js` tắt `webSecurity` để load `http://localhost:3000` và bypass CORS frontend.
+## 2. Các thành phần chính
+
+### Build System
+Chịu trách nhiệm sao chép, trích xuất và đóng gói các module cần thiết từ repo chính (dashboard, crawler-pipeline) vào thư mục release.
+
+### Runtime
+Cung cấp môi trường chạy độc lập cho các service cục bộ (Dashboard, Worker) thông qua các launcher được cấu hình sẵn. Môi trường này sẽ được nhúng sẵn (embedded) để người dùng không cần cài thêm dependency.
+
+### App Shell
+Giao diện (UI) chính của Desktop App. Đóng vai trò là control panel để mở giao diện quản lý, khởi động/dừng các dịch vụ (dashboard, worker) cục bộ và xem trạng thái/logs.
+
+---
+
+## 3. Trạng thái phát triển
+- **Định hướng cũ (Pake Draft):** Bọc `localhost:3000` đang chạy sẵn trên máy (Đã loại bỏ).
+- **Định hướng mới:** Xây dựng packaging workspace với cấu trúc và contract rõ ràng.
+- Giai đoạn hiện tại đang tập trung vào thiết kế [Module Extraction Contract](file:///d:/Python/SinoMedia/desktop-app/MODULE_EXTRACTION_CONTRACT.md) và [Build Artifact Contract](file:///d:/Python/SinoMedia/desktop-app/BUILD_ARTIFACT_CONTRACT.md) bên trong workspace `desktop-app/`.

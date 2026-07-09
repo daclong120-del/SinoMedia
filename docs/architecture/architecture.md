@@ -18,7 +18,7 @@ Các khối chính:
 - **Crawler Pipeline**: TypeScript worker độc lập, nhận task từ Supabase, crawl từng platform, ghi dữ liệu chuẩn hóa vào Supabase, lưu external media identifiers/URLs và chỉ upload R2 khi cần archive/cache.
 - **Supabase**: PostgreSQL + Auth + PostgREST + Realtime + RPC, là control plane và data store chính.
 - **Cloudflare R2**: object storage tùy chọn cho media cần archive/cache. Không còn là điều kiện bắt buộc để phát Bilibili trên Dashboard.
-- **Desktop App**: Pake desktop shell cho Dashboard ở giai đoạn đầu; tương lai có thể điều phối local/remote worker và video downloader service, nhưng không nhúng crawler nặng vào UI process.
+- **Desktop App**: Desktop Runtime Package đóng gói Dashboard và Worker thành ứng dụng độc lập; tương lai có thể điều phối local/remote worker và video downloader service, nhưng không nhúng crawler nặng vào UI process. Pake đã bị loại bỏ.
 
 Quyết định khóa:
 
@@ -321,7 +321,7 @@ Desktop app hiện tại không thay đổi boundary của hệ thống. Nó là
 Định hướng:
 
 ```text
-Desktop App (Pake)
+Desktop App (Runtime Package)
   -> Dashboard local/remote
   -> Supabase control plane
   -> local crawler worker / remote crawler worker
@@ -330,8 +330,8 @@ Desktop App (Pake)
 
 Quy tắc:
 
-- Pake là hướng packaging mặc định ở giai đoạn đầu.
-- Electron chỉ là phương án fallback nếu cần native capability mà Pake/Tauri shell không đáp ứng.
+- Desktop Runtime Package là hướng packaging mặc định ở giai đoạn đầu.
+- Pake đã bị loại bỏ. Electron chỉ là phương án fallback nếu cần native capability mà shell không đáp ứng.
 - Local worker phải chạy như process/service riêng, dùng cùng contract với worker VPS: claim task, ghi log, update status.
 - Video downloader service phải tách khỏi crawler chính nếu download lớn hoặc cần tải về local folder.
 - Với Bilibili, desktop/dashboard chỉ cần BVID/canonical URL để mở nguồn hoặc render iframe; tải binary thật là việc của downloader service sau này nếu user chủ động cần.
