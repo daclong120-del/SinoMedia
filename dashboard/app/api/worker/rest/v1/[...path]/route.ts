@@ -426,6 +426,9 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
             decryptAccount(json);
           }
           
+          // Delete Content-Length since the body size changes after decryption
+          responseHeaders.delete("content-length");
+          
           return new NextResponse(JSON.stringify(json), {
             status: response.status,
             statusText: response.statusText,

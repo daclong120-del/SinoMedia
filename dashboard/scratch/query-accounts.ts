@@ -36,42 +36,19 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 });
 
 async function main() {
-  const taskId = "9f047d60-9f4e-4d1c-bd67-290f075a199f";
-  
-  const { data: task, error: taskError } = await supabase
-    .from("crawler_tasks")
-    .select("*")
-    .eq("id", taskId)
-    .single();
+  const { data: accounts, error } = await supabase
+    .from("crawler_accounts")
+    .select("*");
 
-  if (taskError) {
-    console.error("Failed to fetch task:", taskError);
+  if (error) {
+    console.error("Failed to fetch accounts:", error);
     process.exit(1);
   }
 
-  console.log("=== Task Info ===");
-  console.log("ID:", task.id);
-  console.log("Platform:", task.platform);
-  console.log("Command:", task.command);
-  console.log("Target:", task.target);
-  console.log("Status:", task.status);
-  console.log("Error Message:", task.error_message);
-  console.log("Updated At:", task.updated_at);
-
-  const { data: logs, error: logsError } = await supabase
-    .from("crawler_logs")
-    .select("*")
-    .eq("task_id", taskId)
-    .order("created_at", { ascending: true });
-
-  if (logsError) {
-    console.error("Failed to fetch logs:", logsError);
-  } else {
-    console.log("\n=== Task Logs ===");
-    logs.forEach((log) => {
-      console.log(`[${log.level}] ${log.message}`);
-    });
-  }
+  console.log("=== Crawler Accounts ===");
+  accounts.forEach(a => {
+    console.log(`ID: ${a.id} | Platform: ${a.platform} | Username: ${a.username} | Status: ${a.status} | Failures: ${a.failure_count}`);
+  });
 }
 
 main();

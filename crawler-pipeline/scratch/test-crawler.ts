@@ -70,11 +70,13 @@ async function runTests() {
     method: "GET",
     params: {
       platform: "eq.bilibili",
-      status: "eq.active"
+      status: "eq.active",
+      order: "last_used_at.asc.nullsfirst",
+      limit: "1"
     }
   });
 
-  assert(accounts.length > 0, "Tìm thấy ít nhất 1 tài khoản active trong Supabase!");
+  assert(accounts && accounts.length > 0, "Tìm thấy ít nhất 1 tài khoản active trong Supabase!");
   const activeAcc = accounts[0];
   console.log(`Tài khoản active được chọn test: ${activeAcc.username}`);
 

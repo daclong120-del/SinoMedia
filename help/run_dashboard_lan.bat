@@ -112,7 +112,7 @@ if errorlevel 1 (
 
 :: 2. Khoi dong Crawler Worker
 echo [2/3] Dang khoi dong Crawler Queue Worker...
-start "Crawler Worker - Queue Consumer" cmd /k "title Crawler Worker - Queue Consumer ^(NO HTTP PORT^) && cd /d ""%ROOT%\crawler-pipeline"" && echo [WORKER] Khong co port HTTP. Day la queue consumer poll Supabase moi 5 giay. && echo [WORKER] Lenh: npm.cmd run worker:dev && echo [WORKER] SUPABASE_URL: %LOCAL_SUPABASE_URL% && set SUPABASE_URL=%LOCAL_SUPABASE_URL%&& npm.cmd run worker:dev || echo [WORKER ERROR] Worker da dung. Doc loi phia tren cua cua so nay."
+start "Crawler Worker - Queue Consumer" cmd /k "title Crawler Worker - Queue Consumer ^(NO HTTP PORT^) && cd /d ""%ROOT%\crawler-pipeline"" && echo [WORKER] Khong co port HTTP. Day la queue consumer ket noi qua Token Guard ^(Next.js API^). && echo [WORKER] Lenh: npm.cmd run worker:dev && npm.cmd run worker:dev || echo [WORKER ERROR] Worker da dung. Doc loi phia tren cua cua so nay."
 
 :: 3. Khoi dong Next.js Dashboard (LAN)
 echo [3/3] Dang khoi dong Dashboard Next.js (0.0.0.0:%DASHBOARD_PORT%)...

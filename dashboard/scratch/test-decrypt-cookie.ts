@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { decrypt } from "../lib/utils/crypto";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -36,42 +37,25 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 });
 
 async function main() {
-  const taskId = "9f047d60-9f4e-4d1c-bd67-290f075a199f";
-  
-  const { data: task, error: taskError } = await supabase
-    .from("crawler_tasks")
+  const { data: accounts, error } = await supabase
+    .from("crawler_accounts")
     .select("*")
-    .eq("id", taskId)
+    .eq("username", "haha")
     .single();
 
-  if (taskError) {
-    console.error("Failed to fetch task:", taskError);
+  if (error) {
+    console.error("Failed to fetch account:", error);
     process.exit(1);
   }
 
-  console.log("=== Task Info ===");
-  console.log("ID:", task.id);
-  console.log("Platform:", task.platform);
-  console.log("Command:", task.command);
-  console.log("Target:", task.target);
-  console.log("Status:", task.status);
-  console.log("Error Message:", task.error_message);
-  console.log("Updated At:", task.updated_at);
-
-  const { data: logs, error: logsError } = await supabase
-    .from("crawler_logs")
-    .select("*")
-    .eq("task_id", taskId)
-    .order("created_at", { ascending: true });
-
-  if (logsError) {
-    console.error("Failed to fetch logs:", logsError);
-  } else {
-    console.log("\n=== Task Logs ===");
-    logs.forEach((log) => {
-      console.log(`[${log.level}] ${log.message}`);
-    });
-  }
+  console.log("=== Raw Account in DB ===");
+  console.log("ID:", accounts.id);
+  console.log("Username:", accounts.username);
+  console.log("Status:", accounts.status);
+  console.log("Encrypted Cookie in DB:", accounts.cookie_data);
+  
+  const decrypted = decrypt(accounts.cookie_data);
+  console.log("Decrypted Cookie:", decrypted);
 }
 
 main();
