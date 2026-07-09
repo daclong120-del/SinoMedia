@@ -30,8 +30,11 @@ const localDb = {
 let isSupabaseOnline = false;
 const originalFetch = globalThis.fetch;
 
-const localServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 
-  ("ey" + "JhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU");
+const localServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!localServiceRoleKey) {
+  throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY for local E2E test.");
+}
 
 // Tự động inject API key và Auth header cho các request tới Supabase Local
 globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {

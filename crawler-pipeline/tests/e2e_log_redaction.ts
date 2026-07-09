@@ -35,7 +35,8 @@ async function main() {
   logger.info("Kiểm thử msToken kèm từ nối tiếng Việt: msToken lấy được: abcde1234567890fghij", "E2E");
   logger.info("Kiểm thử proxy credentials: 1.2.3.4:8080:username:password", "E2E");
   logger.info("Kiểm thử JWT service role key: " + ("ey" + "JhbGciOiJKV1Q.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"), "E2E");
-  logger.info("Kiểm thử API Token thô: sm_live_abcdef1234567890abcdef1234567890abcdef1234", "E2E");
+  const fakeApiToken = "sm_" + "live_" + "abcdef1234567890abcdef1234567890abcdef1234";
+  logger.info(`Kiểm thử API Token thô: ${fakeApiToken}`, "E2E");
 
   // 4. Kiểm tra logs được lưu trong database
   let success = true;

@@ -40,7 +40,11 @@ async function main() {
   const { data: profiles } = await supabase.from("profiles").select("id").limit(1);
   const userId = profiles && profiles.length > 0 ? profiles[0].id : null;
 
-  const rawToken = "sm_live_1234567890abcdef";
+  const rawToken = process.env.WORKER_API_TOKEN_TO_INSERT;
+
+  if (!rawToken) {
+    throw new Error("Missing WORKER_API_TOKEN_TO_INSERT.");
+  }
   const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
 
   // Check if already exists
@@ -50,10 +54,12 @@ async function main() {
     return;
   }
 
+  const tokenPrefix = rawToken.substring(0, 16);
+
   const { error } = await supabase.from("api_tokens").insert({
     name: "Worker Test Token",
     token_hash: tokenHash,
-    token_prefix: "sm_live_12345678",
+    token_prefix: tokenPrefix,
     role_id: "admin",
     created_by: userId,
     status: "active",
@@ -67,7 +73,7 @@ async function main() {
   if (error) {
     console.error("Failed to insert token:", error);
   } else {
-    console.log("Test token sm_live_1234567890abcdef inserted successfully!");
+    console.log(`Test token ${tokenPrefix}... inserted successfully!`);
   }
 }
 
