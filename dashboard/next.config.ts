@@ -17,6 +17,7 @@ if (process.env.NEXT_PUBLIC_SITE_URL) {
 
 const nextConfig: NextConfig = {
   /* config options here */
+  output: "standalone",
   allowedDevOrigins: devOrigins,
 };
 

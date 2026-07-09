@@ -1,9 +1,13 @@
 {
-  "name": "SinoMedia Desktop Runtime Package",
-  "status": "scaffold",
-  "includes": {
-    "dashboard": false,
-    "worker": false,
-    "embeddedRuntime": false
-  }
+    "version":  "0.1.0",
+    "name":  "SinoMedia Desktop Runtime Package",
+    "includes":  {
+                     "dashboard":  true,
+                     "worker":  true,
+                     "embeddedRuntime":  true
+                 },
+    "generatedAt":  "2026-07-09T14:17:37+07:00",
+    "sourceCommit":  "612aae524d24c879a973bffd4bb438cc27d2f925",
+    "buildMode":  "Full",
+    "status":  "completed"
 }

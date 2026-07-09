@@ -53,6 +53,11 @@ Docs-only edits không sửa code symbol, nhưng vẫn nên chạy `detect_chang
 - **Luôn bảo vệ các Server Actions/API bằng `requireAdmin()` hoặc `requireUser()`**.
 - **Internal APIs (Next.js)**: Nếu viết API nội bộ cho Worker gọi (như webhook, crawl callbacks), phải đưa vào `/api/worker/[...path]` hoặc tự check bằng `verifyApiToken(req, ["required_scope"])` từ `token.guard.ts`. KHÔNG được phép cho worker truyền Service Role Key trực tiếp.
 - **Worker Authentication**: Crawler Pipeline sử dụng biến môi trường `API_TOKEN`. Token này sẽ được `token.guard.ts` ở Next.js kiểm tra. Next.js đóng vai trò **Token Guard Runtime Enforcement**. Worker truy cập Supabase qua proxy này.
+- **Ràng buộc Proxy API Worker (`/api/worker/rest/v1/[...path]`)**:
+  - **Deny-by-default**: Chỉ cho phép chính xác các phương thức HTTP và đường dẫn trong allowlist (13 endpoints được cấu hình trong `determineRequiredScopes` của `route.ts`). Mọi endpoint khác sẽ bị chặn và trả về `403`.
+  - **Từ chối Wildcard (`*`)**: Không cho phép token mang scope wildcard `*` đi qua worker proxy. Bắt buộc phải cấu hình các scope cụ thể rõ ràng (VD: `crawler:claim`, `crawler:write_data`).
+  - **Kiểm tra chặt chẽ `PATCH`**: Áp dụng bắt buộc đối với `crawler_tasks`, `crawler_accounts`, `crawled_posts`, `crawled_authors`. ID query parameter phải tồn tại và có định dạng đúng `eq.<uuid>`. Body payload phải tuân thủ nghiêm ngặt whitelist cho từng bảng (chỉ bao gồm các trường được phép thay đổi, VD: `status, error_message, updated_at, metadata` cho `crawler_tasks`). Bất kỳ key lạ nào sẽ trả về `400`.
+  - **Bắt buộc biến môi trường trong Worker**: Worker bắt buộc phải có `INTERNAL_API_URL` (không fallback về `SUPABASE_URL`) và `API_TOKEN` trong `.env`. Thiếu sẽ crash ngay khi boot.
 - **Không bao giờ tin tưởng input từ client**. Validate cẩn thận, đặc biệt với Supabase RPC parameters.
 - Desktop app có thể bật thêm worker, nhưng hiện chưa có worker manager.
 

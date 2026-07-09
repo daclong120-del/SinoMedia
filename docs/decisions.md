@@ -1,12 +1,18 @@
+
 # Decision Log — SinoMedia
 
 ## Decision: API Token Runtime Enforcement (2026-07-09)
-**Context**: We need to secure the worker's access to the database. Previously, workers used the `SUPABASE_SERVICE_ROLE_KEY` to directly call PostgREST APIs, bypassing RLS and gaining full access.
-**Decision**: 
-1. Implement a unified `Token Guard` in Next.js (`dashboard/lib/guards/token.guard.ts`) that validates raw tokens via SHA-256 hash against the `api_tokens` table.
-2. Verify token active status, expiration, and required scopes (e.g., `crawler:claim`, `crawler:write_logs`).
-3. Set up a Next.js proxy route (`/api/worker/rest/v1/[...path]`) that intercepts the worker's PostgREST requests, validates the token, and uses the Service Role key to forward the request to Supabase.
-**Consequences**: Workers no longer hold the Service Role key. They only need an `API_TOKEN`. Next.js API acts as the single security gateway (Token Guard) for all internal API access, ensuring auditability (`last_used_at`) and scope-based authorization.
+- **Context**: We need to secure the worker's access to the database. Previously, workers used the `SUPABASE_SERVICE_ROLE_KEY` to directly call PostgREST APIs, bypassing RLS and gaining full access.
+- **Decision**: 
+  1. Implement a unified `Token Guard` in Next.js (`dashboard/lib/guards/token.guard.ts`) that validates raw tokens via SHA-256 hash against the `api_tokens` table.
+  2. Verify token active status, expiration, and required scopes.
+  3. Set up a Next.js proxy route (`/api/worker/rest/v1/[...path]`) that intercepts the worker's PostgREST requests, validates the token, and uses the Service Role key to forward the request to Supabase.
+  4. **Hardening**:
+     - **Deny-by-Default**: Allowlist exactly 13 endpoints/methods. Reject anything else with `403`.
+     - **Disable Wildcard `*`**: The proxy strictly rejects wildcard tokens (`*`). Granular specific scopes are mandatory for worker requests.
+     - **Strict PATCH Constraints**: All `PATCH` updates require an `id` query parameter formatted as `eq.<uuid>`. The request body is validated against a whitelist per table (`crawler_tasks`, `crawler_accounts`, `crawled_posts`, `crawled_authors`), rejecting any unknown properties with `400`.
+     - **Mandatory ENV**: The crawler worker must declare `INTERNAL_API_URL` and `API_TOKEN` in `.env`, causing a loud startup crash if either is missing.
+- **Consequences**: Workers no longer hold the Service Role key. They only need an `API_TOKEN`. Next.js API acts as the single security gateway (Token Guard) for all internal API access, ensuring auditability (`last_used_at`), granular scope-based authorization, and preventing mass updates.
 
 ## 2026-07-01 — Chuẩn hóa & Phân tách biến môi trường
 - **Bối cảnh:** `.env` bị lẫn cấu hình Crawler cũ (MySQL, Redis, Proxy...).

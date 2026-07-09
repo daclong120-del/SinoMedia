@@ -29,9 +29,12 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+#local env files
 .env
 .env*.local
+*.env.local.disabled
+.env.local.disabled
+crawler-pipeline/.env.local.disabled
 
 # typescript
 *.tsbuildinfo
@@ -47,4 +50,7 @@ crawler-pipeline/.env
 crawler-pipeline/output/
 
 assets_test/
-#artifact/
+artifact/
+
+# desktop-app release builds
+desktop-app/release/
