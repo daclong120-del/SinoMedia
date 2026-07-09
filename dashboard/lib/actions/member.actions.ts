@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { requireAdmin } from "@/lib/supabase/auth-helper";
 import { logAuditEvent } from "@/lib/services/system.service";
 import * as memberService from "@/lib/services/member.service";
+import { verifyCSRF } from "@/lib/csrf";
 
 // Helper to get client IP
 async function getClientIp(): Promise<string> {
@@ -19,6 +20,9 @@ async function getClientIp(): Promise<string> {
 /** Server Action: Mời thành viên mới */
 export async function inviteMemberAction(email: string, roleId: string) {
   try {
+    if (!(await verifyCSRF())) {
+      return { error: "Xác thực bảo mật CSRF thất bại." };
+    }
     // 1. Check admin permission
     const actor = await requireAdmin();
 
@@ -59,6 +63,9 @@ export async function inviteMemberAction(email: string, roleId: string) {
 /** Server Action: Cập nhật vai trò thành viên */
 export async function updateMemberRoleAction(userId: string, roleId: string) {
   try {
+    if (!(await verifyCSRF())) {
+      return { error: "Xác thực bảo mật CSRF thất bại." };
+    }
     const actor = await requireAdmin();
 
     if (!userId || !roleId) {
@@ -93,6 +100,9 @@ export async function updateMemberRoleAction(userId: string, roleId: string) {
 /** Server Action: Thu hồi quyền truy cập / Xóa thành viên */
 export async function revokeMemberAction(userIdOrEmail: string) {
   try {
+    if (!(await verifyCSRF())) {
+      return { error: "Xác thực bảo mật CSRF thất bại." };
+    }
     const actor = await requireAdmin();
 
     if (!userIdOrEmail) {
@@ -127,6 +137,9 @@ export async function revokeMemberAction(userIdOrEmail: string) {
 /** Server Action: Tạo vai trò mới */
 export async function createRoleAction(name: string, description: string, permissions: memberService.PermissionFlags) {
   try {
+    if (!(await verifyCSRF())) {
+      return { error: "Xác thực bảo mật CSRF thất bại." };
+    }
     const actor = await requireAdmin();
 
     if (!name || name.trim() === "") {
@@ -156,6 +169,9 @@ export async function createRoleAction(name: string, description: string, permis
 /** Server Action: Cập nhật quyền hạn cho vai trò */
 export async function updateRolePermissionsAction(roleId: string, permissions: memberService.PermissionFlags) {
   try {
+    if (!(await verifyCSRF())) {
+      return { error: "Xác thực bảo mật CSRF thất bại." };
+    }
     const actor = await requireAdmin();
 
     if (!roleId) {
@@ -185,6 +201,9 @@ export async function updateRolePermissionsAction(roleId: string, permissions: m
 /** Server Action: Xóa vai trò tùy chỉnh */
 export async function deleteRoleAction(roleId: string) {
   try {
+    if (!(await verifyCSRF())) {
+      return { error: "Xác thực bảo mật CSRF thất bại." };
+    }
     const actor = await requireAdmin();
 
     if (!roleId) {
@@ -212,8 +231,11 @@ export async function deleteRoleAction(roleId: string) {
 }
 
 /** Server Action: Tạo API Token mới */
-export async function createApiTokenAction(name: string, roleId: string) {
+export async function createApiTokenAction(name: string, roleId: string, expiresDays?: number) {
   try {
+    if (!(await verifyCSRF())) {
+      return { error: "Xác thực bảo mật CSRF thất bại." };
+    }
     const actor = await requireAdmin();
 
     if (!name || name.trim() === "") {
@@ -223,7 +245,7 @@ export async function createApiTokenAction(name: string, roleId: string) {
       return { error: "Vai trò Token không được để trống." };
     }
 
-    const result = await memberService.createApiToken(name.trim(), roleId);
+    const result = await memberService.createApiToken(name.trim(), roleId, expiresDays);
 
     const ipAddress = await getClientIp();
     await logAuditEvent({
@@ -247,6 +269,9 @@ export async function createApiTokenAction(name: string, roleId: string) {
 /** Server Action: Thu hồi API Token */
 export async function revokeApiTokenAction(tokenId: string, tokenName: string) {
   try {
+    if (!(await verifyCSRF())) {
+      return { error: "Xác thực bảo mật CSRF thất bại." };
+    }
     const actor = await requireAdmin();
 
     if (!tokenId) {

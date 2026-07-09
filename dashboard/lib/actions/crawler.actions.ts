@@ -4,6 +4,7 @@
  * Wrapper cho crawler.service.
  */
 import { requireAdmin, requireUser } from "@/lib/supabase/auth-helper";
+import { verifyCSRF } from "@/lib/csrf";
 import type { CreateTaskInput } from "@/lib/repositories/task.repo";
 import {
   getTasks as getTasksService,
@@ -25,16 +26,25 @@ export async function createAccount(
   cookieData: string,
   proxyStr?: string | null
 ): Promise<void> {
+  if (!(await verifyCSRF())) {
+    throw new Error("Xác thực bảo mật CSRF thất bại.");
+  }
   await requireAdmin();
   await createAccountService(platform, username, cookieData, proxyStr);
 }
 
 export async function unbanAccount(id: string): Promise<void> {
+  if (!(await verifyCSRF())) {
+    throw new Error("Xác thực bảo mật CSRF thất bại.");
+  }
   await requireAdmin();
   await unbanAccountService(id);
 }
 
 export async function deleteAccount(id: string): Promise<void> {
+  if (!(await verifyCSRF())) {
+    throw new Error("Xác thực bảo mật CSRF thất bại.");
+  }
   await requireAdmin();
   await deleteAccountService(id);
 }
@@ -62,21 +72,33 @@ export async function getAccounts() {
 
 // WRITE ACTIONS - Require admin role
 export async function createTask(input: CreateTaskInput) {
+  if (!(await verifyCSRF())) {
+    throw new Error("Xác thực bảo mật CSRF thất bại.");
+  }
   await requireAdmin();
   return await createTaskService(input);
 }
 
 export async function createTasksBulk(tasks: CreateTaskInput[]) {
+  if (!(await verifyCSRF())) {
+    throw new Error("Xác thực bảo mật CSRF thất bại.");
+  }
   await requireAdmin();
   return await createTasksBulkService(tasks);
 }
 
 export async function cancelTask(id: string) {
+  if (!(await verifyCSRF())) {
+    throw new Error("Xác thực bảo mật CSRF thất bại.");
+  }
   await requireAdmin();
   return await cancelTaskService(id);
 }
 
 export async function retryTask(id: string) {
+  if (!(await verifyCSRF())) {
+    throw new Error("Xác thực bảo mật CSRF thất bại.");
+  }
   await requireAdmin();
   return await retryTaskService(id);
 }
