@@ -101,12 +101,20 @@ export default function TasksClient({ initialTasks, initialError }: TasksClientP
     const channel = subscribeToTasks(
       // onUpdate: merge updated task into state
       (updatedTask) => {
+        if (!updatedTask || !updatedTask.id || !updatedTask.platform) {
+          console.warn("Discarding malformed/unauthorized realtime task update:", updatedTask);
+          return;
+        }
         setTasks((prev) =>
           prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
         );
       },
       // onInsert: prepend new task to list
       (newTask) => {
+        if (!newTask || !newTask.id || !newTask.platform) {
+          console.warn("Discarding malformed/unauthorized realtime task insert:", newTask);
+          return;
+        }
         setTasks((prev) => {
           if (prev.some((t) => t.id === newTask.id)) return prev;
           return [newTask, ...prev];
@@ -155,6 +163,10 @@ export default function TasksClient({ initialTasks, initialError }: TasksClientP
     const channel = subscribeToTaskLogs(
       taskId, 
       (newLog) => {
+        if (!newLog || !newLog.id || !newLog.message) {
+          console.warn("Discarding malformed log payload:", newLog);
+          return;
+        }
         setTaskLogs((prev) => {
           if (prev.some((l) => l.id === newLog.id)) return prev;
           return [...prev, newLog];
