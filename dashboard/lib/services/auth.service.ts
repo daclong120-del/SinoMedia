@@ -12,39 +12,11 @@ export class AuthService {
    * Đăng nhập tài khoản
    */
   static async login(email: string, password: string) {
-    // 1. Kiểm tra endpoint online/offline
-    let isSupabaseOnline = false;
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 1200);
-      await fetch(process.env.NEXT_PUBLIC_SUPABASE_URL!, {
-        method: "GET",
-        signal: controller.signal,
-        mode: "no-cors",
-      });
-      clearTimeout(timeoutId);
-      isSupabaseOnline = true;
-    } catch {
-      // offline
-    }
-
-    // 2. Chế độ Bypass Demo (chỉ cho phép ở môi trường phát triển/test được cấu hình)
-    const isDevMockAllowed = process.env.NODE_ENV !== "production" && process.env.ENABLE_MOCK_AUTH === "true";
-    if (isDevMockAllowed) {
-      if (!isSupabaseOnline || (email === "admin@sinomedia.vn" && password === "12345678")) {
-        return { mock: true, email };
-      }
-    }
-
-    // 3. Supabase Auth thật
     const supabase = await createClientServer();
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) throw error;
-    return { mock: false, user: data.user, session: data.session };
+    return { user: data.user, session: data.session };
   }
 
   /**

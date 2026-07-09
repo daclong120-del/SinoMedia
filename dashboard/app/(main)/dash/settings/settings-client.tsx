@@ -2,72 +2,68 @@
 
 import React, { useState, useEffect } from "react";
 import DropdownSelect from "@/components/dashboard/DropdownSelect";
-import { getSettings, saveSettings } from "@/lib/utils";
+import { saveSettingsAction, get2CaptchaBalanceAction } from "@/lib/actions/settings.actions";
 
-export default function SettingsClient() {
-  const [apiKey, setApiKey] = useState("g7a8s9d0a1b2c3d4e5f6");
+interface SettingsClientProps {
+  initialSettings: {
+    use2Captcha: boolean;
+    captchaApiKeyConfigured: boolean;
+    captchaApiKeyPreview: string;
+    collectComments: boolean;
+    collectReplies: boolean;
+    headlessMode: boolean;
+    defaultPriority: string;
+    maxConcurrentTasks: number;
+    maxRetries: number;
+    defaultWebhookUrl: string;
+    notifyOnSuccess: boolean;
+    alertOnFailure: boolean;
+  };
+}
+
+export default function SettingsClient({ initialSettings }: SettingsClientProps) {
+  const [apiKey, setApiKey] = useState("");
+  const [captchaApiKeyConfigured, setCaptchaApiKeyConfigured] = useState(initialSettings.captchaApiKeyConfigured);
+  const [captchaApiKeyPreview, setCaptchaApiKeyPreview] = useState(initialSettings.captchaApiKeyPreview);
   const [showKey, setShowKey] = useState(false);
-  const [balance, setBalance] = useState(4.85);
+  const [balance, setBalance] = useState(0.0);
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
 
-  const [use2Captcha, setUse2Captcha] = useState(true);
-  const [collectComments, setCollectComments] = useState(true);
-  const [collectReplies, setCollectReplies] = useState(true);
-  const [headlessMode, setHeadlessMode] = useState(true);
-  const [defaultPriority, setDefaultPriority] = useState("normal");
+  const [use2Captcha, setUse2Captcha] = useState(initialSettings.use2Captcha);
+  const [collectComments, setCollectComments] = useState(initialSettings.collectComments);
+  const [collectReplies, setCollectReplies] = useState(initialSettings.collectReplies);
+  const [headlessMode, setHeadlessMode] = useState(initialSettings.headlessMode);
+  const [defaultPriority, setDefaultPriority] = useState(initialSettings.defaultPriority);
 
-  const [maxConcurrentTasks, setMaxConcurrentTasks] = useState(3);
-  const [maxRetries, setMaxRetries] = useState(2);
-  const [defaultWebhookUrl, setDefaultWebhookUrl] = useState("");
-  const [notifyOnSuccess, setNotifyOnSuccess] = useState(true);
-  const [alertOnFailure, setAlertOnFailure] = useState(true);
+  const [maxConcurrentTasks, setMaxConcurrentTasks] = useState(initialSettings.maxConcurrentTasks);
+  const [maxRetries, setMaxRetries] = useState(initialSettings.maxRetries);
+  const [defaultWebhookUrl, setDefaultWebhookUrl] = useState(initialSettings.defaultWebhookUrl);
+  const [notifyOnSuccess, setNotifyOnSuccess] = useState(initialSettings.notifyOnSuccess);
+  const [alertOnFailure, setAlertOnFailure] = useState(initialSettings.alertOnFailure);
 
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  // Tự động tải số dư 2Captcha ở phía client từ server-side khi component mount
   useEffect(() => {
-    async function loadSettings() {
-      setLoading(true);
-      try {
-        const value = getSettings() as {
-          apiKey?: string;
-          use2Captcha?: boolean;
-          collectComments?: boolean;
-          collectReplies?: boolean;
-          headlessMode?: boolean;
-          defaultPriority?: string;
-          maxConcurrentTasks?: number;
-          maxRetries?: number;
-          defaultWebhookUrl?: string;
-          notifyOnSuccess?: boolean;
-          alertOnFailure?: boolean;
-        };
-        setApiKey(value.apiKey || "");
-        setUse2Captcha(value.use2Captcha !== false);
-        setCollectComments(value.collectComments !== false);
-        setCollectReplies(value.collectReplies !== false);
-        setHeadlessMode(value.headlessMode !== false);
-        setDefaultPriority(value.defaultPriority || "normal");
-        setMaxConcurrentTasks(value.maxConcurrentTasks || 3);
-        setMaxRetries(value.maxRetries || 2);
-        setDefaultWebhookUrl(value.defaultWebhookUrl || "");
-        setNotifyOnSuccess(value.notifyOnSuccess !== false);
-        setAlertOnFailure(value.alertOnFailure !== false);
-      } catch (err) {
-        console.error("Error loading settings:", err);
-      } finally {
-        setLoading(false);
-      }
+    if (use2Captcha && captchaApiKeyConfigured) {
+      get2CaptchaBalanceAction()
+        .then((result) => {
+          if (result.balance !== undefined) {
+            setBalance(result.balance);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load initial balance:", err);
+        });
     }
-    loadSettings();
-  }, []);
+  }, [use2Captcha, captchaApiKeyConfigured]);
 
   const handleSaveSettings = async () => {
     setSaving(true);
     try {
       const payload = {
-        apiKey,
         use2Captcha,
+        apiKey, // Sẽ trống nếu user không chỉnh sửa
         collectComments,
         collectReplies,
         headlessMode,
@@ -78,8 +74,21 @@ export default function SettingsClient() {
         notifyOnSuccess,
         alertOnFailure,
       };
-      saveSettings(payload);
+      
+      const result = await saveSettingsAction(payload);
+      if (result.error) {
+        alert(result.error);
+        return;
+      }
+
       alert("Đã lưu cài đặt hệ thống thành công.");
+      
+      // Cập nhật lại UI state nếu người dùng vừa mới nhập Key mới thành công
+      if (apiKey !== "") {
+        setCaptchaApiKeyConfigured(true);
+        setCaptchaApiKeyPreview(apiKey.length > 8 ? `${apiKey.slice(0, 4)}...${apiKey.slice(-4)}` : "****");
+        setApiKey("");
+      }
     } catch (err) {
       console.error("Error saving settings:", err);
       alert("Lỗi khi lưu cài đặt hệ thống.");
@@ -88,12 +97,21 @@ export default function SettingsClient() {
     }
   };
 
-  const handleRefreshBalance = () => {
+  const handleRefreshBalance = async () => {
     setIsLoadingBalance(true);
-    setTimeout(() => {
-      setBalance(Number((4.5 + Math.random()).toFixed(2)));
+    try {
+      const result = await get2CaptchaBalanceAction();
+      if (result.error) {
+        alert(result.error);
+      } else if (result.balance !== undefined) {
+        setBalance(result.balance);
+      }
+    } catch (err) {
+      console.error("Error fetching 2Captcha balance:", err);
+      alert("Không thể tải số dư 2Captcha.");
+    } finally {
       setIsLoadingBalance(false);
-    }, 800);
+    }
   };
 
   return (
@@ -135,6 +153,7 @@ export default function SettingsClient() {
                     value={apiKey}
                     disabled={!use2Captcha}
                     onChange={(e) => setApiKey(e.target.value)}
+                    placeholder={captchaApiKeyConfigured ? `Đã cấu hình: ${captchaApiKeyPreview}` : "Nhập 2Captcha API Key..."}
                     className="w-full h-8 px-3 border border-border rounded-lg bg-background text-foreground font-mono focus:outline-none"
                   />
                   <button
@@ -266,7 +285,7 @@ export default function SettingsClient() {
         <button onClick={() => window.location.reload()} className="h-8 px-4 text-xs font-medium rounded-lg border border-border bg-card text-muted-foreground hover:bg-muted transition-colors cursor-pointer">
           Hủy
         </button>
-        <button onClick={handleSaveSettings} disabled={saving || loading} className="h-8 px-4 text-xs font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer">
+        <button onClick={handleSaveSettings} disabled={saving} className="h-8 px-4 text-xs font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer">
           {saving ? "Đang lưu..." : "Lưu cài đặt"}
         </button>
       </div>

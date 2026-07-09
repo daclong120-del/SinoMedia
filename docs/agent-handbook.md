@@ -56,6 +56,10 @@ Docs-only edits không sửa code symbol, nhưng vẫn nên chạy `detect_chang
 - **Ràng buộc Proxy API Worker (`/api/worker/rest/v1/[...path]`)**:
   - **Deny-by-default**: Chỉ cho phép chính xác các phương thức HTTP và đường dẫn trong allowlist (13 endpoints được cấu hình trong `determineRequiredScopes` của `route.ts`). Mọi endpoint khác sẽ bị chặn và trả về `403`.
   - **Từ chối Wildcard (`*`)**: Không cho phép token mang scope wildcard `*` đi qua worker proxy. Bắt buộc phải cấu hình các scope cụ thể rõ ràng (VD: `crawler:claim`, `crawler:write_data`).
+  - **Thắt chặt `GET crawler_accounts`**: Tách biệt rõ ràng 2 Mode truy xuất:
+    - *Mode 1 (Checkout)*: Chỉ cho phép lấy 1 account active theo platform (bắt buộc đủ `platform`, `status=eq.active`, `order=last_used_at.asc.nullsfirst`, `limit=1`). Cưỡng chế chỉ trả về `id, username, cookie_data`.
+    - *Mode 2 (Status check)*: Chỉ cho phép query theo ID (`id=eq.<uuid>`). Cưỡng chế chỉ trả về `id, status, failure_count`, và **tuyệt đối không trả về `cookie_data`**.
+    - Bất kỳ query sai định dạng hoặc cố tình select cột ngoài phạm vi cho phép ở cả 2 mode đều bị trả về `400 Bad Request`.
   - **Kiểm tra chặt chẽ `PATCH`**: Áp dụng bắt buộc đối với `crawler_tasks`, `crawler_accounts`, `crawled_posts`, `crawled_authors`. ID query parameter phải tồn tại và có định dạng đúng `eq.<uuid>`. Body payload phải tuân thủ nghiêm ngặt whitelist cho từng bảng (chỉ bao gồm các trường được phép thay đổi, VD: `status, error_message, updated_at, metadata` cho `crawler_tasks`). Bất kỳ key lạ nào sẽ trả về `400`.
   - **Bắt buộc biến môi trường trong Worker**: Worker bắt buộc phải có `INTERNAL_API_URL` (không fallback về `SUPABASE_URL`) và `API_TOKEN` trong `.env`. Thiếu sẽ crash ngay khi boot.
 - **Không bao giờ tin tưởng input từ client**. Validate cẩn thận, đặc biệt với Supabase RPC parameters.

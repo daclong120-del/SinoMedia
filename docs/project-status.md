@@ -21,7 +21,7 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 |---|---|---|
 | Dashboard | Partial | Next.js App Router, nhiều trang đã có service/repository và server actions. Cột mốc quan trọng: `/dash/tasks` đã Done (nối realtime và xử lý tasks thật). |
 | Crawler Pipeline | Partial | Worker TypeScript độc lập có queue loop, claim task qua Supabase RPC, platform factory, account/proxy pool. Bilibili crawler có đầy đủ phase, log và cào bình luận ổn định. |
-| Supabase/Media | Partial | Supabase là control plane/data store. Đã hoàn thành khóa quyền truy cập thô của anon key, bật RLS cho toàn bộ bảng (kể cả audit_logs, exported_files, crawled_comments) và thắt chặt các RPC nhạy cảm. E2E test cho admin/non-admin đạt 100%. |
+| Supabase/Media | Partial | Supabase là control plane/data store. Đã hoàn thành khóa quyền truy cập thô của anon key, bật RLS cho toàn bộ bảng và thắt chặt RPC nhạy cảm. Tích hợp kịch bản kiểm thử bảo mật tự động 27/27 test cases (RLS + Proxy) đạt 100%. |
 | Desktop App | Partial | Đã hoàn thành build script Scaffold & Full, tích hợp embedded Node.exe, launcher scripts, C# wrapper SinoMedia.exe và health check smoke test tự động. |
 
 ## Product direction hiện tại
@@ -62,7 +62,7 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 | Capability | Trạng thái | Ghi chú |
 |---|---|---|
 | CLI entrypoint | Done | `bootstrap`, `crawl`, `creator`, `search`, `comments`, `add-account`. `crawl` không target sẽ khởi chạy queue worker. |
-| Queue worker | Done | Claim task Supabase RPC. Đã **gia cố log redaction** và bảo mật **API Token Runtime Enforcement** (dùng `API_TOKEN` gọi qua Next.js Proxy thay vì Service Role Key trực tiếp). Đã pass Security Gate (Deny-by-default, Strict Scopes, Structural Validation). |
+| Queue worker | Done | Claim task Supabase RPC. Đã **gia cố log redaction** và bảo mật **API Token Runtime Enforcement**. Đã pass Security Gate với các chế độ thắt chặt GET crawler_accounts (Mode 1: Checkout chỉ trả về id/username/cookie_data, Mode 2: Status check chỉ trả về id/status/failure_count, cấm leak cookie_data). |
 | Task metadata | Partial | Worker đọc tags, language, crawl_comments, crawl_sub_comments, upload_r2, headless từ `task.metadata`. |
 | Platform factory | Partial | Có factory cho nhiều platform; platform không hỗ trợ sẽ throw rõ ràng. |
 | Platforms | Partial | Có module cho Bilibili, Douyin, Kuaishou, Tieba, Weibo, XHS, Zhihu. Mức ổn định từng platform chưa đồng đều. |

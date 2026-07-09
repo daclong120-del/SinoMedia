@@ -1,5 +1,4 @@
 import { createClientServer } from "@/lib/supabase/server";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 export interface UserProfile {
@@ -9,29 +8,10 @@ export interface UserProfile {
   role: string;
 }
 
-function isDevMockAllowed(): boolean {
-  return process.env.NODE_ENV !== "production" && process.env.ENABLE_MOCK_AUTH === "true";
-}
-
 /**
- * Gets the current user from the session, supporting both the mock session and the actual Supabase session.
+ * Gets the current user from the session using Supabase.
  */
 export async function getCurrentUser() {
-  const cookieStore = await cookies();
-  const mockSession = cookieStore.get("sb-mock-session")?.value;
-
-  if (mockSession === "true" && isDevMockAllowed()) {
-    const mockUserEmail = cookieStore.get("sb-mock-user")?.value || "admin@sinomedia.vn";
-    return {
-      id: "mock-user-id-9999",
-      email: mockUserEmail,
-      user_metadata: {},
-      app_metadata: {},
-      aud: "authenticated",
-      created_at: new Date().toISOString()
-    } as import("@supabase/supabase-js").User;
-  }
-
   const supabase = await createClientServer();
   try {
     const { data: { user }, error } = await supabase.auth.getUser();
@@ -50,18 +30,6 @@ export async function requireUser(): Promise<UserProfile> {
   const user = await getCurrentUser();
   if (!user || !user.email) {
     redirect("/login");
-  }
-
-  const cookieStore = await cookies();
-  const mockSession = cookieStore.get("sb-mock-session")?.value;
-
-  if (mockSession === "true" && isDevMockAllowed()) {
-    return {
-      id: user.id,
-      email: user.email,
-      name: "Mock Admin",
-      role: "admin"
-    };
   }
 
   const supabase = await createClientServer();

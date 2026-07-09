@@ -35,13 +35,8 @@ export async function proxy(request: NextRequest) {
 
     if (isAdminOnlyRoute) {
       let isAdmin = false;
-      const mockSession = request.cookies.get("sb-mock-session")?.value;
-      const isDevMockAllowed = process.env.NODE_ENV !== "production" && process.env.ENABLE_MOCK_AUTH === "true";
       
-      if (mockSession === "true" && isDevMockAllowed) {
-        const mockUserEmail = request.cookies.get("sb-mock-user")?.value || "admin@sinomedia.vn";
-        isAdmin = mockUserEmail === "admin@sinomedia.vn";
-      } else if (supabase) {
+      if (supabase) {
         const { data: member } = await supabase
           .from("team_members")
           .select("role_id")

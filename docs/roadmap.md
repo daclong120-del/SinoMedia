@@ -110,23 +110,21 @@ Hiện trạng:
 Trạng thái: In Progress (Đã hiện thực hóa build script scaffold + Full extraction, launcher, và health check smoke test)
 
 Mục tiêu:
-
 - Sử dụng Desktop Runtime Package để đóng gói Next.js dashboard và crawler worker thành ứng dụng độc lập.
-- Pake đã bị loại bỏ vì không phù hợp với yêu cầu.
-- Desktop app mở dashboard local/remote.
-- Sau đó mới thêm worker controls: bật local crawler worker, bật downloader worker, xem logs.
+- **Nguyên tắc cốt lõi**: Ưu tiên “chạy độc lập thật” (Portable) trước, “cài đặt đẹp” (Inno Setup) sau, “native shell đẹp” (Tauri/Electron) sau nữa.
+
+Lộ trình thực thi chi tiết (Desktop Roadmap):
+1. **Portable Runtime ổn định** (Done): Đóng gói release folder chạy độc lập qua `SinoMedia.exe`, tích hợp standalone server, worker và embedded Node.
+2. **Smoke Test sạch** (Done): Verify PID và HTTP port, tự động skip khi thiếu env `API_TOKEN`.
+3. **Setup Installer** (In Progress): Đóng gói release folder thành `SinoMedia-Setup.exe` qua **Inno Setup**.
+4. **Config UI**: Giao diện cấu hình các biến môi trường contract.
+5. **Worker Control UI**: Giao diện quản trị, bật/tắt local worker, xem logs.
+6. **Supabase Cloud Real Integration**: Kết nối DB cloud thật.
+7. **Auto-update / Signed Installer**: Tự động cập nhật và ký bộ cài đặt.
 
 Quyết định hiện tại:
-
-- Desktop Runtime Package là hướng packaging chính.
-- Không sử dụng Pake. Electron chỉ là fallback nếu cần quyền native sâu hơn.
-
-Các câu hỏi cần chốt:
-
-- Desktop app load remote dashboard hay tự khởi chạy Next server local?
-- Worker local chạy như child process, service nền, hay user tự bật bằng command?
-- Secrets cho Supabase/R2/downloader lưu ở đâu trên máy người dùng?
-- Video tải về local nằm trong folder nào, quyền truy cập ra sao?
+- Desktop Runtime Package là hướng packaging chính, Inno Setup làm installer.
+- Tauri/Electron chỉ xem xét sau khi phần nhân đã chạy ổn định.
 
 ## Phase 5: Multi-machine Workers
 

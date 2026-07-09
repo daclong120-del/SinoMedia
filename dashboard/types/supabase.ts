@@ -1198,6 +1198,54 @@ export type Database = {
         }
         Relationships: []
       }
+      system_settings: {
+        Row: {
+          id: string
+          use_2captcha: boolean
+          api_key: string | null
+          collect_comments: boolean
+          collect_replies: boolean
+          headless_mode: boolean
+          default_priority: string
+          max_concurrent_tasks: number
+          max_retries: number
+          default_webhook_url: string
+          notify_on_success: boolean
+          alert_on_failure: boolean
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          use_2captcha?: boolean
+          api_key?: string | null
+          collect_comments?: boolean
+          collect_replies?: boolean
+          headless_mode?: boolean
+          default_priority?: string
+          max_concurrent_tasks?: number
+          max_retries?: number
+          default_webhook_url?: string
+          notify_on_success?: boolean
+          alert_on_failure?: boolean
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          use_2captcha?: boolean
+          api_key?: string | null
+          collect_comments?: boolean
+          collect_replies?: boolean
+          headless_mode?: boolean
+          default_priority?: string
+          max_concurrent_tasks?: number
+          max_retries?: number
+          default_webhook_url?: string
+          notify_on_success?: boolean
+          alert_on_failure?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       team_invitations: {
         Row: {
           created_at: string

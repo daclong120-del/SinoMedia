@@ -141,9 +141,7 @@ export default function LoginForm() {
         return;
       }
 
-      const activeUser = res.mock 
-        ? (res.email?.split("@")[0] || "admin") 
-        : (res.user?.email?.split("@")[0] || email.split("@")[0]);
+      const activeUser = res.user?.email?.split("@")[0] || email.split("@")[0];
       
       localStorage.setItem("sinomedia_active_account", activeUser);
 

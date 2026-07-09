@@ -36,22 +36,6 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Kiểm tra chế độ Mock Session để hỗ trợ phát triển offline
-  const mockSession = request.cookies.get("sb-mock-session")?.value;
-  const isDevMockAllowed = process.env.NODE_ENV !== "production" && process.env.ENABLE_MOCK_AUTH === "true";
-  if (mockSession === "true" && isDevMockAllowed) {
-    const mockUserEmail = request.cookies.get("sb-mock-user")?.value || "admin@sinomedia.vn";
-    const user = {
-      id: "mock-user-id-9999",
-      email: mockUserEmail,
-      user_metadata: {},
-      app_metadata: {},
-      aud: "authenticated",
-      created_at: new Date().toISOString()
-    };
-    return { supabaseResponse, user: user as import("@supabase/supabase-js").User, supabase };
-  }
-
   let user = null;
   const hasAuthCookie = request.cookies.getAll().some(c => c.name.startsWith("sb-") && c.name.includes("auth-token"));
 
