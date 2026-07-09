@@ -72,9 +72,35 @@
   - Trên Frontend, gom nhóm snapshots theo ngày (`latest-per-day`) để tránh double-count, chỉ hiển thị badge "Thực tế" khi có dữ liệu thật.
 
 ## 2026-07-08 — Giới hạn cào bình luận & Theo dõi tiến độ Task phụ (Tasks Phase & Comment Limit)
-- **Bối cảnh:** Khi cào Creator/Search với số lượng video lớn, việc cào bình luận phụ (sub-comments) quá sâu hoặc gặp video bị lỗi làm worker bị treo rất lâu, giữ task ở trạng thái Running vượt thời hạn. UI Dashboard cũng không hiển thị được tiến độ cào bình luận mà chỉ giữ nguyên nhãn Video: 50/50.
 - **Quyết định:**
   - **Giới hạn cào:** Giới hạn vòng lặp cào sub-comments dừng lại ở tối đa 2 trang (khoảng 40 bình luận phụ) cho mỗi root comment.
   - **Timeout từng video:** Bọc việc cào bình luận của từng video trong `Promise.race` với timeout 60 giây. Quá 60s tự động bỏ qua và chuyển sang video tiếp theo.
   - **Tiến độ & Phase:** Lưu thêm trường metadata `phase` (`collecting_posts` / `crawling_comments`) và `comment_progress` (`current`/`target`).
   - **Cải tiến UI:** Đổi nhãn tiến độ từ `(50/50)` thành `Video: 50/50`, hiển thị text nhấp nháy xanh: `Đang cào bình luận X/Y video` ngay dưới Status Badge của task đang chạy.
+
+## 2026-07-09 — Gia cố bảo mật hệ thống (Harden Auth, Task Auth, Video Proxy SSRF)
+
+- **Context:** Hạn chế các rủi ro bypass authentication (Mock Auth) trên môi trường production, thắt chặt phân quyền quản trị task crawler của Dashboard và ngăn ngừa lỗ hổng SSRF trên API proxy video.
+- **Options considered:**
+  - A: Sử dụng regex / startsWith() để kiểm tra CORS origin của API video proxy.
+  - B: Sử dụng so sánh chính xác origin bằng đối tượng `URL` (được chọn vì an toàn trước các cuộc tấn công DNS Rebinding hoặc subdomain spoofing).
+- **Decision:**
+  - Mock Auth chỉ hoạt động khi `NODE_ENV !== "production"` và đồng thời có cờ `ENABLE_MOCK_AUTH === "true"` được cấu hình cụ thể.
+  - Áp dụng Server Action guards (kiểm tra `requireAdmin()`) trên Dashboard cho các API thao tác Task (`createTask`, `createTasksBulk`, `cancelTask`, `retryTask`) và Account (`getAccounts`).
+  - Kích hoạt Row Level Security (RLS) trên các bảng `crawler_tasks` và `crawler_logs` trong DB.
+  - Sửa đổi các RPC `claim_next_crawler_task` (chỉ cho phép `service_role` và thu hồi quyền `execute` đối với `public`/`anon`/`authenticated`) và `create_crawler_tasks` (chỉ cho phép `service_role`/`admin`).
+  - Tích hợp bảo vệ SSRF cho Video Proxy: Validate HTTPS, CDN domains allowlist, phân giải DNS chặn IP private/local, giới hạn content-type & dung lượng tải (100MB), và dùng exact-origin CORS.
+- **Trade-off:** Đổi file Middleware bảo vệ Next.js từ `middleware.ts` sang `proxy.ts` để tương thích với deprecation convention của Next.js 16.2.10.
+- **Revisit trigger:** Khi Next.js thay đổi quy ước middleware hoặc khi phát sinh nhu cầu phân quyền logs chi tiết (permission-based) thay vì authenticated-wide.
+
+## 2026-07-09 — Log Redaction & Security Hygiene (Cookie, Từ nối tiếng Việt & CSRF Prod)
+- **Bối cảnh:** Lộ thông tin vận hành trong logs (cookie nhiều cặp bị hở đuôi sau `;`, msToken bị lộ khi đi kèm câu log tiếng Việt), dev scripts bypass logger thô, và nguy cơ host spoofing trong CSRF.
+- **Quyết định:**
+  - Thiết kế **3 bộ Regex đặc tả Cookie** (JSON style, value có nháy, và cookie thô không nháy) kết hợp loại trừ khoảng trắng đầu value để mask sạch 100% cookie.
+  - Cải tiến Regex token hỗ trợ **từ nối (tiếng Việt/ASCII)** đứng trước token để mask chính xác.
+  - Kích hoạt **Generic Token Redactor** cho mọi chuỗi continuous >= 20 ký tự (loại trừ URL/path/email).
+  - Chuyển toàn bộ console logs trong `check_status.ts`/`check_tasks.ts` sang Central Logger để tự động làm sạch.
+  - Giới hạn **dynamic host trust của CSRF chỉ chạy ở Development** (Production chỉ tin cậy whitelist tĩnh).
+  - **API Token Enforcement**: Hoàn thành DB migration, Repo layer và UI Panel. Luồng enforcement ở runtime API routes được đưa vào backlog.
+
+

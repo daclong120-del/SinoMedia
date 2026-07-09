@@ -42,6 +42,11 @@ export interface ApiTokenItem {
   role: string;
   createdDate: string;
   creatorEmail?: string;
+  expiresAt: string | null;
+  lastUsedAt: string | null;
+  status: "active" | "revoked" | "expired";
+  scopes: string[];
+  revokeReason: string | null;
 }
 
 const DEFAULT_WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
@@ -312,19 +317,36 @@ export async function listApiTokens(): Promise<ApiTokenItem[]> {
   dbRoles.forEach(r => roleMap.set(r.id, r.name));
   const getRoleName = (id: string) => roleMap.get(id) || mapRoleIdToName(id);
 
-  return tokens.map(t => ({
-    id: t.id,
-    name: t.name,
-    tokenPrefix: `${t.token_prefix}...`,
-    roleId: t.role_id,
-    role: getRoleName(t.role_id),
-    createdDate: new Date(t.created_at).toISOString().split("T")[0],
-    creatorEmail: t.profiles?.email || undefined
-  }));
+  return tokens.map(t => {
+    // Check if token is expired dynamically
+    let currentStatus = t.status;
+    if (t.status === "active" && t.expires_at && new Date(t.expires_at) < new Date()) {
+      currentStatus = "expired";
+    }
+
+    return {
+      id: t.id,
+      name: t.name,
+      tokenPrefix: `${t.token_prefix}...`,
+      roleId: t.role_id,
+      role: getRoleName(t.role_id),
+      createdDate: new Date(t.created_at).toISOString().split("T")[0],
+      creatorEmail: t.profiles?.email || undefined,
+      expiresAt: t.expires_at ? new Date(t.expires_at).toISOString() : null,
+      lastUsedAt: t.last_used_at ? new Date(t.last_used_at).toISOString() : null,
+      status: currentStatus,
+      scopes: t.scopes || ["*"],
+      revokeReason: t.revoke_reason
+    };
+  });
 }
 
 /** Tạo API token mới (trả về raw token chính xác 1 lần) */
-export async function createApiToken(name: string, roleId: string): Promise<{ rawToken: string }> {
+export async function createApiToken(
+  name: string,
+  roleId: string,
+  expiresDays?: number
+): Promise<{ rawToken: string }> {
   const { createClientServer } = await import("@/lib/supabase/server");
   const db = await createClientServer();
   const tokenRepo = new ApiTokenRepository(db as unknown as DbClient);
@@ -339,16 +361,24 @@ export async function createApiToken(name: string, roleId: string): Promise<{ ra
   // Hash the token using SHA-256
   const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
 
-  await tokenRepo.createApiToken(name, tokenHash, tokenPrefix, roleId, user.id);
+  // Calculate expiration date
+  let expiresAt: string | null = null;
+  if (expiresDays && expiresDays > 0) {
+    const expDate = new Date();
+    expDate.setDate(expDate.getDate() + expiresDays);
+    expiresAt = expDate.toISOString();
+  }
+
+  await tokenRepo.createApiToken(name, tokenHash, tokenPrefix, roleId, user.id, expiresAt, ["*"]);
 
   return { rawToken };
 }
 
 /** Thu hồi API token */
-export async function revokeApiToken(tokenId: string): Promise<void> {
+export async function revokeApiToken(tokenId: string, reason = "User revoked"): Promise<void> {
   const { createClientServer } = await import("@/lib/supabase/server");
   const db = await createClientServer();
   const tokenRepo = new ApiTokenRepository(db as unknown as DbClient);
 
-  await tokenRepo.revokeApiToken(tokenId);
+  await tokenRepo.revokeApiToken(tokenId, reason);
 }

@@ -9,6 +9,10 @@ export interface UserProfile {
   role: string;
 }
 
+function isDevMockAllowed(): boolean {
+  return process.env.NODE_ENV !== "production" && process.env.ENABLE_MOCK_AUTH === "true";
+}
+
 /**
  * Gets the current user from the session, supporting both the mock session and the actual Supabase session.
  */
@@ -16,7 +20,7 @@ export async function getCurrentUser() {
   const cookieStore = await cookies();
   const mockSession = cookieStore.get("sb-mock-session")?.value;
 
-  if (mockSession === "true") {
+  if (mockSession === "true" && isDevMockAllowed()) {
     const mockUserEmail = cookieStore.get("sb-mock-user")?.value || "admin@sinomedia.vn";
     return {
       id: "mock-user-id-9999",
@@ -51,7 +55,7 @@ export async function requireUser(): Promise<UserProfile> {
   const cookieStore = await cookies();
   const mockSession = cookieStore.get("sb-mock-session")?.value;
 
-  if (mockSession === "true") {
+  if (mockSession === "true" && isDevMockAllowed()) {
     return {
       id: user.id,
       email: user.email,

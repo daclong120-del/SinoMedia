@@ -1,4 +1,5 @@
 import { CONFIG } from "../config.js";
+import { logger } from "../utils/index.js";
 
 // Dynamic import: cloakbrowser chỉ có trên local (file: protocol), không có trên Docker
 let launchPersistentContext: any;
@@ -79,7 +80,7 @@ export async function bootstrapSession(profileDir: string) {
       () => localStorage.getItem("msToken") || localStorage.getItem("xmst") || ""
     );
     const msToken = msTokenCookie || msTokenLocalStorage || "";
-    console.log(`msToken lấy được: ${msToken}`);
+    logger.info(`msToken lấy được: ${msToken ? "Có (độ dài " + msToken.length + ")" : "Không"}`, "Sign");
 
     return { cookies, msToken };
   } finally {

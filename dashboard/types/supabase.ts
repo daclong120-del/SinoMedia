@@ -43,6 +43,11 @@ export type Database = {
           role_id: string | null
           token_hash: string
           token_prefix: string
+          expires_at: string | null
+          last_used_at: string | null
+          status: string
+          scopes: string[]
+          revoke_reason: string | null
         }
         Insert: {
           created_at?: string
@@ -52,6 +57,11 @@ export type Database = {
           role_id?: string | null
           token_hash: string
           token_prefix: string
+          expires_at?: string | null
+          last_used_at?: string | null
+          status?: string
+          scopes?: string[]
+          revoke_reason?: string | null
         }
         Update: {
           created_at?: string
@@ -61,6 +71,11 @@ export type Database = {
           role_id?: string | null
           token_hash?: string
           token_prefix?: string
+          expires_at?: string | null
+          last_used_at?: string | null
+          status?: string
+          scopes?: string[]
+          revoke_reason?: string | null
         }
         Relationships: [
           {

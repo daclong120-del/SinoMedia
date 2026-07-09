@@ -6,6 +6,11 @@ export interface ApiTokenWithCreator {
   token_prefix: string;
   role_id: string;
   created_at: string;
+  expires_at: string | null;
+  last_used_at: string | null;
+  status: "active" | "revoked" | "expired";
+  scopes: string[];
+  revoke_reason: string | null;
   profiles: {
     email: string;
   } | null;
@@ -24,6 +29,11 @@ export class ApiTokenRepository {
         token_prefix,
         role_id,
         created_at,
+        expires_at,
+        last_used_at,
+        status,
+        scopes,
+        revoke_reason,
         profiles (
           email
         )
@@ -40,7 +50,9 @@ export class ApiTokenRepository {
     tokenHash: string,
     tokenPrefix: string,
     roleId: string,
-    createdBy: string
+    createdBy: string,
+    expiresAt: string | null,
+    scopes: string[] = ["*"]
   ): Promise<void> {
     const { error } = await this.db
       .from("api_tokens")
@@ -49,17 +61,23 @@ export class ApiTokenRepository {
         token_hash: tokenHash,
         token_prefix: tokenPrefix,
         role_id: roleId,
-        created_by: createdBy
+        created_by: createdBy,
+        expires_at: expiresAt,
+        status: "active",
+        scopes
       });
 
     if (error) throw error;
   }
 
-  /** Thu hồi API Token */
-  async revokeApiToken(tokenId: string): Promise<void> {
+  /** Thu hồi API Token (Soft Revoke) */
+  async revokeApiToken(tokenId: string, reason = "User revoked"): Promise<void> {
     const { error } = await this.db
       .from("api_tokens")
-      .delete()
+      .update({
+        status: "revoked",
+        revoke_reason: reason
+      })
       .eq("id", tokenId);
 
     if (error) throw error;

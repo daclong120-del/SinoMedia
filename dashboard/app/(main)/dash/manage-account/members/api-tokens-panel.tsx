@@ -16,6 +16,7 @@ export function ApiTokensPanel({ tokens, roles, showToast }: ApiTokensPanelProps
   const [isCreateTokenOpen, setIsCreateTokenOpen] = useState(false);
   const [newTokenName, setNewTokenName] = useState("");
   const [newTokenRole, setNewTokenRole] = useState("user");
+  const [expiresDays, setExpiresDays] = useState("30");
   const [loading, setLoading] = useState(false);
 
   // Single exposure token display state
@@ -26,7 +27,8 @@ export function ApiTokensPanel({ tokens, roles, showToast }: ApiTokensPanelProps
     if (!newTokenName) return;
 
     setLoading(true);
-    const res = await createApiTokenAction(newTokenName, newTokenRole);
+    const days = parseInt(expiresDays, 10);
+    const res = await createApiTokenAction(newTokenName, newTokenRole, days > 0 ? days : undefined);
     setLoading(false);
 
     if (res.error) {
@@ -36,6 +38,7 @@ export function ApiTokensPanel({ tokens, roles, showToast }: ApiTokensPanelProps
       showToast(`API Token "${newTokenName}" đã được tạo thành công`, "success");
       setNewTokenName("");
       setNewTokenRole("user");
+      setExpiresDays("30");
       setIsCreateTokenOpen(false);
     }
   };
@@ -118,24 +121,39 @@ export function ApiTokensPanel({ tokens, roles, showToast }: ApiTokensPanelProps
             tokens.map((token) => (
               <div key={token.id} className="flex items-center justify-between py-3 text-xs first:pt-0 last:pb-0">
                 <div className="space-y-1 min-w-0 mr-4">
-                  <p className="font-semibold text-foreground truncate">{token.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-foreground truncate">{token.name}</p>
+                    {token.status === "revoked" && (
+                      <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-red-500/10 text-red-500 border border-red-500/20 select-none">Đã thu hồi</span>
+                    )}
+                    {token.status === "expired" && (
+                      <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 select-none">Đã hết hạn</span>
+                    )}
+                    {token.status === "active" && (
+                      <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 select-none">Hoạt động</span>
+                    )}
+                  </div>
                   <div className="flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
                     <span className="font-mono bg-muted px-1.5 py-0.5 rounded text-foreground">{token.tokenPrefix}</span>
                     <span>•</span>
                     <span>Vai trò: {token.role}</span>
                     <span>•</span>
-                    <span>Tạo bởi: {token.creatorEmail || "Hệ thống"}</span>
+                    <span>Người tạo: {token.creatorEmail || "Hệ thống"}</span>
                     <span>•</span>
-                    <span>Tạo ngày: {token.createdDate}</span>
+                    <span>Hạn dùng: {token.expiresAt ? new Date(token.expiresAt).toLocaleDateString("vi-VN") : "Vô hạn"}</span>
+                    <span>•</span>
+                    <span>Dùng cuối: {token.lastUsedAt ? new Date(token.lastUsedAt).toLocaleDateString("vi-VN") : "Chưa dùng"}</span>
                   </div>
                 </div>
-                <button
-                  disabled={loading}
-                  onClick={() => handleRevokeToken(token.id, token.name)}
-                  className="text-red-500 hover:underline font-semibold cursor-pointer text-xs shrink-0 disabled:opacity-50"
-                >
-                  Thu hồi
-                </button>
+                {token.status === "active" && (
+                  <button
+                    disabled={loading}
+                    onClick={() => handleRevokeToken(token.id, token.name)}
+                    className="text-red-500 hover:underline font-semibold cursor-pointer text-xs shrink-0 disabled:opacity-50"
+                  >
+                    Thu hồi
+                  </button>
+                )}
               </div>
             ))
           ) : (
@@ -180,6 +198,21 @@ export function ApiTokensPanel({ tokens, roles, showToast }: ApiTokensPanelProps
                   value={newTokenRole}
                   onChange={setNewTokenRole}
                   options={roles.map(r => ({ value: r.roleId, label: r.roleName }))}
+                  fullWidth
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-muted-foreground uppercase">Hạn hiệu lực của Token</label>
+                <DropdownSelect
+                  value={expiresDays}
+                  onChange={setExpiresDays}
+                  options={[
+                    { value: "30", label: "30 ngày" },
+                    { value: "90", label: "90 ngày" },
+                    { value: "365", label: "365 ngày" },
+                    { value: "0", label: "Không hết hạn (Vĩnh viễn)" }
+                  ]}
                   fullWidth
                 />
               </div>

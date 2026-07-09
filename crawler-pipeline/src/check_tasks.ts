@@ -1,7 +1,8 @@
 import { CONFIG } from "./config.js";
+import { logger } from "./utils/index.js";
 
 async function main() {
-  console.log("Supabase URL:", CONFIG.supabase.url);
+  logger.info("Supabase URL: " + CONFIG.supabase.url, "DevCheck");
   
   // Test insert via RPC
   const rpcUrl = `${CONFIG.supabase.url}/rest/v1/rpc/create_crawler_tasks`;
@@ -22,7 +23,7 @@ async function main() {
     }
   ];
 
-  console.log("Inserting test tasks...");
+  logger.info("Inserting test tasks...", "DevCheck");
   const insertRes = await fetch(rpcUrl, {
     method: "POST",
     headers: {
@@ -35,12 +36,12 @@ async function main() {
 
   if (!insertRes.ok) {
     const text = await insertRes.text();
-    console.error("Error inserting tasks:", insertRes.status, text);
+    logger.error(`Error inserting tasks: Status ${insertRes.status}. Response: ${text}`, "DevCheck");
     return;
   }
 
   const insertResult = await insertRes.json();
-  console.log("Insert result:", insertResult);
+  logger.info("Insert result: " + JSON.stringify(insertResult), "DevCheck");
 
   // Read tasks back
   const url = `${CONFIG.supabase.url}/rest/v1/crawler_tasks?order=created_at.desc&limit=10`;
@@ -54,13 +55,13 @@ async function main() {
 
   if (!res.ok) {
     const text = await res.text();
-    console.error("Error fetching tasks:", res.status, text);
+    logger.error(`Error fetching tasks: Status ${res.status}. Response: ${text}`, "DevCheck");
     return;
   }
 
   const data = await res.json();
-  console.log("Recent tasks in DB:");
-  console.log(JSON.stringify(data, null, 2));
+  logger.info("Recent tasks in DB:", "DevCheck");
+  logger.info(JSON.stringify(data, null, 2), "DevCheck");
 }
 
-main().catch(console.error);
+main().catch((err) => logger.error("Main execution failed: " + err.message, "DevCheck"));

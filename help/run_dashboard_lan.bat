@@ -76,20 +76,38 @@ if /i "%~1"=="--print-only" (
   exit /b 0
 )
 
-:: 1. Khoi dong Supabase Local
-echo [1/3] Dang khoi dong Supabase Local Database...
-start "Supabase Database - API %SUPABASE_PORT%" cmd /k "title Supabase Database - API %SUPABASE_PORT% && cd /d ""%ROOT%"" && echo [SUPABASE] API: %LAN_SUPABASE_URL% && echo [SUPABASE] DB : %LAN_POSTGRES_URL% && npx.cmd supabase start"
-echo Dang cho Supabase gateway san sang...
-timeout /t 8 /nobreak >nul
-powershell -NoProfile -ExecutionPolicy Bypass -Command "if (Get-NetTCPConnection -LocalPort %SUPABASE_PORT% -State Listen -ErrorAction SilentlyContinue) { exit 0 } else { exit 1 }"
+:: 1. Khoi dong Supabase Local (Kiem tra Docker Desktop truoc)
+echo [1/3] Dang kiem tra trang thai Docker Desktop...
+docker ps >nul 2>&1
 if errorlevel 1 (
   echo.
-  echo [WARN] Supabase API port %SUPABASE_PORT% chua mo.
-  echo [WARN] Neu dashboard khong goi duoc backend, hay chay:
-  echo        npx.cmd supabase stop
-  echo        npx.cmd supabase start
-  echo [WARN] Sau do chay lai file BAT nay.
+  echo ============================================================
+  echo [WARNING] Docker Desktop chua duoc khoi dong hoac chua cai dat!
+  echo           Supabase Local yeu cau Docker de hoat dong.
+  echo ============================================================
   echo.
+  set /p "CONTINUE_CHOICE=Ban co muon tiep tuc bat Next.js va Worker khong? (Y/N): "
+  if /i "!CONTINUE_CHOICE!" NEQ "Y" (
+    echo Huy khoi dong SinoMedia LAN Stack.
+    popd >nul
+    pause
+    exit /b 1
+  )
+) else (
+  echo [1/3] Dang khoi dong Supabase Local Database...
+  start "Supabase Database - API %SUPABASE_PORT%" cmd /k "title Supabase Database - API %SUPABASE_PORT% && cd /d ""%ROOT%"" && echo [SUPABASE] API: %LAN_SUPABASE_URL% && echo [SUPABASE] DB : %LAN_POSTGRES_URL% && npx.cmd supabase start"
+  echo Dang cho Supabase gateway san sang...
+  timeout /t 8 /nobreak >nul
+  powershell -NoProfile -ExecutionPolicy Bypass -Command "if (Get-NetTCPConnection -LocalPort %SUPABASE_PORT% -State Listen -ErrorAction SilentlyContinue) { exit 0 } else { exit 1 }"
+  if errorlevel 1 (
+    echo.
+    echo [WARN] Supabase API port %SUPABASE_PORT% chua mo.
+    echo [WARN] Neu dashboard khong goi duoc backend, hay chay:
+    echo        npx.cmd supabase stop
+    echo        npx.cmd supabase start
+    echo [WARN] Sau do chay lai file BAT nay.
+    echo.
+  )
 )
 
 :: 2. Khoi dong Crawler Worker

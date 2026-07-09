@@ -38,14 +38,14 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 | Route | Trạng thái | Ghi chú |
 |---|---|---|
 | `/` | Done | Redirect/entrypoint dashboard. |
-| `/login`, `/sign-up`, `/forgot-password` | Partial | Có server actions/auth service. Vẫn còn mock-session path phục vụ dev, không coi là production auth hoàn chỉnh. |
+| `/login`, `/sign-up`, `/forgot-password` | Done | Đã thắt chặt bảo mật Mock Auth (fail-closed trên production, chỉ cho phép ở dev mode với cờ ENABLE_MOCK_AUTH=true), Next.js Middleware chạy thực sự (proxy.ts) và bảo vệ các route `/dash/*`. |
 | `/dash/home` | Partial | Có service metrics, một số trend còn TODO hoặc phụ thuộc dữ liệu thật. |
 | `/dash/tasks` | Done | Giao diện quản lý task hoàn chỉnh, kết nối DB thật, realtime status thật, nút Cancel/Retry (Optimistic), hiển thị phase và tiến trình cào bình luận (comment_progress) thời gian thực. |
 | `/dash/accounts` | Draft | Đọc account qua action, nhưng modal nạp tài khoản và nút unban/xóa chưa nối mutation thật. |
 | `/dash/proxies` | Partial | Có service/actions cho proxy; health check hiện vẫn là TODO/fake ở repository. |
 | `/dash/audit-logs` | Partial | Có audit repository/service, cần dữ liệu thật và policy rõ. |
 | `/dash/settings` | Draft | Chủ yếu local/UI settings; không giả định đã persist DB nếu chưa thấy service/migration. |
-| `/dash/manage-account/members` | Done | Đã nối invite flow thật: tạo link invite token dạng query string, verify & consume token khi đăng ký, tự động gán role/workspace khi tạo thành viên thành công. |
+| `/dash/manage-account/members` | Done | Đã nối invite flow thật, tự động gán role. Đồng thời tích hợp quản lý **API Tokens Panel** có thời hạn, status (active/revoked), ngày dùng cuối, và Server actions thắt chặt CSRF. |
 | `/dash/data/posts` | Partial | Có trang list/detail UI, nhưng còn comment `Cover mock`/`Player mockup`; cần nối media/detail hoàn chỉnh. |
 | `/dash/data/authors` | Partial | Có server/service read path, cần kiểm chứng dữ liệu thật/filter. |
 | `/dash/data/management` | Draft | Nhiều chỉ số storage hard-code; tag manager local state; cleanup buttons chưa nối backend thật. |
@@ -62,7 +62,7 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 | Capability | Trạng thái | Ghi chú |
 |---|---|---|
 | CLI entrypoint | Done | `bootstrap`, `crawl`, `creator`, `search`, `comments`, `add-account`. `crawl` không target sẽ khởi chạy queue worker. |
-| Queue worker | Done | Khởi chạy qua CLI, claim task Supabase RPC, chạy ts-node ở background, cập nhật progress, phase, comment_progress. Capped sub-comments (tối đa 2 trang) và timeout 60s/video comments. |
+| Queue worker | Done | Claim task Supabase RPC, cập nhật progress/phase. Đã **gia cố log redaction** (mask cookie nhiều cặp, msToken kèm từ nối, generic token redactor >= 20 ký tự) và chuyển dev check scripts sang logger. |
 | Task metadata | Partial | Worker đọc tags, language, crawl_comments, crawl_sub_comments, upload_r2, headless từ `task.metadata`. |
 | Platform factory | Partial | Có factory cho nhiều platform; platform không hỗ trợ sẽ throw rõ ràng. |
 | Platforms | Partial | Có module cho Bilibili, Douyin, Kuaishou, Tieba, Weibo, XHS, Zhihu. Mức ổn định từng platform chưa đồng đều. |

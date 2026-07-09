@@ -1,6 +1,6 @@
 import { CONFIG } from "./config.js";
 import { supabaseRest } from "./store/supabase_client.js";
-import { logger } from "./utils/index.js";
+import { logger, redactSecrets } from "./utils/index.js";
 import { closeBrowser } from "./crawl/douyin/index.js";
 import { PlatformType } from "./constant/index.js";
 import { CrawlerTask } from "./model/index.js";
@@ -38,20 +38,24 @@ const originalError = logger.error;
 const originalDebug = logger.debug;
 
 logger.info = (msg: string, tag?: string) => {
-  originalInfo(msg, tag);
-  if (currentTaskId) writeLogToDb("info", `[${tag || "Crawler"}] ${msg}`);
+  const redacted = redactSecrets(msg);
+  originalInfo(redacted, tag);
+  if (currentTaskId) writeLogToDb("info", `[${tag || "Crawler"}] ${redacted}`);
 };
 logger.warn = (msg: string, tag?: string) => {
-  originalWarn(msg, tag);
-  if (currentTaskId) writeLogToDb("warn", `[${tag || "Crawler"}] ${msg}`);
+  const redacted = redactSecrets(msg);
+  originalWarn(redacted, tag);
+  if (currentTaskId) writeLogToDb("warn", `[${tag || "Crawler"}] ${redacted}`);
 };
 logger.error = (msg: string, tag?: string) => {
-  originalError(msg, tag);
-  if (currentTaskId) writeLogToDb("error", `[${tag || "Crawler"}] ${msg}`);
+  const redacted = redactSecrets(msg);
+  originalError(redacted, tag);
+  if (currentTaskId) writeLogToDb("error", `[${tag || "Crawler"}] ${redacted}`);
 };
 logger.debug = (msg: string, tag?: string) => {
-  originalDebug(msg, tag);
-  if (currentTaskId) writeLogToDb("debug", `[${tag || "Crawler"}] ${msg}`);
+  const redacted = redactSecrets(msg);
+  originalDebug(redacted, tag);
+  if (currentTaskId) writeLogToDb("debug", `[${tag || "Crawler"}] ${redacted}`);
 };
 
 /**

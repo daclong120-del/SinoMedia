@@ -56,6 +56,15 @@ function mapDbTask(row: DbTask): CrawlerTask {
   };
 }
 
+function maskProxyStr(proxyStr: string | null): string | null {
+  if (!proxyStr) return null;
+  const parts = proxyStr.trim().split(":");
+  if (parts.length >= 4) {
+    return `${parts[0]}:${parts[1]}:${parts[2]}:***`;
+  }
+  return proxyStr;
+}
+
 function mapDbAccount(row: DbAccount & { proxy?: string | null }): CrawlerAccount {
   return {
     id: row.id,
@@ -63,7 +72,7 @@ function mapDbAccount(row: DbAccount & { proxy?: string | null }): CrawlerAccoun
     alias: row.username || "unknown",
     status: (row.status as CrawlerAccount["status"]) || "active",
     failure_count: row.failure_count || 0,
-    proxy: row.proxy || null,
+    proxy: maskProxyStr(row.proxy || null),
     last_used_at: row.last_used_at,
     created_at: row.created_at || "",
   };

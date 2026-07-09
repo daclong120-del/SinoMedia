@@ -1,4 +1,5 @@
 import { CONFIG } from "./config.js";
+import { logger } from "./utils/index.js";
 
 async function main() {
   const url = `${CONFIG.supabase.url}/rest/v1/crawler_tasks?order=created_at.desc&limit=5&select=id,platform,command,target,status,error_message`;
@@ -9,7 +10,7 @@ async function main() {
     },
   });
   const data = await res.json();
-  console.log(JSON.stringify(data, null, 2));
+  logger.info(JSON.stringify(data, null, 2), "DevCheck");
 }
 
-main().catch(console.error);
+main().catch((err) => logger.error("Main execution failed: " + err.message, "DevCheck"));
