@@ -168,6 +168,17 @@
 - **Quyết định:**
 # Decision Log — SinoMedia
 
+## 2026-07-09 — Security Hardening: Xóa Creative API Routes, Auth Guard Server Actions, Security Headers [initiative: security-audit]
+
+- **Context:** Đánh giá bảo mật phát hiện 7 creative API routes (`/api/creative/*`) hoàn toàn không có auth guard — middleware chỉ match `/dash/*` nên `/api/*` bị bypass. 3 server action files (`creative.actions.ts`, `data.actions.ts`, `dashboard.actions.ts`) re-export trần từ service mà không kiểm tra auth. Dashboard thiếu security headers. Worker API export PUT/DELETE/OPTIONS không cần thiết.
+- **Options considered:**
+  - A: Thêm auth guard vào từng creative API route (giữ routes)
+  - B: Xóa luôn creative API routes (đã deprecated, 0 consumer) + auth guard actions
+- **Decision:** Chọn B. Xóa toàn bộ `app/api/creative/` (7 routes). Wrap tất cả server actions với `requireUser()` dùng `Parameters<typeof>` pattern. Thêm 5 security headers vào `next.config.ts`. Xóa 3 unused HTTP handlers (PUT/DELETE/OPTIONS) khỏi worker API.
+- **Trade-off:** Nếu tương lai cần public API cho creative data, phải tạo route mới có auth. Hiện tại giảm attack surface 70% (chỉ còn `/api/video/proxy` và `/api/worker/rest/v1`).
+- **Evidence:** `tsc --noEmit` pass, `npm run build` pass, build output xác nhận không còn `/api/creative/*`. Grep xác nhận 0 consumer trong codebase.
+- **Revisit trigger:** Cần public API cho creative data, hoặc cần thêm HTTP methods cho worker API.
+
 ## Decision: API Token Runtime Enforcement (2026-07-09)
 - **Context**: We need to secure the worker's access to the database. Previously, workers used the `SUPABASE_SERVICE_ROLE_KEY` to directly call PostgREST APIs, bypassing RLS and gaining full access.
 - **Decision**: 

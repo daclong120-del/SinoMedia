@@ -21,7 +21,7 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 |---|---|---|
 | Dashboard | Partial | Next.js App Router, nhiều trang đã có service/repository và server actions. Cột mốc quan trọng: `/dash/tasks` đã Done (nối realtime và xử lý tasks thật). |
 | Crawler Pipeline | Partial | Worker TypeScript độc lập có queue loop, claim task qua Supabase RPC, platform factory, account/proxy pool. Bilibili crawler có đầy đủ phase, log và cào bình luận ổn định. |
-| Supabase/Media | Partial | Supabase là control plane/data store. Đã hoàn thành khóa quyền truy cập thô của anon key, bật RLS cho toàn bộ bảng và thắt chặt RPC nhạy cảm. Tích hợp kịch bản kiểm thử bảo mật tự động 27/27 test cases (RLS + Proxy) đạt 100%. |
+| Supabase/Media | Partial | Supabase là control plane/data store. Đã hoàn thành khóa quyền truy cập thô của anon key, bật RLS cho toàn bộ bảng và thắt chặt RPC nhạy cảm. Tích hợp kịch bản kiểm thử bảo mật tự động 27/27 test cases (RLS + Proxy) đạt 100%. Security headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy) đã được cấu hình qua `next.config.ts`. |
 | Desktop App | Partial | Đã hoàn thành build script Scaffold & Full, tích hợp embedded Node.exe, launcher scripts, C# wrapper SinoMedia.exe và health check smoke test tự động. |
 
 ## Product direction hiện tại
@@ -49,7 +49,7 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 | `/dash/data/posts` | Partial | Có trang list/detail UI, nhưng còn comment `Cover mock`/`Player mockup`; cần nối media/detail hoàn chỉnh. |
 | `/dash/data/authors` | Partial | Có server/service read path, cần kiểm chứng dữ liệu thật/filter. |
 | `/dash/data/management` | Partial | Đã bọc `requireAdmin()` ở Server Component Page và Middleware. Các nút dọn dẹp và tag manager vẫn là Draft (chưa nối backend thật). |
-| `/dash/creative/search` | Partial | Có service read, filter client, modal detail. Một số API GET creative vẫn tồn tại để compatibility. |
+| `/dash/creative/search` | Partial | Có service read, filter client, modal detail. Legacy API GET creative routes đã bị xóa hoàn toàn (2026-07-09). |
 | `/dash/creative/new` | Partial | Có service read và client view. |
 | `/dash/creative/trending` | Partial | Có sort theo views; cần kiểm chứng metric/index. |
 | `/dash/creative/growth` | Partial | Đã có bảng lịch sử `post_metric_snapshots`, cần hoàn thiện logic tính toán growth thật từ lịch sử thay vì views hiện tại. |

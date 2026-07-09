@@ -454,17 +454,7 @@ Không dùng khi:
 - chỉ để vòng từ browser → API route → service cho GET list data;
 - chỉ để che lỗi typing hoặc tránh tách client/server component.
 
-Creative GET routes hiện có thể tồn tại tạm:
-
-- `app/api/creative/search/route.ts`
-- `app/api/creative/trending/route.ts`
-- `app/api/creative/new/route.ts`
-- `app/api/creative/growth/route.ts`
-- `app/api/creative/advertisers/route.ts`
-- `app/api/creative/advertisers/[id]/route.ts`
-- `app/api/creative/[id]/route.ts`
-
-Mục tiêu là migrate pages sang Server Component read path, rồi xóa/deprecate GET routes không còn consumer.
+Creative GET routes (`app/api/creative/*`) đã bị xóa hoàn toàn (2026-07-09) do không còn consumer và là lỗ hổng bảo mật (không có auth guard). Dashboard đã migrate sang Server Component gọi service trực tiếp.
 
 ## 10. Error handling và observability
 
@@ -515,6 +505,9 @@ Crawler:
 5. Cookie auth không được migrate ngược về localStorage.
 6. API mutation phải validate payload, platform, command, task metadata.
 7. Logs không chứa password, cookie, token, QR session secret.
+8. Server Actions phải có auth guard (`requireUser()` hoặc `requireAdmin()`) ở tầng action. Cấm re-export trần từ service.
+9. Tất cả response phải có security headers: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`. Cấu hình qua `next.config.ts`.
+10. Worker REST API chỉ export HTTP methods được dùng (GET, POST, PATCH). Không export PUT/DELETE/OPTIONS nếu không có scope mapping.
 
 ## 13. Architecture Decision Records
 
