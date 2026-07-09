@@ -82,4 +82,31 @@ Nếu bạn nhận ra mình vừa commit ở trạng thái Detached HEAD:
   git checkout -b <ten-nhanh-moi> <ma-commit-hash>
   ```
 
-  ```
+---
+
+## 4. Quy trình Tích hợp Nhánh (Merge Workflow) & Đồng bộ Remote (Push)
+
+Khi gộp các nhánh tính năng (ví dụ: `security`) vào `main`, cần tuân thủ quy trình sau để tránh mất mát lịch sử và đảm bảo an toàn code:
+
+### Bước 1: Kiểm thử E2E trước khi gộp (Pre-merge Verification)
+Chạy thử nghiệm trên nhánh tính năng để đảm bảo các tính năng/bảo mật hoạt động đúng:
+```bash
+npx tsx tests/e2e_log_redaction.ts
+```
+
+### Bước 2: Tích hợp nhánh (Local Merge)
+Chuyển về nhánh `main` và thực hiện merge nhánh phụ. Do đã cấu hình `merge.ff false`, Git sẽ luôn tạo một Merge Commit trực quan để giữ lại lịch sử phân nhánh:
+```bash
+git checkout main
+git merge -m "merge: gop nhanh <ten-nhanh> vao main" <ten-nhanh>
+```
+
+### Bước 3: Đồng bộ với Remote Server (Push to Origin)
+Sau khi merge ở local, nhãn `main` của local sẽ đi trước `origin/main` (nhánh trên GitHub/GitLab). Phải đẩy các thay đổi này lên server để đồng bộ:
+```bash
+git push origin main
+```
+
+> [!IMPORTANT]
+> **Quy tắc làm việc của AI Agent:**
+> - Bắt buộc tuân thủ quy tắc `khi dùng git cấm tự merge`. AI agent không bao giờ tự động chạy ngầm lệnh `git merge` hay `git pull` mà không đề xuất rõ ràng để người dùng xác nhận và nhấn nút chạy (Approve) trên terminal.
