@@ -1,6 +1,6 @@
 # Project Status
 
-Cập nhật lần cuối: 2026-07-08  
+Cập nhật lần cuối: 2026-07-09  
 Mục đích: một trang sống để biết SinoMedia đã làm được gì, phần nào đang chạy, phần nào chỉ là phác thảo, và phần nào cần agent kiểm tra trước khi phát triển tiếp.
 
 ## Legend
@@ -21,7 +21,7 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 |---|---|---|
 | Dashboard | Partial | Next.js App Router, nhiều trang đã có service/repository và server actions. Cột mốc quan trọng: `/dash/tasks` đã Done (nối realtime và xử lý tasks thật). |
 | Crawler Pipeline | Partial | Worker TypeScript độc lập có queue loop, claim task qua Supabase RPC, platform factory, account/proxy pool. Bilibili crawler có đầy đủ phase, log và cào bình luận ổn định. |
-| Supabase/Media | Partial | Supabase là control plane/data store. Media ưu tiên external embed/link gốc khi platform hỗ trợ; R2 chỉ là archive/cache tùy chọn. |
+| Supabase/Media | Partial | Supabase là control plane/data store. Đã hoàn thành khóa quyền truy cập thô của anon key, bật RLS cho toàn bộ crawler outputs và thắt chặt các RPC nhạy cảm. |
 | Desktop App | Draft | Hiện là packaging bằng Pake cho dashboard local. Chưa phải desktop runtime có worker manager/video downloader service tích hợp. |
 
 ## Product direction hiện tại
@@ -70,7 +70,7 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 | Account/proxy pool | Partial | Có pool/account rotation, nhưng cần health policy và dashboard mutation hoàn chỉnh hơn. |
 | R2 upload | Optional | Có uploader/dedup, nhưng không còn là đường phát mặc định cho Bilibili. Dùng khi cần archive/cache/report/offline. |
 | Cache media task | Deprecated | Worker đã throw nếu command là `cache_media`. Không thêm UI tạo task này nữa. |
-| Metric Refresh | Done | CLI refresh `npm run refresh` quét toàn bộ post/author và cập nhật vào các bảng snapshot lịch sử, chống ghi đè 0 hoặc mất dữ liệu khi lỗi API. |
+| Metric Refresh | Done | CLI refresh `npm run refresh` hoạt động tốt. Đã tích hợp cơ chế **Guard Snapshot** ở cấp độ `supabase_writer.ts` (kiểm tra stats gốc trước khi lưu snapshot) chống ghi nhận dữ liệu 0 giả lập do normalization fallback. |
 
 ## Desktop App status
 

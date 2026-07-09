@@ -56,7 +56,7 @@ export class BilibiliMetricCollector implements IMetricCollector {
       interaction_count: 0, // Bilibili không cung cấp tổng lượt tương tác tác giả trực tiếp ở đây
       videos_count: 0, // Có thể lấy qua arc search nhưng để giữ gọn ta mặc định 0 ở bước refresh
       raw: {
-        relation: relationRes || {},
+        relation: relationRes,
         acc_info: rawAccInfo || {},
       },
     };

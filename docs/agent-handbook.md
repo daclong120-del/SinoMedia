@@ -1,6 +1,6 @@
 # Agent Handbook
 
-Cập nhật lần cuối: 2026-07-08  
+Cập nhật lần cuối: 2026-07-09  
 Mục đích: hướng dẫn ngắn cho AI agent làm việc trong SinoMedia mà không phá hướng hiện tại.
 
 ## Read first
@@ -87,7 +87,7 @@ Ví dụ bẫy hiện tại:
 - Logs không chứa cookie, password, token, QR secret.
 - Không xóa vai trò hệ thống mặc định (`admin`, `user`) kể cả khi đã gỡ khóa sửa quyền (`is_locked = false`). Chặn xóa ở cả backend (`deleteRole`) và UI (`roles-panel.tsx`).
 - Tránh chạy `supabase db reset` ở local dev vì làm mất dữ liệu cào thử nghiệm. Ưu tiên chạy trực tiếp SQL `UPDATE` hoặc `supabase db push` khi thay đổi schema/data nhỏ.
-- **Ràng buộc khi ghi nhận metric snapshot**: Khi thực hiện cào mới (`upsertPost`, `upsertAuthor`), bắt buộc phải dùng guard `hasRecognizedMetric` và kiểm tra độ tin cậy của metric tác giả (`fans_count !== 0`) trước khi ghi nhận snapshot, tránh tạo dữ liệu 0 giả lập (unpopulated) làm sai lệch lịch sử tăng trưởng.
+- **Ràng buộc khi ghi nhận metric snapshot (Guard Snapshot)**: Khi thực hiện lưu dữ liệu (`upsertPost`, `upsertPosts`, `upsertAuthor`), bắt buộc phải dùng các helper guard `hasPostMetricInput(stats)` và `hasAuthorMetricInput(author)` để kiểm tra sự hiện diện thực tế của metrics thô trước khi ghi nhận snapshot lịch sử, tuyệt đối tránh dùng các giá trị sau khi đã normalize (vì normalize sẽ biến dữ liệu trống thành `0` giả lập làm sai lệch lịch sử tăng trưởng).
 - **Quy ước Next.js Middleware**: Dự án này sử dụng convention Next.js 16 (Turbopack) - file Middleware bắt buộc phải đặt tên là `proxy.ts` và export function `proxy`. Tuyệt đối không đổi tên thành `middleware.ts` vì sẽ làm mất hiệu lực bảo vệ route `/dash/*`.
 - **Giới hạn Mock Auth**: Mock Auth bypass chỉ được phép chạy khi `process.env.NODE_ENV !== "production"` và đồng thời có cờ `process.env.ENABLE_MOCK_AUTH === "true"`. Ở môi trường production, hệ thống bắt buộc phải fail-closed về Supabase Auth thật.
 - **Bảo vệ Video Proxy chống SSRF**: API endpoint `/api/video/proxy` được tích hợp các lớp bảo vệ nghiêm ngặt: kiểm tra auth session (`getCurrentUser`), chỉ nhận giao thức HTTPS, giới hạn dung lượng tải (100MB), giới hạn content-type, phân giải DNS chặn IP private/local (chống SSRF), và so sánh CORS origin chính xác (`URL.origin`). Khi tích hợp thêm CDN/Platform mới, bắt buộc cập nhật domain allowlist tại `route.ts`.
@@ -95,6 +95,7 @@ Ví dụ bẫy hiện tại:
 - **Quy tắc Log Redaction & Cookie**: Không bao giờ truyền raw credentials/cookies vào log. Logger đã có bộ 3 Regex lọc Cookie (JSON, nháy đơn/kép, thô) và bộ Generic Token Redactor cho chuỗi dài >= 20 ký tự. Khi log msToken, chỉ in sự hiện diện và độ dài: `msToken: Có (độ dài X)`.
 - **Cấm bypass console.log trong dev scripts**: Mọi script tiện ích của dev (ví dụ `check_tasks.ts`, `check_status.ts`) bắt buộc phải dùng `logger.info`/`logger.error` từ `./utils/index.js` để logs đi qua bộ lọc an toàn, tránh in thô `serviceRoleKey`.
 - **Ràng buộc CSRF ở Production**: Hàm `verifyCSRF` chỉ tin cậy dynamic host từ `Host`/`X-Forwarded-Host` headers khi chạy local (`process.env.NODE_ENV !== "production"`). Trên production, bắt buộc so khớp với whitelist tĩnh (`NEXT_PUBLIC_SITE_URL` và `localhost`).
+- **Bảo mật Anon Key & RLS**: Vai trò `anon` và `public` đã bị thu hồi toàn bộ quyền default privileges và existing privileges trong schema `public`. Bất kỳ bảng dữ liệu crawler output nào cũng phải bật Row Level Security (RLS) và chỉ mở quyền đọc (`SELECT`) cho `authenticated` users, cấm mở quyền ghi (`INSERT`/`UPDATE`) cho client ngoại trừ `service_role`. Các RPC nhạy cảm bắt buộc phải REVOKE khỏi `public`/`anon` để tránh bị gọi tự do bằng anon key.
 
 ## Documentation rule
 

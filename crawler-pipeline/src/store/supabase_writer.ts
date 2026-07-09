@@ -32,17 +32,17 @@ export async function upsertAuthor(author: CrawledAuthorRow): Promise<string> {
   }
 
   const savedAuthor = result[0];
-  // Chỉ ghi nhận snapshot khi payload crawl thật sự có metrics hợp lệ
-  if (author.fans_count !== null && author.fans_count !== undefined && author.fans_count !== 0) {
+
+  if (hasAuthorMetricInput(author)) {
     await insertAuthorMetricSnapshot({
       author_id: savedAuthor.id,
       platform: savedAuthor.platform,
       platform_author_id: savedAuthor.platform_uid,
-      fans_count: Number(savedAuthor.fans_count ?? 0),
-      follows_count: Number(savedAuthor.follows_count ?? 0),
-      interaction_count: Number(savedAuthor.interaction_count ?? 0),
-      videos_count: Number(savedAuthor.videos_count ?? 0),
-      raw: savedAuthor.raw || null,
+      fans_count: Number(author.fans_count ?? 0),
+      follows_count: Number(author.follows_count ?? 0),
+      interaction_count: Number(author.interaction_count ?? 0),
+      videos_count: Number(author.videos_count ?? 0),
+      raw: author.raw || null,
       source: "crawl",
     }).catch(err => console.error("Error inserting author snapshot:", err));
   }
@@ -78,6 +78,41 @@ function normalizeStats(stats: any): any {
   normalized.shared_count = shares;
   
   return normalized;
+}
+
+function hasPostMetricInput(stats: unknown): boolean {
+  if (typeof stats !== "object" || stats === null || Array.isArray(stats)) {
+    return false;
+  }
+
+  const raw = stats as Record<string, unknown>;
+  const metricKeys = [
+    "play_count",
+    "view_count",
+    "playCount",
+    "like_count",
+    "digg_count",
+    "liked_count",
+    "voteup_count",
+    "voteupCount",
+    "comment_count",
+    "comments_count",
+    "commentCount",
+    "share_count",
+    "shared_count",
+    "shareCount",
+  ];
+
+  return metricKeys.some((key) => raw[key] !== undefined && raw[key] !== null);
+}
+
+function hasAuthorMetricInput(author: CrawledAuthorRow): boolean {
+  return (
+    author.fans_count !== undefined ||
+    author.follows_count !== undefined ||
+    author.interaction_count !== undefined ||
+    author.videos_count !== undefined
+  );
 }
 
 function hasRecognizedMetric(stats: any): boolean {
@@ -136,7 +171,7 @@ export async function upsertPost(post: CrawledPostRow): Promise<void> {
     },
   });
 
-  if (hasRecognizedMetric(post.stats)) {
+  if (hasPostMetricInput(post.stats)) {
     await insertPostMetricSnapshot({
       post_id: postId,
       platform: post.platform,
@@ -194,6 +229,7 @@ export async function upsertPosts(posts: CrawledPostRow[]): Promise<void> {
         media_cached_at: post.media_cached_at || null,
       },
       normalized,
+      originalStats: post.stats,
     };
   });
 
@@ -205,7 +241,7 @@ export async function upsertPosts(posts: CrawledPostRow[]): Promise<void> {
 
   // Append bulk snapshots
   const snapshots = normalizedPosts
-    .filter(np => hasRecognizedMetric(np.post.stats))
+    .filter(np => hasPostMetricInput(np.originalStats))
     .map(np => ({
       post_id: np.post.id,
       platform: np.post.platform,
@@ -214,7 +250,7 @@ export async function upsertPosts(posts: CrawledPostRow[]): Promise<void> {
       like_count: np.normalized.like_count || 0,
       comment_count: np.normalized.comment_count || 0,
       share_count: np.normalized.share_count || 0,
-      raw: np.post.stats || null,
+      raw: np.originalStats || null,
       source: "crawl",
     }));
 

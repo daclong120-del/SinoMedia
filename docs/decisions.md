@@ -113,4 +113,19 @@
 - **Trade-off:** Cần viết kiểu dữ liệu join chi tiết hoặc cast kiểu qua `unknown` để tránh lỗi TypeScript linter do kiểu join tự động của PostgREST.
 - **Revisit trigger:** Khi cấu trúc cơ sở dữ liệu thay đổi hoặc quan hệ account-proxy chuyển sang n-n.
 
+## 2026-07-09 — Khóa quyền truy cập anon và thắt chặt phân quyền trên Supabase
+- **Bối cảnh:** Lộ mã `anon` key trên client browser cho phép bất kỳ ai bypass RLS của các bảng dữ liệu cào hoặc RPC của worker.
+- **Quyết định:**
+  - Thu hồi toàn bộ default privileges và existing privileges trên mọi bảng/function của schema `public` khỏi vai trò `anon` và `public`.
+  - Enforce Row Level Security (RLS) cho toàn bộ crawler output tables (`crawled_posts`, `crawled_authors`, `creative_advertisers`, `creative_ads`) và chỉ `GRANT SELECT` cho vai trò `authenticated`.
+  - Thu hồi quyền thực thi functions/RPCs từ vai trò `public` và chỉ cấp lại một cách có chọn lọc cho `service_role` và `authenticated` (vd: `claim_next_crawler_task` chỉ cho phép `service_role`).
+- **Thành quả kiểm chứng:** Toàn bộ E2E API tests mô phỏng truy vấn thô bằng `anon` key thất bại (HTTP 401/403, code 42501), trong khi các API của Dashboard và Worker (qua `service_role` và authenticated user session) hoạt động bình thường.
+
+## 2026-07-09 — Triển khai Guard Snapshot chống Metric Lịch Sử "Giả"
+- **Bối cảnh:** Việc chuẩn hóa (normalize stats) các post/author không chứa metrics về dạng mặc định `0` làm phát sinh các bản ghi snapshot metric lịch sử sai lệch khi cào/refresh dữ liệu.
+- **Quyết định:**
+  - Phát triển helper logic `hasPostMetricInput(stats)` và `hasAuthorMetricInput(author)` để phát hiện sự hiện diện thực tế của dữ liệu thô (likes, views, followers...).
+  - Chỉ cho phép insert snapshot vào `post_metric_snapshots` và `author_metric_snapshots` khi vượt qua được guard của hai hàm helper này.
+  - Sửa đổi Bilibili metric collector để lưu trữ trực tiếp phản hồi `relationRes` nguyên bản thay vì fallback object rỗng để lưu vết đầy đủ.
+
 
