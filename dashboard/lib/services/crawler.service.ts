@@ -65,14 +65,30 @@ function maskProxyStr(proxyStr: string | null): string | null {
   return proxyStr;
 }
 
-function mapDbAccount(row: DbAccount & { proxy?: string | null }): CrawlerAccount {
+type DbAccountWithProxy = DbAccount & {
+  crawler_proxies?: {
+    host: string;
+    port: number;
+    username: string | null;
+    password?: string | null;
+  }[];
+};
+
+function mapDbAccount(row: DbAccountWithProxy): CrawlerAccount {
+  const proxyObj = row.crawler_proxies?.[0];
+  let proxyStr: string | null = null;
+  if (proxyObj) {
+    const credentials = proxyObj.username ? `:${proxyObj.username}:${proxyObj.password || ""}` : "";
+    proxyStr = `${proxyObj.host}:${proxyObj.port}${credentials}`;
+  }
+
   return {
     id: row.id,
     platform: row.platform as Platform,
     alias: row.username || "unknown",
     status: (row.status as CrawlerAccount["status"]) || "active",
     failure_count: row.failure_count || 0,
-    proxy: maskProxyStr(row.proxy || null),
+    proxy: maskProxyStr(proxyStr),
     last_used_at: row.last_used_at,
     created_at: row.created_at || "",
   };

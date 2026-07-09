@@ -34,6 +34,7 @@ Docs-only edits không sửa code symbol, nhưng vẫn nên chạy `detect_chang
 - `crawler-pipeline` là worker độc lập.
 - Supabase là control plane/data store. External embed/original URL là media path mặc định khi platform hỗ trợ; Cloudflare R2 chỉ là object store tùy chọn cho archive/cache.
 - Dashboard read path chuẩn: Server Component -> Service -> Repository -> `createClientServer()` -> Supabase.
+- Repository chỉ chịu trách nhiệm truy vấn database và trả về dữ liệu thô (raw data, có join qua PostgREST nếu cần). Tuyệt đối không chứa logic nghiệp vụ, định dạng hiển thị hoặc mapping domain (ví dụ: gộp credentials proxy). Toàn bộ logic mapping và định dạng phải nằm ở Service layer.
 - Browser Supabase client chỉ dùng cho realtime subscription.
 - API route chỉ dùng cho mutation, webhook, export/download/proxy hoặc compatibility.
 - UI không đọc raw platform tables trực tiếp; dùng normalized tables.

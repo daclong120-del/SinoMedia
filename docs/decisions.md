@@ -103,4 +103,14 @@
   - Giới hạn **dynamic host trust của CSRF chỉ chạy ở Development** (Production chỉ tin cậy whitelist tĩnh).
   - **API Token Enforcement**: Hoàn thành DB migration, Repo layer và UI Panel. Luồng enforcement ở runtime API routes được đưa vào backlog.
 
+## 2026-07-09 — Siết chặt ranh giới DB Boundary (Tách biệt Query và Mapping/Formatting)
+
+- **Context:** `AccountRepository` trước đây thực hiện truy vấn song song 2 bảng độc lập (`crawler_accounts`, `crawler_proxies`) và tự định dạng chuỗi proxy (`host:port:username:password`) trước khi trả về. Điều này vi phạm nguyên tắc ranh giới kiến trúc (Repository chứa logic nghiệp vụ và tự ý query bảng ngoài scope của nó).
+- **Options considered:**
+  - A: Giữ nguyên truy vấn song song và định dạng trong Repository để tránh đổi kiểu dữ liệu.
+  - B: Sử dụng Supabase relational join (`select("*, crawler_proxies(...)")`) trong Repository, đồng thời chuyển toàn bộ logic định dạng và masking credentials về Service layer (`mapDbAccount`) (Được chọn).
+- **Decision:** Thực thi nghiêm ngặt ranh giới: Repository chỉ trả về dữ liệu thô (raw data) của truy vấn (gồm cả join), Service layer chịu trách nhiệm định dạng và mapping dữ liệu cho UI/Domain.
+- **Trade-off:** Cần viết kiểu dữ liệu join chi tiết hoặc cast kiểu qua `unknown` để tránh lỗi TypeScript linter do kiểu join tự động của PostgREST.
+- **Revisit trigger:** Khi cấu trúc cơ sở dữ liệu thay đổi hoặc quan hệ account-proxy chuyển sang n-n.
+
 

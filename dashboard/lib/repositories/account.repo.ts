@@ -7,35 +7,19 @@ import type { DbClient, TableRow, TableUpdate } from "./types";
 export class AccountRepository {
   constructor(private readonly db: DbClient) {}
 
-  /** Lấy tất cả tài khoản crawler cùng với thông tin proxy gán kèm */
-  async findAll(): Promise<(TableRow<"crawler_accounts"> & { proxy: string | null })[]> {
-    const [accountsRes, proxiesRes] = await Promise.all([
-      this.db
-        .from("crawler_accounts")
-        .select("*")
-        .order("created_at", { ascending: false }),
-      this.db
-        .from("crawler_proxies")
-        .select("assigned_account_id, host, port, username, password")
-        .not("assigned_account_id", "is", null)
-    ]);
+  /** Lấy tất cả tài khoản crawler cùng với thông tin proxy gán kèm (raw database join) */
+  async findAll(): Promise<(TableRow<"crawler_accounts"> & {
+    crawler_proxies: Pick<TableRow<"crawler_proxies">, "host" | "port" | "username" | "password">[];
+  })[]> {
+    const { data, error } = await this.db
+      .from("crawler_accounts")
+      .select("*, crawler_proxies(host, port, username, password)")
+      .order("created_at", { ascending: false });
 
-    if (accountsRes.error) throw accountsRes.error;
-    if (proxiesRes.error) throw proxiesRes.error;
-
-    const proxyMap = new Map<string, string>();
-    (proxiesRes.data ?? []).forEach((p) => {
-      if (p.assigned_account_id) {
-        // Format proxy dạng host:port:username:password hoặc host:port
-        const credentials = p.username ? `:${p.username}:${p.password || ""}` : "";
-        proxyMap.set(p.assigned_account_id, `${p.host}:${p.port}${credentials}`);
-      }
-    });
-
-    return (accountsRes.data ?? []).map((acc) => ({
-      ...acc,
-      proxy: proxyMap.get(acc.id) || null,
-    }));
+    if (error) throw error;
+    return (data as unknown as (TableRow<"crawler_accounts"> & {
+      crawler_proxies: Pick<TableRow<"crawler_proxies">, "host" | "port" | "username" | "password">[];
+    })[]) ?? [];
   }
 
   /** Lấy thông tin platform + status (cho platform health metrics) */
