@@ -25,9 +25,9 @@ function loadEnv(p: string) {
   } catch { }
 }
 
+loadEnv(path.resolve(__dirname, "../.env.local"));
 loadEnv(path.resolve(__dirname, "../../.env"));
 loadEnv(path.resolve(__dirname, "../../supabase/.env.local"));
-loadEnv(path.resolve(__dirname, "../.env.local"));
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY!;
@@ -41,8 +41,9 @@ const PROXY_BASE = "http://localhost:3000/api/worker/rest/v1";
 async function main() {
   console.log("=== Testing API Token Guard Runtime Enforcement ===");
 
-  // Generate a raw token
-  const userId = crypto.randomUUID();
+  // Query a valid profile ID to satisfy the foreign key constraint
+  const { data: profiles } = await supabase.from("profiles").select("id").limit(1);
+  const userId = profiles && profiles.length > 0 ? profiles[0].id : null;
   const rawToken = `sm_live_${crypto.randomBytes(24).toString("hex")}`;
   const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
 
@@ -113,7 +114,7 @@ async function main() {
     const validUUID = "550e8400-e29b-41d4-a716-446655440000";
 
     console.log("\n[2] Valid Scopes & Methods (Expect 200/204/etc, not 401/403)");
-    await check("POST rpc/claim_next_crawler_task", "/rpc/claim_next_crawler_task", "POST", 400, { p_capabilities: [] }); // Expect 400 or 200 from Supabase, but NOT 401/403
+    await check("POST rpc/claim_next_crawler_task", "/rpc/claim_next_crawler_task", "POST", 200, {}); // Expect 200 (returns jsonb)
     await check("GET crawler_accounts", "/crawler_accounts", "GET", 200);
     await check("PATCH crawler_accounts", `/crawler_accounts?id=eq.${validUUID}`, "PATCH", 204, { status: "active" }); // Assuming no content on PATCH
     await check("GET crawled_authors", "/crawled_authors?limit=1", "GET", 200);

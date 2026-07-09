@@ -5,7 +5,7 @@ ALTER TABLE public.api_tokens
 ADD COLUMN IF NOT EXISTS expires_at timestamp with time zone,
 ADD COLUMN IF NOT EXISTS last_used_at timestamp with time zone,
 ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'active',
-ADD COLUMN IF NOT EXISTS scopes text[] NOT NULL DEFAULT ARRAY['*']::text[],
+ADD COLUMN IF NOT EXISTS scopes text[] NOT NULL DEFAULT '{}'::text[],
 ADD COLUMN IF NOT EXISTS revoke_reason text;
 
 -- 2. Add check constraint for status

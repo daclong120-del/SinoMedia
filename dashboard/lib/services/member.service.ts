@@ -378,7 +378,8 @@ export async function createApiToken(
     "crawler:read_data",
     "crawler:read_accounts",
     "crawler:update_accounts",
-    "crawler:write_accounts"
+    "crawler:write_accounts",
+    "crawler:update_data"
   ];
   await tokenRepo.createApiToken(name, tokenHash, tokenPrefix, roleId, user.id, expiresAt, defaultScopes);
 

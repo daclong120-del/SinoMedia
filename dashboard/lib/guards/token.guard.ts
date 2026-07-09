@@ -36,7 +36,8 @@ export function extractTokenFromRequest(req: NextRequest): string | null {
  */
 export async function verifyApiToken(
   req: NextRequest,
-  requiredScopes: string[] = []
+  requiredScopes: string[] = [],
+  allowWildcard: boolean = true
 ): Promise<TokenGuardResult> {
   const rawToken = extractTokenFromRequest(req);
   
@@ -82,7 +83,11 @@ export async function verifyApiToken(
   const tokenScopes = token.scopes || [];
   const hasWildcard = tokenScopes.includes("*");
 
-  if (!hasWildcard && requiredScopes.length > 0) {
+  if (hasWildcard && !allowWildcard) {
+    return { token: null as any, error: "Wildcard tokens (*) are not permitted for this endpoint", status: 403 };
+  }
+
+  if ((!hasWildcard || !allowWildcard) && requiredScopes.length > 0) {
     const hasRequiredScope = requiredScopes.some(scope => tokenScopes.includes(scope));
     if (!hasRequiredScope) {
       return { token: null as any, error: `Insufficient scope. Required one of: ${requiredScopes.join(", ")}`, status: 403 };

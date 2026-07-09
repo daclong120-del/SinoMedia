@@ -17,9 +17,14 @@ function determineRequiredScopes(pathArray: string[], method: string): string[] 
   if (method === "POST" && pathStr === "crawler_accounts") return ["crawler:write_accounts"];
   
   // Data ingestion
-  if (method === "POST" && pathStr === "crawled_authors") return ["crawler:write_data"];
-  if (method === "POST" && pathStr === "crawled_posts") return ["crawler:write_data"];
   if (method === "GET" && pathStr === "crawled_posts") return ["crawler:read_data"];
+  if (method === "POST" && pathStr === "crawled_posts") return ["crawler:write_data"];
+  if (method === "PATCH" && pathStr === "crawled_posts") return ["crawler:update_data"];
+  
+  if (method === "GET" && pathStr === "crawled_authors") return ["crawler:read_data"];
+  if (method === "POST" && pathStr === "crawled_authors") return ["crawler:write_data"];
+  if (method === "PATCH" && pathStr === "crawled_authors") return ["crawler:update_data"];
+  
   if (method === "POST" && pathStr === "crawled_comments") return ["crawler:write_data"];
   
   // Metrics snapshots
@@ -34,14 +39,14 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
   const resolvedParams = await params;
   const pathArray = resolvedParams.path || [];
   
-  // 1. Verify token
+  // 1. Verify token (reject wildcard tokens by passing false)
   const requiredScopes = determineRequiredScopes(pathArray, req.method);
   
   if (!requiredScopes) {
     return NextResponse.json({ error: "Endpoint not allowed or unsupported method" }, { status: 403 });
   }
 
-  const { token, error, status } = await verifyApiToken(req, requiredScopes);
+  const { token, error, status } = await verifyApiToken(req, requiredScopes, false);
   
   if (error || !token) {
     return NextResponse.json({ error }, { status });
@@ -59,22 +64,35 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
     }
   }
 
-  if (req.method === "PATCH" && pathStr === "crawler_tasks") {
-    const idParam = req.nextUrl.searchParams.get("id");
-    if (!idParam) {
-      return NextResponse.json({ error: "Missing id parameter for update" }, { status: 400 });
-    }
-    const uuidRegex = /^eq\.[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-    if (!uuidRegex.test(idParam)) {
-      return NextResponse.json({ error: "Invalid id format. Expected eq.<uuid>" }, { status: 400 });
-    }
+  if (req.method === "PATCH") {
+    const patchPaths = ["crawler_tasks", "crawler_accounts", "crawled_posts", "crawled_authors"];
+    if (patchPaths.includes(pathStr)) {
+      const idParam = req.nextUrl.searchParams.get("id");
+      if (!idParam) {
+        return NextResponse.json({ error: "Missing id parameter for update" }, { status: 400 });
+      }
+      const uuidRegex = /^eq\.[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+      if (!uuidRegex.test(idParam)) {
+        return NextResponse.json({ error: "Invalid id format. Expected eq.<uuid>" }, { status: 400 });
+      }
 
-    if (parsedBody && typeof parsedBody === "object" && !Array.isArray(parsedBody)) {
-      const allowedKeys = ["status", "error_message", "updated_at", "metadata"];
-      const keys = Object.keys(parsedBody);
-      const hasDisallowedKeys = keys.some(key => !allowedKeys.includes(key));
-      if (hasDisallowedKeys) {
-        return NextResponse.json({ error: "Disallowed fields in body. Only status, error_message, updated_at, metadata are allowed." }, { status: 400 });
+      if (parsedBody && typeof parsedBody === "object" && !Array.isArray(parsedBody)) {
+        let whitelist: string[] = [];
+        if (pathStr === "crawler_tasks") {
+          whitelist = ["status", "error_message", "updated_at", "metadata"];
+        } else if (pathStr === "crawler_accounts") {
+          whitelist = ["last_used_at", "failure_count", "status", "updated_at"];
+        } else if (pathStr === "crawled_posts") {
+          whitelist = ["stats", "updated_at"];
+        } else if (pathStr === "crawled_authors") {
+          whitelist = ["fans_count", "follows_count", "updated_at"];
+        }
+
+        const keys = Object.keys(parsedBody);
+        const hasInvalidKey = keys.some(key => !whitelist.includes(key));
+        if (hasInvalidKey) {
+          return NextResponse.json({ error: `Disallowed fields in body. Only ${whitelist.join(", ")} are allowed.` }, { status: 400 });
+        }
       }
     }
   }
@@ -109,7 +127,7 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
   try {
     let bodyPayload;
     if (req.method !== "GET" && req.method !== "HEAD") {
-      bodyPayload = parsedBody ? JSON.stringify(parsedBody) : req.body;
+      bodyPayload = parsedBody ? JSON.stringify(parsedBody) : undefined;
     }
 
     const response = await fetch(targetUrl.toString(), {
