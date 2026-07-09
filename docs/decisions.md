@@ -153,3 +153,13 @@
   - Chuyển `desktop-app/` thành **Packaging Workspace** thực thụ.
   - Xây dựng **SinoMedia Desktop Runtime Package** có khả năng tự bundle dashboard, worker, và embedded runtime (Node/Electron/Tauri) thành một khối độc lập (không cần cài Node/Rust).
   - Khởi tạo trước các `MODULE_EXTRACTION_CONTRACT.md` và `BUILD_ARTIFACT_CONTRACT.md` làm tiêu chuẩn cho các build script tiếp theo.
+
+## 2026-07-09 — Hiện thực hóa Scaffold & Full Build cho Desktop Runtime Package
+- **Bối cảnh:** Cần triển khai các script build tự động để tạo ra Desktop Runtime Package hoàn chỉnh theo contract đã ký kết.
+- **Quyết định:**
+  1. Phát triển script build idempotent `build-runtime-package.ps1` hỗ trợ chế độ `Scaffold` và `Full`. Khi chạy chế độ `Full`, tự động biên dịch Launcher C# (`SinoMedia.exe` từ `src/Launcher.cs` qua `csc.exe`) và gom dashboard standalone build cùng crawler worker đầy đủ.
+  2. Phát triển script `health-check.ps1` hỗ trợ static checks và dynamic `Smoke Test` (`-Smoke`).
+  3. Để tránh lỗi trùng lặp key `Path`/`PATH` khi nhân bản environment trong PowerShell/.NET, các script launcher thực hiện dọn dẹp các biến môi trường trùng lặp trước khi khởi chạy.
+  4. Khởi chạy trực tiếp `$NodeExe` (không qua `cmd.exe`) để quản lý PID của Node chính xác. Ghi logs background không đồng bộ bằng redirection của PowerShell `Start-Process`.
+  5. Sửa đổi smoke test để verify sự tồn tại của file PID trước khi kiểm tra port nhằm tránh false positive từ các server cũ. Tự động skip có cảnh báo nếu thiếu `API_TOKEN` trong `.env`.
+

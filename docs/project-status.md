@@ -22,7 +22,7 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 | Dashboard | Partial | Next.js App Router, nhiều trang đã có service/repository và server actions. Cột mốc quan trọng: `/dash/tasks` đã Done (nối realtime và xử lý tasks thật). |
 | Crawler Pipeline | Partial | Worker TypeScript độc lập có queue loop, claim task qua Supabase RPC, platform factory, account/proxy pool. Bilibili crawler có đầy đủ phase, log và cào bình luận ổn định. |
 | Supabase/Media | Partial | Supabase là control plane/data store. Đã hoàn thành khóa quyền truy cập thô của anon key, bật RLS cho toàn bộ bảng (kể cả audit_logs, exported_files, crawled_comments) và thắt chặt các RPC nhạy cảm. E2E test cho admin/non-admin đạt 100%. |
-| Desktop App | Draft | Đang xây dựng SinoMedia Desktop Runtime Package architecture. Đã có spec/contract cho module extraction và build artifact, sẽ dần thay thế bản Pake draft cũ. |
+| Desktop App | Partial | Đã hoàn thành build script Scaffold & Full, tích hợp embedded Node.exe, launcher scripts, C# wrapper SinoMedia.exe và health check smoke test tự động. |
 
 ## Product direction hiện tại
 
@@ -76,11 +76,14 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 
 | Capability | Trạng thái | Ghi chú |
 |---|---|---|
-| Desktop Runtime Package | Draft | Đã định nghĩa Module Extraction Contract và Build Artifact Contract. Định hướng package mới thay thế cho Pake cũ. |
-| Bundled dashboard server | Planned | Trích xuất dashboard theo Module Extraction Contract. |
-| Activate local worker | Planned | Desktop cần UI/config để bật/tắt worker local, nhưng hiện chưa có worker manager trong app. |
+| Desktop Runtime Package | Done | Đã hiện thực hóa build script idempotent `build-runtime-package.ps1` tạo Scaffold và Full package hoàn chỉnh. |
+| Bundled dashboard server | Done | Đã trích xuất Dashboard Next.js server dưới dạng standalone, chạy bằng embedded Node runtime cục bộ. |
+| Bundled crawler worker | Done | Đã trích xuất Crawler worker (`crawler-pipeline`), chạy bằng embedded Node qua tsx. |
+| Health-check & Smoke Test | Done | Tích hợp kịch bản `health-check.ps1` với chế độ tĩnh và Smoke test động (`-Smoke`) tự động kiểm thử PID và HTTP port, sau đó dừng an toàn. |
+| SinoMedia.exe Launcher | Done | Launcher C# (`src/Launcher.cs`) quản lý vòng đời dashboard & worker, tự động compile bằng `csc.exe` của Windows khi build Full. |
+| Activate local worker | Partial | Launcher C# tự động khởi chạy worker nếu có config `.env`. Cần phát triển UI manager hoàn chỉnh hơn trong tương lai. |
 | Remote worker management | Planned | Cần worker registration/heartbeat/capabilities để máy khác nhận task. |
-| Video downloader service | Planned | Với Bilibili hiện chỉ cần canonical URL/BVID để mở nguồn. Tải file thật về máy là việc của downloader service sau này, không phải R2 cache mặc định. |
+| Video downloader service | Planned | Với Bilibili hiện chỉ cần canonical URL/BVID để mở nguồn. Tải video thật về máy là việc của downloader service sau này, không phải R2 cache mặc định. |
 
 ## Known gaps
 

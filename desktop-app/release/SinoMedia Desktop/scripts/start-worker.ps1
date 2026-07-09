@@ -3,6 +3,13 @@
 $ErrorActionPreference = 'Continue'
 $PSScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Definition
 
+# Dọn dẹp biến môi trường trùng lặp Path/PATH để tránh lỗi của Start-Process/NET
+if ($env:PATH -and $env:Path) {
+    Get-ChildItem env: | Where-Object { $_.Name -eq "PATH" } | ForEach-Object {
+        Remove-Item "env:$($_.Name)" -ErrorAction SilentlyContinue
+    }
+}
+
 Write-Host "=============================================================" -ForegroundColor Cyan
 Write-Host "          Starting SinoMedia Crawler Worker...               " -ForegroundColor Cyan
 Write-Host "=============================================================" -ForegroundColor Cyan
@@ -27,7 +34,7 @@ if (!(Test-Path $NodeExe)) {
     exit 1
 }
 
-# 2. Đọc file .env cấu hình
+# 2. Đọc file .env cấu hình và gán trực tiếp vào environment của session
 $EnvFile = Join-Path $PSScriptRoot "..\config\.env"
 if (Test-Path $EnvFile) {
     Write-Host "Loading environment variables from config/.env..." -ForegroundColor Gray
@@ -53,7 +60,7 @@ if (![System.Environment]::GetEnvironmentVariable("INTERNAL_API_URL")) {
     [System.Environment]::SetEnvironmentVariable("INTERNAL_API_URL", "http://localhost:3000/api/worker")
 }
 
-# 3. Khởi chạy tiến trình background
+# 3. Khởi chạy tiến trình background bằng Start-Process trực tiếp
 $LogFile = Join-Path $PSScriptRoot "..\logs\worker.log"
 $ErrLogFile = Join-Path $PSScriptRoot "..\logs\worker.err.log"
 $PidFile = Join-Path $PSScriptRoot "..\logs\worker.pid"
@@ -61,7 +68,10 @@ $PidFile = Join-Path $PSScriptRoot "..\logs\worker.pid"
 Write-Host "Starting Crawler Worker (running 'crawl' action)..." -ForegroundColor Green
 Write-Host "Logs redirected to: logs/worker.log and logs/worker.err.log" -ForegroundColor Gray
 
-# Chạy worker bằng node.exe gọi tsx
+# Xóa logs cũ trước khi khởi động
+Remove-Item $LogFile -ErrorAction SilentlyContinue | Out-Null
+Remove-Item $ErrLogFile -ErrorAction SilentlyContinue | Out-Null
+
 $Process = Start-Process -FilePath $NodeExe -ArgumentList "`"$TsxCli`"", "`"$IndexTs`"", "crawl" -WorkingDirectory $WorkerRoot -NoNewWindow -RedirectStandardOutput $LogFile -RedirectStandardError $ErrLogFile -PassThru
 
 if ($Process) {

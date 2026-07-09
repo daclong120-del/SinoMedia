@@ -39,7 +39,7 @@ export function decrypt(text: string): string {
     let decrypted = decipher.update(encryptedHex, "hex", "utf8");
     decrypted += decipher.final("utf8");
     return decrypted;
-  } catch (err) {
+  } catch {
     // Graceful fallback for decryption errors (e.g. invalid key or non-encrypted data)
     return text;
   }

@@ -42,7 +42,7 @@ export async function verifyApiToken(
   const rawToken = extractTokenFromRequest(req);
   
   if (!rawToken) {
-    return { token: null as any, error: "Missing API token", status: 401 };
+    return { token: null as unknown as TokenGuardResult["token"], error: "Missing API token", status: 401 };
   }
 
   const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
@@ -53,7 +53,7 @@ export async function verifyApiToken(
 
   if (!supabaseUrl || !serviceRoleKey) {
     console.error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables.");
-    return { token: null as any, error: "Internal Server Error", status: 500 };
+    return { token: null as unknown as TokenGuardResult["token"], error: "Internal Server Error", status: 500 };
   }
 
   const supabaseAdmin = createClient<Database>(supabaseUrl, serviceRoleKey, {
@@ -67,16 +67,15 @@ export async function verifyApiToken(
     .single();
 
   if (error || !token) {
-    console.error("[TokenGuard] Query failed. tokenHash:", tokenHash, "error:", error, "token:", token);
-    return { token: null as any, error: "Invalid API token", status: 401 };
+    return { token: null as unknown as TokenGuardResult["token"], error: "Invalid API token", status: 401 };
   }
 
   if (token.status !== "active") {
-    return { token: null as any, error: `Token is ${token.status}`, status: 401 };
+    return { token: null as unknown as TokenGuardResult["token"], error: `Token is ${token.status}`, status: 401 };
   }
 
   if (token.expires_at && new Date(token.expires_at) < new Date()) {
-    return { token: null as any, error: "Token has expired", status: 401 };
+    return { token: null as unknown as TokenGuardResult["token"], error: "Token has expired", status: 401 };
   }
 
   // Validate scopes
@@ -85,13 +84,13 @@ export async function verifyApiToken(
   const hasWildcard = tokenScopes.includes("*");
 
   if (hasWildcard && !allowWildcard) {
-    return { token: null as any, error: "Wildcard tokens (*) are not permitted for this endpoint", status: 403 };
+    return { token: null as unknown as TokenGuardResult["token"], error: "Wildcard tokens (*) are not permitted for this endpoint", status: 403 };
   }
 
   if ((!hasWildcard || !allowWildcard) && requiredScopes.length > 0) {
     const hasRequiredScope = requiredScopes.some(scope => tokenScopes.includes(scope));
     if (!hasRequiredScope) {
-      return { token: null as any, error: `Insufficient scope. Required one of: ${requiredScopes.join(", ")}`, status: 403 };
+      return { token: null as unknown as TokenGuardResult["token"], error: `Insufficient scope. Required one of: ${requiredScopes.join(", ")}`, status: 403 };
     }
   }
 

@@ -5,8 +5,7 @@ import { encrypt, decrypt } from "@/lib/utils/crypto";
 const ALLOWED_COLUMNS: Record<string, string[]> = {
   crawler_tasks: [
     "id", "platform", "command", "target", "max_count", "status", "priority", 
-    "scheduled_at", "created_at", "updated_at", "error_message", "metadata", 
-    "comment_progress", "phase"
+    "scheduled_at", "created_at", "updated_at", "error_message", "metadata"
   ],
   crawler_accounts: [
     "id", "platform", "username", "cookie_data", "status", "failure_count", "last_used_at", "created_at", "updated_at"
@@ -107,13 +106,97 @@ function determineRequiredScopes(pathArray: string[], method: string): string[] 
   return null;
 }
 
-function validatePayload(payload: any, whitelist: string[]): boolean {
+function validatePayload(payload: unknown, whitelist: string[]): boolean {
   if (!payload || typeof payload !== "object") return true;
   if (Array.isArray(payload)) {
     return payload.every(item => validatePayload(item, whitelist));
   }
   const keys = Object.keys(payload);
   return keys.every(key => whitelist.includes(key));
+}
+
+interface CrawlerAccountValidationResult {
+  error: string | null;
+  forcedSelect?: string;
+  forcedParams?: Record<string, string>;
+}
+
+function validateCrawlerAccountGet(searchParams: URLSearchParams): CrawlerAccountValidationResult {
+  const keys = Array.from(searchParams.keys());
+  
+  // Mode 2: Read account status by id
+  if (keys.includes("id")) {
+    const invalidKeys = keys.filter(k => k !== "id" && k !== "select" && k !== "apikey");
+    if (invalidKeys.length > 0) {
+      return { error: "Mode 2 (Read Status) only allows query by 'id'" };
+    }
+    
+    const idVal = searchParams.get("id");
+    if (!idVal || !idVal.startsWith("eq.")) {
+      return { error: "Invalid id filter. Expected eq.<uuid>" };
+    }
+    
+    const selectParam = searchParams.get("select");
+    if (selectParam) {
+      if (selectParam.includes("cookie_data") || selectParam.includes("*")) {
+        return { error: "cookie_data and wildcard (*) are not allowed in status check mode" };
+      }
+    }
+    
+    return {
+      error: null,
+      forcedSelect: "id,status,failure_count",
+      forcedParams: { limit: "1" }
+    };
+  }
+  
+  // Mode 1: Checkout account
+  const platform = searchParams.get("platform");
+  const status = searchParams.get("status");
+  const order = searchParams.get("order");
+  const limit = searchParams.get("limit");
+  
+  if (!platform || !platform.startsWith("eq.")) {
+    return { error: "Missing or invalid platform filter" };
+  }
+  
+  if (status !== "eq.active") {
+    return { error: "Query must contain status=eq.active" };
+  }
+  
+  if (order !== "last_used_at.asc.nullsfirst") {
+    return { error: "Query must contain order=last_used_at.asc.nullsfirst" };
+  }
+  
+  if (limit !== "1") {
+    return { error: "Query limit must be exactly 1" };
+  }
+  
+  const allowedKeys = ["platform", "status", "order", "limit", "select", "apikey"];
+  const extraKeys = keys.filter(k => !allowedKeys.includes(k));
+  if (extraKeys.length > 0) {
+    return { error: `Disallowed query parameters in checkout mode: ${extraKeys.join(", ")}` };
+  }
+  
+  const selectParam = searchParams.get("select");
+  if (selectParam) {
+    if (selectParam.includes("*")) {
+      return { error: "Wildcard select (*) is not allowed" };
+    }
+    const cols = selectParam.split(",").map(c => c.trim());
+    const checkoutAllowed = ["id", "username", "cookie_data"];
+    for (const col of cols) {
+      if (!checkoutAllowed.includes(col)) {
+        return { error: `Disallowed column in checkout select: ${col}` };
+      }
+    }
+  }
+  
+  return {
+    error: null,
+    forcedSelect: "id,username,cookie_data",
+    forcedParams: { limit: "1" }
+  };
 }
 
 async function handleProxy(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
@@ -167,45 +250,40 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
     }
   }
 
+  // Cưỡng chế và validate cho crawler_accounts GET
+  let forcedSelect = "";
+  let forcedParams: Record<string, string> = {};
+
+  if (req.method === "GET" && pathStr === "crawler_accounts") {
+    const validation = validateCrawlerAccountGet(req.nextUrl.searchParams);
+    if (validation.error) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
+    forcedSelect = validation.forcedSelect || "";
+    forcedParams = validation.forcedParams || {};
+  }
+
   // Validate select parameter và cưỡng chế select an toàn
   let selectParam = req.nextUrl.searchParams.get("select");
   const allowedCols = ALLOWED_COLUMNS[pathStr];
   
-  if (req.method === "GET" || selectParam) {
+  if (pathStr === "crawler_accounts" && req.method === "GET") {
+    selectParam = forcedSelect;
+  } else if (req.method === "GET" || selectParam) {
     if (allowedCols) {
       if (!selectParam) {
-        if (pathStr === "crawler_accounts") {
-          const idParam = req.nextUrl.searchParams.get("id");
-          if (idParam) {
-            selectParam = "id,platform,username,cookie_data,status,failure_count,last_used_at,created_at,updated_at";
-          } else {
-            // Checkout flow
-            selectParam = "id,username,cookie_data";
-          }
-        } else {
-          selectParam = allowedCols.join(",");
-        }
+        selectParam = allowedCols.join(",");
       } else {
         if (selectParam.includes("*")) {
           return NextResponse.json({ error: "Wildcard select (*) is not allowed" }, { status: 400 });
         }
         const cols = selectParam.split(",").map(c => c.trim());
-        
-        if (pathStr === "crawler_accounts" && !req.nextUrl.searchParams.get("id")) {
-          const checkoutAllowed = ["id", "username", "cookie_data"];
-          for (const col of cols) {
-            if (!checkoutAllowed.includes(col)) {
-              return NextResponse.json({ error: `Disallowed column in checkout select: ${col}` }, { status: 400 });
-            }
+        for (const col of cols) {
+          if (col.includes("(") || col.includes(")") || col.includes(".") || col.includes(":")) {
+            return NextResponse.json({ error: `Join queries or aliases are not allowed in select: ${col}` }, { status: 400 });
           }
-        } else {
-          for (const col of cols) {
-            if (col.includes("(") || col.includes(")") || col.includes(".") || col.includes(":")) {
-              return NextResponse.json({ error: `Join queries or aliases are not allowed in select: ${col}` }, { status: 400 });
-            }
-            if (!allowedCols.includes(col)) {
-              return NextResponse.json({ error: `Disallowed column in select: ${col}` }, { status: 400 });
-            }
+          if (!allowedCols.includes(col)) {
+            return NextResponse.json({ error: `Disallowed column in select: ${col}` }, { status: 400 });
           }
         }
       }
@@ -213,7 +291,7 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
   }
 
   // Basic security validation for structural integrity & payload whitelisting
-  let parsedBody: any = null;
+  let parsedBody: unknown = null;
   
   if (req.method !== "GET" && req.method !== "HEAD") {
     try {
@@ -251,9 +329,12 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
 
   // Mã hóa cookie_data trước khi lưu vào DB (dành cho POST crawler_accounts)
   if (req.method === "POST" && pathStr === "crawler_accounts" && parsedBody) {
-    const encryptBody = (item: any) => {
-      if (item && item.cookie_data) {
-        item.cookie_data = encrypt(item.cookie_data);
+    const encryptBody = (item: unknown) => {
+      if (item && typeof item === "object" && "cookie_data" in item) {
+        const record = item as Record<string, unknown>;
+        if (typeof record.cookie_data === "string") {
+          record.cookie_data = encrypt(record.cookie_data);
+        }
       }
     };
     if (Array.isArray(parsedBody)) {
@@ -275,8 +356,16 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
   const targetUrl = new URL(`${supabaseUrl}/rest/v1/${pathArray.join("/")}`);
   req.nextUrl.searchParams.forEach((value, key) => {
     if (key === "select") return; // Skip original select parameter
+    if (forcedParams && key in forcedParams) return; // Skip original parameter if forced
     targetUrl.searchParams.append(key, value);
   });
+  
+  if (forcedParams) {
+    for (const [key, value] of Object.entries(forcedParams)) {
+      targetUrl.searchParams.set(key, value);
+    }
+  }
+  
   if (selectParam) {
     targetUrl.searchParams.set("select", selectParam); // Use validated select parameter
   }
@@ -304,7 +393,7 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
       method: req.method,
       headers: forwardHeaders,
       body: bodyPayload,
-      // @ts-ignore - Next.js extended fetch options
+      // @ts-expect-error - Next.js extended fetch options
       duplex: 'half' 
     });
 
@@ -323,9 +412,12 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
       if (text) {
         try {
           const json = JSON.parse(text);
-          const decryptAccount = (acc: any) => {
-            if (acc && acc.cookie_data) {
-              acc.cookie_data = decrypt(acc.cookie_data);
+          const decryptAccount = (acc: unknown) => {
+            if (acc && typeof acc === "object" && "cookie_data" in acc) {
+              const record = acc as Record<string, unknown>;
+              if (typeof record.cookie_data === "string") {
+                record.cookie_data = decrypt(record.cookie_data);
+              }
             }
           };
           if (Array.isArray(json)) {
@@ -350,7 +442,7 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
       statusText: response.statusText,
       headers: responseHeaders,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Proxy error:", err);
     return NextResponse.json({ error: "Failed to connect to backend service" }, { status: 502 });
   }

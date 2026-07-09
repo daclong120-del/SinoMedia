@@ -90,9 +90,13 @@ async function runRegressionTests() {
     if (authRes.ok) {
       const data = await authRes.json();
       adminJwt = data.access_token;
+    } else {
+      console.error(`CRITICAL: Admin login failed. HTTP ${authRes.status}: ${await authRes.text()}`);
+      process.exit(1);
     }
-  } catch (err) {
-    console.warn("Failed to log in admin test account:", err);
+  } catch (err: any) {
+    console.error("CRITICAL: Failed to log in admin test account:", err.message);
+    process.exit(1);
   }
 
   try {
@@ -104,50 +108,51 @@ async function runRegressionTests() {
     if (authRes.ok) {
       const data = await authRes.json();
       userJwt = data.access_token;
+    } else {
+      console.error(`CRITICAL: User login failed. HTTP ${authRes.status}: ${await authRes.text()}`);
+      process.exit(1);
     }
-  } catch (err) {
-    console.warn("Failed to log in user test account:", err);
+  } catch (err: any) {
+    console.error("CRITICAL: Failed to log in user test account:", err.message);
+    process.exit(1);
+  }
+
+  if (!adminJwt || !userJwt) {
+    console.error("CRITICAL: Missing admin or user JWT token! Test environment is not initialized correctly.");
+    process.exit(1);
   }
 
   // 1.2. Regular User RLS tests
-  if (userJwt) {
-    const sensitiveTables = ["api_tokens", "crawler_accounts", "audit_logs", "crawler_tasks"];
-    for (const table of sensitiveTables) {
-      try {
-        const res = await fetch(`${supabaseUrl}/rest/v1/${table}?limit=1`, {
-          headers: { apikey: anonKey, Authorization: `Bearer ${userJwt}` }
-        });
-        const body = await res.json().catch(() => []);
-        if (res.status === 401 || res.status === 403 || (Array.isArray(body) && body.length === 0)) {
-          reporter.add(`User read restricted on ${table}`, "Database RLS", "PASS", `HTTP ${res.status}, Length: ${body.length || 0}`);
-        } else {
-          reporter.add(`User read restricted on ${table}`, "Database RLS", "FAIL", `Returned data! Length: ${body.length}`);
-        }
-      } catch (err: any) {
-        reporter.add(`User read restricted on ${table}`, "Database RLS", "FAIL", `Error: ${err.message}`);
+  const sensitiveTables = ["api_tokens", "crawler_accounts", "audit_logs", "crawler_tasks"];
+  for (const table of sensitiveTables) {
+    try {
+      const res = await fetch(`${supabaseUrl}/rest/v1/${table}?limit=1`, {
+        headers: { apikey: anonKey, Authorization: `Bearer ${userJwt}` }
+      });
+      const body = await res.json().catch(() => []);
+      if (res.status === 401 || res.status === 403 || (Array.isArray(body) && body.length === 0)) {
+        reporter.add(`User read restricted on ${table}`, "Database RLS", "PASS", `HTTP ${res.status}, Length: ${body.length || 0}`);
+      } else {
+        reporter.add(`User read restricted on ${table}`, "Database RLS", "FAIL", `Returned data! Length: ${body.length}`);
       }
+    } catch (err: any) {
+      reporter.add(`User read restricted on ${table}`, "Database RLS", "FAIL", `Error: ${err.message}`);
     }
-  } else {
-    console.log("⚠️ Skipping User RLS tests (TEST_USER_EMAIL/PASSWORD not configured).");
   }
 
   // 1.3. Admin RLS tests
-  if (adminJwt) {
-    try {
-      const res = await fetch(`${supabaseUrl}/rest/v1/crawler_tasks?limit=1`, {
-        headers: { apikey: anonKey, Authorization: `Bearer ${adminJwt}` }
-      });
-      if (res.status === 200) {
-        reporter.add("Admin read allowed on crawler_tasks", "Database RLS", "PASS", "HTTP 200");
-      } else {
-        const body = await res.text();
-        reporter.add("Admin read allowed on crawler_tasks", "Database RLS", "FAIL", `HTTP ${res.status}: ${body}`);
-      }
-    } catch (err: any) {
-      reporter.add("Admin read allowed on crawler_tasks", "Database RLS", "FAIL", `Error: ${err.message}`);
+  try {
+    const res = await fetch(`${supabaseUrl}/rest/v1/crawler_tasks?limit=1`, {
+      headers: { apikey: anonKey, Authorization: `Bearer ${adminJwt}` }
+    });
+    if (res.status === 200) {
+      reporter.add("Admin read allowed on crawler_tasks", "Database RLS", "PASS", "HTTP 200");
+    } else {
+      const body = await res.text();
+      reporter.add("Admin read allowed on crawler_tasks", "Database RLS", "FAIL", `HTTP ${res.status}: ${body}`);
     }
-  } else {
-    console.log("⚠️ Skipping Admin RLS tests (TEST_ADMIN_EMAIL/PASSWORD not configured).");
+  } catch (err: any) {
+    reporter.add("Admin read allowed on crawler_tasks", "Database RLS", "FAIL", `Error: ${err.message}`);
   }
 
   // ==========================================
@@ -161,22 +166,35 @@ async function runRegressionTests() {
   const wildcardTokenPlain = "test_wildcard_" + crypto.randomBytes(16).toString("hex");
   const wildcardTokenHash = crypto.createHash("sha256").update(wildcardTokenPlain).digest("hex");
 
+  const invalidScopeTokenPlain = "test_invalid_scope_" + crypto.randomBytes(16).toString("hex");
+  const invalidScopeTokenHash = crypto.createHash("sha256").update(invalidScopeTokenPlain).digest("hex");
+
   try {
     // Insert test tokens
-    await supabaseAdmin.from("api_tokens").insert([
+    const insertRes = await supabaseAdmin.from("api_tokens").insert([
       {
         name: "Security Test Scope Token",
         token_hash: testTokenHash,
-        scopes: ["crawler:read_task", "crawler:update_task"],
+        token_prefix: "test_sec",
+        scopes: ["crawler:read_task", "crawler:update_task", "crawler:read_accounts"],
         status: "active"
       },
       {
         name: "Security Test Wildcard Token",
         token_hash: wildcardTokenHash,
+        token_prefix: "test_wildcard",
         scopes: ["*"],
         status: "active"
+      },
+      {
+        name: "Security Test Invalid Scope Token",
+        token_hash: invalidScopeTokenHash,
+        token_prefix: "test_invalid",
+        scopes: ["crawler:read_task"], // Không có crawler:read_accounts
+        status: "active"
       }
-    ]);
+    ]).select();
+    console.log("Insert test tokens result:", JSON.stringify(insertRes));
   } catch (err) {
     console.error("Failed to insert security test tokens into DB! Ensure DB is running. Error:", err);
     process.exit(1);
@@ -195,7 +213,7 @@ async function runRegressionTests() {
 
   // 2.1. Test Scope Enforcement (sai scope)
   try {
-    const res = await fetchProxy("crawler_accounts?limit=1");
+    const res = await fetchProxy("crawler_accounts?limit=1", {}, invalidScopeTokenPlain);
     if (res.status === 403) {
       reporter.add("Token insufficient scope blocked", "REST Proxy", "PASS", "HTTP 403 Forbidden");
     } else {
@@ -345,11 +363,123 @@ async function runRegressionTests() {
     reporter.add("Disallowed fields in PATCH blocked", "REST Proxy", "FAIL", `Error: ${err.message}`);
   }
 
+  // 2.12. Test crawler_accounts: GET without params => 400
+  try {
+    const res = await fetchProxy("crawler_accounts");
+    if (res.status === 400) {
+      reporter.add("crawler_accounts GET no params blocked", "REST Proxy", "PASS", "HTTP 400 Bad Request");
+    } else {
+      reporter.add("crawler_accounts GET no params blocked", "REST Proxy", "FAIL", `HTTP ${res.status}`);
+    }
+  } catch (err: any) {
+    reporter.add("crawler_accounts GET no params blocked", "REST Proxy", "FAIL", `Error: ${err.message}`);
+  }
+
+  // 2.13. Test crawler_accounts: GET limit=100 => 400
+  try {
+    const res = await fetchProxy("crawler_accounts?limit=100");
+    if (res.status === 400) {
+      reporter.add("crawler_accounts GET limit=100 blocked", "REST Proxy", "PASS", "HTTP 400 Bad Request");
+    } else {
+      reporter.add("crawler_accounts GET limit=100 blocked", "REST Proxy", "FAIL", `HTTP ${res.status}`);
+    }
+  } catch (err: any) {
+    reporter.add("crawler_accounts GET limit=100 blocked", "REST Proxy", "FAIL", `Error: ${err.message}`);
+  }
+
+  // 2.14. Test crawler_accounts: GET Mode 1 Checkout valid => 200, length <= 1, only id/username/cookie_data
+  try {
+    const res = await fetchProxy("crawler_accounts?platform=eq.bilibili&status=eq.active&order=last_used_at.asc.nullsfirst&limit=1");
+    if (res.status === 200) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        if (data.length <= 1) {
+          const hasInvalidField = data.some(item => {
+            const keys = Object.keys(item);
+            return keys.some(k => k !== "id" && k !== "username" && k !== "cookie_data");
+          });
+          if (!hasInvalidField) {
+            reporter.add("crawler_accounts GET checkout allowed", "REST Proxy", "PASS", "HTTP 200, length <= 1, fields whitelisted");
+          } else {
+            reporter.add("crawler_accounts GET checkout allowed", "REST Proxy", "FAIL", `Returned disallowed fields: ${Object.keys(data[0]).join(",")}`);
+          }
+        } else {
+          reporter.add("crawler_accounts GET checkout allowed", "REST Proxy", "FAIL", `Returned length: ${data.length} > 1`);
+        }
+      } else {
+        reporter.add("crawler_accounts GET checkout allowed", "REST Proxy", "FAIL", "Response data is not an array");
+      }
+    } else {
+      reporter.add("crawler_accounts GET checkout allowed", "REST Proxy", "FAIL", `HTTP ${res.status}`);
+    }
+  } catch (err: any) {
+    reporter.add("crawler_accounts GET checkout allowed", "REST Proxy", "FAIL", `Error: ${err.message}`);
+  }
+
+  // 2.15. Test crawler_accounts: GET Mode 1 Checkout limit=2 => 400
+  try {
+    const res = await fetchProxy("crawler_accounts?platform=eq.bilibili&status=eq.active&order=last_used_at.asc.nullsfirst&limit=2");
+    if (res.status === 400) {
+      reporter.add("crawler_accounts GET checkout limit=2 blocked", "REST Proxy", "PASS", "HTTP 400 Bad Request");
+    } else {
+      reporter.add("crawler_accounts GET checkout limit=2 blocked", "REST Proxy", "FAIL", `HTTP ${res.status}`);
+    }
+  } catch (err: any) {
+    reporter.add("crawler_accounts GET checkout limit=2 blocked", "REST Proxy", "FAIL", `Error: ${err.message}`);
+  }
+
+  // 2.16. Test crawler_accounts: GET Mode 2 Read status by id => 200 or [] but no cookie_data
+  const testUuid = crypto.randomUUID();
+  try {
+    const res = await fetchProxy(`crawler_accounts?id=eq.${testUuid}`);
+    if (res.status === 200) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        const hasCookieData = data.some(item => "cookie_data" in item);
+        if (!hasCookieData) {
+          reporter.add("crawler_accounts GET status by id allowed", "REST Proxy", "PASS", "HTTP 200, no cookie_data returned");
+        } else {
+          reporter.add("crawler_accounts GET status by id allowed", "REST Proxy", "FAIL", "Returned cookie_data in status mode!");
+        }
+      } else {
+        reporter.add("crawler_accounts GET status by id allowed", "REST Proxy", "FAIL", "Response data is not an array");
+      }
+    } else {
+      reporter.add("crawler_accounts GET status by id allowed", "REST Proxy", "FAIL", `HTTP ${res.status}`);
+    }
+  } catch (err: any) {
+    reporter.add("crawler_accounts GET status by id allowed", "REST Proxy", "FAIL", `Error: ${err.message}`);
+  }
+
+  // 2.17. Test crawler_accounts: GET Mode 2 with select=cookie_data => 400
+  try {
+    const res = await fetchProxy(`crawler_accounts?id=eq.${testUuid}&select=cookie_data`);
+    if (res.status === 400) {
+      reporter.add("crawler_accounts GET status select cookie_data blocked", "REST Proxy", "PASS", "HTTP 400 Bad Request");
+    } else {
+      reporter.add("crawler_accounts GET status select cookie_data blocked", "REST Proxy", "FAIL", `HTTP ${res.status}`);
+    }
+  } catch (err: any) {
+    reporter.add("crawler_accounts GET status select cookie_data blocked", "REST Proxy", "FAIL", `Error: ${err.message}`);
+  }
+
+  // 2.18. Test crawler_accounts: GET username=eq.admin => 400
+  try {
+    const res = await fetchProxy("crawler_accounts?username=eq.admin");
+    if (res.status === 400) {
+      reporter.add("crawler_accounts GET search by username blocked", "REST Proxy", "PASS", "HTTP 400 Bad Request");
+    } else {
+      reporter.add("crawler_accounts GET search by username blocked", "REST Proxy", "FAIL", `HTTP ${res.status}`);
+    }
+  } catch (err: any) {
+    reporter.add("crawler_accounts GET search by username blocked", "REST Proxy", "FAIL", `Error: ${err.message}`);
+  }
+
   // ==========================================
   // Clean up mock tokens
   // ==========================================
   try {
-    await supabaseAdmin.from("api_tokens").delete().in("token_hash", [testTokenHash, wildcardTokenHash]);
+    await supabaseAdmin.from("api_tokens").delete().in("token_hash", [testTokenHash, wildcardTokenHash, invalidScopeTokenHash]);
     console.log("Cleaned up security test tokens successfully.");
   } catch (err) {
     console.error("Failed to clean up security test tokens:", err);

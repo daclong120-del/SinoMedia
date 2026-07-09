@@ -8,9 +8,19 @@ export async function proxy(request: NextRequest) {
   // Route bảo mật (Yêu cầu đăng nhập)
   const isDashboardRoute = path.startsWith("/dash");
   // Route quản lý thành viên, tài khoản, tác vụ (Yêu cầu admin)
-  const isAdminOnlyRoute = path.startsWith("/dash/manage-account/members") || 
-                           path.startsWith("/dash/accounts") || 
-                           path.startsWith("/dash/tasks");
+  const ADMIN_ONLY_PREFIXES = [
+    "/dash/manage-account/members",
+    "/dash/accounts",
+    "/dash/tasks",
+    "/dash/proxies",
+    "/dash/audit-logs",
+    "/dash/settings",
+    "/dash/data/management",
+  ];
+
+  const isAdminOnlyRoute = ADMIN_ONLY_PREFIXES.some(
+    (prefix) => path === prefix || path.startsWith(`${prefix}/`)
+  );
   // Route xác thực (Chỉ cho phép khi chưa đăng nhập)
   const isAuthRoute = path === "/login" || path === "/sign-up" || path === "/forgot-password";
 

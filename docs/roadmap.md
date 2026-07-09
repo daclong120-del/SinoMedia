@@ -107,7 +107,7 @@ Hiện trạng:
 
 ## Phase 4: Desktop Runtime Package
 
-Trạng thái: Draft -> Planned
+Trạng thái: In Progress (Đã hiện thực hóa build script scaffold + Full extraction, launcher, và health check smoke test)
 
 Mục tiêu:
 
