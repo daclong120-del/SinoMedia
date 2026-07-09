@@ -93,3 +93,14 @@
 - **Trade-off:** Đổi file Middleware bảo vệ Next.js từ `middleware.ts` sang `proxy.ts` để tương thích với deprecation convention của Next.js 16.2.10.
 - **Revisit trigger:** Khi Next.js thay đổi quy ước middleware hoặc khi phát sinh nhu cầu phân quyền logs chi tiết (permission-based) thay vì authenticated-wide.
 
+## 2026-07-09 — Log Redaction & Security Hygiene (Cookie, Từ nối tiếng Việt & CSRF Prod)
+- **Bối cảnh:** Lộ thông tin vận hành trong logs (cookie nhiều cặp bị hở đuôi sau `;`, msToken bị lộ khi đi kèm câu log tiếng Việt), dev scripts bypass logger thô, và nguy cơ host spoofing trong CSRF.
+- **Quyết định:**
+  - Thiết kế **3 bộ Regex đặc tả Cookie** (JSON style, value có nháy, và cookie thô không nháy) kết hợp loại trừ khoảng trắng đầu value để mask sạch 100% cookie.
+  - Cải tiến Regex token hỗ trợ **từ nối (tiếng Việt/ASCII)** đứng trước token để mask chính xác.
+  - Kích hoạt **Generic Token Redactor** cho mọi chuỗi continuous >= 20 ký tự (loại trừ URL/path/email).
+  - Chuyển toàn bộ console logs trong `check_status.ts`/`check_tasks.ts` sang Central Logger để tự động làm sạch.
+  - Giới hạn **dynamic host trust của CSRF chỉ chạy ở Development** (Production chỉ tin cậy whitelist tĩnh).
+  - **API Token Enforcement**: Hoàn thành DB migration, Repo layer và UI Panel. Luồng enforcement ở runtime API routes được đưa vào backlog.
+
+

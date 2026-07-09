@@ -91,6 +91,9 @@ Ví dụ bẫy hiện tại:
 - **Giới hạn Mock Auth**: Mock Auth bypass chỉ được phép chạy khi `process.env.NODE_ENV !== "production"` và đồng thời có cờ `process.env.ENABLE_MOCK_AUTH === "true"`. Ở môi trường production, hệ thống bắt buộc phải fail-closed về Supabase Auth thật.
 - **Bảo vệ Video Proxy chống SSRF**: API endpoint `/api/video/proxy` được tích hợp các lớp bảo vệ nghiêm ngặt: kiểm tra auth session (`getCurrentUser`), chỉ nhận giao thức HTTPS, giới hạn dung lượng tải (100MB), giới hạn content-type, phân giải DNS chặn IP private/local (chống SSRF), và so sánh CORS origin chính xác (`URL.origin`). Khi tích hợp thêm CDN/Platform mới, bắt buộc cập nhật domain allowlist tại `route.ts`.
 - **Thắt chặt quyền Task & Account API**: Các API/Actions thay đổi trạng thái task (`createTask`, `createTasksBulk`, `cancelTask`, `retryTask`) và lấy thông tin nhạy cảm (`getAccounts`) bắt buộc phải bọc bằng guard `requireAdmin()`. Quyền thực thi các RPC (`claim_next_crawler_task`, `create_crawler_tasks`) cũng được thắt chặt bằng cách `REVOKE` khỏi vai trò public/anon và chỉ `GRANT` cho `service_role`/`authenticated` thích hợp.
+- **Quy tắc Log Redaction & Cookie**: Không bao giờ truyền raw credentials/cookies vào log. Logger đã có bộ 3 Regex lọc Cookie (JSON, nháy đơn/kép, thô) và bộ Generic Token Redactor cho chuỗi dài >= 20 ký tự. Khi log msToken, chỉ in sự hiện diện và độ dài: `msToken: Có (độ dài X)`.
+- **Cấm bypass console.log trong dev scripts**: Mọi script tiện ích của dev (ví dụ `check_tasks.ts`, `check_status.ts`) bắt buộc phải dùng `logger.info`/`logger.error` từ `./utils/index.js` để logs đi qua bộ lọc an toàn, tránh in thô `serviceRoleKey`.
+- **Ràng buộc CSRF ở Production**: Hàm `verifyCSRF` chỉ tin cậy dynamic host từ `Host`/`X-Forwarded-Host` headers khi chạy local (`process.env.NODE_ENV !== "production"`). Trên production, bắt buộc so khớp với whitelist tĩnh (`NEXT_PUBLIC_SITE_URL` và `localhost`).
 
 ## Documentation rule
 
