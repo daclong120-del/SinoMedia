@@ -114,12 +114,14 @@
 - **Revisit trigger:** Khi cấu trúc cơ sở dữ liệu thay đổi hoặc quan hệ account-proxy chuyển sang n-n.
 
 ## 2026-07-09 — Khóa quyền truy cập anon và thắt chặt phân quyền trên Supabase
-- **Bối cảnh:** Lộ mã `anon` key trên client browser cho phép bất kỳ ai bypass RLS của các bảng dữ liệu cào hoặc RPC của worker.
+- **Bối cảnh:** Lộ mã `anon` key trên client browser cho phép bất kỳ ai bypass RLS của các bảng dữ liệu cào hoặc RPC của worker. Hơn nữa, việc migrations trước đó thiếu `DROP POLICY IF EXISTS` dẫn đến lỗi khi re-apply. Script test cũ sử dụng tài khoản hardcoded gây rủi ro trên prod.
 - **Quyết định:**
   - Thu hồi toàn bộ default privileges và existing privileges trên mọi bảng/function của schema `public` khỏi vai trò `anon` và `public`.
-  - Enforce Row Level Security (RLS) cho toàn bộ crawler output tables (`crawled_posts`, `crawled_authors`, `creative_advertisers`, `creative_ads`) và chỉ `GRANT SELECT` cho vai trò `authenticated`.
+  - Enforce Row Level Security (RLS) cho toàn bộ bảng dữ liệu (từ crawler outputs đến `audit_logs`, `exported_files`, `crawled_comments`) và giới hạn quyền theo role (`authenticated` hoặc `admin`). Các bảng chứa dữ liệu cá nhân như `exported_files` được scope nghiêm ngặt theo `created_by = auth.uid()`.
+  - Thêm `DROP POLICY IF EXISTS` cho tất cả các migration liên quan đến Policy để đảm bảo tính idempotent.
+  - Loại bỏ hoàn toàn hardcoded credentials và auto-signup trong các E2E test scripts (sử dụng ENV vars).
   - Thu hồi quyền thực thi functions/RPCs từ vai trò `public` và chỉ cấp lại một cách có chọn lọc cho `service_role` và `authenticated` (vd: `claim_next_crawler_task` chỉ cho phép `service_role`).
-- **Thành quả kiểm chứng:** Toàn bộ E2E API tests mô phỏng truy vấn thô bằng `anon` key thất bại (HTTP 401/403, code 42501), trong khi các API của Dashboard và Worker (qua `service_role` và authenticated user session) hoạt động bình thường.
+- **Thành quả kiểm chứng:** Toàn bộ E2E API tests mô phỏng truy vấn thô bằng `anon` key thất bại (HTTP 401/403, code 42501). Test scripts mới xác nhận role `user` bị chặn truy cập các bảng cấu hình/nhạy cảm, trong khi các API của Dashboard và Worker hoạt động bình thường.
 
 ## 2026-07-09 — Triển khai Guard Snapshot chống Metric Lịch Sử "Giả"
 - **Bối cảnh:** Việc chuẩn hóa (normalize stats) các post/author không chứa metrics về dạng mặc định `0` làm phát sinh các bản ghi snapshot metric lịch sử sai lệch khi cào/refresh dữ liệu.

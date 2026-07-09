@@ -21,7 +21,7 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 |---|---|---|
 | Dashboard | Partial | Next.js App Router, nhiều trang đã có service/repository và server actions. Cột mốc quan trọng: `/dash/tasks` đã Done (nối realtime và xử lý tasks thật). |
 | Crawler Pipeline | Partial | Worker TypeScript độc lập có queue loop, claim task qua Supabase RPC, platform factory, account/proxy pool. Bilibili crawler có đầy đủ phase, log và cào bình luận ổn định. |
-| Supabase/Media | Partial | Supabase là control plane/data store. Đã hoàn thành khóa quyền truy cập thô của anon key, bật RLS cho toàn bộ crawler outputs và thắt chặt các RPC nhạy cảm. |
+| Supabase/Media | Partial | Supabase là control plane/data store. Đã hoàn thành khóa quyền truy cập thô của anon key, bật RLS cho toàn bộ bảng (kể cả audit_logs, exported_files, crawled_comments) và thắt chặt các RPC nhạy cảm. E2E test cho admin/non-admin đạt 100%. |
 | Desktop App | Draft | Hiện là packaging bằng Pake cho dashboard local. Chưa phải desktop runtime có worker manager/video downloader service tích hợp. |
 
 ## Product direction hiện tại
@@ -43,8 +43,8 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 | `/dash/tasks` | Done | Giao diện quản lý task hoàn chỉnh, kết nối DB thật, realtime status thật, nút Cancel/Retry (Optimistic), hiển thị phase và tiến trình cào bình luận (comment_progress) thời gian thực. |
 | `/dash/accounts` | Draft | Đọc account qua action, nhưng modal nạp tài khoản và nút unban/xóa chưa nối mutation thật. |
 | `/dash/proxies` | Partial | Có service/actions cho proxy; health check hiện vẫn là TODO/fake ở repository. |
-| `/dash/audit-logs` | Partial | Có audit repository/service, cần dữ liệu thật và policy rõ. |
-| `/dash/settings` | Draft | Chủ yếu local/UI settings; không giả định đã persist DB nếu chưa thấy service/migration. |
+| `/dash/audit-logs` | Partial | Có audit repository/service, dữ liệu đã được bảo vệ bằng RLS admin-only. Cần dữ liệu thật. |
+| `/dash/settings` | Draft | Chủ yếu local/UI settings; RLS cho exported_files đã được thắt chặt theo owner (`created_by`). |
 | `/dash/manage-account/members` | Done | Đã nối invite flow thật, tự động gán role. Đồng thời tích hợp quản lý **API Tokens Panel** có thời hạn, status (active/revoked), ngày dùng cuối, và Server actions thắt chặt CSRF. |
 | `/dash/data/posts` | Partial | Có trang list/detail UI, nhưng còn comment `Cover mock`/`Player mockup`; cần nối media/detail hoàn chỉnh. |
 | `/dash/data/authors` | Partial | Có server/service read path, cần kiểm chứng dữ liệu thật/filter. |

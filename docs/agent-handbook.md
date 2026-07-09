@@ -95,7 +95,11 @@ Ví dụ bẫy hiện tại:
 - **Quy tắc Log Redaction & Cookie**: Không bao giờ truyền raw credentials/cookies vào log. Logger đã có bộ 3 Regex lọc Cookie (JSON, nháy đơn/kép, thô) và bộ Generic Token Redactor cho chuỗi dài >= 20 ký tự. Khi log msToken, chỉ in sự hiện diện và độ dài: `msToken: Có (độ dài X)`.
 - **Cấm bypass console.log trong dev scripts**: Mọi script tiện ích của dev (ví dụ `check_tasks.ts`, `check_status.ts`) bắt buộc phải dùng `logger.info`/`logger.error` từ `./utils/index.js` để logs đi qua bộ lọc an toàn, tránh in thô `serviceRoleKey`.
 - **Ràng buộc CSRF ở Production**: Hàm `verifyCSRF` chỉ tin cậy dynamic host từ `Host`/`X-Forwarded-Host` headers khi chạy local (`process.env.NODE_ENV !== "production"`). Trên production, bắt buộc so khớp với whitelist tĩnh (`NEXT_PUBLIC_SITE_URL` và `localhost`).
-- **Bảo mật Anon Key & RLS**: Vai trò `anon` và `public` đã bị thu hồi toàn bộ quyền default privileges và existing privileges trong schema `public`. Bất kỳ bảng dữ liệu crawler output nào cũng phải bật Row Level Security (RLS) và chỉ mở quyền đọc (`SELECT`) cho `authenticated` users, cấm mở quyền ghi (`INSERT`/`UPDATE`) cho client ngoại trừ `service_role`. Các RPC nhạy cảm bắt buộc phải REVOKE khỏi `public`/`anon` để tránh bị gọi tự do bằng anon key.
+- **Bảo mật Anon Key, RLS & Migrations**: 
+  - Bất kỳ bảng dữ liệu nào (crawler outputs, configuration, logs) cũng phải bật RLS.
+  - Các migrations thay đổi Policy cần bao gồm `DROP POLICY IF EXISTS` để đảm bảo tính idempotent khi dev reset database nhiều lần.
+  - Các bảng chứa user data (như `exported_files`) phải scope RLS chặt chẽ theo owner (VD: `created_by = auth.uid()::text`).
+- **Test Scripts & Credentials**: Tuyệt đối không hardcode credentials (email/password) hoặc tự động gọi API `signup` trong các test scripts e2e (như `test-db-harden-e2e.ts`) để tránh rủi ro tạo rác/lộ lọt trên production. Bắt buộc phải đọc từ Environment Variables (VD: `TEST_ADMIN_EMAIL`).
 
 ## Documentation rule
 
