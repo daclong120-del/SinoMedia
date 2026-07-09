@@ -118,6 +118,8 @@ Ví dụ bẫy hiện tại:
   - Các bảng vận hành nhạy cảm (`crawler_tasks`, `crawler_logs`, `audit_logs`, `api_tokens`, `crawler_accounts`) bắt buộc phải bọc RLS Admin-only (`public.is_admin(auth.uid())`).
   - Đi kèm với RLS, các route tương ứng trên Dashboard (`/dash/tasks`, `/dash/accounts`) cũng phải được cấu hình chặn bằng Next.js Middleware (`proxy.ts`) để bảo vệ nguyên tắc 2 lớp (UI chuyển hướng + DB chặn query).
 - **Test Scripts & Credentials**: Tuyệt đối không hardcode credentials (email/password) hoặc tự động gọi API `signup` trong các test scripts e2e (như `test-db-harden-e2e.ts`) để tránh rủi ro tạo rác/lộ lọt trên production. Bắt buộc phải đọc từ Environment Variables (VD: `TEST_ADMIN_EMAIL`). Mọi file scratch chứa dữ liệu nhạy cảm hoặc logic service_role phải nằm trong `.gitignore` (như `crawler-pipeline/scratch/`).
+- **Bảo mật Cấu hình & Secrets (Settings & Secrets)**: Cấm lưu trữ cấu hình hệ thống nhạy cảm (như API key, Webhook URLs chứa token bí mật) ở `localStorage`. Bắt buộc phải di chuyển cấu hình nhạy cảm sang cơ sở dữ liệu `system_settings` được mã hóa tại server boundary. Các Server Actions tương ứng phải bọc bằng `requireAdmin()` và `verifyCSRF()`, đồng thời che giấu (masking) trước khi trả về client và không log các chuỗi nhạy cảm thô này vào `audit_logs`.
+
 
 ## Documentation rule
 
