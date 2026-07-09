@@ -1,16 +1,14 @@
-# SinoMedia Desktop Health Check Script
+param(
+    [switch]$Smoke
+)
 
+# SinoMedia Desktop Health Check & Smoke Test Script
 $ErrorActionPreference = 'Stop'
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
-# Xác định thư mục Release root.
-# Script này có thể chạy từ desktop-app/scripts/ hoặc release/SinoMedia Desktop/scripts/.
-# Nếu thư mục cha là "scripts", Release root sẽ là thư mục cha của "scripts".
-# Ngược lại, nếu chạy từ nơi khác, ta cần xác định tương đối.
 if ($ScriptDir.EndsWith("scripts")) {
     $ReleaseDir = Split-Path -Parent $ScriptDir
 } else {
-    # Fallback nếu chạy trực tiếp ngoài Release root hoặc từ desktop-app/scripts
     $ReleaseDir = Split-Path -Parent $ScriptDir
 }
 
@@ -22,9 +20,11 @@ if (Test-Path (Join-Path $ReleaseDir "release\SinoMedia Desktop")) {
 Write-Host "=============================================================" -ForegroundColor Cyan
 Write-Host "             Running SinoMedia Desktop Health Check          " -ForegroundColor Cyan
 Write-Host "             Release Path: $ReleaseDir" -ForegroundColor Gray
+Write-Host "             Smoke Mode: $(if ($Smoke) { 'Enabled' } else { 'Disabled' })" -ForegroundColor Gray
 Write-Host "=============================================================" -ForegroundColor Cyan
 
 $Success = $true
+$Manifest = $null
 
 # 1. Kiểm tra manifest.json
 $ManifestPath = Join-Path $ReleaseDir "manifest.json"
@@ -129,6 +129,106 @@ if ($Success -and $Manifest) {
         }
     } else {
         Write-Warning "No 'includes' metadata section found in manifest.json."
+    }
+}
+
+# 6. Chạy Smoke Test (nếu được kích hoạt và kiểm tra cơ bản pass)
+if ($Smoke) {
+    if (!$Success) {
+        Write-Error "Smoke test aborted because basic health check failed."
+    } elseif (!$Manifest -or !$Manifest.includes -or $Manifest.buildMode -eq "Scaffold") {
+        Write-Warning "Smoke test skipped: buildMode is Scaffold or includes metadata is missing."
+    } else {
+        Write-Host "`n--- Running Smoke Test ---" -ForegroundColor Cyan
+        $SmokeSuccess = $true
+        
+        # Launcher paths
+        $StartDashScript = Join-Path $ReleaseDir "scripts\start-dashboard.ps1"
+        $StartWorkerScript = Join-Path $ReleaseDir "scripts\start-worker.ps1"
+        $StopScript = Join-Path $ReleaseDir "scripts\stop-services.ps1"
+        
+        if (!(Test-Path $StartDashScript) -or !(Test-Path $StartWorkerScript) -or !(Test-Path $StopScript)) {
+            Write-Error "CRITICAL: Launcher scripts (start/stop) are missing from release scripts folder!"
+            $SmokeSuccess = $false
+            $Success = $false
+        } else {
+            # Bước A: Khởi động Dashboard
+            Write-Host "[Smoke] Launching Dashboard server..." -ForegroundColor Gray
+            & $StartDashScript
+            
+            # Kiểm tra port 3000
+            Write-Host "[Smoke] Verifying Dashboard HTTP port..." -ForegroundColor Gray
+            $PortOk = $false
+            $Checks = 0
+            $MaxChecks = 6
+            $DashboardUri = "http://localhost:3000/login"
+            
+            while ($Checks -lt $MaxChecks -and !$PortOk) {
+                Start-Sleep -Seconds 2
+                $Checks++
+                try {
+                    # Dùng Invoke-WebRequest để kiểm tra port 3000
+                    $Response = Invoke-WebRequest -Uri $DashboardUri -UseBasicParsing -TimeoutSec 3 -ErrorAction Stop
+                    if ($Response.StatusCode -ge 200 -and $Response.StatusCode -lt 500) {
+                        $PortOk = $true
+                    }
+                } catch {
+                    # Lỗi kết nối thường xảy ra khi port chưa mở
+                    if ($_.Exception.Message -match "Unable to connect" -or $_.Exception.InnerException.Message -match "connection refused") {
+                        Write-Host "        Attempt $Checks/${MaxChecks}: Waiting for Dashboard port 3000 to listen..." -ForegroundColor Yellow
+                    } else {
+                        # Lỗi do HTTP (VD: 404, 302, 401) vẫn nghĩa là server đang chạy và xử lý HTTP
+                        $PortOk = $true
+                    }
+                }
+            }
+            
+            if ($PortOk) {
+                Write-Host "[Smoke OK] Dashboard responds successfully at $DashboardUri" -ForegroundColor Green
+            } else {
+                Write-Error "[Smoke FAILED] Dashboard port 3000 failed to respond after $($MaxChecks * 2) seconds."
+                $SmokeSuccess = $false
+            }
+            
+            # Bước B: Khởi động Worker
+            Write-Host "[Smoke] Launching Crawler Worker..." -ForegroundColor Gray
+            & $StartWorkerScript
+            
+            # Chờ worker boot
+            Start-Sleep -Seconds 4
+            
+            # Kiểm tra PID worker
+            $WorkerPidFile = Join-Path $ReleaseDir "logs\worker.pid"
+            $WorkerRunning = $false
+            
+            if (Test-Path $WorkerPidFile) {
+                $wPidVal = (Get-Content $WorkerPidFile -Raw) -replace '[^\d]'
+                if ($wPidVal) {
+                    $wPidInt = [int]$wPidVal
+                    $proc = Get-Process -Id $wPidInt -ErrorAction SilentlyContinue
+                    if ($proc -and !$proc.HasExited) {
+                        $WorkerRunning = $true
+                        Write-Host "[Smoke OK] Crawler Worker is running under PID: $wPidInt" -ForegroundColor Green
+                    }
+                }
+            }
+            
+            if (!$WorkerRunning) {
+                Write-Error "[Smoke FAILED] Crawler Worker process is not running or exited immediately."
+                $SmokeSuccess = $false
+            }
+            
+            # Bước C: Tắt toàn bộ dịch vụ (luôn chạy để dọn dẹp)
+            Write-Host "[Smoke] Cleaning up: stopping all services..." -ForegroundColor Gray
+            & $StopScript
+            
+            if ($SmokeSuccess) {
+                Write-Host "[SUCCESS] Smoke test completed successfully! Dashboard & Worker verified." -ForegroundColor Green
+            } else {
+                Write-Host "[FAILED] Smoke test failed!" -ForegroundColor Red
+                $Success = $false
+            }
+        }
     }
 }
 

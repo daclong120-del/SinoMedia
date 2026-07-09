@@ -55,7 +55,7 @@ $PidFile = Join-Path $PSScriptRoot "..\logs\dashboard.pid"
 Write-Host "Starting Dashboard on port $Port..." -ForegroundColor Green
 Write-Host "Logs redirected to: logs/dashboard.log and logs/dashboard.err.log" -ForegroundColor Gray
 
-$Process = Start-Process -FilePath $NodeExe -ArgumentList "$ServerJs" -WorkingDirectory (Join-Path $PSScriptRoot "..\app") -NoNewWindow -RedirectStandardOutput $LogFile -RedirectStandardError $ErrLogFile -PassThru
+$Process = Start-Process -FilePath $NodeExe -ArgumentList "`"$ServerJs`"" -WorkingDirectory (Join-Path $PSScriptRoot "..\app") -NoNewWindow -RedirectStandardOutput $LogFile -RedirectStandardError $ErrLogFile -PassThru
 
 if ($Process) {
     $Process.Id | Out-File -FilePath $PidFile -Force

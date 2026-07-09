@@ -67,6 +67,7 @@ export async function verifyApiToken(
     .single();
 
   if (error || !token) {
+    console.error("[TokenGuard] Query failed. tokenHash:", tokenHash, "error:", error, "token:", token);
     return { token: null as any, error: "Invalid API token", status: 401 };
   }
 

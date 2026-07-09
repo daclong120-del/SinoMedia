@@ -4,7 +4,7 @@ SinoMedia Desktop Release Scaffold
 Day la thu muc release scaffold cua ung dung SinoMedia Desktop.
 Thu muc nay chua cau truc thu muc dung chuan va cac script launcher de van hanh ung dung desktop.
 
-De cap nhat phien ban day du (Full Mode), vui long chay script build:
+De cap nhat phien ban day du (Full Mode), vui long mo command line tai thu muc nguon `desktop-app/` va chay:
 PowerShell -ExecutionPolicy Bypass -File .\scripts\build-runtime-package.ps1 -Mode Full
 
 Luu y:

@@ -3,6 +3,7 @@
  * Tầng duy nhất chạm bảng `crawler_proxies` trong Supabase.
  */
 import type { DbClient, TableRow } from "./types";
+import { encrypt } from "../utils/crypto";
 
 export interface CreateProxyInput {
   host: string;
@@ -51,7 +52,7 @@ export class ProxyRepository {
         host: p.host,
         port: p.port,
         username: p.username,
-        password: p.password,
+        password: p.password ? encrypt(p.password) : null,
         protocol: p.protocol,
         status: p.status,
       })));
@@ -93,7 +94,10 @@ export class ProxyRepository {
   async create(proxy: Omit<TableRow<"crawler_proxies">, "id" | "created_at" | "last_used_at">): Promise<TableRow<"crawler_proxies">> {
     const { data, error } = await this.db
       .from("crawler_proxies")
-      .insert(proxy)
+      .insert({
+        ...proxy,
+        password: proxy.password ? encrypt(proxy.password) : null
+      })
       .select()
       .single();
     if (error) throw error;
@@ -102,9 +106,13 @@ export class ProxyRepository {
 
   /** Cập nhật thông tin proxy */
   async update(id: string, updates: Partial<TableRow<"crawler_proxies">>): Promise<void> {
+    const finalUpdates = { ...updates };
+    if (finalUpdates.password) {
+      finalUpdates.password = encrypt(finalUpdates.password);
+    }
     const { error } = await this.db
       .from("crawler_proxies")
-      .update(updates)
+      .update(finalUpdates)
       .eq("id", id);
     if (error) throw error;
   }

@@ -64,42 +64,6 @@ export async function GET(req: NextRequest) {
     return new Response("Missing url parameter", { status: 400 });
   }
 
-  // 2. Validate URL format & protocol (chỉ cho phép HTTPS)
-  let parsedUrl: URL;
-  try {
-    parsedUrl = new URL(targetUrl);
-  } catch {
-    return new Response("Invalid URL format", { status: 400 });
-  }
-
-  if (parsedUrl.protocol !== "https:") {
-    return new Response("Only HTTPS protocol is supported", { status: 400 });
-  }
-
-  // 3. Domain Allowlist Check
-  const hostname = parsedUrl.hostname.toLowerCase();
-  const isAllowedDomain = ALLOWED_DOMAINS.some(domain => 
-    hostname === domain || hostname.endsWith("." + domain)
-  );
-
-  if (!isAllowedDomain) {
-    return new Response("Forbidden domain target", { status: 403 });
-  }
-
-  // 4. DNS Resolution & Private/Local IP Filtering (SSRF Prevention)
-  try {
-    const dnsPromises = dns.promises;
-    const lookupResults = await dnsPromises.lookup(hostname, { all: true });
-    for (const addr of lookupResults) {
-      if (isPrivateIp(addr.address)) {
-        return new Response("Access to private or local networks is forbidden", { status: 403 });
-      }
-    }
-  } catch (dnsErr) {
-    console.error(`[VideoProxy] DNS lookup failed for ${hostname}:`, dnsErr);
-    return new Response("DNS resolution failed for target", { status: 400 });
-  }
-
   // Khởi tạo headers cho request tới video CDN
   const headers = new Headers();
   
@@ -141,30 +105,109 @@ export async function GET(req: NextRequest) {
   // Chuyển tiếp header Range từ browser để hỗ trợ seeking/tua video
   const clientRange = req.headers.get("range");
   if (clientRange) {
+    // Validate Range format
+    const rangeRegex = /^bytes=(\d+)-(\d*)$/;
+    if (!rangeRegex.test(clientRange)) {
+      return new Response("Invalid Range header format", { status: 400 });
+    }
     headers.set("Range", clientRange);
   }
 
-  // 5. Thêm Timeout (10 giây) để tránh treo Server resources
+  // Thêm Timeout (10 giây) để tránh treo Server resources
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);
 
   try {
-    const res = await fetch(targetUrl, {
-      method: "GET",
-      headers,
-      cache: "no-store",
-      signal: controller.signal,
-    });
+    let currentUrl = targetUrl;
+    let res: Response;
+    let redirectsCount = 0;
+    const MAX_REDIRECTS = 3;
+
+    while (true) {
+      // 2. Validate URL format & protocol (chỉ cho phép HTTPS)
+      let parsedUrl: URL;
+      try {
+        parsedUrl = new URL(currentUrl);
+      } catch {
+        clearTimeout(timeoutId);
+        return new Response("Invalid URL format", { status: 400 });
+      }
+
+      if (parsedUrl.protocol !== "https:") {
+        clearTimeout(timeoutId);
+        return new Response("Only HTTPS protocol is supported", { status: 400 });
+      }
+
+      // 3. Domain Allowlist Check
+      const hostname = parsedUrl.hostname.toLowerCase();
+      const isAllowedDomain = ALLOWED_DOMAINS.some(domain => 
+        hostname === domain || hostname.endsWith("." + domain)
+      );
+
+      if (!isAllowedDomain) {
+        clearTimeout(timeoutId);
+        return new Response("Forbidden domain target", { status: 403 });
+      }
+
+      // 4. DNS Resolution & Private/Local IP Filtering (SSRF Prevention)
+      try {
+        const dnsPromises = dns.promises;
+        const lookupResults = await dnsPromises.lookup(hostname, { all: true });
+        for (const addr of lookupResults) {
+          if (isPrivateIp(addr.address)) {
+            clearTimeout(timeoutId);
+            return new Response("Access to private or local networks is forbidden", { status: 403 });
+          }
+        }
+      } catch (dnsErr) {
+        console.error(`[VideoProxy] DNS lookup failed for ${hostname}:`, dnsErr);
+        clearTimeout(timeoutId);
+        return new Response("DNS resolution failed for target", { status: 400 });
+      }
+
+      // Fetch target media (redirect: manual)
+      res = await fetch(currentUrl, {
+        method: "GET",
+        headers,
+        cache: "no-store",
+        signal: controller.signal,
+        redirect: "manual"
+      });
+
+      // Xử lý redirects thủ công để validate URL mới chống SSRF
+      if ([301, 302, 307, 308].includes(res.status)) {
+        redirectsCount++;
+        if (redirectsCount > MAX_REDIRECTS) {
+          clearTimeout(timeoutId);
+          return new Response("Too many redirects", { status: 508 });
+        }
+        const location = res.headers.get("location");
+        if (!location) {
+          clearTimeout(timeoutId);
+          return new Response("Redirect location missing", { status: 502 });
+        }
+        // Tạo URL tuyệt đối từ Location header
+        currentUrl = new URL(location, currentUrl).toString();
+        continue;
+      }
+
+      break;
+    }
+
     clearTimeout(timeoutId);
 
     // Nếu HTTP status không phải thành công hoặc 206 (Partial Content), trả lỗi
     if (!res.ok && res.status !== 206) {
-      return new Response(`Failed to fetch media from target: ${res.statusText}`, {
+      const isProd = process.env.NODE_ENV === "production";
+      const errorMsg = isProd 
+        ? "Failed to fetch media from target" 
+        : `Failed to fetch media from target: ${res.status} ${res.statusText}`;
+      return new Response(errorMsg, {
         status: res.status,
       });
     }
 
-    // 6. Content-Type Allowlist Check
+    // 5. Content-Type Allowlist Check
     const contentType = res.headers.get("content-type")?.toLowerCase() || "";
     const isAllowedType = contentType.startsWith("video/") || 
                           contentType.startsWith("image/") || 
@@ -174,7 +217,7 @@ export async function GET(req: NextRequest) {
       return new Response(`Forbidden content type: ${contentType}`, { status: 415 });
     }
 
-    // 7. File Size Limit Check (Tối đa 100MB)
+    // 6. File Size Limit Check (Tối đa 100MB)
     const contentLengthStr = res.headers.get("content-length");
     if (contentLengthStr) {
       const contentLength = parseInt(contentLengthStr, 10);
@@ -201,7 +244,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // 8. Dynamic CORS Configuration (Tránh Access-Control-Allow-Origin: *)
+    // 7. Dynamic CORS Configuration (Tránh Access-Control-Allow-Origin: *)
     const requestOrigin = req.headers.get("origin");
     if (requestOrigin) {
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
@@ -247,10 +290,10 @@ export async function GET(req: NextRequest) {
     if (err.cause && Array.isArray(err.cause.errors)) {
       causeMsg += " [ " + err.cause.errors.map(e => `${e.code || "unknown"}: ${e.message || "unknown"}`).join(", ") + " ]";
     }
-    const isDev = process.env.NODE_ENV === "development";
-    const body = isDev 
-      ? `Internal Server Error: ${err.message}\nCause: ${causeMsg}\n${err.stack || "No stack"}`
-      : "Internal Server Error";
+    const isProd = process.env.NODE_ENV === "production";
+    const body = isProd 
+      ? "Internal Server Error"
+      : `Internal Server Error: ${err.message}\nCause: ${causeMsg}\n${err.stack || "No stack"}`;
     return new Response(body, { status: 500 });
   }
 }

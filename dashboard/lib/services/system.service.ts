@@ -16,7 +16,7 @@ function mapDbProxy(row: Record<string, unknown>): ProxyItem {
     host: row.host as string,
     port: row.port as number,
     username: (row.username as string) || null,
-    password: (row.password as string) || null,
+    password: row.password ? "***" : null,
     protocol: row.protocol as ProxyItem["protocol"],
     status: row.status as ProxyItem["status"],
     assigned_account_id: (row.assigned_account_id as string) || null,

@@ -184,6 +184,24 @@ if ($Mode -eq "Full") {
     } else {
         Write-Error "Crawler pipeline directory not found at $WorkerDir"
     }
+    # D. Build Launcher (SinoMedia.exe)
+    Write-Host "  -> Compiling SinoMedia Launcher..." -ForegroundColor Gray
+    $LauncherSource = Join-Path $DesktopAppRoot "src\Launcher.cs"
+    $LauncherDest = Join-Path $ReleaseDir "SinoMedia.exe"
+    $CscExe = "$env:WINDIR\Microsoft.NET\Framework\v4.0.30319\csc.exe"
+    
+    if ((Test-Path $LauncherSource) -and (Test-Path $CscExe)) {
+        Write-Host "     Running C# Compiler (csc.exe)..."
+        $CscArgs = "/nologo", "/out:$LauncherDest", "/target:exe", "$LauncherSource"
+        & $CscExe $CscArgs | Out-Null
+        if ($LASTEXITCODE -eq 0 -and (Test-Path $LauncherDest)) {
+            Write-Host "     Launcher compiled successfully." -ForegroundColor Green
+        } else {
+            Write-Error "Failed to compile launcher."
+        }
+    } else {
+        Write-Warning "Launcher source or csc.exe not found. Skipping SinoMedia.exe generation."
+    }
 } else {
     Write-Host "[3/4] Skipping extraction (Scaffold mode active)." -ForegroundColor Gray
 }

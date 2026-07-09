@@ -4,6 +4,8 @@
  */
 import type { DbClient, TableRow, TableUpdate } from "./types";
 
+import { encrypt } from "../utils/crypto";
+
 export class AccountRepository {
   constructor(private readonly db: DbClient) {}
 
@@ -39,7 +41,7 @@ export class AccountRepository {
         {
           platform,
           username,
-          cookie_data: cookieData,
+          cookie_data: encrypt(cookieData),
           status: "active",
           failure_count: 0,
           last_used_at: null,

@@ -1,5 +1,77 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyApiToken } from "@/lib/guards/token.guard";
+import { encrypt, decrypt } from "@/lib/utils/crypto";
+
+const ALLOWED_COLUMNS: Record<string, string[]> = {
+  crawler_tasks: [
+    "id", "platform", "command", "target", "max_count", "status", "priority", 
+    "scheduled_at", "created_at", "updated_at", "error_message", "metadata", 
+    "comment_progress", "phase"
+  ],
+  crawler_accounts: [
+    "id", "platform", "username", "cookie_data", "status", "failure_count", "last_used_at", "created_at", "updated_at"
+  ],
+  crawled_posts: [
+    "id", "platform", "author_id", "platform_id", "caption", "cover_url", "media_urls", 
+    "stats", "raw", "published_at", "crawled_at", "media_type", "original_media_urls", 
+    "original_cover_url", "media_status", "media_source", "media_error", "media_cached_at"
+  ],
+  crawled_authors: [
+    "id", "platform_uid", "nickname", "platform", "gender", "description", 
+    "fans_count", "follows_count", "ip_location", "avatar_url", "created_at", "updated_at", 
+    "raw", "videos_count", "interaction_count"
+  ],
+  crawled_comments: [
+    "id", "platform", "platform_cid", "post_id", "platform_post_id", "parent_cid", 
+    "author_uid", "author_nickname", "content", "like_count", "raw", "published_at", "crawled_at"
+  ],
+  post_metric_snapshots: [
+    "id", "post_id", "platform", "platform_post_id", "observed_at", "view_count", 
+    "like_count", "comment_count", "share_count", "raw", "source"
+  ],
+  author_metric_snapshots: [
+    "id", "author_id", "platform", "platform_author_id", "observed_at", "fans_count", 
+    "follows_count", "interaction_count", "videos_count", "raw", "source"
+  ],
+  crawler_logs: [
+    "id", "task_id", "level", "message", "created_at"
+  ]
+};
+
+const PATCH_WHITELISTS: Record<string, string[]> = {
+  crawler_tasks: ["status", "error_message", "updated_at", "metadata"],
+  crawler_accounts: ["last_used_at", "failure_count", "status", "updated_at"],
+  crawled_posts: ["stats", "updated_at"],
+  crawled_authors: ["fans_count", "follows_count", "updated_at"]
+};
+
+const POST_WHITELISTS: Record<string, string[]> = {
+  crawler_accounts: ["platform", "username", "cookie_data", "status", "failure_count", "last_used_at", "updated_at"],
+  crawler_logs: ["task_id", "level", "message", "created_at"],
+  crawled_posts: [
+    "id", "platform", "platform_id", "author_id", "caption", "media_urls", "cover_url", 
+    "stats", "raw", "crawled_at", "published_at", "tags", "language", "media_type", 
+    "original_media_urls", "original_cover_url", "media_status", "media_source", 
+    "media_error", "media_cached_at"
+  ],
+  crawled_authors: [
+    "id", "platform", "platform_uid", "nickname", "avatar_url", "gender", "description", 
+    "follows_count", "fans_count", "interaction_count", "videos_count", "ip_location", 
+    "raw", "updated_at"
+  ],
+  crawled_comments: [
+    "platform", "platform_cid", "post_id", "platform_post_id", "parent_cid", 
+    "author_uid", "author_nickname", "content", "like_count", "raw", "published_at", "crawled_at"
+  ],
+  post_metric_snapshots: [
+    "post_id", "platform", "platform_post_id", "view_count", "like_count", "comment_count", 
+    "share_count", "raw", "source", "observed_at"
+  ],
+  author_metric_snapshots: [
+    "author_id", "platform", "platform_author_id", "fans_count", "follows_count", 
+    "interaction_count", "videos_count", "raw", "source", "observed_at"
+  ]
+};
 
 function determineRequiredScopes(pathArray: string[], method: string): string[] | null {
   const pathStr = pathArray.join("/");
@@ -35,9 +107,19 @@ function determineRequiredScopes(pathArray: string[], method: string): string[] 
   return null;
 }
 
+function validatePayload(payload: any, whitelist: string[]): boolean {
+  if (!payload || typeof payload !== "object") return true;
+  if (Array.isArray(payload)) {
+    return payload.every(item => validatePayload(item, whitelist));
+  }
+  const keys = Object.keys(payload);
+  return keys.every(key => whitelist.includes(key));
+}
+
 async function handleProxy(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const resolvedParams = await params;
   const pathArray = resolvedParams.path || [];
+  const pathStr = pathArray.join("/");
   
   // 1. Verify token (reject wildcard tokens by passing false)
   const requiredScopes = determineRequiredScopes(pathArray, req.method);
@@ -52,9 +134,86 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
     return NextResponse.json({ error }, { status });
   }
 
-  // Basic security validation for structural integrity
+  // Chặn các query parameter nguy hiểm/không cần thiết
+  for (const [key, value] of req.nextUrl.searchParams.entries()) {
+    if (key === "or" || key === "and") {
+      return NextResponse.json({ error: "Complex filters like 'or'/'and' are not allowed" }, { status: 400 });
+    }
+    if (value.startsWith("not.") || value.includes(".not.")) {
+      return NextResponse.json({ error: "'not' filter is not allowed" }, { status: 400 });
+    }
+  }
+
+  // Giới hạn limit
+  const limitParam = req.nextUrl.searchParams.get("limit");
+  if (limitParam) {
+    const limitVal = parseInt(limitParam, 10);
+    if (isNaN(limitVal) || limitVal > 100) {
+      return NextResponse.json({ error: "Limit must be a valid number <= 100" }, { status: 400 });
+    }
+  }
+
+  // Validate order format và column
+  const orderParam = req.nextUrl.searchParams.get("order");
+  if (orderParam) {
+    const orderRegex = /^[a-zA-Z0-9_]+\.(asc|desc)(\.nullsfirst|\.nullslast)?$/;
+    if (!orderRegex.test(orderParam)) {
+      return NextResponse.json({ error: "Invalid order format" }, { status: 400 });
+    }
+    const orderCol = orderParam.split(".")[0];
+    const allowedCols = ALLOWED_COLUMNS[pathStr];
+    if (allowedCols && !allowedCols.includes(orderCol)) {
+      return NextResponse.json({ error: `Disallowed column in order: ${orderCol}` }, { status: 400 });
+    }
+  }
+
+  // Validate select parameter và cưỡng chế select an toàn
+  let selectParam = req.nextUrl.searchParams.get("select");
+  const allowedCols = ALLOWED_COLUMNS[pathStr];
+  
+  if (req.method === "GET" || selectParam) {
+    if (allowedCols) {
+      if (!selectParam) {
+        if (pathStr === "crawler_accounts") {
+          const idParam = req.nextUrl.searchParams.get("id");
+          if (idParam) {
+            selectParam = "id,platform,username,cookie_data,status,failure_count,last_used_at,created_at,updated_at";
+          } else {
+            // Checkout flow
+            selectParam = "id,username,cookie_data";
+          }
+        } else {
+          selectParam = allowedCols.join(",");
+        }
+      } else {
+        if (selectParam.includes("*")) {
+          return NextResponse.json({ error: "Wildcard select (*) is not allowed" }, { status: 400 });
+        }
+        const cols = selectParam.split(",").map(c => c.trim());
+        
+        if (pathStr === "crawler_accounts" && !req.nextUrl.searchParams.get("id")) {
+          const checkoutAllowed = ["id", "username", "cookie_data"];
+          for (const col of cols) {
+            if (!checkoutAllowed.includes(col)) {
+              return NextResponse.json({ error: `Disallowed column in checkout select: ${col}` }, { status: 400 });
+            }
+          }
+        } else {
+          for (const col of cols) {
+            if (col.includes("(") || col.includes(")") || col.includes(".") || col.includes(":")) {
+              return NextResponse.json({ error: `Join queries or aliases are not allowed in select: ${col}` }, { status: 400 });
+            }
+            if (!allowedCols.includes(col)) {
+              return NextResponse.json({ error: `Disallowed column in select: ${col}` }, { status: 400 });
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Basic security validation for structural integrity & payload whitelisting
   let parsedBody: any = null;
-  const pathStr = pathArray.join("/");
   
   if (req.method !== "GET" && req.method !== "HEAD") {
     try {
@@ -64,36 +223,43 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
     }
   }
 
-  if (req.method === "PATCH") {
-    const patchPaths = ["crawler_tasks", "crawler_accounts", "crawled_posts", "crawled_authors"];
-    if (patchPaths.includes(pathStr)) {
-      const idParam = req.nextUrl.searchParams.get("id");
-      if (!idParam) {
-        return NextResponse.json({ error: "Missing id parameter for update" }, { status: 400 });
-      }
-      const uuidRegex = /^eq\.[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-      if (!uuidRegex.test(idParam)) {
-        return NextResponse.json({ error: "Invalid id format. Expected eq.<uuid>" }, { status: 400 });
-      }
-
-      if (parsedBody && typeof parsedBody === "object" && !Array.isArray(parsedBody)) {
-        let whitelist: string[] = [];
-        if (pathStr === "crawler_tasks") {
-          whitelist = ["status", "error_message", "updated_at", "metadata"];
-        } else if (pathStr === "crawler_accounts") {
-          whitelist = ["last_used_at", "failure_count", "status", "updated_at"];
-        } else if (pathStr === "crawled_posts") {
-          whitelist = ["stats", "updated_at"];
-        } else if (pathStr === "crawled_authors") {
-          whitelist = ["fans_count", "follows_count", "updated_at"];
+  // Validate Request Body Whitelists
+  if (parsedBody && typeof parsedBody === "object") {
+    if (req.method === "PATCH") {
+      const patchWhitelist = PATCH_WHITELISTS[pathStr];
+      if (patchWhitelist) {
+        const idParam = req.nextUrl.searchParams.get("id");
+        if (!idParam) {
+          return NextResponse.json({ error: "Missing id parameter for update" }, { status: 400 });
+        }
+        const uuidRegex = /^eq\.[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+        if (!uuidRegex.test(idParam)) {
+          return NextResponse.json({ error: "Invalid id format. Expected eq.<uuid>" }, { status: 400 });
         }
 
-        const keys = Object.keys(parsedBody);
-        const hasInvalidKey = keys.some(key => !whitelist.includes(key));
-        if (hasInvalidKey) {
-          return NextResponse.json({ error: `Disallowed fields in body. Only ${whitelist.join(", ")} are allowed.` }, { status: 400 });
+        if (!validatePayload(parsedBody, patchWhitelist)) {
+          return NextResponse.json({ error: `Disallowed fields in PATCH body. Only ${patchWhitelist.join(", ")} are allowed.` }, { status: 400 });
         }
       }
+    } else if (req.method === "POST") {
+      const postWhitelist = POST_WHITELISTS[pathStr];
+      if (postWhitelist && !validatePayload(parsedBody, postWhitelist)) {
+        return NextResponse.json({ error: `Disallowed fields in POST body. Only ${postWhitelist.join(", ")} are allowed.` }, { status: 400 });
+      }
+    }
+  }
+
+  // Mã hóa cookie_data trước khi lưu vào DB (dành cho POST crawler_accounts)
+  if (req.method === "POST" && pathStr === "crawler_accounts" && parsedBody) {
+    const encryptBody = (item: any) => {
+      if (item && item.cookie_data) {
+        item.cookie_data = encrypt(item.cookie_data);
+      }
+    };
+    if (Array.isArray(parsedBody)) {
+      parsedBody.forEach(encryptBody);
+    } else {
+      encryptBody(parsedBody);
     }
   }
 
@@ -108,8 +274,12 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
   // Construct target URL including search params
   const targetUrl = new URL(`${supabaseUrl}/rest/v1/${pathArray.join("/")}`);
   req.nextUrl.searchParams.forEach((value, key) => {
+    if (key === "select") return; // Skip original select parameter
     targetUrl.searchParams.append(key, value);
   });
+  if (selectParam) {
+    targetUrl.searchParams.set("select", selectParam); // Use validated select parameter
+  }
 
   // Prepare headers, stripping out internal Next.js headers and replacing auth with Service Role Key
   const forwardHeaders = new Headers();
@@ -147,6 +317,34 @@ async function handleProxy(req: NextRequest, { params }: { params: Promise<{ pat
       }
     });
 
+    // Giải mã cookie_data khi trả về cho worker (dành cho GET crawler_accounts)
+    if (req.method === "GET" && pathStr === "crawler_accounts" && response.status === 200) {
+      const text = await response.text();
+      if (text) {
+        try {
+          const json = JSON.parse(text);
+          const decryptAccount = (acc: any) => {
+            if (acc && acc.cookie_data) {
+              acc.cookie_data = decrypt(acc.cookie_data);
+            }
+          };
+          if (Array.isArray(json)) {
+            json.forEach(decryptAccount);
+          } else if (json && typeof json === "object") {
+            decryptAccount(json);
+          }
+          
+          return new NextResponse(JSON.stringify(json), {
+            status: response.status,
+            statusText: response.statusText,
+            headers: responseHeaders,
+          });
+        } catch (parseErr) {
+          console.error("Failed to parse response JSON for decrypting cookie_data:", parseErr);
+        }
+      }
+    }
+
     return new NextResponse(response.body, {
       status: response.status,
       statusText: response.statusText,
@@ -164,3 +362,4 @@ export const PUT = handleProxy;
 export const PATCH = handleProxy;
 export const DELETE = handleProxy;
 export const OPTIONS = handleProxy;
+

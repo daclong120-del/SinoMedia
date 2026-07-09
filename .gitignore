@@ -53,4 +53,5 @@ assets_test/
 artifact/
 
 # desktop-app release builds
-desktop-app/release/
+desktop-app/release/
+output/

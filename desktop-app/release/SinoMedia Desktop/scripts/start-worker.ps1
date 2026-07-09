@@ -10,14 +10,14 @@ Write-Host "=============================================================" -Fore
 # 1. Kiểm tra entrypoint worker và tsx
 $WorkerRoot = Join-Path $PSScriptRoot "..\worker"
 $IndexTs = Join-Path $WorkerRoot "src\index.ts"
-$TsxCli = Join-Path $WorkerRoot "node_modules\tsx\dist\cli.js"
+$TsxCli = Join-Path $WorkerRoot "node_modules\tsx\dist\cli.cjs"
 
 if (!(Test-Path $IndexTs)) {
     Write-Error "CRITICAL: worker/src/index.ts not found! Please build the full package first."
     exit 1
 }
 if (!(Test-Path $TsxCli)) {
-    Write-Error "CRITICAL: tsx entrypoint not found at worker/node_modules/tsx/dist/cli.js! Make sure node_modules is fully extracted."
+    Write-Error "CRITICAL: tsx entrypoint not found at worker/node_modules/tsx/dist/cli.cjs! Make sure node_modules is fully extracted."
     exit 1
 }
 
@@ -62,7 +62,7 @@ Write-Host "Starting Crawler Worker (running 'crawl' action)..." -ForegroundColo
 Write-Host "Logs redirected to: logs/worker.log and logs/worker.err.log" -ForegroundColor Gray
 
 # Chạy worker bằng node.exe gọi tsx
-$Process = Start-Process -FilePath $NodeExe -ArgumentList "$TsxCli", "$IndexTs", "crawl" -WorkingDirectory $WorkerRoot -NoNewWindow -RedirectStandardOutput $LogFile -RedirectStandardError $ErrLogFile -PassThru
+$Process = Start-Process -FilePath $NodeExe -ArgumentList "`"$TsxCli`"", "`"$IndexTs`"", "crawl" -WorkingDirectory $WorkerRoot -NoNewWindow -RedirectStandardOutput $LogFile -RedirectStandardError $ErrLogFile -PassThru
 
 if ($Process) {
     $Process.Id | Out-File -FilePath $PidFile -Force
