@@ -4,22 +4,24 @@ ALTER TABLE public.crawler_logs ENABLE ROW LEVEL SECURITY;
 
 -- 2. Drop existing policies if any
 DROP POLICY IF EXISTS "Allow read of crawler tasks for authenticated users" ON public.crawler_tasks;
+DROP POLICY IF EXISTS "Allow read of crawler tasks for admin users" ON public.crawler_tasks;
 DROP POLICY IF EXISTS "Allow write of crawler tasks for admin users" ON public.crawler_tasks;
 DROP POLICY IF EXISTS "Allow read of crawler logs for authenticated users" ON public.crawler_logs;
+DROP POLICY IF EXISTS "Allow read of crawler logs for admin users" ON public.crawler_logs;
 
 -- 3. Cấu hình RLS policies cho bảng crawler_tasks
--- Mọi authenticated user đều có thể xem danh sách tasks
-CREATE POLICY "Allow read of crawler tasks for authenticated users" ON public.crawler_tasks
-  FOR SELECT TO authenticated USING (true);
+-- Chỉ admin user mới có thể xem danh sách tasks
+CREATE POLICY "Allow read of crawler tasks for admin users" ON public.crawler_tasks
+  FOR SELECT TO authenticated USING (public.is_admin(auth.uid()));
 
 -- Chỉ admin user mới được thực hiện các thay đổi (INSERT, UPDATE, DELETE)
 CREATE POLICY "Allow write of crawler tasks for admin users" ON public.crawler_tasks
   FOR ALL TO authenticated USING (public.is_admin(auth.uid()));
 
 -- 4. Cấu hình RLS policies cho bảng crawler_logs
--- Mọi authenticated user đều có thể xem logs
-CREATE POLICY "Allow read of crawler logs for authenticated users" ON public.crawler_logs
-  FOR SELECT TO authenticated USING (true);
+-- Chỉ admin user mới có thể xem logs
+CREATE POLICY "Allow read of crawler logs for admin users" ON public.crawler_logs
+  FOR SELECT TO authenticated USING (public.is_admin(auth.uid()));
 
 -- Không cung cấp quyền write cho client thông thường trên crawler_logs (chỉ worker dùng service_role bypass RLS để ghi logs)
 

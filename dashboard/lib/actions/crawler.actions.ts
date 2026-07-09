@@ -3,7 +3,7 @@
  * Server Actions — Crawler (Tasks, Accounts, Logs)
  * Wrapper cho crawler.service.
  */
-import { requireAdmin, requireUser } from "@/lib/supabase/auth-helper";
+import { requireAdmin } from "@/lib/supabase/auth-helper";
 import { verifyCSRF } from "@/lib/csrf";
 import type { CreateTaskInput } from "@/lib/repositories/task.repo";
 import {
@@ -49,19 +49,19 @@ export async function deleteAccount(id: string): Promise<void> {
   await deleteAccountService(id);
 }
 
-// READ ACTIONS - Require authenticated user
+// READ ACTIONS - Require authenticated admin
 export async function getTasks() {
-  await requireUser();
+  await requireAdmin();
   return await getTasksService();
 }
 
 export async function getTaskLogs(taskId: string) {
-  await requireUser();
+  await requireAdmin();
   return await getTaskLogsService(taskId);
 }
 
 export async function getTaskById(id: string) {
-  await requireUser();
+  await requireAdmin();
   return await getTaskByIdService(id);
 }
 

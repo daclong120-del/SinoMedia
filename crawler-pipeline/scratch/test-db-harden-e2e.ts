@@ -237,7 +237,9 @@ async function testHardenE2E() {
       "api_tokens",
       "crawler_accounts",
       "audit_logs",
-      "team_members"
+      "team_members",
+      "crawler_tasks",
+      "crawler_logs"
     ];
 
     logger.info(" -> Kiểm tra quyền SELECT cho user thường trên các bảng nhạy cảm (kỳ vọng trả rỗng [])...", "QA_TEST");

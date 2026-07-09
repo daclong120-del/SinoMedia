@@ -7,8 +7,10 @@ export async function proxy(request: NextRequest) {
 
   // Route bảo mật (Yêu cầu đăng nhập)
   const isDashboardRoute = path.startsWith("/dash");
-  // Route quản lý thành viên (Yêu cầu admin)
-  const isMembersRoute = path.startsWith("/dash/manage-account/members");
+  // Route quản lý thành viên, tài khoản, tác vụ (Yêu cầu admin)
+  const isAdminOnlyRoute = path.startsWith("/dash/manage-account/members") || 
+                           path.startsWith("/dash/accounts") || 
+                           path.startsWith("/dash/tasks");
   // Route xác thực (Chỉ cho phép khi chưa đăng nhập)
   const isAuthRoute = path === "/login" || path === "/sign-up" || path === "/forgot-password";
 
@@ -21,7 +23,7 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(redirectUrl);
     }
 
-    if (isMembersRoute) {
+    if (isAdminOnlyRoute) {
       let isAdmin = false;
       const mockSession = request.cookies.get("sb-mock-session")?.value;
       const isDevMockAllowed = process.env.NODE_ENV !== "production" && process.env.ENABLE_MOCK_AUTH === "true";

@@ -40,8 +40,8 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 | `/` | Done | Redirect/entrypoint dashboard. |
 | `/login`, `/sign-up`, `/forgot-password` | Done | Đã thắt chặt bảo mật Mock Auth (fail-closed trên production, chỉ cho phép ở dev mode với cờ ENABLE_MOCK_AUTH=true), Next.js Middleware chạy thực sự (proxy.ts) và bảo vệ các route `/dash/*`. |
 | `/dash/home` | Partial | Có service metrics, một số trend còn TODO hoặc phụ thuộc dữ liệu thật. |
-| `/dash/tasks` | Done | Giao diện quản lý task hoàn chỉnh, kết nối DB thật, realtime status thật, nút Cancel/Retry (Optimistic), hiển thị phase và tiến trình cào bình luận (comment_progress) thời gian thực. |
-| `/dash/accounts` | Draft | Đọc account qua action, nhưng modal nạp tài khoản và nút unban/xóa chưa nối mutation thật. |
+| `/dash/tasks` | Done | Giao diện quản lý task hoàn chỉnh, kết nối DB thật, realtime status thật, nút Cancel/Retry (Optimistic). Đã thắt chặt bảo mật 2 lớp: Admin-only Next.js Middleware và Admin-only RLS trên DB. |
+| `/dash/accounts` | Draft | Đọc account qua action, modal nạp tài khoản và nút unban/xóa chưa nối mutation thật. Được bảo vệ bởi Admin-only Middleware & RLS. |
 | `/dash/proxies` | Partial | Có service/actions cho proxy; health check hiện vẫn là TODO/fake ở repository. |
 | `/dash/audit-logs` | Partial | Có audit repository/service, dữ liệu đã được bảo vệ bằng RLS admin-only. Cần dữ liệu thật. |
 | `/dash/settings` | Draft | Chủ yếu local/UI settings; RLS cho exported_files đã được thắt chặt theo owner (`created_by`). |

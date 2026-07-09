@@ -114,14 +114,16 @@
 - **Revisit trigger:** Khi cấu trúc cơ sở dữ liệu thay đổi hoặc quan hệ account-proxy chuyển sang n-n.
 
 ## 2026-07-09 — Khóa quyền truy cập anon và thắt chặt phân quyền trên Supabase
-- **Bối cảnh:** Lộ mã `anon` key trên client browser cho phép bất kỳ ai bypass RLS của các bảng dữ liệu cào hoặc RPC của worker. Hơn nữa, việc migrations trước đó thiếu `DROP POLICY IF EXISTS` dẫn đến lỗi khi re-apply. Script test cũ sử dụng tài khoản hardcoded gây rủi ro trên prod.
+- **Bối cảnh:** Lộ mã `anon` key trên client browser cho phép bất kỳ ai bypass RLS của các bảng dữ liệu cào hoặc RPC của worker. Hơn nữa, việc migrations trước đó thiếu `DROP POLICY IF EXISTS` dẫn đến lỗi khi re-apply. Script test cũ sử dụng tài khoản hardcoded gây rủi ro trên prod. Các bảng vận hành như `crawler_tasks` và `crawler_logs` vô tình cho phép `authenticated` chung truy cập.
 - **Quyết định:**
   - Thu hồi toàn bộ default privileges và existing privileges trên mọi bảng/function của schema `public` khỏi vai trò `anon` và `public`.
-  - Enforce Row Level Security (RLS) cho toàn bộ bảng dữ liệu (từ crawler outputs đến `audit_logs`, `exported_files`, `crawled_comments`) và giới hạn quyền theo role (`authenticated` hoặc `admin`). Các bảng chứa dữ liệu cá nhân như `exported_files` được scope nghiêm ngặt theo `created_by = auth.uid()`.
+  - Enforce Row Level Security (RLS) cho toàn bộ bảng dữ liệu. Các bảng chứa dữ liệu cá nhân như `exported_files` được scope nghiêm ngặt theo `created_by = auth.uid()`.
+  - Các bảng vận hành nhạy cảm (`crawler_tasks`, `crawler_logs`, `audit_logs`, `api_tokens`, `crawler_accounts`) bắt buộc phải bọc RLS Admin-only (`public.is_admin(auth.uid())`).
+  - Đi kèm với RLS, các route tương ứng trên Dashboard (`/dash/tasks`, `/dash/accounts`) cũng phải được cấu hình chặn bằng Next.js Middleware (`proxy.ts`).
   - Thêm `DROP POLICY IF EXISTS` cho tất cả các migration liên quan đến Policy để đảm bảo tính idempotent.
-  - Loại bỏ hoàn toàn hardcoded credentials và auto-signup trong các E2E test scripts (sử dụng ENV vars).
+  - Loại bỏ hoàn toàn hardcoded credentials và auto-signup trong các E2E test scripts (sử dụng ENV vars). Xóa các file JS scratch nhạy cảm ở gốc dự án.
   - Thu hồi quyền thực thi functions/RPCs từ vai trò `public` và chỉ cấp lại một cách có chọn lọc cho `service_role` và `authenticated` (vd: `claim_next_crawler_task` chỉ cho phép `service_role`).
-- **Thành quả kiểm chứng:** Toàn bộ E2E API tests mô phỏng truy vấn thô bằng `anon` key thất bại (HTTP 401/403, code 42501). Test scripts mới xác nhận role `user` bị chặn truy cập các bảng cấu hình/nhạy cảm, trong khi các API của Dashboard và Worker hoạt động bình thường.
+- **Thành quả kiểm chứng:** Toàn bộ E2E API tests xuyên tầng DB/API mô phỏng truy vấn thô bằng `anon` key thất bại (HTTP 401/403, code 42501). Test scripts mới xác nhận role `user` bị chặn hoàn toàn (HTTP 200 trả mảng rỗng `[]`) đối với các bảng cấu hình/vận hành, trong khi các API của Dashboard (admin) và Worker (service_role) hoạt động bình thường.
 
 ## 2026-07-09 — Triển khai Guard Snapshot chống Metric Lịch Sử "Giả"
 - **Bối cảnh:** Việc chuẩn hóa (normalize stats) các post/author không chứa metrics về dạng mặc định `0` làm phát sinh các bản ghi snapshot metric lịch sử sai lệch khi cào/refresh dữ liệu.

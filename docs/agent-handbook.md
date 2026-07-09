@@ -98,8 +98,10 @@ Ví dụ bẫy hiện tại:
 - **Bảo mật Anon Key, RLS & Migrations**: 
   - Bất kỳ bảng dữ liệu nào (crawler outputs, configuration, logs) cũng phải bật RLS.
   - Các migrations thay đổi Policy cần bao gồm `DROP POLICY IF EXISTS` để đảm bảo tính idempotent khi dev reset database nhiều lần.
-  - Các bảng chứa user data (như `exported_files`) phải scope RLS chặt chẽ theo owner (VD: `created_by = auth.uid()::text`).
-- **Test Scripts & Credentials**: Tuyệt đối không hardcode credentials (email/password) hoặc tự động gọi API `signup` trong các test scripts e2e (như `test-db-harden-e2e.ts`) để tránh rủi ro tạo rác/lộ lọt trên production. Bắt buộc phải đọc từ Environment Variables (VD: `TEST_ADMIN_EMAIL`).
+  - Các bảng chứa user data (như `exported_files`) phải scope RLS chặt chẽ theo owner (VD: `created_by = auth.uid()`).
+  - Các bảng vận hành nhạy cảm (`crawler_tasks`, `crawler_logs`, `audit_logs`, `api_tokens`, `crawler_accounts`) bắt buộc phải bọc RLS Admin-only (`public.is_admin(auth.uid())`).
+  - Đi kèm với RLS, các route tương ứng trên Dashboard (`/dash/tasks`, `/dash/accounts`) cũng phải được cấu hình chặn bằng Next.js Middleware (`proxy.ts`) để bảo vệ nguyên tắc 2 lớp (UI chuyển hướng + DB chặn query).
+- **Test Scripts & Credentials**: Tuyệt đối không hardcode credentials (email/password) hoặc tự động gọi API `signup` trong các test scripts e2e (như `test-db-harden-e2e.ts`) để tránh rủi ro tạo rác/lộ lọt trên production. Bắt buộc phải đọc từ Environment Variables (VD: `TEST_ADMIN_EMAIL`). Mọi file scratch chứa dữ liệu nhạy cảm hoặc logic service_role phải nằm trong `.gitignore` (như `crawler-pipeline/scratch/`).
 
 ## Documentation rule
 
