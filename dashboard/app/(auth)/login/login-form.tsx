@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { GoogleIcon } from "@/components/icons";
 import { loginAction } from "@/lib/actions/auth.actions";
+import { Turnstile } from "@marsidev/react-turnstile";
 
 const EyeIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-75" viewBox="0 0 24 24">
@@ -76,6 +77,7 @@ export default function LoginForm() {
   // Field errors
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   useEffect(() => {
     const updateLang = () => {
@@ -131,10 +133,15 @@ export default function LoginForm() {
       return;
     }
 
+    if (!captchaToken) {
+      setPasswordError(lang === "Tiếng Việt" ? "Vui lòng chờ xác minh bảo mật..." : "Please wait for security verification...");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const res = await loginAction(email, password);
+      const res = await loginAction(email, password, captchaToken);
 
       if (!res.success) {
         setPasswordError(res.error || "Đăng nhập thất bại.");
@@ -264,11 +271,19 @@ export default function LoginForm() {
           )}
         </div>
 
+        {/* Invisible Turnstile — user không thấy gì */}
+        <Turnstile
+          siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+          onSuccess={(token) => setCaptchaToken(token)}
+          onExpire={() => setCaptchaToken(null)}
+          options={{ size: "invisible" }}
+        />
+
         {/* Submit Button */}
         <button
           type="submit"
           className="w-full bg-[#0051c3] hover:bg-[#0040a1] text-white text-sm font-semibold py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed select-none shadow-sm"
-          disabled={isLoading}
+          disabled={isLoading || !captchaToken}
         >
           {isLoading ? (
             <>

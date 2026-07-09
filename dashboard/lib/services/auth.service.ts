@@ -11,9 +11,13 @@ export class AuthService {
   /**
    * Đăng nhập tài khoản
    */
-  static async login(email: string, password: string) {
+  static async login(email: string, password: string, captchaToken?: string) {
     const supabase = await createClientServer();
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+      options: captchaToken ? { captchaToken } : undefined,
+    });
 
     if (error) throw error;
     return { user: data.user, session: data.session };
@@ -22,7 +26,7 @@ export class AuthService {
   /**
    * Đăng ký tài khoản
    */
-  static async signUp(email: string, password: string, inviteToken?: string) {
+  static async signUp(email: string, password: string, inviteToken?: string, captchaToken?: string) {
     const supabase = await createClientServer();
 
     // Nếu đăng ký theo lời mời, kiểm tra token trước
@@ -44,6 +48,7 @@ export class AuthService {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: captchaToken ? { captchaToken } : undefined,
     });
 
     if (error) throw error;

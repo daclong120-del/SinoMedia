@@ -10,16 +10,17 @@
     "types:gen": "npx supabase gen types typescript --db-url \"postgresql://postgres:postgres@127.0.0.1:54322/postgres\" > types/supabase.ts"
   },
   "dependencies": {
+    "@marsidev/react-turnstile": "^1.5.3",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.110.0",
     "clsx": "^2.1.1",
-    "zustand": "^5.0.3",
     "idb-keyval": "^6.2.1",
     "lucide-react": "^1.23.0",
     "next": "16.2.10",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "tailwind-merge": "^3.6.0"
+    "tailwind-merge": "^3.6.0",
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Geist_Mono } from "next/font/google";
-import "./globals.css";
-
 import Script from "next/script";
+import "./globals.css";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -30,8 +29,7 @@ export default function RootLayout({
       className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <head>
-        {/* Dark mode: đọc localStorage của Zustand trước paint để tránh flash */}
+      <body className="min-h-full flex flex-col font-sans bg-background text-foreground" suppressHydrationWarning>
         <Script
           id="theme-detector"
           strategy="beforeInteractive"
@@ -48,7 +46,6 @@ export default function RootLayout({
                     document.documentElement.classList.remove('dark');
                   }
                 } else {
-                  // Fallback mặc định theo preferences hệ thống nếu chưa có store
                   if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
                     document.documentElement.classList.add('dark');
                   }
@@ -57,8 +54,6 @@ export default function RootLayout({
             `,
           }}
         />
-      </head>
-      <body className="min-h-full flex flex-col font-sans bg-background text-foreground" suppressHydrationWarning>
         {children}
       </body>
     </html>

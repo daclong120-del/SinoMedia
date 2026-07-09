@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { signUpAction } from "@/lib/actions/auth.actions";
+import { Turnstile } from "@marsidev/react-turnstile";
 
 const EyeIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-75" viewBox="0 0 24 24">
@@ -83,6 +84,7 @@ export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [turnstileState, setTurnstileState] = useState<"loading" | "success">("loading");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   // Field errors
   const [emailError, setEmailError] = useState("");
@@ -100,14 +102,8 @@ export default function SignUpForm() {
     updateLang();
     window.addEventListener("storage", updateLang);
 
-    // Simulate Cloudflare Turnstile verification after 1.2 seconds
-    const timer = setTimeout(() => {
-      setTurnstileState("success");
-    }, 1200);
-
     return () => {
       window.removeEventListener("storage", updateLang);
-      clearTimeout(timer);
     };
   }, []);
 
@@ -164,7 +160,12 @@ export default function SignUpForm() {
     setIsLoading(true);
 
     try {
-      const res = await signUpAction(email, password, searchParams.get("invite") || undefined);
+      const res = await signUpAction(
+        email, 
+        password, 
+        searchParams.get("invite") || undefined, 
+        captchaToken || undefined
+      );
 
       if (!res.success) {
         setPasswordError(res.error || "Đăng ký thất bại. Vui lòng thử lại.");
@@ -338,6 +339,20 @@ export default function SignUpForm() {
             </a>
           </div>
         </div>
+
+        {/* Invisible Turnstile — user không thấy gì */}
+        <Turnstile
+          siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+          onSuccess={(token) => {
+            setCaptchaToken(token);
+            setTurnstileState("success");
+          }}
+          onExpire={() => {
+            setCaptchaToken(null);
+            setTurnstileState("loading");
+          }}
+          options={{ size: "invisible" }}
+        />
 
         {/* Legal Agreements disclaimer */}
         <div className="text-[11px] text-neutral-500 dark:text-neutral-400 leading-normal select-none">

@@ -38,44 +38,44 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string | null
+          expires_at: string | null
           id: string
+          last_used_at: string | null
           name: string
+          revoke_reason: string | null
           role_id: string | null
+          scopes: string[]
+          status: string
           token_hash: string
           token_prefix: string
-          expires_at: string | null
-          last_used_at: string | null
-          status: string
-          scopes: string[]
-          revoke_reason: string | null
         }
         Insert: {
           created_at?: string
           created_by?: string | null
+          expires_at?: string | null
           id?: string
+          last_used_at?: string | null
           name: string
+          revoke_reason?: string | null
           role_id?: string | null
+          scopes?: string[]
+          status?: string
           token_hash: string
           token_prefix: string
-          expires_at?: string | null
-          last_used_at?: string | null
-          status?: string
-          scopes?: string[]
-          revoke_reason?: string | null
         }
         Update: {
           created_at?: string
           created_by?: string | null
+          expires_at?: string | null
           id?: string
+          last_used_at?: string | null
           name?: string
+          revoke_reason?: string | null
           role_id?: string | null
+          scopes?: string[]
+          status?: string
           token_hash?: string
           token_prefix?: string
-          expires_at?: string | null
-          last_used_at?: string | null
-          status?: string
-          scopes?: string[]
-          revoke_reason?: string | null
         }
         Relationships: [
           {
@@ -126,6 +126,56 @@ export type Database = {
           payload?: Json
         }
         Relationships: []
+      }
+      author_metric_snapshots: {
+        Row: {
+          author_id: string
+          fans_count: number
+          follows_count: number
+          id: string
+          interaction_count: number
+          observed_at: string
+          platform: string
+          platform_author_id: string
+          raw: Json | null
+          source: string | null
+          videos_count: number
+        }
+        Insert: {
+          author_id: string
+          fans_count?: number
+          follows_count?: number
+          id?: string
+          interaction_count?: number
+          observed_at?: string
+          platform: string
+          platform_author_id: string
+          raw?: Json | null
+          source?: string | null
+          videos_count?: number
+        }
+        Update: {
+          author_id?: string
+          fans_count?: number
+          follows_count?: number
+          id?: string
+          interaction_count?: number
+          observed_at?: string
+          platform?: string
+          platform_author_id?: string
+          raw?: Json | null
+          source?: string | null
+          videos_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "author_metric_snapshots_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "crawled_authors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       bilibili_contact_info: {
         Row: {
@@ -1177,6 +1227,56 @@ export type Database = {
         }
         Relationships: []
       }
+      post_metric_snapshots: {
+        Row: {
+          comment_count: number
+          id: string
+          like_count: number
+          observed_at: string
+          platform: string
+          platform_post_id: string
+          post_id: string
+          raw: Json | null
+          share_count: number
+          source: string | null
+          view_count: number
+        }
+        Insert: {
+          comment_count?: number
+          id?: string
+          like_count?: number
+          observed_at?: string
+          platform: string
+          platform_post_id: string
+          post_id: string
+          raw?: Json | null
+          share_count?: number
+          source?: string | null
+          view_count?: number
+        }
+        Update: {
+          comment_count?: number
+          id?: string
+          like_count?: number
+          observed_at?: string
+          platform?: string
+          platform_post_id?: string
+          post_id?: string
+          raw?: Json | null
+          share_count?: number
+          source?: string | null
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_metric_snapshots_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "crawled_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -1200,49 +1300,49 @@ export type Database = {
       }
       system_settings: {
         Row: {
-          id: string
-          use_2captcha: boolean
+          alert_on_failure: boolean
           api_key: string | null
           collect_comments: boolean
           collect_replies: boolean
-          headless_mode: boolean
           default_priority: string
+          default_webhook_url: string | null
+          headless_mode: boolean
+          id: string
           max_concurrent_tasks: number
           max_retries: number
-          default_webhook_url: string | null
           notify_on_success: boolean
-          alert_on_failure: boolean
           updated_at: string
+          use_2captcha: boolean
         }
         Insert: {
-          id?: string
-          use_2captcha?: boolean
+          alert_on_failure?: boolean
           api_key?: string | null
           collect_comments?: boolean
           collect_replies?: boolean
-          headless_mode?: boolean
           default_priority?: string
+          default_webhook_url?: string | null
+          headless_mode?: boolean
+          id?: string
           max_concurrent_tasks?: number
           max_retries?: number
-          default_webhook_url?: string | null
           notify_on_success?: boolean
-          alert_on_failure?: boolean
           updated_at?: string
+          use_2captcha?: boolean
         }
         Update: {
-          id?: string
-          use_2captcha?: boolean
+          alert_on_failure?: boolean
           api_key?: string | null
           collect_comments?: boolean
           collect_replies?: boolean
-          headless_mode?: boolean
           default_priority?: string
+          default_webhook_url?: string | null
+          headless_mode?: boolean
+          id?: string
           max_concurrent_tasks?: number
           max_retries?: number
-          default_webhook_url?: string | null
           notify_on_success?: boolean
-          alert_on_failure?: boolean
           updated_at?: string
+          use_2captcha?: boolean
         }
         Relationships: []
       }
@@ -2256,11 +2356,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
-
-import { type SupabaseClient } from "@supabase/supabase-js";
-export type DbClient = SupabaseClient<Database>;
-export type TableRow<T extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][T]["Row"];
-export type TableInsert<T extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][T]["Insert"];
-export type TableUpdate<T extends keyof Database["public"]["Tables"]> = Database["public"]["Tables"][T]["Update"];
-
 
