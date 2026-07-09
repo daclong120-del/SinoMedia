@@ -31,3 +31,20 @@ export async function createClientServer() {
     }
   );
 }
+
+/**
+ * Supabase Client chạy với service_role key — bypass RLS.
+ * CHỈ dùng cho admin operations (delete, bulk update) đã qua requireAdmin() guard.
+ */
+export function createServiceClient() {
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      cookies: {
+        getAll() { return []; },
+        setAll() {},
+      },
+    }
+  );
+}

@@ -165,4 +165,24 @@ export class PostRepository {
     if (error) throw error;
     return { data: data ?? [], count: count ?? 0 };
   }
+
+  /** Xóa 1 bài viết theo ID */
+  async deleteById(id: string): Promise<void> {
+    const { error } = await this.db
+      .from("crawled_posts")
+      .delete()
+      .eq("id", id);
+    if (error) throw error;
+  }
+
+  /** Xóa nhiều bài viết theo danh sách IDs */
+  async deleteByIds(ids: string[]): Promise<{ deletedCount: number }> {
+    if (ids.length === 0) return { deletedCount: 0 };
+    const { error, count } = await this.db
+      .from("crawled_posts")
+      .delete({ count: "exact" })
+      .in("id", ids);
+    if (error) throw error;
+    return { deletedCount: count ?? ids.length };
+  }
 }

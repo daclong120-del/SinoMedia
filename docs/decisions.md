@@ -209,4 +209,16 @@
 - **Evidence:** `tsc --noEmit` pass, `npm run build` pass, build output xác nhận không còn `/api/creative/*`.
 - **Revisit trigger:** Cần public API cho creative data, hoặc cần thêm HTTP methods cho worker API.
 
+## 2026-07-09 — Phòng chống Brute-force Đăng nhập bằng Turnstile Invisible & Hardening Rate Limit [initiative: Security Hardening]
+- **Context:** Đánh giá bảo mật phát hiện hệ thống không có rate limiting ở application layer, dẫn đến nguy cơ brute-force mật khẩu và lạm dụng API qua các auth server actions.
+- **Options considered:**
+  - A: Triển khai rate limiting ở Next.js Middleware hoặc dùng thư viện bên ngoài (Upstash).
+  - B: Tích hợp Cloudflare Turnstile Invisible Captcha và siết chặt cấu hình Supabase auth rate limit/password policy (Được chọn vì chi phí UX bằng 0 và tích hợp native với Supabase Auth).
+- **Decision:**
+  1. Siết cấu hình auth trong [config.toml](file:///d:/Python/SinoMedia/supabase/config.toml): tăng chiều dài mật khẩu tối thiểu lên 8 ký tự, bật yêu cầu có chữ và số (`letters_digits`), giảm giới hạn login/signup mỗi IP từ 30 xuống 10 lần trong 5 phút.
+  2. Tích hợp `@marsidev/react-turnstile` để kích hoạt Turnstile Invisible Captcha chạy ẩn ở background cho cả [login-form.tsx](file:///d:/Python/SinoMedia/dashboard/app/(auth)/login/login-form.tsx) và [sign-up-form.tsx](file:///d:/Python/SinoMedia/dashboard/app/(auth)/sign-up/sign-up-form.tsx).
+  3. Cập nhật `AuthService`, `loginAction` và `signUpAction` để truyền `captchaToken` vào Supabase options khi xác thực.
+- **Trade-off:** Cần cấu hình `NEXT_PUBLIC_TURNSTILE_SITE_KEY` và `[auth.captcha]` (Turnstile secret) cho Supabase ở môi trường dev nếu muốn kiểm thử captcha cục bộ.
+- **Revisit trigger:** Khi Cloudflare Turnstile thay đổi API hoặc Supabase thay đổi cách handle captcha verification.
+
 

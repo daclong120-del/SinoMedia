@@ -2,7 +2,7 @@
  * Service — Data Management (Posts, Authors, Comments)
  * Phục vụ các trang Data > Posts, Data > Authors, Data > Management.
  */
-import { createClientServer } from "@/lib/supabase/server";
+import { createClientServer, createServiceClient } from "@/lib/supabase/server";
 import { PostRepository, type PostQueryOpts } from "@/lib/repositories/post.repo";
 import { AuthorRepository, type AuthorQueryOpts } from "@/lib/repositories/author.repo";
 import { CommentRepository } from "@/lib/repositories/comment.repo";
@@ -89,4 +89,18 @@ export async function getComments(postId: string): Promise<CrawledComment[]> {
 /** Lấy danh sách tags — TODO: cần migration bảng post_tags */
 export function getTags(): { id: string; name: string; color: string; description: string; usage_count: number; created_at: string }[] {
   return [];
+}
+
+/** Xóa 1 bài viết theo ID (dùng service role — bypass RLS) */
+export async function deletePost(id: string): Promise<void> {
+  const db = createServiceClient();
+  const repo = new PostRepository(db as unknown as DbClient);
+  await repo.deleteById(id);
+}
+
+/** Xóa nhiều bài viết theo danh sách IDs (dùng service role — bypass RLS) */
+export async function deletePosts(ids: string[]): Promise<{ deletedCount: number }> {
+  const db = createServiceClient();
+  const repo = new PostRepository(db as unknown as DbClient);
+  return repo.deleteByIds(ids);
 }

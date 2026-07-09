@@ -21,7 +21,7 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 |---|---|---|
 | Dashboard | Partial | Next.js App Router, nhiều trang đã có service/repository và server actions. Cột mốc quan trọng: `/dash/tasks` đã Done (nối realtime và xử lý tasks thật). |
 | Crawler Pipeline | Partial | Worker TypeScript độc lập có queue loop, claim task qua Supabase RPC, platform factory, account/proxy pool. Bilibili crawler có đầy đủ phase, log và cào bình luận ổn định. |
-| Supabase/Media | Partial | Supabase là control plane/data store. Đã hoàn thành khóa quyền truy cập thô của anon key, bật RLS cho toàn bộ bảng và thắt chặt RPC nhạy cảm. Tích hợp kịch bản kiểm thử bảo mật tự động 27/27 test cases (RLS + Proxy) đạt 100%. Security headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy) đã được cấu hình qua `next.config.ts`. |
+| Supabase/Media | Partial | Supabase là control plane/data store. Đã hoàn thành khóa quyền truy cập thô của anon key, bật RLS cho toàn bộ bảng và thắt chặt RPC nhạy cảm. Tích hợp kịch bản kiểm thử bảo mật tự động 27/27 test cases (RLS + Proxy) đạt 100%. Đã siết chặt password policy (min 8 kí tự, có cả chữ và số) và giảm auth rate limit xuống 10 lần/5 phút. Security headers đã được cấu hình qua `next.config.ts`. |
 | Desktop App | Partial | Đã hoàn thành build script Scaffold & Full, tích hợp embedded Node.exe, launcher scripts, C# wrapper SinoMedia.exe và health check smoke test tự động. |
 
 ## Product direction hiện tại
@@ -38,7 +38,7 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 | Route | Trạng thái | Ghi chú |
 |---|---|---|
 | `/` | Done | Redirect/entrypoint dashboard. |
-| `/login`, `/sign-up`, `/forgot-password` | Done | Gỡ bỏ hoàn toàn Mock Auth Bypass. Dev bắt buộc sử dụng tài khoản Supabase local/test thật. Next.js Middleware chạy thực sự (proxy.ts) bảo vệ các route `/dash/*`. |
+| `/login`, `/sign-up`, `/forgot-password` | Done | Gỡ bỏ hoàn toàn Mock Auth Bypass. Đăng nhập/Đăng ký đã được tích hợp Turnstile Invisible Captcha chống brute-force và bot abuse. Dev bắt buộc sử dụng tài khoản Supabase local/test thật. Next.js Middleware chạy thực sự (proxy.ts) bảo vệ các route `/dash/*`. |
 | `/dash/home` | Partial | Có service metrics, một số trend còn TODO hoặc phụ thuộc dữ liệu thật. |
 | `/dash/tasks` | Done | Giao diện quản lý task hoàn chỉnh, kết nối DB thật, realtime status thật, nút Cancel/Retry (Optimistic). Đã thắt chặt bảo mật 2 lớp: Admin-only Next.js Middleware và Admin-only RLS trên DB. |
 | `/dash/accounts` | Draft | Đọc account qua action, modal nạp tài khoản và nút unban/xóa chưa nối mutation thật. Được bảo vệ bởi Admin-only Middleware & RLS. |
