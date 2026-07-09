@@ -24,7 +24,9 @@ export async function proxy(request: NextRequest) {
     if (isMembersRoute) {
       let isAdmin = false;
       const mockSession = request.cookies.get("sb-mock-session")?.value;
-      if (mockSession === "true") {
+      const isDevMockAllowed = process.env.NODE_ENV !== "production" && process.env.ENABLE_MOCK_AUTH === "true";
+      
+      if (mockSession === "true" && isDevMockAllowed) {
         const mockUserEmail = request.cookies.get("sb-mock-user")?.value || "admin@sinomedia.vn";
         isAdmin = mockUserEmail === "admin@sinomedia.vn";
       } else if (supabase) {
@@ -56,6 +58,9 @@ export async function proxy(request: NextRequest) {
 
   return supabaseResponse;
 }
+
+// Export thêm alias middleware để tương thích nếu cần
+export { proxy as middleware };
 
 // Chỉ chạy proxy trên các dashboard routes và auth pages
 export const config = {

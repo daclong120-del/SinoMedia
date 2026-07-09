@@ -28,9 +28,12 @@ export class AuthService {
       // offline
     }
 
-    // 2. Chế độ Bypass Demo (nếu offline hoặc là tài khoản demo)
-    if (!isSupabaseOnline || (email === "admin@sinomedia.vn" && password === "12345678")) {
-      return { mock: true, email };
+    // 2. Chế độ Bypass Demo (chỉ cho phép ở môi trường phát triển/test được cấu hình)
+    const isDevMockAllowed = process.env.NODE_ENV !== "production" && process.env.ENABLE_MOCK_AUTH === "true";
+    if (isDevMockAllowed) {
+      if (!isSupabaseOnline || (email === "admin@sinomedia.vn" && password === "12345678")) {
+        return { mock: true, email };
+      }
     }
 
     // 3. Supabase Auth thật

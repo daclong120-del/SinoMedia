@@ -87,6 +87,10 @@ Ví dụ bẫy hiện tại:
 - Không xóa vai trò hệ thống mặc định (`admin`, `user`) kể cả khi đã gỡ khóa sửa quyền (`is_locked = false`). Chặn xóa ở cả backend (`deleteRole`) và UI (`roles-panel.tsx`).
 - Tránh chạy `supabase db reset` ở local dev vì làm mất dữ liệu cào thử nghiệm. Ưu tiên chạy trực tiếp SQL `UPDATE` hoặc `supabase db push` khi thay đổi schema/data nhỏ.
 - **Ràng buộc khi ghi nhận metric snapshot**: Khi thực hiện cào mới (`upsertPost`, `upsertAuthor`), bắt buộc phải dùng guard `hasRecognizedMetric` và kiểm tra độ tin cậy của metric tác giả (`fans_count !== 0`) trước khi ghi nhận snapshot, tránh tạo dữ liệu 0 giả lập (unpopulated) làm sai lệch lịch sử tăng trưởng.
+- **Quy ước Next.js Middleware**: Dự án này sử dụng convention Next.js 16 (Turbopack) - file Middleware bắt buộc phải đặt tên là `proxy.ts` và export function `proxy`. Tuyệt đối không đổi tên thành `middleware.ts` vì sẽ làm mất hiệu lực bảo vệ route `/dash/*`.
+- **Giới hạn Mock Auth**: Mock Auth bypass chỉ được phép chạy khi `process.env.NODE_ENV !== "production"` và đồng thời có cờ `process.env.ENABLE_MOCK_AUTH === "true"`. Ở môi trường production, hệ thống bắt buộc phải fail-closed về Supabase Auth thật.
+- **Bảo vệ Video Proxy chống SSRF**: API endpoint `/api/video/proxy` được tích hợp các lớp bảo vệ nghiêm ngặt: kiểm tra auth session (`getCurrentUser`), chỉ nhận giao thức HTTPS, giới hạn dung lượng tải (100MB), giới hạn content-type, phân giải DNS chặn IP private/local (chống SSRF), và so sánh CORS origin chính xác (`URL.origin`). Khi tích hợp thêm CDN/Platform mới, bắt buộc cập nhật domain allowlist tại `route.ts`.
+- **Thắt chặt quyền Task & Account API**: Các API/Actions thay đổi trạng thái task (`createTask`, `createTasksBulk`, `cancelTask`, `retryTask`) và lấy thông tin nhạy cảm (`getAccounts`) bắt buộc phải bọc bằng guard `requireAdmin()`. Quyền thực thi các RPC (`claim_next_crawler_task`, `create_crawler_tasks`) cũng được thắt chặt bằng cách `REVOKE` khỏi vai trò public/anon và chỉ `GRANT` cho `service_role`/`authenticated` thích hợp.
 
 ## Documentation rule
 

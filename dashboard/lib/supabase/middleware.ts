@@ -38,7 +38,8 @@ export async function updateSession(request: NextRequest) {
 
   // Kiểm tra chế độ Mock Session để hỗ trợ phát triển offline
   const mockSession = request.cookies.get("sb-mock-session")?.value;
-  if (mockSession === "true") {
+  const isDevMockAllowed = process.env.NODE_ENV !== "production" && process.env.ENABLE_MOCK_AUTH === "true";
+  if (mockSession === "true" && isDevMockAllowed) {
     const mockUserEmail = request.cookies.get("sb-mock-user")?.value || "admin@sinomedia.vn";
     const user = {
       id: "mock-user-id-9999",
