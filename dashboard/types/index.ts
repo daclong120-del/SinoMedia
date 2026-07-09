@@ -46,7 +46,15 @@ export interface CrawlerTask {
     crawl_sub_comments?: boolean;
     headless?: boolean;
     error_message?: string;
-    media_strategy?: string;
+    phase?: string;
+    progress?: {
+      current: number;
+      target: number;
+    };
+    comment_progress?: {
+      current: number;
+      target: number;
+    };
   };
 }
 
@@ -184,7 +192,7 @@ export interface CreativeAdvertiser {
   total_views: number;
   total_likes: number;
   follows_count: number;
-  fans_count: number;
+  fans_count: number | null;
   crawled_at: string;
   last_active_at: string;
 }
@@ -209,6 +217,7 @@ export interface CreativeAd {
   is_ad: boolean;
   growth_rate: number;
   views_history: { date: string; count: number }[];
+  historySource?: "snapshot" | "fallback";
   author?: CreativeAdvertiser | null;
   original_media_urls?: string[];
   original_cover_url?: string;

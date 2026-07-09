@@ -31,7 +31,68 @@ export async function upsertAuthor(author: CrawledAuthorRow): Promise<string> {
     throw new Error("Không thể lưu thông tin tác giả vào Supabase");
   }
 
-  return result[0].id;
+  const savedAuthor = result[0];
+  // Chỉ ghi nhận snapshot khi payload crawl thật sự có metrics hợp lệ
+  if (author.fans_count !== null && author.fans_count !== undefined && author.fans_count !== 0) {
+    await insertAuthorMetricSnapshot({
+      author_id: savedAuthor.id,
+      platform: savedAuthor.platform,
+      platform_author_id: savedAuthor.platform_uid,
+      fans_count: Number(savedAuthor.fans_count ?? 0),
+      follows_count: Number(savedAuthor.follows_count ?? 0),
+      interaction_count: Number(savedAuthor.interaction_count ?? 0),
+      videos_count: Number(savedAuthor.videos_count ?? 0),
+      raw: savedAuthor.raw || null,
+      source: "crawl",
+    }).catch(err => console.error("Error inserting author snapshot:", err));
+  }
+
+  return savedAuthor.id;
+}
+
+function normalizeStats(stats: any): any {
+  if (typeof stats !== "object" || stats === null || Array.isArray(stats)) {
+    return stats;
+  }
+  const normalized = { ...stats };
+  
+  // Normalize likes
+  const likes = stats.like_count || stats.digg_count || stats.liked_count || stats.voteup_count || stats.voteupCount || 0;
+  normalized.like_count = likes;
+  normalized.digg_count = likes;
+  normalized.liked_count = likes;
+  
+  // Normalize views
+  const views = stats.play_count || stats.view_count || stats.playCount || 0;
+  normalized.play_count = views;
+  normalized.view_count = views;
+  
+  // Normalize comments
+  const comments = stats.comment_count || stats.comments_count || stats.commentCount || 0;
+  normalized.comment_count = comments;
+  normalized.comments_count = comments;
+  
+  // Normalize shares
+  const shares = stats.share_count || stats.shared_count || stats.shareCount || 0;
+  normalized.share_count = shares;
+  normalized.shared_count = shares;
+  
+  return normalized;
+}
+
+function hasRecognizedMetric(stats: any): boolean {
+  if (!stats || typeof stats !== "object") return false;
+  const keys = [
+    "play_count",
+    "view_count",
+    "like_count",
+    "digg_count",
+    "comment_count",
+    "share_count",
+    "liked_count",
+    "voteup_count"
+  ];
+  return keys.some(k => stats[k] !== undefined && stats[k] !== null && Number(stats[k]) > 0);
 }
 
 /**
@@ -45,18 +106,21 @@ export async function upsertPost(post: CrawledPostRow): Promise<void> {
   const taskLang = process.env.CURRENT_TASK_LANGUAGE;
   const mergedLang = post.language && post.language !== "auto" ? post.language : (taskLang || "auto");
 
+  const normalized = normalizeStats(post.stats) || {};
+  const postId = `${post.platform}_${post.platform_id}`;
+
   await supabaseRest("crawled_posts", {
     method: "POST",
     params: { on_conflict: "platform,platform_id" },
     body: {
-      id: `${post.platform}_${post.platform_id}`,
+      id: postId,
       platform: post.platform,
       platform_id: post.platform_id,
       author_id: post.author_id,
       caption: post.caption,
       media_urls: post.media_urls || [],
       cover_url: post.cover_url,
-      stats: post.stats,
+      stats: normalized,
       raw: post.raw,
       crawled_at: new Date().toISOString(),
       published_at: post.published_at,
@@ -71,6 +135,20 @@ export async function upsertPost(post: CrawledPostRow): Promise<void> {
       media_cached_at: post.media_cached_at || null,
     },
   });
+
+  if (hasRecognizedMetric(post.stats)) {
+    await insertPostMetricSnapshot({
+      post_id: postId,
+      platform: post.platform,
+      platform_post_id: post.platform_id,
+      view_count: normalized.play_count || 0,
+      like_count: normalized.like_count || 0,
+      comment_count: normalized.comment_count || 0,
+      share_count: normalized.share_count || 0,
+      raw: post.stats || null,
+      source: "crawl",
+    }).catch(err => console.error("Error inserting post snapshot:", err));
+  }
 }
 
 function originalCoverUrlHelper(post: CrawledPostRow): string | null {
@@ -88,13 +166,12 @@ export async function upsertPosts(posts: CrawledPostRow[]): Promise<void> {
   const taskTags: string[] = taskTagsStr ? JSON.parse(taskTagsStr) : [];
   const taskLang = process.env.CURRENT_TASK_LANGUAGE;
 
-  await supabaseRest("crawled_posts", {
-    method: "POST",
-    params: { on_conflict: "platform,platform_id" },
-    body: posts.map((post) => {
-      const mergedTags = Array.from(new Set([...(post.tags || []), ...taskTags]));
-      const mergedLang = post.language && post.language !== "auto" ? post.language : (taskLang || "auto");
-      return {
+  const normalizedPosts = posts.map((post) => {
+    const mergedTags = Array.from(new Set([...(post.tags || []), ...taskTags]));
+    const mergedLang = post.language && post.language !== "auto" ? post.language : (taskLang || "auto");
+    const normalized = normalizeStats(post.stats) || {};
+    return {
+      post: {
         id: `${post.platform}_${post.platform_id}`,
         platform: post.platform,
         platform_id: post.platform_id,
@@ -102,7 +179,7 @@ export async function upsertPosts(posts: CrawledPostRow[]): Promise<void> {
         caption: post.caption || null,
         media_urls: post.media_urls || [],
         cover_url: post.cover_url || null,
-        stats: post.stats || null,
+        stats: normalized,
         raw: post.raw || null,
         crawled_at: new Date().toISOString(),
         published_at: post.published_at || null,
@@ -115,9 +192,38 @@ export async function upsertPosts(posts: CrawledPostRow[]): Promise<void> {
         media_source: post.media_source || "original",
         media_error: post.media_error || null,
         media_cached_at: post.media_cached_at || null,
-      };
-    }),
+      },
+      normalized,
+    };
   });
+
+  await supabaseRest("crawled_posts", {
+    method: "POST",
+    params: { on_conflict: "platform,platform_id" },
+    body: normalizedPosts.map(np => np.post),
+  });
+
+  // Append bulk snapshots
+  const snapshots = normalizedPosts
+    .filter(np => hasRecognizedMetric(np.post.stats))
+    .map(np => ({
+      post_id: np.post.id,
+      platform: np.post.platform,
+      platform_post_id: np.post.platform_id,
+      view_count: np.normalized.play_count || 0,
+      like_count: np.normalized.like_count || 0,
+      comment_count: np.normalized.comment_count || 0,
+      share_count: np.normalized.share_count || 0,
+      raw: np.post.stats || null,
+      source: "crawl",
+    }));
+
+  if (snapshots.length > 0) {
+    await supabaseRest("post_metric_snapshots", {
+      method: "POST",
+      body: snapshots,
+    }).catch(err => console.error("Error inserting bulk post snapshots:", err));
+  }
 }
 
 /**
@@ -181,4 +287,156 @@ export async function isTaskCancelled(taskId: string | null | undefined): Promis
     console.error(`Lỗi khi check trạng thái huỷ của task: ${(err as Error).message}`);
   }
   return false;
+}
+
+/**
+ * # Cập nhật tiến độ của task hiện tại vào metadata
+ */
+export async function updateTaskProgress(taskId: string | null | undefined, current: number, target: number): Promise<void> {
+  if (!taskId) return;
+  try {
+    const res = await supabaseRest("crawler_tasks", {
+      method: "GET",
+      params: {
+        id: `eq.${taskId}`,
+        select: "metadata"
+      }
+    });
+    if (Array.isArray(res) && res[0]) {
+      const metadata = res[0].metadata || {};
+      metadata.progress = { current, target };
+      await supabaseRest("crawler_tasks", {
+        method: "PATCH",
+        params: { id: `eq.${taskId}` },
+        body: {
+          metadata,
+          updated_at: new Date().toISOString(),
+        }
+      });
+    }
+  } catch (err) {
+    console.error(`Lỗi khi cập nhật tiến độ task: ${(err as Error).message}`);
+  }
+}
+
+/**
+ * # Cập nhật phase hiện tại của task vào metadata
+ */
+export async function updateTaskPhase(taskId: string | null | undefined, phase: string): Promise<void> {
+  if (!taskId) return;
+  try {
+    const res = await supabaseRest("crawler_tasks", {
+      method: "GET",
+      params: {
+        id: `eq.${taskId}`,
+        select: "metadata"
+      }
+    });
+    if (Array.isArray(res) && res[0]) {
+      const metadata = res[0].metadata || {};
+      metadata.phase = phase;
+      await supabaseRest("crawler_tasks", {
+        method: "PATCH",
+        params: { id: `eq.${taskId}` },
+        body: {
+          metadata,
+          updated_at: new Date().toISOString(),
+        }
+      });
+    }
+  } catch (err) {
+    console.error(`Lỗi khi cập nhật phase của task: ${(err as Error).message}`);
+  }
+}
+
+/**
+ * # Cập nhật tiến độ cào bình luận của task vào metadata
+ */
+export async function updateTaskCommentProgress(taskId: string | null | undefined, current: number, target: number): Promise<void> {
+  if (!taskId) return;
+  try {
+    const res = await supabaseRest("crawler_tasks", {
+      method: "GET",
+      params: {
+        id: `eq.${taskId}`,
+        select: "metadata"
+      }
+    });
+    if (Array.isArray(res) && res[0]) {
+      const metadata = res[0].metadata || {};
+      metadata.comment_progress = { current, target };
+      await supabaseRest("crawler_tasks", {
+        method: "PATCH",
+        params: { id: `eq.${taskId}` },
+        body: {
+          metadata,
+          updated_at: new Date().toISOString(),
+        }
+      });
+    }
+  } catch (err) {
+    console.error(`Lỗi khi cập nhật tiến độ bình luận task: ${(err as Error).message}`);
+  }
+}
+
+/**
+ * # Thêm snapshot lịch sử metric của bài viết
+ */
+export async function insertPostMetricSnapshot(snapshot: {
+  post_id: string;
+  platform: string;
+  platform_post_id: string;
+  view_count: number;
+  like_count: number;
+  comment_count: number;
+  share_count: number;
+  raw?: any;
+  source: string;
+}): Promise<void> {
+  await supabaseRest("post_metric_snapshots", {
+    method: "POST",
+    body: {
+      post_id: snapshot.post_id,
+      platform: snapshot.platform,
+      platform_post_id: snapshot.platform_post_id,
+      view_count: snapshot.view_count,
+      like_count: snapshot.like_count,
+      comment_count: snapshot.comment_count,
+      share_count: snapshot.share_count,
+      raw: snapshot.raw || null,
+      source: snapshot.source,
+      observed_at: new Date().toISOString()
+    }
+  });
+}
+
+/**
+ * # Thêm snapshot lịch sử metric của tác giả
+ */
+export async function insertAuthorMetricSnapshot(snapshot: {
+  author_id: string;
+  platform: string;
+  platform_author_id: string;
+  fans_count: number;
+  follows_count: number;
+  interaction_count: number;
+  videos_count: number;
+  raw?: any;
+  source: string;
+}): Promise<void> {
+  await supabaseRest("author_metric_snapshots", {
+    method: "POST",
+    body: {
+      author_id: snapshot.author_id,
+      platform: snapshot.platform,
+      platform_author_id: snapshot.platform_author_id,
+      fans_count: snapshot.fans_count,
+      follows_count: snapshot.follows_count,
+      interaction_count: snapshot.interaction_count,
+      videos_count: snapshot.videos_count,
+      raw: snapshot.raw || null,
+      source: snapshot.source,
+      observed_at: new Date().toISOString()
+    }
+  });
 }

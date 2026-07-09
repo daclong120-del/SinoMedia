@@ -42,6 +42,8 @@ Docs-only edits không sửa code symbol, nhưng vẫn nên chạy `detect_chang
 
 - Worker claim task qua Supabase RPC.
 - Worker ghi logs vào `crawler_logs`.
+- Worker không được dùng `console.log` thuần túy cho các logs tiến trình cào quan trọng trong core crawler; bắt buộc sử dụng `logger.info` / `logger.error` của hệ thống để logs được đẩy thành công vào Supabase `crawler_logs` trên Dashboard.
+- Database client của worker (`supabaseRest`) phải đọc response dưới dạng text trước khi parse JSON để tránh crash (`Unexpected end of JSON input`) khi PostgREST trả về response body trống (ví dụ: HTTP 201 Created với Prefer: return=minimal).
 - Worker cập nhật task status completed/failed.
 - Tương lai worker cần heartbeat, worker_id, capabilities và graceful shutdown.
 - Desktop app có thể bật thêm worker, nhưng hiện chưa có worker manager.
@@ -71,7 +73,7 @@ Ví dụ bẫy hiện tại:
 
 - `/dash/accounts` có modal nạp tài khoản nhưng chưa nối mutation thật.
 - `/dash/data/management` có storage metrics hard-code và tag manager local state.
-- `/dash/creative/growth` chưa có history table để tính growth thật.
+- `/dash/creative/growth` đã có bảng history `post_metric_snapshots`, nhưng chưa tối ưu logic tính toán tăng trưởng thật cho `/dash/creative/growth`.
 - Desktop app hiện mới là Pake packaging draft.
 - Bilibili đã có hướng iframe embed; đừng kéo lại về R2/direct CDN playback nếu không có lý do mới.
 
@@ -84,6 +86,7 @@ Ví dụ bẫy hiện tại:
 - Logs không chứa cookie, password, token, QR secret.
 - Không xóa vai trò hệ thống mặc định (`admin`, `user`) kể cả khi đã gỡ khóa sửa quyền (`is_locked = false`). Chặn xóa ở cả backend (`deleteRole`) và UI (`roles-panel.tsx`).
 - Tránh chạy `supabase db reset` ở local dev vì làm mất dữ liệu cào thử nghiệm. Ưu tiên chạy trực tiếp SQL `UPDATE` hoặc `supabase db push` khi thay đổi schema/data nhỏ.
+- **Ràng buộc khi ghi nhận metric snapshot**: Khi thực hiện cào mới (`upsertPost`, `upsertAuthor`), bắt buộc phải dùng guard `hasRecognizedMetric` và kiểm tra độ tin cậy của metric tác giả (`fans_count !== 0`) trước khi ghi nhận snapshot, tránh tạo dữ liệu 0 giả lập (unpopulated) làm sai lệch lịch sử tăng trưởng.
 
 ## Documentation rule
 

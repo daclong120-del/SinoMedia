@@ -3,10 +3,11 @@
  */
 
 import { bilibiliGet, downloadMedia, pong, setBilibiliCookie } from "./client.js";
-import { upsertAuthor, upsertPost, upsertPosts, getPostUuid, upsertComments, checkoutAccount, checkinAccount, releaseAccount, isTaskCancelled } from "../../store/index.js";
+import { upsertAuthor, upsertPost, upsertPosts, getPostUuid, upsertComments, checkoutAccount, checkinAccount, releaseAccount, isTaskCancelled, updateTaskProgress, updateTaskPhase, updateTaskCommentProgress } from "../../store/index.js";
 import { CrawledPostRow } from "../../model/storage.js";
 import type { ICrawler, BrowserLaunchOptions } from "../../base/base_crawler.js";
 import type { BrowserContext } from "playwright-core";
+import { logger } from "../../utils/index.js";
 
 function sleep(ms: number): Promise<void> {
   return new Promise(r => setTimeout(r, ms));
@@ -262,7 +263,8 @@ export async function crawlComments(
           let subPn = 1;
           let subHasMore = true;
 
-          while (subHasMore) {
+          // Chỉ cào tối đa 2 trang sub-comments (khoảng 40 sub-replies) để tránh quá tải
+          while (subHasMore && subPn <= 2) {
             if (await isTaskCancelled(process.env.CURRENT_TASK_ID)) {
               console.log("Nhiệm vụ đã bị hủy từ giao diện. Dừng cào bình luận phụ.");
               return;
@@ -305,10 +307,11 @@ export async function crawlComments(
 /**
  * # Cào toàn bộ video từ một creator và lưu vào DB + R2
  */
-export async function crawlCreator(urlOrUid: string): Promise<void> {
+export async function crawlCreator(urlOrUid: string, maxCount?: number): Promise<void> {
   const creatorId = parseCreatorInfoFromUrl(urlOrUid);
 
-  console.log(`Bắt đầu cào thông tin creator cho UID: ${creatorId}`);
+  logger.info(`Bắt đầu cào thông tin creator cho UID: ${creatorId}`, "Bilibili");
+  await updateTaskPhase(process.env.CURRENT_TASK_ID, "collecting_posts");
   const creatorInfoRes = await bilibiliGet("/x/space/wbi/acc/info", { mid: creatorId }, true);
 
   const nickname = creatorInfoRes.name || "Người dùng Bilibili";
@@ -323,16 +326,17 @@ export async function crawlCreator(urlOrUid: string): Promise<void> {
     raw: creatorInfoRes,
   });
 
-  const maxPosts = process.env.CREATOR_MAX_POSTS ? parseInt(process.env.CREATOR_MAX_POSTS, 10) : Infinity;
+  const maxPosts = maxCount || (process.env.CREATOR_MAX_POSTS ? parseInt(process.env.CREATOR_MAX_POSTS, 10) : Infinity);
   let pn = 1;
   const ps = 30;
   let crawlCount = 0;
+  const allCollectedPosts: CrawledPostRow[] = [];
 
-  console.log(`Bắt đầu cào danh sách video của creator, giới hạn tối đa: ${maxPosts}`);
+  logger.info(`Bắt đầu cào danh sách video của creator, giới hạn tối đa: ${maxPosts}`, "Bilibili");
 
   while (crawlCount < maxPosts) {
     if (await isTaskCancelled(process.env.CURRENT_TASK_ID)) {
-      console.log("Nhiệm vụ đã bị hủy từ giao diện. Dừng cào danh sách video creator space.");
+      logger.info("Nhiệm vụ đã bị hủy từ giao diện. Dừng cào danh sách video creator space.", "Bilibili");
       return;
     }
 
@@ -355,19 +359,20 @@ export async function crawlCreator(urlOrUid: string): Promise<void> {
         break;
       }
       if (await isTaskCancelled(process.env.CURRENT_TASK_ID)) {
-        console.log("Nhiệm vụ đã bị hủy từ giao diện. Dừng xử lý video creator.");
+        logger.info("Nhiệm vụ đã bị hủy từ giao diện. Dừng xử lý video creator.", "Bilibili");
         return;
       }
 
-      console.log(`Đang xử lý video thứ ${crawlCount + 1}: ${item.bvid} - ${item.title || "Không tiêu đề"}`);
+      logger.info(`Đang xử lý video thứ ${crawlCount + 1}: ${item.bvid} - ${item.title || "Không tiêu đề"}`, "Bilibili");
 
       try {
         const detailRes = await bilibiliGet("/x/web-interface/view/detail", { bvid: item.bvid }, false);
         const postRow = await persistBilibiliVideo(detailRes, { authorUuid, skipDbWrite: true });
         pagePosts.push(postRow);
         crawlCount++;
+        await updateTaskProgress(process.env.CURRENT_TASK_ID, crawlCount, maxPosts === Infinity ? 0 : maxPosts);
       } catch (err) {
-        console.log(`Lỗi khi xử lý video ${item.bvid}: ${(err as Error).message}`);
+        logger.error(`Lỗi khi xử lý video ${item.bvid}: ${(err as Error).message}`, "Bilibili");
       }
 
       await sleep(1000);
@@ -375,18 +380,7 @@ export async function crawlCreator(urlOrUid: string): Promise<void> {
 
     if (pagePosts.length > 0) {
       await upsertPosts(pagePosts);
-      for (const post of pagePosts) {
-        if (process.env.ENABLE_GET_COMMENTS !== "false") {
-          try {
-            await crawlComments(post.platform_id, {
-              maxCount: process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES ? parseInt(process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES, 10) : 50,
-              withReplies: process.env.ENABLE_GET_SUB_COMMENTS === "true"
-            });
-          } catch (err) {
-            console.log(`Lỗi khi cào bình luận cho video ${post.platform_id}: ${(err as Error).message}`);
-          }
-        }
-      }
+      allCollectedPosts.push(...pagePosts);
     }
 
     const count = searchRes.page?.count ?? 0;
@@ -397,7 +391,43 @@ export async function crawlCreator(urlOrUid: string): Promise<void> {
     await sleep(1000);
   }
 
-  console.log(`Hoàn thành cào creator ${nickname}. Tổng số video đã xử lý: ${crawlCount}`);
+  logger.info(`Lấy xong video. Bắt đầu cào bình luận cho ${allCollectedPosts.length} video.`, "Bilibili");
+  await updateTaskPhase(process.env.CURRENT_TASK_ID, "crawling_comments");
+
+  let postIndex = 0;
+  for (const post of allCollectedPosts) {
+    postIndex++;
+    if (await isTaskCancelled(process.env.CURRENT_TASK_ID)) {
+      logger.info("Nhiệm vụ đã bị hủy từ giao diện. Dừng cào bình luận.", "Bilibili");
+      return;
+    }
+    if (process.env.ENABLE_GET_COMMENTS !== "false") {
+      try {
+        logger.info(`Đang cào bình luận cho video ${post.platform_id} (${postIndex}/${allCollectedPosts.length})`, "Bilibili");
+        await updateTaskCommentProgress(process.env.CURRENT_TASK_ID, postIndex, allCollectedPosts.length);
+
+        const timeoutMs = 60000;
+        let timeoutTimer: NodeJS.Timeout;
+        const commentTimeoutPromise = new Promise<void>((_, reject) => {
+          timeoutTimer = setTimeout(() => reject(new Error(`Timeout cào comment video vượt quá ${timeoutMs / 1000} giây`)), timeoutMs);
+        });
+
+        await Promise.race([
+          crawlComments(post.platform_id, {
+            maxCount: process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES ? parseInt(process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES, 10) : 50,
+            withReplies: process.env.ENABLE_GET_SUB_COMMENTS === "true"
+          }),
+          commentTimeoutPromise
+        ]).finally(() => {
+          clearTimeout(timeoutTimer);
+        });
+      } catch (err) {
+        logger.error(`Lỗi khi cào bình luận cho video ${post.platform_id}: ${(err as Error).message}`, "Bilibili");
+      }
+    }
+  }
+
+  logger.info(`Hoàn thành cào creator ${nickname}. Tổng số video đã xử lý: ${crawlCount}`, "Bilibili");
 }
 
 /**
@@ -407,12 +437,14 @@ export async function crawlSearch(keyword: string, maxCount = 20): Promise<void>
   let page = 1;
   const limit = 20;
   let collected = 0;
+  const allCollectedPosts: CrawledPostRow[] = [];
 
-  console.log(`Bắt đầu cào tìm kiếm với từ khóa: "${keyword}", giới hạn tối đa: ${maxCount}`);
+  logger.info(`Bắt đầu cào tìm kiếm với từ khóa: "${keyword}", giới hạn tối đa: ${maxCount}`, "Bilibili");
+  await updateTaskPhase(process.env.CURRENT_TASK_ID, "collecting_posts");
 
   while (collected < maxCount) {
     if (await isTaskCancelled(process.env.CURRENT_TASK_ID)) {
-      console.log("Nhiệm vụ đã bị hủy từ giao diện. Dừng cào tìm kiếm.");
+      logger.info("Nhiệm vụ đã bị hủy từ giao diện. Dừng cào tìm kiếm.", "Bilibili");
       return;
     }
 
@@ -429,7 +461,7 @@ export async function crawlSearch(keyword: string, maxCount = 20): Promise<void>
     );
 
     const resultList = res.result || [];
-    console.log(`Lấy được trang kết quả tìm kiếm thứ ${page} với ${resultList.length} phần tử.`);
+    logger.info(`Lấy được trang kết quả tìm kiếm thứ ${page} với ${resultList.length} phần tử.`, "Bilibili");
 
     if (resultList.length === 0) {
       break;
@@ -441,19 +473,20 @@ export async function crawlSearch(keyword: string, maxCount = 20): Promise<void>
         break;
       }
       if (await isTaskCancelled(process.env.CURRENT_TASK_ID)) {
-        console.log("Nhiệm vụ đã bị hủy từ giao diện. Dừng xử lý video tìm kiếm.");
+        logger.info("Nhiệm vụ đã bị hủy từ giao diện. Dừng xử lý video tìm kiếm.", "Bilibili");
         return;
       }
 
-      console.log(`Đang xử lý video tìm kiếm thứ ${collected + 1}: ${item.bvid} - ${item.title || "Không tiêu đề"}`);
+      logger.info(`Đang xử lý video tìm kiếm thứ ${collected + 1}: ${item.bvid} - ${item.title || "Không tiêu đề"}`, "Bilibili");
 
       try {
         const detailRes = await bilibiliGet("/x/web-interface/view/detail", { bvid: item.bvid }, false);
         const postRow = await persistBilibiliVideo(detailRes, { skipDbWrite: true });
         pagePosts.push(postRow);
         collected++;
+        await updateTaskProgress(process.env.CURRENT_TASK_ID, collected, maxCount);
       } catch (err) {
-        console.log(`Lỗi khi xử lý video tìm kiếm ${item.bvid}: ${(err as Error).message}`);
+        logger.error(`Lỗi khi xử lý video tìm kiếm ${item.bvid}: ${(err as Error).message}`, "Bilibili");
       }
 
       await sleep(1000);
@@ -461,25 +494,50 @@ export async function crawlSearch(keyword: string, maxCount = 20): Promise<void>
 
     if (pagePosts.length > 0) {
       await upsertPosts(pagePosts);
-      for (const post of pagePosts) {
-        if (process.env.ENABLE_GET_COMMENTS !== "false") {
-          try {
-            await crawlComments(post.platform_id, {
-              maxCount: process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES ? parseInt(process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES, 10) : 50,
-              withReplies: process.env.ENABLE_GET_SUB_COMMENTS === "true"
-            });
-          } catch (err) {
-            console.log(`Lỗi khi cào bình luận cho video ${post.platform_id}: ${(err as Error).message}`);
-          }
-        }
-      }
+      allCollectedPosts.push(...pagePosts);
     }
 
     page++;
     await sleep(1000);
   }
 
-  console.log(`Hoàn thành cào tìm kiếm từ khóa "${keyword}". Tổng số video đã xử lý: ${collected}`);
+  logger.info(`Lấy xong video. Bắt đầu cào bình luận cho ${allCollectedPosts.length} video.`, "Bilibili");
+  await updateTaskPhase(process.env.CURRENT_TASK_ID, "crawling_comments");
+
+  let postIndex = 0;
+  for (const post of allCollectedPosts) {
+    postIndex++;
+    if (await isTaskCancelled(process.env.CURRENT_TASK_ID)) {
+      logger.info("Nhiệm vụ đã bị hủy từ giao diện. Dừng cào bình luận.", "Bilibili");
+      return;
+    }
+    if (process.env.ENABLE_GET_COMMENTS !== "false") {
+      try {
+        logger.info(`Đang cào bình luận cho video ${post.platform_id} (${postIndex}/${allCollectedPosts.length})`, "Bilibili");
+        await updateTaskCommentProgress(process.env.CURRENT_TASK_ID, postIndex, allCollectedPosts.length);
+
+        const timeoutMs = 60000;
+        let timeoutTimer: NodeJS.Timeout;
+        const commentTimeoutPromise = new Promise<void>((_, reject) => {
+          timeoutTimer = setTimeout(() => reject(new Error(`Timeout cào comment video vượt quá ${timeoutMs / 1000} giây`)), timeoutMs);
+        });
+
+        await Promise.race([
+          crawlComments(post.platform_id, {
+            maxCount: process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES ? parseInt(process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES, 10) : 50,
+            withReplies: process.env.ENABLE_GET_SUB_COMMENTS === "true"
+          }),
+          commentTimeoutPromise
+        ]).finally(() => {
+          clearTimeout(timeoutTimer);
+        });
+      } catch (err) {
+        logger.error(`Lỗi khi cào bình luận cho video ${post.platform_id}: ${(err as Error).message}`, "Bilibili");
+      }
+    }
+  }
+
+  logger.info(`Hoàn thành cào tìm kiếm từ khóa "${keyword}". Tổng số video đã xử lý: ${collected}`, "Bilibili");
 }
 
 function isInputOrTargetError(err: any): boolean {
@@ -530,11 +588,11 @@ export class BilibiliCrawler implements ICrawler {
   /**
    * # Thực hiện cào profile creator và video của họ trên Bilibili
    */
-  async creator(target: string): Promise<void> {
+  async creator(target: string, maxCount?: number): Promise<void> {
     let session: LoginSession = { mode: "guest" };
     try {
       session = await ensureLogin();
-      await crawlCreator(target);
+      await crawlCreator(target, maxCount);
       if (session.mode === "account") {
         await checkinAccount(session.accountId, true);
       }

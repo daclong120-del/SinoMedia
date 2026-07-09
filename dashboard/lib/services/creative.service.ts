@@ -10,6 +10,12 @@ import type { TableRow, DbClient } from "@/lib/repositories/types";
 
 // ─── Mappers ─────────────────────────────────────────────────
 
+interface PostSnapshot {
+  post_id: string;
+  observed_at: string;
+  view_count: number;
+}
+
 type PostStats = {
   play_count?: number;
   view_count?: number;
@@ -42,9 +48,37 @@ async function withSupabaseTimeout<T>(promise: Promise<T>, label: string): Promi
 }
 
 function getPostStats(row: TableRow<"crawled_posts">): PostStats {
-  return typeof row.stats === "object" && row.stats !== null && !Array.isArray(row.stats)
-    ? (row.stats as unknown as PostStats)
-    : {};
+  if (typeof row.stats !== "object" || row.stats === null || Array.isArray(row.stats)) {
+    return {};
+  }
+  
+  const rawStats = row.stats as Record<string, unknown>;
+  let play_count = Number(rawStats.play_count ?? 0);
+  if (play_count === 0) {
+    play_count = Number(rawStats.view_count || rawStats.playCount || 0);
+  }
+
+  let like_count = Number(rawStats.like_count ?? 0);
+  if (like_count === 0) {
+    like_count = Number(
+      rawStats.digg_count || 
+      rawStats.liked_count || 
+      rawStats.voteup_count || 
+      rawStats.voteupCount || 
+      0
+    );
+  }
+
+  const comment_count = Number(rawStats.comment_count || rawStats.comments_count || rawStats.commentCount || 0);
+  const share_count = Number(rawStats.share_count || rawStats.shared_count || rawStats.shareCount || 0);
+
+  return {
+    play_count,
+    view_count: play_count,
+    like_count,
+    comment_count,
+    share_count,
+  };
 }
 
 function resolveMediaUrl(value: string | null | undefined): string {
@@ -81,22 +115,44 @@ function inferMediaType(row: TableRow<"crawled_posts">): CreativeAd["media_type"
   return "unknown";
 }
 
-function mapPostToCreativeAd(row: TableRow<"crawled_posts">, author?: TableRow<"crawled_authors"> | null): CreativeAd {
+function mapPostToCreativeAd(
+  row: TableRow<"crawled_posts">,
+  author?: TableRow<"crawled_authors"> | null,
+  postSnapshots?: PostSnapshot[]
+): CreativeAd {
   const stats = getPostStats(row);
   const views = stats.play_count || stats.view_count || 0;
   const likes = stats.like_count || 0;
   const comments = stats.comment_count || 0;
   const shares = stats.share_count || 0;
 
-  // Sinh views_history mô phỏng dựa trên tổng views
-  const viewsHistory = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - (6 - i));
-    return {
-      date: d.toISOString().split("T")[0],
-      count: Math.round(views * (0.4 + i * 0.1)),
-    };
-  });
+  // Lấy latest snapshot per day cho post này để tránh double-count khi UI sum các bài đăng của advertiser.
+  let viewsHistory: { date: string; count: number }[] = [];
+  let historySource: "snapshot" | "fallback" = "fallback";
+
+  if (postSnapshots && postSnapshots.length > 0) {
+    historySource = "snapshot";
+    const dailyLatest: Record<string, PostSnapshot> = {};
+    postSnapshots.forEach(s => {
+      const dateStr = new Date(s.observed_at).toISOString().split("T")[0];
+      if (!dailyLatest[dateStr] || new Date(s.observed_at).getTime() > new Date(dailyLatest[dateStr].observed_at).getTime()) {
+        dailyLatest[dateStr] = s;
+      }
+    });
+
+    viewsHistory = Object.entries(dailyLatest).map(([date, val]) => ({
+      date,
+      count: Number(val.view_count || 0)
+    })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  } else {
+    historySource = "fallback";
+    viewsHistory = [
+      {
+        date: new Date(row.published_at || row.crawled_at || Date.now()).toISOString().split("T")[0],
+        count: views
+      }
+    ];
+  }
 
   const mediaUrls = Array.isArray(row.media_urls) ? (row.media_urls as string[]) : [];
   const originalMediaUrls = Array.isArray(row.original_media_urls) ? (row.original_media_urls as string[]) : mediaUrls;
@@ -126,6 +182,7 @@ function mapPostToCreativeAd(row: TableRow<"crawled_posts">, author?: TableRow<"
     is_ad: true,
     growth_rate: Math.min(999, Math.round((likes / Math.max(1, (Date.now() - new Date(row.published_at || row.crawled_at || Date.now()).getTime()) / (1000 * 60 * 60))) * 10 + 15)),
     views_history: viewsHistory,
+    historySource,
     author: author ? mapAuthorToAdvertiser(author, 0, 0, 0) : null,
     original_media_urls: originalMediaUrls,
     original_cover_url: resolvedOriginalCoverUrl,
@@ -152,7 +209,7 @@ function mapAuthorToAdvertiser(
     total_views: totalViews,
     total_likes: totalLikes,
     follows_count: author.follows_count || 0,
-    fans_count: author.fans_count || 0,
+    fans_count: author.fans_count !== null && author.fans_count !== undefined ? author.fans_count : null,
     crawled_at: author.updated_at || author.created_at || "",
     last_active_at: author.updated_at || "",
   };
@@ -307,8 +364,38 @@ export async function getAdvertiserById(id: string): Promise<{
       totalLikes += stats.like_count || 0;
     });
 
+    // Lấy snapshots lịch sử cho các posts này
+    let snapshots: PostSnapshot[] = [];
+    if (posts && posts.length > 0) {
+      const postIds = posts.map(p => p.id);
+      const { data: snaps, error: snapErr } = await db
+        .from("post_metric_snapshots")
+        .select("post_id, observed_at, view_count")
+        .in("post_id", postIds)
+        .order("observed_at", { ascending: true });
+        
+      if (!snapErr && snaps) {
+        snapshots = snaps as PostSnapshot[];
+      }
+    }
+
     const advertiser = mapAuthorToAdvertiser(author, posts.length, totalViews, totalLikes);
-    const ads = posts.map((p) => mapPostToCreativeAd(p, author));
+    
+    // Gom nhóm snapshots theo post_id
+    const snapshotsByPost: Record<string, PostSnapshot[]> = {};
+    if (snapshots && snapshots.length > 0) {
+      snapshots.forEach(s => {
+        if (!snapshotsByPost[s.post_id]) {
+          snapshotsByPost[s.post_id] = [];
+        }
+        snapshotsByPost[s.post_id].push(s);
+      });
+    }
+
+    const ads = posts.map((p) => {
+      const postSnaps = snapshotsByPost[p.id] || [];
+      return mapPostToCreativeAd(p, author, postSnaps);
+    });
 
     return { advertiser, ads };
   } catch (err) {

@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 /** Rút gọn số lớn: 12345 → "12.3K", 1234567 → "1.2M" */
 export function formatNumber(n: number | null | undefined): string {
-  if (n == null) return "0";
+  if (n == null) return "N/A";
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
   if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
   return String(n);

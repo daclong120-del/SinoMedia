@@ -99,7 +99,28 @@ export async function executeTask(task: CrawlerTask): Promise<void> {
   logger.info(`Bắt đầu xử lý task ${id} - Platform: ${platform}, Command: ${command}, Target: ${target}`, "Worker");
 
   const defaultHeadless = CONFIG.headless;
-  const TASK_TIMEOUT_MS = 90000; // 90 giây
+
+  // Cấu hình timeout động dựa trên workload
+  // Mỗi video/bài đăng tìm kiếm/creator: 5 giây
+  // Nếu bật cào bình luận, cộng thêm 25 giây cho mỗi video (bao gồm cả sub-comments)
+  const maxCount = max_count || (command === "comments" ? 50 : 20);
+  const crawlCommentsEnabled = task.metadata?.crawl_comments !== false;
+  const crawlSubCommentsEnabled = task.metadata?.crawl_sub_comments !== false;
+
+  let calculatedTimeoutMs = 90000; // Tối thiểu 90s cho setup/login/search
+  if (command === "search" || command === "creator") {
+    calculatedTimeoutMs += maxCount * 5000;
+    if (crawlCommentsEnabled) {
+      const commentTime = crawlSubCommentsEnabled ? 30000 : 15000;
+      calculatedTimeoutMs += maxCount * commentTime;
+    }
+  } else if (command === "comments") {
+    calculatedTimeoutMs += maxCount * (crawlSubCommentsEnabled ? 10000 : 5000);
+  }
+
+  const TASK_TIMEOUT_MS = Math.min(1800000, calculatedTimeoutMs); // Cap ở 30 phút
+  logger.info(`Thời gian timeout được thiết lập động: ${TASK_TIMEOUT_MS / 1000} giây (khoảng ${(TASK_TIMEOUT_MS / 60000).toFixed(1)} phút)`, "Worker");
+
   let timeoutId: NodeJS.Timeout;
 
   const timeoutPromise = new Promise<void>((_, reject) => {
@@ -127,7 +148,7 @@ export async function executeTask(task: CrawlerTask): Promise<void> {
         case "cache_media":
           throw new Error("Lệnh 'cache_media' đã bị bãi bỏ (deprecated). Vui lòng recrawl/backfill thông thường.");
         case "creator":
-          await crawler.creator(target);
+          await crawler.creator(target, max_count);
           break;
         case "search":
           await crawler.search(target, max_count || 20);
@@ -149,7 +170,29 @@ export async function executeTask(task: CrawlerTask): Promise<void> {
     await updateTaskStatus(id, "completed");
   } catch (err: any) {
     logger.error(`Thất bại khi xử lý task ${id}: ${err.message}`, "Worker");
-    await updateTaskStatus(id, "failed", err.message);
+    
+    let displayError = err.message;
+    try {
+      const res = await supabaseRest("crawler_tasks", {
+        method: "GET",
+        params: { id: `eq.${id}`, select: "metadata" },
+      }) as any[];
+      if (res && res[0] && res[0].metadata?.progress) {
+        const { current, target } = res[0].metadata.progress;
+        if (err.message.includes("Nhiệm vụ bị treo quá thời gian")) {
+          displayError = `Timeout sau ${(TASK_TIMEOUT_MS / 1000).toFixed(0)}s, đã lưu ${current}/${target}`;
+        } else {
+          displayError = `${err.message} (đã lưu ${current}/${target})`;
+        }
+      } else if (err.message.includes("Nhiệm vụ bị treo quá thời gian")) {
+        const target = max_count || (command === "comments" ? 50 : 20);
+        displayError = `Timeout sau ${(TASK_TIMEOUT_MS / 1000).toFixed(0)}s, đã lưu 0/${target}`;
+      }
+    } catch (progressErr) {
+      // Bỏ qua nếu lỗi
+    }
+
+    await updateTaskStatus(id, "failed", displayError);
     if (err.message.includes("Nhiệm vụ bị treo quá thời gian")) {
       logger.warn("Tự động thoát process để dọn sạch tài nguyên và restart worker mới...", "Worker");
       setTimeout(() => process.exit(1), 1000);

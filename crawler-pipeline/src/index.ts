@@ -135,7 +135,13 @@ async function main() {
       return;
     }
 
-    throw new Error("Lệnh không hợp lệ. Các lệnh hỗ trợ: bootstrap, crawl <url_or_id>, creator <url_or_uid>, search <keyword> [max_count], comments <id> [max_count], add-account <platform> <username> <cookie_or_json_file_path>");
+    if (command === "refresh") {
+      const { refreshAllMetrics } = await import("./refresh_metrics.js");
+      await refreshAllMetrics();
+      return;
+    }
+
+    throw new Error("Lệnh không hợp lệ. Các lệnh hỗ trợ: bootstrap, crawl <url_or_id>, creator <url_or_uid>, search <keyword> [max_count], comments <id> [max_count], add-account <platform> <username> <cookie_or_json_file_path>, refresh");
   } finally {
     await Promise.all([
       closeDouyinBrowser().catch(() => {}),
