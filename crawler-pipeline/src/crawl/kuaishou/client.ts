@@ -3,7 +3,7 @@
  */
 
 import type { IApiClient, RequestOptions, CookieData } from "../../base/base_client.js";
-import type { Page, BrowserContext } from "playwright-core";
+// playwright imports removed
 import { CONFIG } from "../../config.js";
 import { ProxyAgent } from "undici";
 import { GRAPHQL_QUERIES } from "./graphql.js";
@@ -16,7 +16,6 @@ if (CONFIG.proxy) {
 export class KuaishouClient implements IApiClient {
   private cookies: CookieData[] = [];
   private headers: Record<string, string> = {};
-  public playwrightPage?: Page;
   private _host: string = "https://www.kuaishou.com";
   private _graphqlHost: string = "https://www.kuaishou.com/graphql";
 
@@ -30,22 +29,13 @@ export class KuaishouClient implements IApiClient {
     };
   }
 
-  setPage(page: Page): void {
-    this.playwrightPage = page;
-  }
+  // setPage method removed
 
   /**
    * # Kiểm tra trạng thái đăng nhập Kuaishou qua visionProfileUserList
    */
-  async pong(context?: BrowserContext): Promise<boolean> {
+  async pong(): Promise<boolean> {
     try {
-      if (context) {
-        const cookies = await context.cookies();
-        const hasToken = cookies.some(c => c.name === "passToken");
-        if (!hasToken) {
-          return false;
-        }
-      }
       const postData = {
         operationName: "visionProfileUserList",
         variables: {
@@ -93,61 +83,7 @@ export class KuaishouClient implements IApiClient {
 
     let responseText = "";
 
-    // 1. Thử gọi trực tiếp trong trình duyệt để tránh bị chặn
-    if (this.playwrightPage) {
-      try {
-        const currentUrl = this.playwrightPage.url();
-        if (!currentUrl.startsWith(this._host)) {
-          await this.playwrightPage.goto(this._host + "/?isHome=1", { waitUntil: "domcontentloaded" }).catch(() => {});
-        }
-
-        const evalResult: any = await this.playwrightPage.evaluate(
-          async ({ fetchUrl, fetchMethod, fetchHeaders, fetchBody }) => {
-            try {
-              const cleanHeaders: any = {};
-              for (const [k, v] of Object.entries(fetchHeaders || {})) {
-                const lower = k.toLowerCase();
-                if (lower !== "cookie" && lower !== "user-agent" && lower !== "host") {
-                  cleanHeaders[k] = v;
-                }
-              }
-
-              const fetchOpts: any = {
-                method: fetchMethod,
-                headers: cleanHeaders,
-                credentials: "include"
-              };
-              if (fetchBody) {
-                fetchOpts.body = typeof fetchBody === "string" ? fetchBody : JSON.stringify(fetchBody);
-              }
-
-              const res = await fetch(fetchUrl, fetchOpts);
-              const text = await res.text();
-              return {
-                status: res.status,
-                text,
-              };
-            } catch (err: any) {
-              return { error: err.message };
-            }
-          },
-          {
-            fetchUrl: finalUrl,
-            fetchMethod: method,
-            fetchHeaders: requestHeaders,
-            fetchBody: options?.body,
-          }
-        );
-
-        if (!evalResult.error && evalResult.status === 200) {
-          responseText = evalResult.text;
-        } else if (evalResult.error) {
-          console.warn("[KuaishouClient.request] Lỗi trong evaluate:", evalResult.error);
-        }
-      } catch (err) {
-        console.warn("[KuaishouClient.request] Lỗi evaluate, chuyển sang node fetch:", (err as Error).message);
-      }
-    }
+    // Browser evaluate block removed
 
     // 2. Fallback sang gọi HTTP thuần qua Node (undici/fetch)
     if (!responseText) {
@@ -170,13 +106,6 @@ export class KuaishouClient implements IApiClient {
           throw new Error(`HTTP Status ${response.status}`);
         }
       } catch (err) {
-        if (this.playwrightPage) {
-          console.warn("[KuaishouClient.request] Lỗi kết nối hoặc bị chặn, điều hướng lại trang chủ để làm mới cookie...");
-          await this.playwrightPage.goto(this._host + "/?isHome=1", { waitUntil: "networkidle" }).catch(() => {});
-          await new Promise(r => setTimeout(r, 3000));
-          const freshCookies = await this.playwrightPage.context().cookies();
-          await this.updateCookies(freshCookies.map(c => ({ name: c.name, value: c.value, domain: c.domain })));
-        }
         throw new Error(`Yêu cầu HTTP thất bại: ${(err as Error).message}`);
       }
     }

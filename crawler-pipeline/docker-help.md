@@ -26,7 +26,7 @@ docker compose up -d --build   # Build lại khi sửa code
 
 ```
 crawler-pipeline/
-├── Dockerfile           ← Công thức đóng gói (Node + Chromium + code)
+├── Dockerfile           ← Công thức đóng gói (Node + code)
 ├── docker-compose.yml   ← Config chạy container (RAM, log, restart)
 ├── .dockerignore        ← File bỏ qua khi build (như .gitignore)
 ├── .env.example         ← Mẫu biến môi trường
@@ -188,7 +188,6 @@ docker exec -it crawler-worker bash
 ls src/            # Xem file code
 cat .env           # Xem biến môi trường (đã load)
 node -v            # Xem version Node
-npx playwright install --dry-run  # Kiểm tra Playwright
 
 # Thoát: gõ exit
 ```
@@ -239,24 +238,24 @@ curl -s https://ejwqyycoycyzuxseecck.supabase.co/rest/v1/ \
 ## 7. Giải thích Dockerfile
 
 ```dockerfile
-# Dùng Node.js 18 trên Debian (Playwright cần Debian, không chạy được trên Alpine)
+# Dùng Node.js 18 trên Debian bookworm-slim
 FROM node:18-bookworm-slim
 
-# Cài thư viện hệ thống cho Chromium + font tiếng Trung
-RUN apt-get update && apt-get install -y ...
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app                    # cd /app
 
 # --- Cache layer: dependencies ---
 COPY package.json package-lock.json ./    # Copy file khai báo deps trước
-RUN npm install --omit=dev                # Cài deps (CACHE nếu không đổi)
-RUN npx playwright install chromium       # Cài Chromium browser
+RUN npm ci --omit=dev                     # Cài deps (CACHE nếu không đổi)
 
 # --- Code layer: thay đổi thường xuyên ---
-COPY src/ ./src/                # Copy code (build lại nhanh nếu chỉ đổi code)
+COPY src/ ./src/                          # Copy code
 COPY tsconfig.json ./
 
-ENV CRAWLER_HEADLESS=true       # Bắt buộc headless (VPS không có màn hình)
+ENV NODE_ENV=production
 
 CMD ["npx", "tsx", "src/index.ts", "crawl"]   # Lệnh chạy khi start container
 ```

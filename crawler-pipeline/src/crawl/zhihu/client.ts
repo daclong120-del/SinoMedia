@@ -75,7 +75,11 @@ export async function saveZhihuCookie(cookie: string): Promise<void> {
 export function getRelativeUri(url: string): string {
   if (url.startsWith("http://") || url.startsWith("https://")) {
     const parsed = new URL(url);
-    return parsed.pathname + parsed.search;
+    let path = parsed.pathname;
+    if (parsed.hostname === "api.zhihu.com" && path.startsWith("/search_v3")) {
+      path = "/api/v4" + path;
+    }
+    return path + parsed.search;
   }
   return url;
 }
@@ -122,7 +126,10 @@ export class ZhihuClient implements IApiClient {
    * # Thực hiện gửi yêu cầu HTTP thô đến Zhihu
    */
   async request(method: string, url: string, options?: RequestOptions): Promise<any> {
-    const cookieStr = await loadZhihuCookie();
+    let cookieStr = this.cookies.map(c => `${c.name}=${c.value}`).join("; ");
+    if (!cookieStr) {
+      cookieStr = await loadZhihuCookie();
+    }
     if (!cookieStr || !cookieStr.includes("d_c0")) {
       throw new Error("Không tìm thấy cookie 'd_c0' bắt buộc để thực hiện yêu cầu ký API Zhihu. Dừng crawl.");
     }

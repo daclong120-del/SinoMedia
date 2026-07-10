@@ -3,7 +3,7 @@
  */
 
 import type { TiebaNote, TiebaComment, TiebaCreator } from "../../model/tieba.js";
-import type { Page } from "playwright-core";
+// playwright Page type removed
 
 export function ensureTiebaSuffix(tiebaName: string): string {
   const name = (tiebaName || "").trim();
@@ -229,8 +229,8 @@ export class TieBaExtractor {
   }
 
   // Browser evaluation helpers to query directly from DOM
-  static async extractTiebaNoteSubCommentsFromPage(page: Page, parentComment: TiebaComment): Promise<TiebaComment[]> {
-    return await page.evaluate((parent) => {
+  static async extractTiebaNoteSubCommentsFromPage(page: any, parentComment: TiebaComment): Promise<TiebaComment[]> {
+    return await page.evaluate((parent: any) => {
       const result: any[] = [];
       const commentElements = document.querySelectorAll("li.lzl_single_post, li.j_lzl_s_p");
       for (const el of commentElements) {
@@ -271,7 +271,7 @@ export class TieBaExtractor {
     }, parentComment);
   }
 
-  static async extractCreatorThreadIdListFromPage(page: Page): Promise<string[]> {
+  static async extractCreatorThreadIdListFromPage(page: any): Promise<string[]> {
     return await page.evaluate(() => {
       const threadIds: string[] = [];
       const links = document.querySelectorAll("ul.new_list.clearfix div.thread_name a[href*='/p/']");

@@ -329,7 +329,7 @@ export async function startQueueWorker(): Promise<void> {
 
   while (true) {
     try {
-      await runCrawlerTick({ timeBudgetMs: 5000, maxTasks: 1 });
+      await runCrawlerTick({ timeBudgetMs: 300000, maxTasks: 1 });
     } catch (err) {
       logger.error(`Lỗi trong chu kỳ Queue Worker tick: ${(err as Error).message}`, "Worker");
     }

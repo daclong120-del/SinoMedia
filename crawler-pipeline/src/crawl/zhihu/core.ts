@@ -475,10 +475,18 @@ export async function crawlSearch(keyword: string, maxCount = 20, client?: Zhihu
   logger.info(`Bắt đầu cào tìm kiếm Zhihu với từ khóa: "${keyword}", giới hạn: ${maxCount}`, "Zhihu");
 
   // URL khởi điểm chuẩn theo trình duyệt thực tế
-  let nextUrl = `/api/v4/search_v3?t=general&q=${encodeURIComponent(keyword)}&correction=1&offset=0&limit=${limit}&search_source=Normal&zhida_source=ai_search_general`;
+  let nextUrl = `/api/v4/search_v3?gk_version=gz-gaokao&t=general&q=${encodeURIComponent(keyword)}&correction=1&offset=0&limit=${limit}&filter_fields=&lc_idx=0&show_all_topics=0&search_source=Normal&zhida_source=ai_search_general`;
   const referer = `https://www.zhihu.com/search?q=${encodeURIComponent(keyword)}&type=content`;
 
   while (collected < maxCount && nextUrl) {
+    const parsedUrl = new URL(nextUrl, "https://www.zhihu.com");
+    const offset = parsedUrl.searchParams.get("offset") || "0";
+    const lcIdx = parsedUrl.searchParams.get("lc_idx") || "0";
+    const searchHashId = parsedUrl.searchParams.get("search_hash_id");
+    const verticalInfo = parsedUrl.searchParams.get("vertical_info");
+    const hasSearchHashId = searchHashId ? "true" : "false";
+    const hasVerticalInfo = verticalInfo ? "true" : "false";
+
     let searchRes: any;
     try {
       searchRes = await zhihuClient.request("GET", nextUrl, { referer });
@@ -489,7 +497,8 @@ export async function crawlSearch(keyword: string, maxCount = 20, client?: Zhihu
     }
 
     const data = searchRes.data || [];
-    logger.info(`Lấy được trang tìm kiếm thứ ${page} với ${data.length} phần tử.`, "Zhihu");
+    const searchResults = data.filter((item: any) => item.type === "search_result" || item.type === "zvideo");
+    logger.info(`page=${page} offset=${offset} lc_idx=${lcIdx} has_search_hash_id=${hasSearchHashId} has_vertical_info=${hasVerticalInfo} raw_items=${data.length} valid_items=${searchResults.length}`, "Zhihu");
 
     if (data.length === 0) {
       emptyPageCount++;
@@ -517,7 +526,6 @@ export async function crawlSearch(keyword: string, maxCount = 20, client?: Zhihu
     // Reset bộ đếm empty page nếu lấy được data
     emptyPageCount = 0;
 
-    const searchResults = data.filter((item: any) => item.type === "search_result" || item.type === "zvideo");
     if (searchResults.length === 0) {
       logger.warn(`Trang tìm kiếm thứ ${page} không chứa kết quả hợp lệ (search_result hoặc zvideo). Thử trang tiếp theo...`, "Zhihu");
       

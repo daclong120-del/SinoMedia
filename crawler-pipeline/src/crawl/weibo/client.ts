@@ -3,7 +3,7 @@
  */
 
 import type { IApiClient, RequestOptions, CookieData } from "../../base/base_client.js";
-import type { Page, BrowserContext } from "playwright-core";
+// playwright imports removed
 import { CONFIG } from "../../config.js";
 import { ProxyAgent } from "undici";
 import { WeiboSearchType } from "./field.js";
@@ -16,7 +16,6 @@ if (CONFIG.proxy) {
 export class WeiboClient implements IApiClient {
   private cookies: CookieData[] = [];
   private headers: Record<string, string> = {};
-  public playwrightPage?: Page;
   private _host: string = "https://m.weibo.cn";
   private cookieUrls: string[] = ["https://m.weibo.cn"];
 
@@ -32,22 +31,13 @@ export class WeiboClient implements IApiClient {
     };
   }
 
-  setPage(page: Page): void {
-    this.playwrightPage = page;
-  }
+  // setPage method removed
 
   /**
    * # Kiểm tra kết nối và trạng thái đăng nhập Weibo
    */
-  async pong(context?: BrowserContext): Promise<boolean> {
+  async pong(): Promise<boolean> {
     try {
-      if (context) {
-        const cookies = await context.cookies();
-        const hasSess = cookies.some(c => c.name === "SSOLoginState" || c.name === "WBPSESS");
-        if (!hasSess) {
-          return false;
-        }
-      }
       const data = await this.request("GET", "/api/config");
       return data?.login === true;
     } catch {
@@ -71,61 +61,7 @@ export class WeiboClient implements IApiClient {
 
     let responseText = "";
 
-    // 1. Thử gọi trực tiếp trong trình duyệt để tận dụng cookie/session của page
-    if (this.playwrightPage) {
-      try {
-        // Đảm bảo trang đang ở đúng origin để tránh lỗi CORS trong evaluate
-        const currentUrl = this.playwrightPage.url();
-        if (!currentUrl.startsWith(this._host)) {
-          await this.playwrightPage.goto(this._host, { waitUntil: "domcontentloaded" }).catch(() => {});
-        }
-
-        const evalResult: any = await this.playwrightPage.evaluate(
-          async ({ fetchUrl, fetchMethod, fetchHeaders, fetchBody }) => {
-            try {
-              // Bỏ Cookie và User-Agent để trình duyệt tự điền tự nhiên
-              const cleanHeaders: any = {};
-              for (const [k, v] of Object.entries(fetchHeaders || {})) {
-                const lower = k.toLowerCase();
-                if (lower !== "cookie" && lower !== "user-agent" && lower !== "host") {
-                  cleanHeaders[k] = v;
-                }
-              }
-
-              const fetchOpts: any = {
-                method: fetchMethod,
-                headers: cleanHeaders,
-                credentials: "include"
-              };
-              if (fetchBody) {
-                fetchOpts.body = typeof fetchBody === "string" ? fetchBody : JSON.stringify(fetchBody);
-              }
-
-              const res = await fetch(fetchUrl, fetchOpts);
-              const text = await res.text();
-              return {
-                status: res.status,
-                text,
-              };
-            } catch (err: any) {
-              return { error: err.message };
-            }
-          },
-          {
-            fetchUrl: finalUrl,
-            fetchMethod: method,
-            fetchHeaders: requestHeaders,
-            fetchBody: options?.body,
-          }
-        );
-
-        if (!evalResult.error && evalResult.status === 200) {
-          responseText = evalResult.text;
-        }
-      } catch (err) {
-        console.warn("[WeiboClient.request] Thử chạy evaluate lỗi, chuyển sang node fetch:", (err as Error).message);
-      }
-    }
+    // Browser evaluate block removed
 
     // 2. Fallback sang gọi HTTP thuần qua Node (undici/fetch)
     if (!responseText) {
@@ -148,14 +84,6 @@ export class WeiboClient implements IApiClient {
           throw new Error(`HTTP Status ${response.status}`);
         }
       } catch (err) {
-        // Nếu bị chặn hoặc lỗi cookie, tự động điều hướng lại trang chủ để làm mới cookie
-        if (this.playwrightPage) {
-          console.warn("[WeiboClient.request] Lỗi kết nối hoặc bị chặn, đang điều hướng lại trang chủ để refresh cookie...");
-          await this.playwrightPage.goto(this._host, { waitUntil: "networkidle" }).catch(() => {});
-          await new Promise(r => setTimeout(r, 3000));
-          const freshCookies = await this.playwrightPage.context().cookies();
-          await this.updateCookies(freshCookies.map(c => ({ name: c.name, value: c.value, domain: c.domain })));
-        }
         throw new Error(`Yêu cầu HTTP thất bại: ${(err as Error).message}`);
       }
     }
@@ -301,26 +229,9 @@ export class WeiboClient implements IApiClient {
    * # Lấy thông tin container ID của creator
    */
   async getCreatorContainerInfo(creatorId: string): Promise<{ fid_container_id: string; lfid_container_id: string }> {
-    if (!this.playwrightPage) {
-      throw new Error("playwrightPage is required to parse container info");
-    }
-    await this.playwrightPage.goto(`${this._host}/u/${creatorId}`, { waitUntil: "domcontentloaded" });
-    await new Promise(r => setTimeout(r, 2000));
-
-    const cookies = await this.playwrightPage.context().cookies();
-    const mWeibocnParams = cookies.find(c => c.name === "M_WEIBOCN_PARAMS")?.value;
-    if (!mWeibocnParams) {
-      // Fallback: sinh cứng lfid/fid container_id dựa trên định dạng chuẩn của Weibo
-      return {
-        fid_container_id: `100505${creatorId}`,
-        lfid_container_id: `107603${creatorId}`,
-      };
-    }
-
-    const params = new URLSearchParams(decodeURIComponent(mWeibocnParams));
     return {
-      fid_container_id: params.get("fid") || `100505${creatorId}`,
-      lfid_container_id: params.get("lfid") || `107603${creatorId}`,
+      fid_container_id: `100505${creatorId}`,
+      lfid_container_id: `107603${creatorId}`,
     };
   }
 

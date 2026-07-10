@@ -3,7 +3,7 @@
  */
 
 import type { IApiClient, RequestOptions, CookieData } from "../../base/base_client.js";
-import type { Page, BrowserContext } from "playwright-core";
+// playwright imports removed
 import crypto from "crypto";
 import { ensureTiebaSuffix, tiebaLinkFromName, formatUnixTime, TieBaExtractor } from "./extractor.js";
 import type { TiebaNote, TiebaComment, TiebaCreator } from "../../model/tieba.js";
@@ -14,7 +14,6 @@ const PC_SIGN_SECRET = "36770b1f34c9bbf2e7d1a99d2b82fa9e";
 export class TiebaClient implements IApiClient {
   private cookies: CookieData[] = [];
   private headers: Record<string, string> = {};
-  public playwrightPage?: Page;
   private _pcTbs: string = "";
   private _host: string = "https://tieba.baidu.com";
 
@@ -27,9 +26,7 @@ export class TiebaClient implements IApiClient {
     };
   }
 
-  setPage(page: Page): void {
-    this.playwrightPage = page;
-  }
+  // setPage method removed
 
   _signPcParams(params: Record<string, any>): string {
     const sortedKeys = Object.keys(params).sort();
@@ -45,13 +42,7 @@ export class TiebaClient implements IApiClient {
   }
 
   async _ensureTiebaOrigin(): Promise<void> {
-    if (!this.playwrightPage) {
-      throw new Error("playwrightPage is required for tieba PC API requests");
-    }
-    const currentUrl = this.playwrightPage.url();
-    if (!currentUrl.startsWith(this._host)) {
-      await this.playwrightPage.goto(this._host, { waitUntil: "domcontentloaded" });
-    }
+    throw new Error("browser mode removed, provide valid cookie/session");
   }
 
   async _fetchJsonByBrowser(
@@ -61,78 +52,10 @@ export class TiebaClient implements IApiClient {
     data?: Record<string, any>,
     useSign: boolean = false
   ): Promise<any> {
-    await this._ensureTiebaOrigin();
-    
-    // Filter undefined/null values
-    const cleanedParams = params 
-      ? Object.fromEntries(Object.entries(params).filter(([_, v]) => v !== undefined && v !== null)) 
-      : {};
-    const cleanedData = data 
-      ? Object.fromEntries(Object.entries(data).filter(([_, v]) => v !== undefined && v !== null)) 
-      : {};
-
-    if (useSign) {
-      const signSource = method.toUpperCase() === "POST" ? cleanedData : cleanedParams;
-      signSource["subapp_type"] = "pc";
-      signSource["_client_type"] = "20";
-      signSource["sign"] = this._signPcParams(signSource);
-    }
-
-    let url = `${this._host}${uri}`;
-    if (Object.keys(cleanedParams).length > 0) {
-      const q = Object.entries(cleanedParams)
-        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`)
-        .join("&");
-      url = `${url}?${q}`;
-    }
-
-    let body = "";
-    if (Object.keys(cleanedData).length > 0) {
-      body = Object.entries(cleanedData)
-        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`)
-        .join("&");
-    }
-
-    if (!this.playwrightPage) {
-      throw new Error("playwrightPage is not initialized on TiebaClient");
-    }
-
-    const response = await this.playwrightPage.evaluate(
-      async ({ url, method, body }) => {
-        const headers: Record<string, string> = { "Accept": "application/json, text/plain, */*" };
-        const options: RequestInit = { method, credentials: "include", headers };
-        if (method === "POST") {
-          headers["Content-Type"] = "application/x-www-form-urlencoded;charset=UTF-8";
-          options.body = body;
-        }
-        const resp = await fetch(url, options);
-        const text = await resp.text();
-        return { status: resp.status, text };
-      },
-      { url, method: method.toUpperCase(), body }
-    );
-
-    if (response.status !== 200) {
-      throw new Error(`Tieba PC API failed, status=${response.status}, url=${url}`);
-    }
-
-    let jsonData: any;
-    try {
-      jsonData = JSON.parse(response.text);
-    } catch (exc) {
-      throw new Error(`Tieba PC API returned non-JSON, url=${url}, body=${response.text.slice(0, 500)}`);
-    }
-
-    const errorCode = jsonData.error_code !== undefined 
-      ? jsonData.error_code 
-      : (jsonData.no !== undefined ? jsonData.no : 0);
-
-    if (String(errorCode) !== "0" && String(errorCode) !== "None" && String(errorCode) !== "undefined") {
-      throw new Error(`Tieba PC API error, url=${url}, response=${JSON.stringify(jsonData)}`);
-    }
-
-    return jsonData;
+    throw new Error("browser mode removed, provide valid cookie/session");
   }
+
+  // Duplicate _fetchJsonByBrowser method removed
 
   async _getPcTbs(): Promise<string> {
     if (this._pcTbs) {
@@ -198,42 +121,19 @@ export class TiebaClient implements IApiClient {
       targetUrl = `${this._host}${url}`;
     }
 
-    if (this.playwrightPage) {
-      const response = await this.playwrightPage.evaluate(
-        async ({ url, method, headers, body }) => {
-          const opt: RequestInit = { method, credentials: "include" };
-          if (headers) opt.headers = headers;
-          if (body) opt.body = body;
-          const resp = await fetch(url, opt);
-          const text = await resp.text();
-          return { status: resp.status, text };
-        },
-        {
-          url: targetUrl,
-          method: method.toUpperCase(),
-          headers: options?.headers as Record<string, string>,
-          body: options?.body ? String(options.body) : undefined
-        }
-      );
-      if (options?.headers?.Accept?.includes("html") || !response.text.trim().startsWith("{")) {
-        return response.text;
-      }
-      return JSON.parse(response.text);
-    } else {
-      const resp = await fetch(targetUrl, {
-        method: method.toUpperCase(),
-        headers: {
-          ...this.headers,
-          ...options?.headers,
-        } as Record<string, string>,
-        body: options?.body ? String(options.body) : undefined,
-      });
-      const text = await resp.text();
-      if (options?.headers?.Accept?.includes("html") || !text.trim().startsWith("{")) {
-        return text;
-      }
-      return JSON.parse(text);
+    const resp = await fetch(targetUrl, {
+      method: method.toUpperCase(),
+      headers: {
+        ...this.headers,
+        ...options?.headers,
+      } as Record<string, string>,
+      body: options?.body ? String(options.body) : undefined,
+    });
+    const text = await resp.text();
+    if (options?.headers?.Accept?.includes("html") || !text.trim().startsWith("{")) {
+      return text;
     }
+    return JSON.parse(text);
   }
 
   async getNotesByKeyword(
@@ -328,46 +228,7 @@ export class TiebaClient implements IApiClient {
     crawlInterval: number = 1.0,
     callback?: (noteId: string, comments: TiebaComment[]) => Promise<void>
   ): Promise<TiebaComment[]> {
-    const allSubComments: TiebaComment[] = [];
-
-    for (const parentComment of comments) {
-      const subCommentCount = parentComment.sub_comment_count || 0;
-      if (subCommentCount === 0) {
-        continue;
-      }
-
-      let currentPage = 1;
-      const maxSubPageNum = Math.floor(subCommentCount / 10) + 1;
-
-      while (maxSubPageNum >= currentPage) {
-        const subCommentUrl = `${this._host}/p/comment?tid=${parentComment.note_id}&pid=${parentComment.comment_id}&fid=${parentComment.tieba_id}&pn=${currentPage}`;
-        
-        try {
-          if (!this.playwrightPage) {
-            throw new Error("playwrightPage is not initialized on TiebaClient");
-          }
-          await this.playwrightPage.goto(subCommentUrl, { waitUntil: "domcontentloaded" });
-          await new Promise(resolve => setTimeout(resolve, 1500));
-
-          const subComments = await TieBaExtractor.extractTiebaNoteSubCommentsFromPage(this.playwrightPage, parentComment);
-          if (subComments.length === 0) {
-            break;
-          }
-
-          if (callback) {
-            await callback(parentComment.note_id!, subComments);
-          }
-
-          allSubComments.push(...subComments);
-          await new Promise(resolve => setTimeout(resolve, crawlInterval * 1000));
-          currentPage++;
-        } catch (e) {
-          console.error(`[TiebaClient.getCommentsAllSubComments] Failed to get comment ${parentComment.comment_id} sub-comments:`, e);
-          break;
-        }
-      }
-    }
-    return allSubComments;
+    throw new Error("browser mode removed, provide valid cookie/session");
   }
 
   async getNotesByTiebaName(tiebaName: string, pageNum: number): Promise<TiebaNote[]> {
@@ -446,21 +307,7 @@ export class TiebaClient implements IApiClient {
   }
 
   async getNotesByCreator(userName: string, pageNumber: number): Promise<any> {
-    if (!this.playwrightPage) {
-      throw new Error("playwrightPage is not initialized on TiebaClient");
-    }
-    const creatorUrl = `${this._host}/home/get/getthread?un=${encodeURIComponent(userName)}&pn=${pageNumber}&id=utf-8&_=${Date.now()}`;
-    
-    try {
-      await this.playwrightPage.goto(creatorUrl, { waitUntil: "domcontentloaded" });
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      const jsonText = await this.playwrightPage.evaluate(() => document.body.innerText);
-      return JSON.parse(jsonText);
-    } catch (e) {
-      console.error(`[TiebaClient.getNotesByCreator] Failed to get creator post list:`, e);
-      throw e;
-    }
+    throw new Error("browser mode removed, provide valid cookie/session");
   }
 
   async getAllNotesByCreatorUserName(
@@ -472,16 +319,7 @@ export class TiebaClient implements IApiClient {
   ): Promise<TiebaNote[]> {
     const result: TiebaNote[] = [];
 
-    // Special handling for homepage html content
-    if (creatorPageHtmlContent && this.playwrightPage) {
-      const threadIds = await TieBaExtractor.extractCreatorThreadIdListFromPage(this.playwrightPage);
-      const noteDetailTasks = threadIds.map(id => this.getNoteById(id));
-      const notes = (await Promise.all(noteDetailTasks)).filter(Boolean);
-      if (callback && notes.length > 0) {
-        await callback(notes);
-      }
-      result.push(...notes);
-    }
+    // creatorPageHtmlContent block removed
 
     let notesHasMore = 1;
     let pageNumber = 1;
@@ -557,18 +395,8 @@ export class TiebaClient implements IApiClient {
     return result;
   }
 
-  async pong(context?: BrowserContext): Promise<boolean> {
-    if (!context) {
-      return false;
-    }
-    try {
-      const cookies = await context.cookies([this._host]);
-      const cookieMap = Object.fromEntries(cookies.map(c => [c.name, c.value]));
-      const hasSession = !!(cookieMap.STOKEN || cookieMap.PTOKEN || cookieMap.BDUSS);
-      return hasSession;
-    } catch {
-      return false;
-    }
+  async pong(): Promise<boolean> {
+    return false;
   }
 
   async updateCookies(cookies: CookieData[]): Promise<void> {

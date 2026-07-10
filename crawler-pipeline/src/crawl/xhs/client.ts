@@ -4,7 +4,7 @@
  */
 
 import type { IApiClient, RequestOptions, CookieData } from "../../base/base_client.js";
-import type { Page } from "playwright-core";
+// playwright Page import removed
 import { CONFIG } from "../../config.js";
 import { ProxyAgent } from "undici";
 import { mrc, b64Encode, encodeUtf8, getB3TraceId } from "./sign.js";
@@ -18,7 +18,6 @@ if (CONFIG.proxy) {
 export class XhsClient implements IApiClient {
   private cookies: CookieData[] = [];
   private headers: Record<string, string> = {};
-  public playwrightPage?: Page;
   private _host: string = "https://edith.xiaohongshu.com";
 
   constructor(options?: { proxy?: string; headers?: Record<string, string> }) {
@@ -31,12 +30,7 @@ export class XhsClient implements IApiClient {
     };
   }
 
-  /**
-   * # Thiết lập Playwright Page cho client
-   */
-  setPage(page: Page): void {
-    this.playwrightPage = page;
-  }
+  // setPage method removed
 
   /**
    * # Sinh chữ ký XHS thông qua kết hợp Playwright Page và thuật toán cục bộ
@@ -46,82 +40,7 @@ export class XhsClient implements IApiClient {
     method: string,
     data?: any
   ): Promise<{ "X-S": string; "X-T": string; "x-S-Common": string; "X-B3-Traceid": string }> {
-    if (!this.playwrightPage) {
-      throw new Error("Playwright Page is required for signing XHS requests.");
-    }
-
-    const currentUrl = this.playwrightPage.url();
-    if (!currentUrl.includes("xiaohongshu.com")) {
-      await this.playwrightPage.goto("https://www.xiaohongshu.com", { waitUntil: "domcontentloaded" }).catch(() => {});
-    }
-
-    // Đợi hàm sinh chữ ký phía trình duyệt sẵn sàng
-    await this.playwrightPage.waitForFunction(
-      () => typeof (window as any)._webmsxyw === "function",
-      { timeout: 10000 }
-    );
-
-    const isPost = method.toUpperCase() === "POST";
-
-    const xS = await this.playwrightPage.evaluate(
-      ({ uri, isPost, data }) => {
-        const fn = (window as any)._webmsxyw;
-        if (typeof fn !== "function") {
-          throw new Error("window._webmsxyw is not a function on the page");
-        }
-        if (isPost) {
-          return fn(uri, data);
-        } else {
-          if (data) {
-            let signUri = uri;
-            if (typeof data === "string") {
-              signUri += data.startsWith("?") ? data : `?${data}`;
-            } else if (typeof data === "object") {
-              const params = [];
-              for (const [key, value] of Object.entries(data)) {
-                let valStr = "";
-                if (Array.isArray(value)) {
-                  valStr = value.join(",");
-                } else if (value !== null && value !== undefined) {
-                  valStr = String(value);
-                }
-                const encodedVal = encodeURIComponent(valStr).replace(/%2C/g, ",");
-                params.push(`${key}=${encodedVal}`);
-              }
-              if (params.length > 0) {
-                signUri += `?${params.join("&")}`;
-              }
-            }
-            return fn(signUri);
-          }
-          return fn(uri);
-        }
-      },
-      { uri, isPost, data }
-    );
-
-    const xT = Math.floor(Date.now() / 1000).toString();
-
-    // Lấy cookie a1
-    const a1Cookie = this.cookies.find((c) => c.name === "a1")?.value || "";
-
-    // Lấy b1 từ localStorage nếu có thể
-    let b1 = "";
-    try {
-      b1 = (await this.playwrightPage.evaluate(() => localStorage.getItem("b1") || "")) || "";
-    } catch {
-      // Bỏ qua nếu có lỗi
-    }
-
-    const xSCommon = this.generateXSCommon(a1Cookie, b1, xS, xT);
-    const xB3Traceid = getB3TraceId();
-
-    return {
-      "X-S": xS,
-      "X-T": xT,
-      "x-S-Common": xSCommon,
-      "X-B3-Traceid": xB3Traceid,
-    };
+    throw new Error("browser mode removed, provide valid cookie/session");
   }
 
   /**
