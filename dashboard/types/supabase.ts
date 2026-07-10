@@ -544,6 +544,7 @@ export type Database = {
         Row: {
           author_id: string | null
           caption: string | null
+          content_type: string | null
           cover_url: string | null
           crawled_at: string
           id: string
@@ -560,12 +561,15 @@ export type Database = {
           platform_id: string | null
           published_at: string | null
           raw: Json | null
+          source_url: string | null
           stats: Json | null
           tags: string[]
+          title: string | null
         }
         Insert: {
           author_id?: string | null
           caption?: string | null
+          content_type?: string | null
           cover_url?: string | null
           crawled_at?: string
           id: string
@@ -582,12 +586,15 @@ export type Database = {
           platform_id?: string | null
           published_at?: string | null
           raw?: Json | null
+          source_url?: string | null
           stats?: Json | null
           tags?: string[]
+          title?: string | null
         }
         Update: {
           author_id?: string | null
           caption?: string | null
+          content_type?: string | null
           cover_url?: string | null
           crawled_at?: string
           id?: string
@@ -604,8 +611,10 @@ export type Database = {
           platform_id?: string | null
           published_at?: string | null
           raw?: Json | null
+          source_url?: string | null
           stats?: Json | null
           tags?: string[]
+          title?: string | null
         }
         Relationships: []
       }

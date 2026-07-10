@@ -257,6 +257,31 @@ export class ZhihuClient implements IApiClient {
     }
 
     if (!responseText) {
+      try {
+        const nativeOpts: any = {
+          method: fetchOptions.method,
+          headers: fetchOptions.headers,
+        };
+        if (fetchOptions.body) {
+          nativeOpts.body = fetchOptions.body;
+        }
+        if (dispatcher) {
+          nativeOpts.dispatcher = dispatcher;
+        }
+        const res = await fetch(finalUrl, nativeOpts);
+        responseText = await res.text();
+        if (res.status !== 200) {
+          console.log(`[Zhihu Client] Native HTTP status: ${res.status} for URL: ${finalUrl}`);
+          // Nếu status không phải 200 (ví dụ bị challenge unhuman), clear responseText để fallback nếu được phép
+          responseText = "";
+        }
+      } catch (err) {
+        console.log(`[Zhihu Client] Native fetch error: ${(err as Error).message}`);
+      }
+    }
+
+    if (!responseText && options?.allowBrowserFallback === true) {
+      console.log(`[Zhihu] Browser fallback enabled for API request: ${finalUrl}`);
       if (!useImpit) {
         try {
           const page = await getBrowserPage();
@@ -321,27 +346,7 @@ export class ZhihuClient implements IApiClient {
     }
 
     if (!responseText) {
-      try {
-        const nativeOpts: any = {
-          method: fetchOptions.method,
-          headers: fetchOptions.headers,
-        };
-        if (fetchOptions.body) {
-          nativeOpts.body = fetchOptions.body;
-        }
-        if (dispatcher) {
-          nativeOpts.dispatcher = dispatcher;
-        }
-        const res = await fetch(finalUrl, nativeOpts);
-        console.log("HTTP status:", res.status, "for URL:", finalUrl);
-        responseText = await res.text();
-        if (res.status !== 200) {
-          console.log("Response headers:", JSON.stringify(Object.fromEntries(res.headers.entries())));
-          console.log("Response body preview:", responseText.substring(0, 500));
-        }
-      } catch (err) {
-        throw new Error(`Yêu cầu HTTP thất bại: ${(err as Error).message}`);
-      }
+      throw new Error(`Yêu cầu HTTP thất bại: không nhận được phản hồi từ Zhihu cho URL: ${finalUrl}`);
     }
 
     if (options?.headers?.["Accept"]?.includes("text/html") || !responseText.trim().startsWith("{")) {
@@ -370,15 +375,27 @@ export class ZhihuClient implements IApiClient {
     return this.request("GET", "/api/v4/me?include=email,is_active,is_bind_phone");
   }
 
-  async pong(): Promise<boolean> {
-    console.log("[ZhihuClient.pong] Bắt đầu pong zhihu...");
+  async validateSession(): Promise<boolean> {
     try {
       const res = await this.getCurrentUserInfo();
       if (res && (res.uid || res.id) && res.name) {
-        console.log("[ZhihuClient.pong] Ping zhihu thành công:", res.name);
         return true;
       }
-      console.log("[ZhihuClient.pong] Ping zhihu thất bại, dữ liệu nhận được:", JSON.stringify(res));
+      return false;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  async pong(): Promise<boolean> {
+    console.log("[ZhihuClient.pong] Bắt đầu pong zhihu...");
+    try {
+      const ok = await this.validateSession();
+      if (ok) {
+        console.log("[ZhihuClient.pong] Ping zhihu thành công.");
+        return true;
+      }
+      console.log("[ZhihuClient.pong] Ping zhihu thất bại.");
       return false;
     } catch (err) {
       console.log("[ZhihuClient.pong] Lỗi khi ping zhihu:", (err as Error).message);

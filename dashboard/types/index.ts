@@ -205,7 +205,7 @@ export interface CreativeAd {
   title: string;
   caption: string;
   cover_url: string;
-  media_type: "video" | "image" | "carousel" | "unknown";
+  media_type: "video" | "image" | "carousel" | "text" | "unknown";
   like_count: number;
   view_count: number;
   comment_count: number;
@@ -221,8 +221,10 @@ export interface CreativeAd {
   author?: CreativeAdvertiser | null;
   original_media_urls?: string[];
   original_cover_url?: string;
-  media_status?: "original_only" | "cached" | "failed" | "expired" | "unavailable" | "unknown";
+  media_status?: "original_only" | "cached" | "failed" | "expired" | "unavailable" | "not_applicable" | "unknown";
   media_source?: "original" | "r2" | "mixed" | "none";
   media_error?: string | null;
+  content_type?: string;
+  source_url?: string;
 }
 

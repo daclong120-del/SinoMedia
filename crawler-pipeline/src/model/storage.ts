@@ -17,6 +17,7 @@ export interface CrawledPostRow {
   platform: string;
   platform_id: string;
   author_id?: string;
+  title?: string;
   caption?: string;
   media_urls?: string[];
   cover_url?: string;
@@ -26,6 +27,8 @@ export interface CrawledPostRow {
   tags?: string[];
   language?: string;
   media_type?: string;
+  content_type?: string;
+  source_url?: string;
   original_media_urls?: string[];
   original_cover_url?: string;
   media_status?: string;

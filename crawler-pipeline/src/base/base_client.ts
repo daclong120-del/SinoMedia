@@ -13,6 +13,7 @@ export interface RequestOptions {
   body?: any;
   sign?: boolean;
   referer?: string;
+  allowBrowserFallback?: boolean;
 }
 
 export interface CookieData {

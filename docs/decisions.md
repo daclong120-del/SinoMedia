@@ -1,6 +1,24 @@
 
 # Decision Log — SinoMedia
 
+## 2026-07-10 — Nâng cấp Cơ sở dữ liệu Content-Aware & zvideo media check [initiative: Content-Aware Schema]
+
+- **Context:** Trước đây hệ thống phát triển xoay quanh các platform video-centric (Bilibili, Douyin, XHS), giả định mọi bài đăng tốt đều phải có media (ảnh/video/cover). Điều này dẫn tới việc cào zhihu text-only posts bị hiểu lầm là lỗi media (media_status = 'unavailable'). Tiêu đề bài viết zhihu bị cắt thô từ caption và thiếu canonical link nguồn (`source_url`) cho người dùng.
+- **Options considered:**
+  - A: Sửa đổi logic UI của Dashboard tự phán đoán content text-only dựa trên platform = zhihu và media trống (Không được chọn vì sẽ làm phình to code UI, khó mở rộng khi thêm Weibo/Tieba).
+  - B: Nâng cấp contract của cơ sở dữ liệu (`crawled_posts`), tách biệt rõ ranh giới giữa `media_type` (video/image/carousel/text) và `content_type` (answer/article/zvideo/note/video), bổ sung cột `title` và `source_url` canonical (Được chọn vì dữ liệu chuẩn hóa từ gốc).
+- **Decision:**
+  1. Thêm các cột `title`, `content_type`, `source_url` vào bảng `crawled_posts`.
+  2. Nới lỏng check constraint cho phép `media_type = 'text'` và `media_status = 'not_applicable'`.
+  3. Cập nhật API Whitelist của Worker API Guard cho phép truyền 3 trường mới qua Next.js Server.
+  4. Sửa đổi `supabase_writer.ts` để map đầy đủ các trường mới này vào Database.
+  5. Cập nhật Typescript Generated Types cho Dashboard và Crawler pipeline.
+  6. Sửa đổi Zhihu Crawler: Lấy tiêu đề chính thức của bài viết/câu hỏi; Sinh URL chính tắc canonical; Gán `media_type = 'text'` và `media_status = 'not_applicable'` khi không có media.
+  7. Đối với `zvideo`, nếu thiếu cả cover URL lẫn playlist thực tế (do lỗi/chặn), tự động chuyển sang `media_status = 'unavailable'`.
+  8. Thực thi script SQL Backfill toàn diện cho Zhihu answer cũ (lấy title từ `raw->'question'->>'title'`, sinh source_url) và cập nhật 193 bài đăng Bilibili, Douyin, XHS lịch sử.
+- **Trade-off:** UI Dashboard và các services khác cần điều chỉnh để hiển thị badge/nút nguồn canonical theo contract mới này.
+- **Revisit trigger:** Khi tích hợp các platform tin tức hoặc Weibo cào text-only diện rộng.
+
 ## Decision: API Token Runtime Enforcement (2026-07-09)
 - **Context**: We need to secure the worker's access to the database. Previously, workers used the `SUPABASE_SERVICE_ROLE_KEY` to directly call PostgREST APIs, bypassing RLS and gaining full access.
 - **Decision**: 

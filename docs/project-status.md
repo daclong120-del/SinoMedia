@@ -20,8 +20,8 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 | Khối | Trạng thái | Ghi chú |
 |---|---|---|
 | Dashboard | Partial | Next.js App Router, nhiều trang đã có service/repository và server actions. Cột mốc quan trọng: `/dash/tasks` đã Done (nối realtime và xử lý tasks thật). |
-| Crawler Pipeline | Partial | Worker TypeScript độc lập có queue loop, claim task qua Supabase RPC, platform factory, account/proxy pool. Bilibili crawler có đầy đủ phase, log và cào bình luận ổn định. |
-| Supabase/Media | Partial | Supabase là control plane/data store. Đã hoàn thành khóa quyền truy cập thô của anon key, bật RLS cho toàn bộ bảng và thắt chặt RPC nhạy cảm. Tích hợp kịch bản kiểm thử bảo mật tự động 27/27 test cases (RLS + Proxy) đạt 100%. Đã siết chặt password policy (min 8 kí tự, có cả chữ và số) và giảm auth rate limit xuống 10 lần/5 phút. Security headers đã được cấu hình qua `next.config.ts`. |
+| Crawler Pipeline | Partial | Worker TypeScript độc lập có queue loop, claim task qua Supabase RPC, platform factory, account/proxy pool. Bilibili crawler ổn định; Zhihu crawler cào tìm kiếm/chi tiết đầy đủ, hỗ trợ cào bài text-only (content-aware) và warm-up cookie. |
+| Supabase/Media | Partial | Supabase là control plane/data store. Đã hoàn thành khóa quyền truy cập thô của anon key, bật RLS cho toàn bộ bảng và thắt chặt RPC nhạy cảm. Đã nâng cấp schema `crawled_posts` sang kiến trúc content-aware (hỗ trợ `media_type = 'text'`, `media_status = 'not_applicable'`, và bổ sung `title`, `content_type`, `source_url`). |
 | Desktop App | Partial | Đã hoàn thành build script Scaffold & Full, tích hợp embedded Node.exe, launcher scripts, C# wrapper SinoMedia.exe và health check smoke test tự động. |
 
 ## Product direction hiện tại
@@ -65,7 +65,7 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 | Queue worker | Done | Claim task Supabase RPC. Đã **gia cố log redaction** và bảo mật **API Token Runtime Enforcement**. Đã pass Security Gate với các chế độ thắt chặt GET crawler_accounts (Mode 1: Checkout chỉ trả về id/username/cookie_data, Mode 2: Status check chỉ trả về id/status/failure_count, cấm leak cookie_data). |
 | Task metadata | Partial | Worker đọc tags, language, crawl_comments, crawl_sub_comments, upload_r2, headless từ `task.metadata`. |
 | Platform factory | Partial | Có factory cho nhiều platform; platform không hỗ trợ sẽ throw rõ ràng. |
-| Platforms | Partial | Có module cho Bilibili, Douyin, Kuaishou, Tieba, Weibo, XHS, Zhihu. Mức ổn định từng platform chưa đồng đều. |
+| Platforms | Partial | Có module cho Bilibili, Douyin, Kuaishou, Tieba, Weibo, XHS, Zhihu. Bilibili và Zhihu hoạt động ổn định và hỗ trợ đầy đủ các tính năng cào. |
 | Login/session | Partial | Một số platform còn báo QR auto-login chưa hỗ trợ hoặc cần cookie cục bộ. |
 | Account/proxy pool | Partial | Có pool/account rotation, nhưng cần health policy và dashboard mutation hoàn chỉnh hơn. |
 | R2 upload | Optional | Có uploader/dedup, nhưng không còn là đường phát mặc định cho Bilibili. Dùng khi cần archive/cache/report/offline. |

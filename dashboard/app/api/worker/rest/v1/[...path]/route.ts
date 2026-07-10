@@ -13,7 +13,8 @@ const ALLOWED_COLUMNS: Record<string, string[]> = {
   crawled_posts: [
     "id", "platform", "author_id", "platform_id", "caption", "cover_url", "media_urls", 
     "stats", "raw", "published_at", "crawled_at", "media_type", "original_media_urls", 
-    "original_cover_url", "media_status", "media_source", "media_error", "media_cached_at"
+    "original_cover_url", "media_status", "media_source", "media_error", "media_cached_at",
+    "title", "content_type", "source_url"
   ],
   crawled_authors: [
     "id", "platform_uid", "nickname", "platform", "gender", "description", 
@@ -51,7 +52,7 @@ const POST_WHITELISTS: Record<string, string[]> = {
     "id", "platform", "platform_id", "author_id", "caption", "media_urls", "cover_url", 
     "stats", "raw", "crawled_at", "published_at", "tags", "language", "media_type", 
     "original_media_urls", "original_cover_url", "media_status", "media_source", 
-    "media_error", "media_cached_at"
+    "media_error", "media_cached_at", "title", "content_type", "source_url"
   ],
   crawled_authors: [
     "id", "platform", "platform_uid", "nickname", "avatar_url", "gender", "description", 

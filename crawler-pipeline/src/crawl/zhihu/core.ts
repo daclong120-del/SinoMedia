@@ -149,24 +149,49 @@ export async function crawlDetail(
     });
   }
 
-  // 1. Xác định media type và URL gốc
-  const mediaType = "image";
+  // 1. Xác định title, content_type, source_url và media type
+  let title = "";
+  if (type === "answer") {
+    title = contentObj.question?.title || "";
+  } else {
+    title = contentObj.title || "";
+  }
+
+  let sourceUrl = "";
+  if (type === "answer") {
+    sourceUrl = `https://www.zhihu.com/question/${contentObj.question?.id || id}/answer/${id}`;
+  } else if (type === "article") {
+    sourceUrl = `https://zhuanlan.zhihu.com/p/${id}`;
+  } else if (type === "zvideo") {
+    sourceUrl = `https://www.zhihu.com/zvideo/${id}`;
+  }
+
   const originalCoverUrl = contentObj.thumbnail || contentObj.imageUrl || contentObj.image_url || "";
   const originalMediaUrls: string[] = [];
 
-  // 2. Xử lý R2 cache (removed)
+  let mediaType = "image";
+  let mediaStatus = "original_only";
+  let mediaSource = "original";
+
+  if (type === "zvideo") {
+    mediaType = "video";
+    const hasVideo = contentObj.playlist || contentObj.video?.playlist || (contentObj.video && Object.keys(contentObj.video).length > 0);
+    if (!hasVideo && !originalCoverUrl) {
+      mediaStatus = "unavailable";
+      mediaSource = "none";
+    }
+  } else if (originalCoverUrl) {
+    mediaType = "image";
+  } else {
+    mediaType = "text";
+    mediaStatus = "not_applicable";
+    mediaSource = "none";
+  }
+
   let coverUrl = originalCoverUrl;
   const mediaUrls: string[] = [...originalMediaUrls];
-  
-  let mediaSource = "original";
-  let mediaStatus = "original_only";
   let mediaError: string | null = null;
   let mediaCachedAt: string | null = null;
-
-  if (!originalCoverUrl) {
-    mediaSource = "none";
-    mediaStatus = "unavailable";
-  }
 
   const publishedAt = contentObj.createdTime || contentObj.created || Math.floor(Date.now() / 1000);
   const caption = stripHtml(contentObj.content || contentObj.excerpt || contentObj.title || "");
@@ -175,6 +200,7 @@ export async function crawlDetail(
     platform: "zhihu",
     platform_id: id,
     author_id: authorUuid,
+    title: title || undefined,
     caption,
     media_urls: mediaUrls,
     cover_url: coverUrl || undefined,
@@ -187,6 +213,8 @@ export async function crawlDetail(
     raw: contentObj,
     published_at: new Date(publishedAt * 1000).toISOString(),
     media_type: mediaType,
+    content_type: type,
+    source_url: sourceUrl || undefined,
     original_media_urls: originalMediaUrls,
     original_cover_url: originalCoverUrl || undefined,
     media_status: mediaStatus,
@@ -490,10 +518,43 @@ export async function crawlSearch(keyword: string, maxCount = 20, client?: Zhihu
         const originalCoverUrl = obj.thumbnail || obj.imageUrl || obj.image_url || "";
         const publishedAt = obj.createdTime || obj.created || Math.floor(Date.now() / 1000);
 
+        // Xác định metadata content-aware
+        const contentType = obj.type || "unknown";
+        let title = obj.question?.title || obj.title || "";
+        let sourceUrl = "";
+
+        if (contentType === "answer") {
+          sourceUrl = `https://www.zhihu.com/question/${obj.question?.id || ""}/answer/${obj.id}`;
+        } else if (contentType === "article") {
+          sourceUrl = `https://zhuanlan.zhihu.com/p/${obj.id}`;
+        } else if (contentType === "zvideo") {
+          sourceUrl = `https://www.zhihu.com/zvideo/${obj.id}`;
+        }
+
+        let mediaType = "image";
+        let mediaStatus = "original_only";
+        let mediaSource = "original";
+
+        if (contentType === "zvideo") {
+          mediaType = "video";
+          const hasVideo = obj.video?.playlist && Object.keys(obj.video.playlist).length > 0;
+          if (!hasVideo && !originalCoverUrl) {
+            mediaStatus = "unavailable";
+            mediaSource = "none";
+          }
+        } else if (originalCoverUrl) {
+          mediaType = "image";
+        } else {
+          mediaType = "text";
+          mediaStatus = "not_applicable";
+          mediaSource = "none";
+        }
+
         const postData: CrawledPostRow = {
           platform: "zhihu",
           platform_id: String(obj.id),
           author_id: authorUuid,
+          title: title || undefined,
           caption,
           media_urls: [],
           cover_url: originalCoverUrl || undefined,
@@ -505,11 +566,13 @@ export async function crawlSearch(keyword: string, maxCount = 20, client?: Zhihu
           },
           raw: obj,
           published_at: new Date(publishedAt * 1000).toISOString(),
-          media_type: "image",
+          media_type: mediaType,
+          content_type: contentType,
+          source_url: sourceUrl || undefined,
           original_media_urls: [],
           original_cover_url: originalCoverUrl || undefined,
-          media_status: originalCoverUrl ? "original_only" : "unavailable",
-          media_source: originalCoverUrl ? "original" : "none",
+          media_status: mediaStatus,
+          media_source: mediaSource,
         };
 
         pagePosts.push(postData);
@@ -601,11 +664,68 @@ export class ZhihuCrawler implements ICrawler {
     return this.browserContext;
   }
 
+  async closeBrowserContextOnly(): Promise<void> {
+    if (this.browserContext) {
+      try {
+        await this.browserContext.close();
+      } catch {}
+      this.browserContext = null;
+      this.browserPage = null;
+    }
+  }
+
+  private async bootstrapSessionWithBrowser(cookieStr?: string): Promise<boolean> {
+    console.log("[Zhihu] HTTP session invalid, bootstrapping with CloakBrowser...");
+    const context = await this.launchBrowser();
+    try {
+      if (cookieStr) {
+        const cookieDict = parseCookieString(cookieStr);
+        const cookieObjects = [".zhihu.com", "www.zhihu.com"].flatMap(domain =>
+          Object.entries(cookieDict).map(([name, value]) => ({
+            name,
+            value,
+            domain,
+            path: "/",
+          }))
+        );
+        await context.addCookies(cookieObjects);
+      }
+
+      // Mở homepage hoặc trang search thật để refresh session và sync cookie
+      if (this.browserPage) {
+        const searchUrl = "https://www.zhihu.com/search?q=girl&type=content";
+        console.log(`[Zhihu] Opening search page on browser to warm up cookie: ${searchUrl}`);
+        await this.browserPage.goto(searchUrl, { waitUntil: "networkidle" }).catch(() => {});
+        console.log("[Zhihu] Waiting 5 seconds to warm up cookie...");
+        await sleep(5000);
+      }
+
+      const freshCookies = await context.cookies();
+      await this.client.updateCookies(freshCookies.map(c => ({ name: c.name, value: c.value, domain: c.domain })));
+      
+      const isValid = await this.client.validateSession();
+      if (isValid) {
+        console.log("[Zhihu] Browser bootstrap completed and validated via HTTP.");
+      } else {
+        console.log("[Zhihu] Browser bootstrap completed but session is still invalid.");
+      }
+      return isValid;
+    } catch (err) {
+      console.log(`[Zhihu] Error during browser bootstrap: ${(err as Error).message}`);
+      return false;
+    } finally {
+      console.log("[Zhihu] Browser bootstrap completed, closing CloakBrowser.");
+      await this.closeBrowserContextOnly();
+      const { closeBrowser } = await import("./client.js");
+      await closeBrowser();
+    }
+  }
+
   async ensureLogin(): Promise<void> {
     let attempts = 0;
     const maxAttempts = 5;
 
-    // 1. Thử lấy tài khoản từ Account Pool trong Database
+    // 1. Thử lấy tài khoản từ Account Pool trong Database và validate bằng HTTP thô trước
     while (attempts < maxAttempts) {
       const account = await checkoutAccount("zhihu");
       if (!account) {
@@ -613,47 +733,39 @@ export class ZhihuCrawler implements ICrawler {
       }
       console.log(`Đang kiểm tra tài khoản Zhihu từ pool: ${account.username} (ID: ${account.id})...`);
 
-      const context = await this.launchBrowser();
       const cookieDict = parseCookieString(account.cookie_data);
-      const cookieObjects = [".zhihu.com", "www.zhihu.com"].flatMap(domain =>
-        Object.entries(cookieDict).map(([name, value]) => ({
-          name,
-          value,
-          domain,
-          path: "/",
-        }))
-      );
-      await context.addCookies(cookieObjects);
+      // Nạp cookie của account vào client
+      await this.client.updateCookies(Object.entries(cookieDict).map(([name, value]) => ({
+        name,
+        value,
+        domain: ".zhihu.com"
+      })));
 
-      // Kiểm tra d_c0 cookie bắt buộc
-      const freshCookies = await context.cookies();
-      const hasDC0 = freshCookies.some(c => c.name === "d_c0");
-      if (!hasDC0) {
-        console.log(`Tài khoản Zhihu ${account.username} thiếu cookie d_c0 bắt buộc! Trả lại pool với đánh dấu lỗi...`);
-        await checkinAccount(account.id, false);
-        this.currentAccountId = null;
-        attempts++;
-        continue;
-      }
-
-      const isActive = await this.client.pong();
+      // Validate bằng HTTP thô không mở browser
+      const isActive = await this.client.validateSession();
       if (isActive) {
-        console.log(`Tài khoản Zhihu ${account.username} hoạt động tốt. Sẵn sàng cào.`);
+        console.log(`[Zhihu] Session valid by HTTP, skip CloakBrowser for account: ${account.username}`);
         this.currentAccountId = account.id;
-        await this.client.updateCookies(freshCookies.map(c => ({ name: c.name, value: c.value, domain: c.domain })));
         return;
       } else {
-        console.log(`Tài khoản Zhihu ${account.username} không hoạt động. Trả lại pool với đánh dấu lỗi...`);
+        console.log(`[Zhihu] Account ${account.username} session invalid by HTTP, trying browser bootstrap...`);
+        // Nếu HTTP check fail, thử cứu bằng browser bootstrap
+        const bootstrapOk = await this.bootstrapSessionWithBrowser(account.cookie_data);
+        if (bootstrapOk) {
+          console.log(`[Zhihu] Successfully bootstrapped session for account: ${account.username}`);
+          this.currentAccountId = account.id;
+          return;
+        }
+
+        console.log(`[Zhihu] Tài khoản ${account.username} hoàn toàn không hoạt động. Trả lại pool...`);
         await checkinAccount(account.id, false);
         this.currentAccountId = null;
         attempts++;
       }
     }
 
-    // 2. Dự phòng: Sử dụng cookie cục bộ từ môi trường hoặc JSON session file
+    // 2. Dự phòng: Sử dụng cookie cục bộ
     console.log("Không có tài khoản hoạt động nào từ Pool DB. Đang thử bằng cookie cục bộ...");
-    const context = await this.launchBrowser();
-
     let localCookie = process.env.ZHIHU_COOKIE || "";
     if (!localCookie) {
       try {
@@ -665,36 +777,32 @@ export class ZhihuCrawler implements ICrawler {
 
     if (localCookie) {
       const cookieDict = parseCookieString(localCookie);
-      const cookieObjects = [".zhihu.com", "www.zhihu.com"].flatMap(domain =>
-        Object.entries(cookieDict).map(([name, value]) => ({
-          name,
-          value,
-          domain,
-          path: "/",
-        }))
-      );
-      await context.addCookies(cookieObjects);
+      await this.client.updateCookies(Object.entries(cookieDict).map(([name, value]) => ({
+        name,
+        value,
+        domain: ".zhihu.com"
+      })));
 
-      // Kiểm tra d_c0 cookie cục bộ bắt buộc
-      const freshCookies = await context.cookies();
-      const hasDC0 = freshCookies.some(c => c.name === "d_c0");
-      if (!hasDC0) {
-        throw new Error("Không tìm thấy cookie 'd_c0' bắt buộc của Zhihu trong cấu hình cookie cục bộ. Dừng crawl.");
+      const localIsActive = await this.client.validateSession();
+      if (localIsActive) {
+        console.log("[Zhihu] Cookie cục bộ hoạt động tốt bằng HTTP check, skip CloakBrowser.");
+        this.currentAccountId = null;
+        return;
+      } else {
+        console.log("[Zhihu] Cookie cục bộ hết hạn hoặc không hoạt động bằng HTTP check. Khởi chạy browser bootstrap...");
+        const bootstrapOk = await this.bootstrapSessionWithBrowser(localCookie);
+        if (bootstrapOk) {
+          console.log("[Zhihu] Cookie cục bộ đã được refresh thành công qua browser bootstrap.");
+          this.currentAccountId = null;
+          return;
+        }
       }
     }
 
-    const localIsActive = await this.client.pong();
-    if (localIsActive) {
-      console.log("Cookie cục bộ Zhihu hoạt động tốt.");
-      this.currentAccountId = null;
-      const freshCookies = await context.cookies();
-      await this.client.updateCookies(freshCookies.map(c => ({ name: c.name, value: c.value, domain: c.domain })));
-      return;
-    }
-
-    // 3. Tiến hành đăng nhập thủ công bằng cookie mới nạp qua ZhihuLogin
+    // 3. Tiến hành đăng nhập thủ công bằng cookie mới nạp qua ZhihuLogin (mở browser đặc biệt)
     console.log("Cookie cục bộ hết hạn hoặc chưa đăng nhập. Tiến hành cấu hình qua ZhihuLogin...");
     const { ZhihuLogin } = await import("./login.js");
+    const context = await this.launchBrowser();
     try {
       const login = new ZhihuLogin({
         cookieStr: localCookie,
@@ -712,6 +820,10 @@ export class ZhihuCrawler implements ICrawler {
       }
     } catch (err) {
       console.log(`Không thể hoàn thành đăng nhập: ${(err as Error).message}. Tiếp tục bằng chế độ khách (Guest)...`);
+    } finally {
+      await this.closeBrowserContextOnly();
+      const { closeBrowser } = await import("./client.js");
+      await closeBrowser();
     }
   }
 
@@ -772,21 +884,6 @@ export class ZhihuCrawler implements ICrawler {
     let success = false;
     try {
       await this.ensureLogin();
-
-      // Mở trang search thật trên trình duyệt để warm up cookie
-      if (this.browserPage && this.browserContext) {
-        const searchUrl = `https://www.zhihu.com/search?q=${encodeURIComponent(keyword)}&type=content`;
-        console.log(`Đang mở trang search thật trên trình duyệt để warm up cookie: ${searchUrl}`);
-        
-        await this.browserPage.goto(searchUrl, { waitUntil: "networkidle" });
-        console.log("Đang chờ 5 giây để warm up cookie...");
-        await sleep(5000);
-
-        // Cập nhật lại cookies mới nhất từ browser context vào client
-        const freshCookies = await this.browserContext.cookies();
-        await this.client.updateCookies(freshCookies.map(c => ({ name: c.name, value: c.value, domain: c.domain })));
-      }
-
       await crawlSearch(keyword, maxCount, this.client);
       success = true;
     } finally {
