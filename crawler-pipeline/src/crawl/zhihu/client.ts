@@ -208,8 +208,8 @@ export class ZhihuClient implements IApiClient {
    */
   async request(method: string, url: string, options?: RequestOptions): Promise<any> {
     const cookieStr = await loadZhihuCookie();
-    if (cookieStr && !cookieStr.includes("d_c0")) {
-      console.log("Cảnh báo: Không tìm thấy d_c0 trong cookie Zhihu. Chữ ký x-zse-96 có thể không hợp lệ.");
+    if (!cookieStr || !cookieStr.includes("d_c0")) {
+      throw new Error("Không tìm thấy cookie 'd_c0' bắt buộc để thực hiện yêu cầu ký API Zhihu. Dừng crawl.");
     }
 
     const headers: Record<string, string> = {

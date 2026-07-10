@@ -68,13 +68,85 @@ export function buildQueryString(params: Record<string, string>): string {
 export function parseCookieString(cookieStr: string): Record<string, string> {
   const result: Record<string, string> = {};
   if (!cookieStr) return result;
-  for (const part of cookieStr.split(";")) {
-    const trimmed = part.trim();
-    if (!trimmed) continue;
-    const eqIndex = trimmed.indexOf("=");
+
+  let trimmed = cookieStr.trim();
+
+  // Giải nháy kép nếu có (ví dụ chuỗi JSON bị bọc nháy kép do lưu trữ)
+  if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    try {
+      const unescaped = JSON.parse(trimmed);
+      if (typeof unescaped === "string") {
+        trimmed = unescaped.trim();
+      }
+    } catch {}
+  }
+
+  // Nếu là JSON array (ví dụ Chrome Cookies export)
+  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+    try {
+      const arr = JSON.parse(trimmed);
+      if (Array.isArray(arr)) {
+        for (const c of arr) {
+          const name = c.name || c.key;
+          const value = c.value !== undefined ? c.value : "";
+          if (name) {
+            result[name] = String(value);
+          }
+        }
+        return result;
+      }
+    } catch {}
+  }
+
+  // Nếu là JSON object
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      const obj = JSON.parse(trimmed);
+      if (obj && typeof obj === "object" && !Array.isArray(obj)) {
+        // Hỗ trợ obj.cookie (dạng string)
+        if (typeof obj.cookie === "string" && obj.cookie.trim()) {
+          return parseCookieString(obj.cookie);
+        }
+
+        // Hỗ trợ obj.cookies (dạng mảng) - Ví dụ: Douyin session hoặc các cấu trúc tương tự
+        if (Array.isArray(obj.cookies)) {
+          for (const c of obj.cookies) {
+            const name = c.name || c.key;
+            const value = c.value !== undefined ? c.value : "";
+            if (name) {
+              result[name] = String(value);
+            }
+          }
+          // Thêm msToken nếu có
+          if (obj.msToken !== undefined) {
+            result["msToken"] = String(obj.msToken);
+          }
+          return result;
+        }
+
+        // Chỉ coi là cookie map khi toàn bộ values trong object là primitive (string, number, boolean)
+        const hasNonPrimitive = Object.values(obj).some(
+          v => v !== null && typeof v === "object"
+        );
+
+        if (!hasNonPrimitive) {
+          for (const [k, v] of Object.entries(obj)) {
+            result[k] = String(v);
+          }
+          return result;
+        }
+      }
+    } catch {}
+  }
+
+  // Phân tách cookie string truyền thống dạng "k1=v1; k2=v2"
+  for (const part of trimmed.split(";")) {
+    const partTrimmed = part.trim();
+    if (!partTrimmed) continue;
+    const eqIndex = partTrimmed.indexOf("=");
     if (eqIndex === -1) continue;
-    const key = trimmed.slice(0, eqIndex).trim();
-    const value = trimmed.slice(eqIndex + 1).trim();
+    const key = partTrimmed.slice(0, eqIndex).trim();
+    const value = partTrimmed.slice(eqIndex + 1).trim();
     if (key) result[key] = value;
   }
   return result;

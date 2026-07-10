@@ -219,6 +219,125 @@ function parseProxyString(proxyStr: string) {
   };
 }
 
+/** Chuẩn hóa các định dạng cookie (JSON array, JSON object, string) thành định dạng cookie string chuẩn */
+export function normalizeCookie(cookieStr: string): string {
+  if (!cookieStr) return "";
+  let trimmed = cookieStr.trim();
+
+  // Giải nháy kép nếu có (ví dụ chuỗi JSON bị bọc nháy kép)
+  if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    try {
+      const unescaped = JSON.parse(trimmed);
+      if (typeof unescaped === "string") {
+        trimmed = unescaped.trim();
+      }
+    } catch {}
+  }
+
+  // Nếu là JSON array (ví dụ Chrome Cookies export)
+  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+    try {
+      const arr = JSON.parse(trimmed);
+      if (Array.isArray(arr)) {
+        return arr
+          .map((c: any) => {
+            const name = c.name || c.key || "";
+            const value = c.value !== undefined ? c.value : "";
+            return name ? `${name}=${value}` : "";
+          })
+          .filter(Boolean)
+          .join("; ");
+      }
+    } catch {}
+  }
+
+  // Nếu là JSON object
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      const obj = JSON.parse(trimmed);
+      if (obj && typeof obj === "object" && !Array.isArray(obj)) {
+        // Hỗ trợ obj.cookie (dạng string)
+        if (typeof obj.cookie === "string" && obj.cookie.trim()) {
+          return normalizeCookie(obj.cookie);
+        }
+
+        // Hỗ trợ giữ nguyên cấu trúc phức tạp (VD: Douyin session chứa array/object)
+        const hasNonPrimitive = Object.values(obj).some(
+          v => v !== null && typeof v === "object"
+        );
+        if (hasNonPrimitive) {
+          return trimmed;
+        }
+
+        // Object phẳng có các values là primitive
+        return Object.entries(obj)
+          .map(([k, v]) => `${k}=${v}`)
+          .join("; ");
+      }
+    } catch {}
+  }
+
+  return trimmed;
+}
+
+/** Kiểm tra tính hợp lệ của cookie (hỗ trợ cả định dạng JSON array/object và cookie string) */
+export function isValidCookie(cookieStr: string): boolean {
+  if (!cookieStr) return false;
+  const trimmed = cookieStr.trim();
+
+  // Nếu là JSON array
+  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+    try {
+      const arr = JSON.parse(trimmed);
+      return (
+        Array.isArray(arr) &&
+        arr.length > 0 &&
+        arr.every(c => c && typeof c === "object" && !Array.isArray(c)) &&
+        arr.some(c => c.name || c.key)
+      );
+    } catch {
+      return false;
+    }
+  }
+
+  // Nếu là JSON object
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      const obj = JSON.parse(trimmed);
+      if (obj && typeof obj === "object" && !Array.isArray(obj)) {
+        // Dạng 1: Chứa key `cookie` dạng string chứa dấu "="
+        if (typeof obj.cookie === "string" && obj.cookie.trim().includes("=")) {
+          return true;
+        }
+
+        // Dạng 2: Chứa key `cookies` dạng array chứa các cookie objects hợp lệ
+        if (Array.isArray(obj.cookies)) {
+          return (
+            obj.cookies.length > 0 &&
+            obj.cookies.every((c: any) => c && typeof c === "object" && !Array.isArray(c)) &&
+            obj.cookies.some((c: any) => c.name || c.key)
+          );
+        }
+
+        // Dạng 3: Object phẳng, toàn bộ values là primitive và có ít nhất 1 key
+        const keys = Object.keys(obj);
+        if (keys.length === 0) return false;
+
+        const hasNonPrimitive = Object.values(obj).some(
+          v => v !== null && typeof v === "object"
+        );
+        return !hasNonPrimitive;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
+  // Cookie string bình thường phải chứa dấu "="
+  return trimmed.includes("=");
+}
+
 /** Thêm hoặc cập nhật tài khoản crawler */
 export async function createAccount(
   platform: string,
@@ -226,6 +345,14 @@ export async function createAccount(
   cookieData: string,
   proxyStr?: string | null
 ): Promise<void> {
+  // Normalize cookie data
+  const normalizedCookie = normalizeCookie(cookieData);
+
+  // Validate cookie hợp lệ
+  if (!isValidCookie(normalizedCookie)) {
+    throw new Error("Định dạng cookie không hợp lệ. Vui lòng kiểm tra lại (chấp nhận cookie string chuẩn hoặc JSON array/object export từ extension).");
+  }
+
   const db = await createClientServer();
   const accountRepo = new AccountRepository(db as unknown as DbClient);
   const proxyRepo = new ProxyRepository(db as unknown as DbClient);
@@ -237,8 +364,8 @@ export async function createAccount(
   const existingAccount = await accountRepo.findByPlatformAndUsername(normalizedPlatform, username);
   const isNew = !existingAccount;
 
-  // 1. Lưu hoặc cập nhật tài khoản
-  const account = await accountRepo.createOrUpdate(normalizedPlatform, username, cookieData);
+  // 1. Lưu hoặc cập nhật tài khoản với cookie đã normalize
+  const account = await accountRepo.createOrUpdate(normalizedPlatform, username, normalizedCookie);
 
   // 2. Xử lý proxy riêng nếu có
   try {
