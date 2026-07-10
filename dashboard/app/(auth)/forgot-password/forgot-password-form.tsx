@@ -54,7 +54,7 @@ export default function ForgotPasswordForm() {
   }, []);
 
   useEffect(() => {
-    document.title = (lang === "Tiếng Việt" ? "Quên mật khẩu" : "Forgot password") + " | SinoMedia";
+    document.title = (lang === "Tiếng Việt" ? "Quên mật khẩu" : "Forgot password") + " | LutechTools";
   }, [lang]);
 
   const d = DICT[lang] || DICT["English (US)"];

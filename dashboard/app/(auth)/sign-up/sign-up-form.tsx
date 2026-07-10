@@ -21,7 +21,7 @@ const EyeOffIcon = () => (
 );
 
 const ENGLISH_DICT = {
-  title: "Create a SinoMedia account",
+  title: "Create a LutechTools account",
   emailLabel: "Email address",
   emailPlaceholder: "name@example.com",
   passwordLabel: "Password",
@@ -29,7 +29,7 @@ const ENGLISH_DICT = {
   signingUp: "Creating account...",
   alreadyHaveAccount: "Already have an account?",
   logIn: "Sign in",
-  termsPrefix: "By clicking \"Sign up\", you agree to SinoMedia's",
+  termsPrefix: "By clicking \"Sign up\", you agree to LutechTools's",
   termsLink: "Self-Serve Subscription Agreement",
   termsAnd: "and",
   privacyLink: "Privacy Policy",
@@ -45,7 +45,7 @@ const ENGLISH_DICT = {
 };
 
 const VIETNAMESE_DICT = {
-  title: "Tạo tài khoản SinoMedia",
+  title: "Tạo tài khoản LutechTools",
   emailLabel: "Địa chỉ email",
   emailPlaceholder: "name@example.com",
   passwordLabel: "Mật khẩu",
@@ -108,7 +108,7 @@ export default function SignUpForm() {
   }, []);
 
   useEffect(() => {
-    document.title = (lang === "Tiếng Việt" ? "Tạo tài khoản" : "Create account") + " | SinoMedia";
+    document.title = (lang === "Tiếng Việt" ? "Tạo tài khoản" : "Create account") + " | LutechTools";
   }, [lang]);
 
   const d = DICT[lang] || DICT["English (US)"];
@@ -331,7 +331,7 @@ export default function SignUpForm() {
           </div>
           <div className="flex flex-col items-end gap-0.5 text-[9px] text-neutral-400 dark:text-neutral-500 font-semibold">
             <div className="flex items-center gap-1">
-              <span className="text-sinomedia-orange font-bold">SinoMedia</span>
+              <span className="text-sinomedia-orange font-bold">LutechTools</span>
               <span>Shield</span>
             </div>
             <a href="#" className="hover:underline hover:text-primary transition-colors text-[8px]">

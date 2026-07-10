@@ -28,19 +28,103 @@ export const CloudflareLogo: React.FC<IconProps> = ({ size = 48, className, ...p
 export const SinoMediaLogo: React.FC<IconProps> = ({ size = 32, className, ...props }) => (
   <svg
     role="img"
-    viewBox="0 0 24 24"
+    viewBox="0 0 100 100"
     width={size}
     height={size}
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
     className={className}
     {...props}
   >
-    <circle cx="12" cy="12" r="3" />
-    <path d="M12 9V3M12 15v6M9 12H3M15 12h6M9.5 9.5 5 5M14.5 9.5 19 5M9.5 14.5 5 19M14.5 14.5 19 19" />
+    {/* Block 1 (Top) */}
+    <polygon
+      points="35,14 33.5,11.8 33.5,33.8 35,36"
+      fill="#99D5FE"
+      stroke="#99D5FE"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+    <polygon
+      points="35,14 33.5,11.8 49.5,11.8 51,14"
+      fill="#E5F6FF"
+      stroke="#E5F6FF"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+    <polygon
+      points="35,14 51,14 51,36 35,36"
+      fill="#CCEFFF"
+      stroke="#CCEFFF"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+
+    {/* Block 2 (Middle-Left) */}
+    <polygon
+      points="15,40 13.5,37.8 13.5,59.8 15,62"
+      fill="#2979B6"
+      stroke="#2979B6"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+    <polygon
+      points="15,40 13.5,37.8 29.5,37.8 31,40"
+      fill="#7CC0ED"
+      stroke="#7CC0ED"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+    <polygon
+      points="15,40 31,40 31,62 15,62"
+      fill="#43A4E6"
+      stroke="#43A4E6"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+
+    {/* Block 3 (Middle-Right) */}
+    <polygon
+      points="35,40 33.5,37.8 33.5,59.8 35,62"
+      fill="#39A6D8"
+      stroke="#39A6D8"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+    <polygon
+      points="35,40 33.5,37.8 67.5,37.8 69,40"
+      fill="#9FE6FF"
+      stroke="#9FE6FF"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+    <polygon
+      points="35,40 69,40 69,62 35,62"
+      fill="#5BD1FF"
+      stroke="#5BD1FF"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+
+    {/* Block 4 (Bottom) */}
+    <polygon
+      points="35,66 33.5,63.8 33.5,83.8 35,86"
+      fill="#297BB8"
+      stroke="#297BB8"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+    <polygon
+      points="35,66 33.5,63.8 85.5,63.8 87,66"
+      fill="#78BDF0"
+      stroke="#78BDF0"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+    <polygon
+      points="35,66 87,66 87,86 35,86"
+      fill="#3E9EE3"
+      stroke="#3E9EE3"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 
@@ -758,19 +842,104 @@ export const LockIcon: React.FC<IconProps> = ({ size = 16, className, ...props }
 
 export const SpiderIcon: React.FC<IconProps> = ({ size = 24, className, ...props }) => (
   <svg
+    role="img"
+    viewBox="0 0 100 100"
     width={size}
     height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
     className={className}
     {...props}
   >
-    <circle cx="12" cy="12" r="3" />
-    <path d="M12 9V3M12 15v6M9 12H3M15 12h6M9.5 9.5 5 5M14.5 9.5 19 5M9.5 14.5 5 19M14.5 14.5 19 19" />
+    {/* Block 1 (Top) */}
+    <polygon
+      points="35,14 33.5,11.8 33.5,33.8 35,36"
+      fill="#99D5FE"
+      stroke="#99D5FE"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+    <polygon
+      points="35,14 33.5,11.8 49.5,11.8 51,14"
+      fill="#E5F6FF"
+      stroke="#E5F6FF"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+    <polygon
+      points="35,14 51,14 51,36 35,36"
+      fill="#CCEFFF"
+      stroke="#CCEFFF"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+
+    {/* Block 2 (Middle-Left) */}
+    <polygon
+      points="15,40 13.5,37.8 13.5,59.8 15,62"
+      fill="#2979B6"
+      stroke="#2979B6"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+    <polygon
+      points="15,40 13.5,37.8 29.5,37.8 31,40"
+      fill="#7CC0ED"
+      stroke="#7CC0ED"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+    <polygon
+      points="15,40 31,40 31,62 15,62"
+      fill="#43A4E6"
+      stroke="#43A4E6"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+
+    {/* Block 3 (Middle-Right) */}
+    <polygon
+      points="35,40 33.5,37.8 33.5,59.8 35,62"
+      fill="#39A6D8"
+      stroke="#39A6D8"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+    <polygon
+      points="35,40 33.5,37.8 67.5,37.8 69,40"
+      fill="#9FE6FF"
+      stroke="#9FE6FF"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+    <polygon
+      points="35,40 69,40 69,62 35,62"
+      fill="#5BD1FF"
+      stroke="#5BD1FF"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+
+    {/* Block 4 (Bottom) */}
+    <polygon
+      points="35,66 33.5,63.8 33.5,83.8 35,86"
+      fill="#297BB8"
+      stroke="#297BB8"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+    <polygon
+      points="35,66 33.5,63.8 85.5,63.8 87,66"
+      fill="#78BDF0"
+      stroke="#78BDF0"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+    <polygon
+      points="35,66 87,66 87,86 35,86"
+      fill="#3E9EE3"
+      stroke="#3E9EE3"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 

@@ -286,7 +286,7 @@ export default function Sidebar({ isMobileOpen = false, onMobileClose }: Sidebar
               "text-sm font-bold text-foreground tracking-tight transition-all duration-200",
               isCollapsed && "lg:opacity-0 lg:w-0 lg:hidden"
             )}>
-              SinoMedia
+              LutechTools
             </span>
           </div>
           {/* Mobile close */}

@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SinoMedia — Crawler Dashboard",
+  title: "LutechTools — Crawler Dashboard",
   description: "Dashboard quản trị hệ thống crawler đa nền tảng mạng xã hội Trung Quốc",
 };
 

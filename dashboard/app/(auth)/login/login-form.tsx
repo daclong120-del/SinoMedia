@@ -22,7 +22,7 @@ const EyeOffIcon = () => (
 );
 
 const ENGLISH_DICT = {
-  title: "Sign in to SinoMedia",
+  title: "Sign in to LutechTools",
   emailLabel: "Email",
   emailPlaceholder: "name@example.com",
   passwordLabel: "Password",
@@ -44,7 +44,7 @@ const ENGLISH_DICT = {
 const DICT: Record<string, typeof ENGLISH_DICT> = {
   "English (US)": ENGLISH_DICT,
   "Tiếng Việt": {
-    title: "Đăng nhập vào SinoMedia",
+    title: "Đăng nhập vào LutechTools",
     emailLabel: "Email",
     emailPlaceholder: "name@example.com",
     passwordLabel: "Mật khẩu",
@@ -94,7 +94,7 @@ export default function LoginForm() {
   }, []);
 
   useEffect(() => {
-    document.title = (lang === "Tiếng Việt" ? "Đăng nhập" : "Login") + " | SinoMedia";
+    document.title = (lang === "Tiếng Việt" ? "Đăng nhập" : "Login") + " | LutechTools";
   }, [lang]);
 
   const d = DICT[lang] || DICT["English (US)"];

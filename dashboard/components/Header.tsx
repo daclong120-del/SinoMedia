@@ -12,22 +12,22 @@ import { useUIStore } from "@/lib/stores/use-ui-store";
 
 // ─── Breadcrumb mapping ──────────────────────────────────────
 const ROUTE_LABELS: Record<string, string[]> = {
-  "/dash/home": ["SinoMedia", "Tổng quan"],
-  "/dash/tasks": ["SinoMedia", "Crawler Controller", "Nhiệm vụ cào"],
-  "/dash/accounts": ["SinoMedia", "Crawler Controller", "Tài khoản"],
-  "/dash/proxies": ["SinoMedia", "Crawler Controller", "Proxy Pool"],
-  "/dash/data/authors": ["SinoMedia", "Data Explorer", "Tác giả"],
-  "/dash/data/posts": ["SinoMedia", "Data Explorer", "Bài viết"],
-  "/dash/data/management": ["SinoMedia", "Data Explorer", "Quản lý dữ liệu"],
-  "/dash/audit-logs": ["SinoMedia", "Admin", "Audit Logs"],
-  "/dash/settings": ["SinoMedia", "Admin", "Cài đặt"],
-  "/dash/settings/permissions": ["SinoMedia", "Admin", "Cài đặt", "Phân quyền"],
-  "/dash/creative/search": ["SinoMedia", "Creative Hub", "Tìm Creative"],
-  "/dash/creative/trending": ["SinoMedia", "Creative Hub", "BXH", "Xu hướng mới nhất"],
-  "/dash/creative/growth": ["SinoMedia", "Creative Hub", "BXH", "Tăng trưởng nhanh"],
-  "/dash/creative/new": ["SinoMedia", "Creative Hub", "BXH", "Creative mới"],
-  "/dash/creative/calendar": ["SinoMedia", "Creative Hub", "Lịch tiếp thị"],
-  "/dash/creative/advertisers": ["SinoMedia", "Creative Hub", "Phân tích Advertiser"],
+  "/dash/home": ["LutechTools", "Tổng quan"],
+  "/dash/tasks": ["LutechTools", "Crawler Controller", "Nhiệm vụ cào"],
+  "/dash/accounts": ["LutechTools", "Crawler Controller", "Tài khoản"],
+  "/dash/proxies": ["LutechTools", "Crawler Controller", "Proxy Pool"],
+  "/dash/data/authors": ["LutechTools", "Data Explorer", "Tác giả"],
+  "/dash/data/posts": ["LutechTools", "Data Explorer", "Bài viết"],
+  "/dash/data/management": ["LutechTools", "Data Explorer", "Quản lý dữ liệu"],
+  "/dash/audit-logs": ["LutechTools", "Admin", "Audit Logs"],
+  "/dash/settings": ["LutechTools", "Admin", "Cài đặt"],
+  "/dash/settings/permissions": ["LutechTools", "Admin", "Cài đặt", "Phân quyền"],
+  "/dash/creative/search": ["LutechTools", "Creative Hub", "Tìm Creative"],
+  "/dash/creative/trending": ["LutechTools", "Creative Hub", "BXH", "Xu hướng mới nhất"],
+  "/dash/creative/growth": ["LutechTools", "Creative Hub", "BXH", "Tăng trưởng nhanh"],
+  "/dash/creative/new": ["LutechTools", "Creative Hub", "BXH", "Creative mới"],
+  "/dash/creative/calendar": ["LutechTools", "Creative Hub", "Lịch tiếp thị"],
+  "/dash/creative/advertisers": ["LutechTools", "Creative Hub", "Phân tích Advertiser"],
 };
 
 
@@ -56,15 +56,15 @@ export default function Header({ onMenuToggle }: HeaderProps) {
 
   const getBreadcrumbs = () => {
     if (pathname.startsWith("/dash/manage-account")) {
-      return ["SinoMedia", "Quản trị", "Quản lý thành viên"];
+      return ["LutechTools", "Quản trị", "Quản lý thành viên"];
     }
     if (pathname.startsWith("/dash/creative/advertisers/")) {
-      return ["SinoMedia", "Creative Hub", "Advertiser", "Hồ sơ"];
+      return ["LutechTools", "Creative Hub", "Advertiser", "Hồ sơ"];
     }
     if (pathname.startsWith("/dash/creative/") && !ROUTE_LABELS[pathname]) {
-      return ["SinoMedia", "Creative Hub", "Creative", "Chi tiết"];
+      return ["LutechTools", "Creative Hub", "Creative", "Chi tiết"];
     }
-    return ROUTE_LABELS[pathname] || ["SinoMedia"];
+    return ROUTE_LABELS[pathname] || ["LutechTools"];
   };
 
 

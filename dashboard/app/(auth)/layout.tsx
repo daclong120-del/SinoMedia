@@ -13,7 +13,7 @@ const LANGUAGES = [
 
 const CONSENT_DICT = {
   "en-US": {
-    prefix: "By continuing, I agree to SinoMedia's ",
+    prefix: "By continuing, I agree to LutechTools's ",
     terms: "terms",
     and: ", ",
     privacy: "privacy policy",
@@ -28,7 +28,7 @@ const CONSENT_DICT = {
     privacy: "chính sách bảo mật",
     and2: " và ",
     cookies: "chính sách cookie",
-    period: " của SinoMedia.",
+    period: " của LutechTools.",
   },
 };
 
@@ -87,10 +87,10 @@ export default function AuthLayout({
     <div className="min-h-screen flex flex-col bg-[#fafafa] dark:bg-[#0c0c0d] text-foreground selection:bg-primary/20 font-sans">
       {/* Header */}
       <header className="h-16 px-6 md:px-10 flex items-center justify-between bg-transparent select-none">
-        <Link href="/login" className="flex items-center gap-2 cursor-pointer select-none" aria-label="SinoMedia Home">
+        <Link href="/login" className="flex items-center gap-2 cursor-pointer select-none" aria-label="LutechTools Home">
           <SinoMediaLogo size={28} className="text-sinomedia-orange shrink-0" />
           <span className="text-lg font-bold tracking-tight text-foreground select-none">
-            SinoMedia
+            LutechTools
           </span>
         </Link>
 
