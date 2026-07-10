@@ -133,7 +133,7 @@ export default function LoginForm() {
       return;
     }
 
-    if (!captchaToken) {
+    if (!!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && !captchaToken) {
       setPasswordError(lang === "Tiếng Việt" ? "Vui lòng chờ xác minh bảo mật..." : "Please wait for security verification...");
       return;
     }
@@ -272,18 +272,20 @@ export default function LoginForm() {
         </div>
 
         {/* Invisible Turnstile — user không thấy gì */}
-        <Turnstile
-          siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
-          onSuccess={(token) => setCaptchaToken(token)}
-          onExpire={() => setCaptchaToken(null)}
-          options={{ size: "invisible" }}
-        />
+        {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+          <Turnstile
+            siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+            onSuccess={(token) => setCaptchaToken(token)}
+            onExpire={() => setCaptchaToken(null)}
+            options={{ size: "invisible" }}
+          />
+        )}
 
         {/* Submit Button */}
         <button
           type="submit"
           className="w-full bg-[#0051c3] hover:bg-[#0040a1] text-white text-sm font-semibold py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed select-none shadow-sm"
-          disabled={isLoading || !captchaToken}
+          disabled={isLoading || !email || !password || (!!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && !captchaToken)}
         >
           {isLoading ? (
             <>

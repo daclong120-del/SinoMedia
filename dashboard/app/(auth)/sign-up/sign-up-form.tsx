@@ -83,7 +83,10 @@ export default function SignUpForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [turnstileState, setTurnstileState] = useState<"loading" | "success">("loading");
+  const hasTurnstileKey = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  const [turnstileState, setTurnstileState] = useState<"loading" | "success">(
+    hasTurnstileKey ? "loading" : "success"
+  );
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   // Field errors
@@ -143,7 +146,7 @@ export default function SignUpForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (turnstileState !== "success") {
+    if (hasTurnstileKey && turnstileState !== "success") {
       return;
     }
 
@@ -313,46 +316,49 @@ export default function SignUpForm() {
           )}
         </div>
 
-        {/* SinoMedia Guard Simulator Widget */}
-        <div className="flex items-center justify-between border border-neutral-200 dark:border-zinc-800 rounded-lg p-3 bg-neutral-50 dark:bg-zinc-800/40 h-[65px] select-none my-5">
-          <div className="flex items-center gap-3">
-            {turnstileState === "loading" ? (
-              <div className="w-5 h-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-            ) : (
-              <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center text-white animate-in zoom-in duration-200">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
+        {/* LutechTools Guard Simulator Widget & Turnstile component */}
+        {hasTurnstileKey && (
+          <>
+            <div className="flex items-center justify-between border border-neutral-200 dark:border-zinc-800 rounded-lg p-3 bg-neutral-50 dark:bg-zinc-800/40 h-[65px] select-none my-5">
+              <div className="flex items-center gap-3">
+                {turnstileState === "loading" ? (
+                  <div className="w-5 h-5 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                ) : (
+                  <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center text-white animate-in zoom-in duration-200">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                )}
+                <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 transition-all">
+                  {turnstileState === "loading" ? d.verifying : d.verified}
+                </span>
               </div>
-            )}
-            <span className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 transition-all">
-              {turnstileState === "loading" ? d.verifying : d.verified}
-            </span>
-          </div>
-          <div className="flex flex-col items-end gap-0.5 text-[9px] text-neutral-400 dark:text-neutral-500 font-semibold">
-            <div className="flex items-center gap-1">
-              <span className="text-sinomedia-orange font-bold">LutechTools</span>
-              <span>Shield</span>
+              <div className="flex flex-col items-end gap-0.5 text-[9px] text-neutral-400 dark:text-neutral-500 font-semibold">
+                <div className="flex items-center gap-1">
+                  <span className="text-sinomedia-orange font-bold">LutechTools</span>
+                  <span>Shield</span>
+                </div>
+                <a href="#" className="hover:underline hover:text-primary transition-colors text-[8px]">
+                  Privacy - Terms
+                </a>
+              </div>
             </div>
-            <a href="#" className="hover:underline hover:text-primary transition-colors text-[8px]">
-              Privacy - Terms
-            </a>
-          </div>
-        </div>
 
-        {/* Invisible Turnstile — user không thấy gì */}
-        <Turnstile
-          siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
-          onSuccess={(token) => {
-            setCaptchaToken(token);
-            setTurnstileState("success");
-          }}
-          onExpire={() => {
-            setCaptchaToken(null);
-            setTurnstileState("loading");
-          }}
-          options={{ size: "invisible" }}
-        />
+            <Turnstile
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+              onSuccess={(token) => {
+                setCaptchaToken(token);
+                setTurnstileState("success");
+              }}
+              onExpire={() => {
+                setCaptchaToken(null);
+                setTurnstileState("loading");
+              }}
+              options={{ size: "invisible" }}
+            />
+          </>
+        )}
 
         {/* Legal Agreements disclaimer */}
         <div className="text-[11px] text-neutral-500 dark:text-neutral-400 leading-normal select-none">
@@ -370,7 +376,7 @@ export default function SignUpForm() {
         <button
           type="submit"
           className="w-full bg-[#0051c3] hover:bg-[#0040a1] text-white text-sm font-semibold py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed select-none shadow-sm"
-          disabled={isLoading || turnstileState !== "success" || !isPasswordValid || !email || validateEmail(email) !== ""}
+          disabled={isLoading || (hasTurnstileKey && turnstileState !== "success") || !isPasswordValid || !email || validateEmail(email) !== ""}
         >
           {isLoading ? (
             <>
