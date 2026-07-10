@@ -139,7 +139,7 @@
   1. Trigger a crawl task.
   2. Observe logs indicating no active accounts from DB pool.
   3. Verify the crawler resets the DB session override and falls back to using local `session.json`.
-  4. If local session is dead, verify it launches CloakBrowser for login or continues in guest/anonymous mode.
+  4. If local session is dead, verify it fails fast with a browser mode removed error or continues in guest/anonymous mode.
 - **Expected Results**:
   - The crawler handles the absence of DB accounts gracefully without crashing.
 

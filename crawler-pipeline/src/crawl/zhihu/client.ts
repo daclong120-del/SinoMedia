@@ -108,91 +108,6 @@ export async function downloadMedia(url: string): Promise<Buffer> {
   }
 }
 
-let browserContext: any = null;
-let browserPage: any = null;
-
-/**
- * # Lấy trang browser từ CloakBrowser dùng để gửi request thay thế trên Windows
- */
-async function getBrowserPage() {
-  if (browserPage) {
-    return browserPage;
-  }
-  const { launchPersistentContext } = await import("cloakbrowser");
-  const { join } = await import("node:path");
-  const profileDir = join(process.cwd(), "output", "profiles", "zhihu");
-  const launchOptions: any = {
-    userDataDir: profileDir,
-    headless: CONFIG.headless,
-    geoip: true,
-    humanize: true,
-  };
-  if (CONFIG.proxy) {
-    launchOptions.proxy = CONFIG.proxy;
-  }
-  browserContext = await launchPersistentContext(launchOptions);
-  try {
-    const cookieStr = await loadZhihuCookie();
-    if (cookieStr) {
-      const cookieDict: Record<string, string> = {};
-      for (const pair of cookieStr.split(";")) {
-        const trimmed = pair.trim();
-        const eqIndex = trimmed.indexOf("=");
-        if (eqIndex > 0) {
-          const name = trimmed.substring(0, eqIndex).trim();
-          const value = trimmed.substring(eqIndex + 1).trim();
-          if (name) {
-            cookieDict[name] = value;
-          }
-        }
-      }
-      const cookieObjects = Object.entries(cookieDict).map(([name, value]) => ({
-        name,
-        value,
-        domain: ".zhihu.com",
-        path: "/",
-      }));
-      await browserContext.addCookies(cookieObjects);
-    }
-  } catch (err) {
-    console.log("Failed to load cookies:", err);
-  }
-
-  const pages = browserContext.pages();
-  browserPage = pages[0] || (await browserContext.newPage());
-  await browserPage.route("**/*", (route: any) => {
-    const type = route.request().resourceType();
-    if (["image", "media", "font", "stylesheet"].includes(type)) {
-      route.abort();
-    } else {
-      route.continue();
-    }
-  });
-
-  activeUserAgent = await browserPage.evaluate(() => navigator.userAgent);
-  await browserPage.goto("https://www.zhihu.com", {
-    waitUntil: "load",
-    timeout: 60000,
-  }).catch(() => { });
-
-  const actualCookies = await browserContext.cookies();
-  const actualCookieStr = actualCookies.map((c: any) => `${c.name}=${c.value}`).join("; ");
-  await saveZhihuCookie(actualCookieStr);
-
-  return browserPage;
-}
-
-/**
- * # Đóng CloakBrowser dọn dẹp tài nguyên khi kết thúc cào
- */
-export async function closeBrowser(): Promise<void> {
-  if (browserContext) {
-    await browserContext.close();
-    browserContext = null;
-    browserPage = null;
-  }
-}
-
 export class ZhihuClient implements IApiClient {
   private cookies: CookieData[] = [];
   private headers: Record<string, string> = {};
@@ -280,70 +195,7 @@ export class ZhihuClient implements IApiClient {
       }
     }
 
-    if (!responseText && options?.allowBrowserFallback === true) {
-      console.log(`[Zhihu] Browser fallback enabled for API request: ${finalUrl}`);
-      if (!useImpit) {
-        try {
-          const page = await getBrowserPage();
-          if (options?.headers?.["Accept"]?.includes("text/html")) {
-            await page.goto(finalUrl, {
-              waitUntil: "load",
-              timeout: 30000,
-            }).catch(() => { });
-            await new Promise(r => setTimeout(r, 2000));
-            responseText = await page.content();
-          } else {
-            const evalResult: any = await page.evaluate(
-              async ({ fetchUrl, method, headers, body }: { fetchUrl: string; method: string; headers: any; body: any }) => {
-                try {
-                  const cleanHeaders: any = {};
-                  for (const [k, v] of Object.entries(headers || {})) {
-                    const lower = k.toLowerCase();
-                    if (lower !== "cookie" && lower !== "user-agent" && lower !== "host") {
-                      cleanHeaders[k] = v;
-                    }
-                  }
-                  const fetchOpts: any = {
-                    method,
-                    headers: cleanHeaders,
-                    credentials: "include"
-                  };
-                  if (body) {
-                    fetchOpts.body = body;
-                  }
-                  const res = await fetch(fetchUrl, fetchOpts);
-                  const text = await res.text();
-                  return {
-                    status: res.status,
-                    statusText: res.statusText,
-                    headers: Array.from(res.headers.entries()),
-                    text: text,
-                  };
-                } catch (err: any) {
-                  return {
-                    error: err.message,
-                    stack: err.stack,
-                  };
-                }
-              },
-              {
-                fetchUrl: finalUrl,
-                method: fetchOptions.method,
-                headers: fetchOptions.headers,
-                body: fetchOptions.body,
-              }
-            );
-            if (evalResult.error) {
-              responseText = "";
-            } else {
-              responseText = evalResult.text || "";
-            }
-          }
-        } catch (err) {
-          console.log("Lỗi trình duyệt:", (err as Error).message);
-        }
-      }
-    }
+    // Browser fallback block removed
 
     if (!responseText) {
       throw new Error(`Yêu cầu HTTP thất bại: không nhận được phản hồi từ Zhihu cho URL: ${finalUrl}`);
@@ -365,10 +217,7 @@ export class ZhihuClient implements IApiClient {
   }
 
   setPage(page: any, context?: any): void {
-    browserPage = page;
-    if (context) {
-      browserContext = context;
-    }
+    // No-op since browser mode is removed
   }
 
   async getCurrentUserInfo(): Promise<any> {

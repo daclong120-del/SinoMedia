@@ -14,8 +14,7 @@ import {
   checkinAccount,
 } from "../../store/index.js";
 import { CrawledPostRow } from "../../model/storage.js";
-import type { ICrawler, BrowserLaunchOptions } from "../../base/base_crawler.js";
-import type { BrowserContext, Page } from "playwright-core";
+import type { ICrawler } from "../../base/base_crawler.js";
 import { CONFIG } from "../../config.js";
 import { parseCookieString } from "../../utils/crawler.js";
 import { join } from "node:path";
@@ -116,157 +115,19 @@ async function persistPost(noteItem: any, authorUuid?: string): Promise<string> 
 export class WeiboCrawler implements ICrawler {
   private client: WeiboClient;
   private currentAccountId: string | null = null;
-  private browserContext: BrowserContext | null = null;
-  private browserPage: Page | null = null;
 
   constructor() {
     this.client = new WeiboClient();
   }
 
-  async launchBrowser(options?: BrowserLaunchOptions): Promise<BrowserContext> {
-    if (this.browserContext) {
-      return this.browserContext;
-    }
-    const { launchPersistentContext } = await import("cloakbrowser");
-    const profileDir = join(process.cwd(), "output", "profiles", "weibo");
-
-    const launchOptions: any = {
-      userDataDir: profileDir,
-      headless: options?.headless ?? CONFIG.headless,
-      geoip: true,
-      humanize: true,
-    };
-    if (CONFIG.proxy) {
-      launchOptions.proxy = CONFIG.proxy;
-    }
-
-    const rawContext = await launchPersistentContext(launchOptions);
-    this.browserContext = rawContext as unknown as BrowserContext;
-
-    const pages = this.browserContext.pages();
-    this.browserPage = pages[0] || (await this.browserContext.newPage());
-    
-    // Chặn tài nguyên không cần thiết để tăng tốc
-    await this.browserPage.route("**/*", (route: any) => {
-      const type = route.request().resourceType();
-      if (["image", "media", "font", "stylesheet"].includes(type)) {
-        route.abort();
-      } else {
-        route.continue();
-      }
-    });
-
-    this.client.setPage(this.browserPage);
-    return this.browserContext;
-  }
-
   async ensureLogin(): Promise<void> {
-    let attempts = 0;
-    const maxAttempts = 5;
-
-    // 1. Thử lấy tài khoản từ Account Pool trong Database
-    while (attempts < maxAttempts) {
-      const account = await checkoutAccount("weibo");
-      if (!account) {
-        break;
-      }
-      console.log(`Đang kiểm tra tài khoản Weibo từ pool: ${account.username} (ID: ${account.id})...`);
-
-      const context = await this.launchBrowser();
-      const cookieDict = parseCookieString(account.cookie_data);
-      const cookieObjects = [".weibo.cn", ".weibo.com", "m.weibo.cn"].flatMap(domain =>
-        Object.entries(cookieDict).map(([name, value]) => ({
-          name,
-          value,
-          domain,
-          path: "/",
-        }))
-      );
-      await context.addCookies(cookieObjects);
-
-      const isActive = await this.client.pong(context);
-      if (isActive) {
-        console.log(`Tài khoản Weibo ${account.username} hoạt động tốt. Sẵn sàng cào.`);
-        this.currentAccountId = account.id;
-        // Đồng bộ cookie hoạt động hiện tại sang Client
-        const freshCookies = await context.cookies();
-        await this.client.updateCookies(freshCookies.map(c => ({ name: c.name, value: c.value, domain: c.domain })));
-        return;
-      } else {
-        console.log(`Tài khoản Weibo ${account.username} không hoạt động. Trả lại pool với đánh dấu lỗi...`);
-        await checkinAccount(account.id, false);
-        this.currentAccountId = null;
-        attempts++;
-      }
-    }
-
-    // 2. Dự phòng: Sử dụng cookie cục bộ từ môi trường hoặc JSON session file
-    console.log("Không có tài khoản hoạt động nào từ Pool DB. Đang thử bằng cookie cục bộ...");
-    const context = await this.launchBrowser();
-
-    let localCookie = process.env.WEIBO_COOKIE || "";
-    if (!localCookie) {
-      try {
-        const sessionPath = join(process.cwd(), "output", "weibo_session.json");
-        const content = await readFile(sessionPath, "utf8");
-        localCookie = JSON.parse(content).cookie || "";
-      } catch {}
-    }
-
-    if (localCookie) {
-      const cookieDict = parseCookieString(localCookie);
-      const cookieObjects = [".weibo.cn", ".weibo.com", "m.weibo.cn"].flatMap(domain =>
-        Object.entries(cookieDict).map(([name, value]) => ({
-          name,
-          value,
-          domain,
-          path: "/",
-        }))
-      );
-      await context.addCookies(cookieObjects);
-    }
-
-    const localIsActive = await this.client.pong(context);
-    if (localIsActive) {
-      console.log("Cookie cục bộ Weibo hoạt động tốt.");
-      this.currentAccountId = null;
-      const freshCookies = await context.cookies();
-      await this.client.updateCookies(freshCookies.map(c => ({ name: c.name, value: c.value, domain: c.domain })));
-      return;
-    }
-
-    // 3. Tiến hành đăng nhập thủ công bằng cookie mới nạp qua WeiboLogin
-    console.log("Cookie cục bộ hết hạn hoặc chưa đăng nhập. Tiến hành cấu hình qua WeiboLogin...");
-    const { WeiboLogin } = await import("./login.js");
-    try {
-      const login = new WeiboLogin({
-        cookieStr: localCookie,
-      });
-      const result = await login.begin(context);
-      if (!result.success) {
-        console.log(`Đăng nhập không thành công: ${result.errorMessage}. Chạy chế độ khách (Guest)...`);
-      } else {
-        const cookieStr = result.cookies.map(c => `${c.name}=${c.value}`).join("; ");
-        const sessionPath = join(process.cwd(), "output", "weibo_session.json");
-        await mkdir(join(process.cwd(), "output"), { recursive: true });
-        await writeFile(sessionPath, JSON.stringify({ cookie: cookieStr, updatedAt: new Date().toISOString() }, null, 2), "utf8");
-        console.log("Đăng nhập thành công. Đã cập nhật và lưu cookie mới.");
-        await this.client.updateCookies(result.cookies);
-      }
-    } catch (err) {
-      console.log(`Không thể hoàn thành đăng nhập: ${(err as Error).message}. Tiếp tục bằng chế độ khách (Guest)...`);
-    }
+    throw new Error("browser mode removed, provide valid cookie/session");
   }
 
-  async releaseAccount(isSuccessful: boolean = true): Promise<void> {
+  async releaseAccount(isSuccessful: boolean): Promise<void> {
     if (this.currentAccountId) {
       await checkinAccount(this.currentAccountId, isSuccessful);
       this.currentAccountId = null;
-    }
-    if (this.browserContext) {
-      await this.browserContext.close();
-      this.browserContext = null;
-      this.browserPage = null;
     }
   }
 

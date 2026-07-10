@@ -1,7 +1,7 @@
 /**
  * # Tiện ích Stealth — cung cấp khả năng anti-detect cho Playwright
  * Sử dụng puppeteer-extra-plugin-stealth thông qua playwright-extra
- * Dùng cho các platform cần raw Playwright (không qua cloakbrowser)
+ * Dùng cho các platform cần raw Playwright
  */
 
 import { chromium } from "playwright-extra";

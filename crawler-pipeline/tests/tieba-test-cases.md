@@ -151,4 +151,4 @@
 
 ## Notes
 - Tieba client implements parameter signing `_signPcParams` for PC-based requests and browser-based JSON fetching (`_fetchJsonByBrowser`).
-- Testing on Windows runs `CloakBrowser` persistent browser context for reliable cookie synchronization.
+- Testing on Windows runs native fetch and checks credentials.

@@ -1,4 +1,3 @@
 export { ZhihuCrawler } from "./core.js";
-export { ZhihuClient, closeBrowser } from "./client.js";
-export { ZhihuLogin } from "./login.js";
+export { ZhihuClient } from "./client.js";
 export * from "./field.js";

@@ -1,10 +1,10 @@
 import { CONFIG } from "./config.js";
 import { supabaseRest } from "./store/supabase_client.js";
 import { logger, redactSecrets } from "./utils/index.js";
-import { closeBrowser } from "./crawl/douyin/index.js";
 import { PlatformType } from "./constant/index.js";
 import { CrawlerTask } from "./model/index.js";
 import { CrawlerFactory } from "./crawl/crawler_factory.js";
+import { updateTaskMetadata, updateTaskProgress } from "./store/index.js";
 
 // Trạng thái task hiện tại để ghi log vào DB
 let currentTaskId: string | null = null;
@@ -142,7 +142,15 @@ export async function executeTask(task: CrawlerTask): Promise<void> {
     process.env.ENABLE_GET_SUB_COMMENTS = String(task.metadata?.crawl_sub_comments ?? true);
     CONFIG.headless = task.metadata?.headless ?? true;
 
+    // Khởi tạo progress và phase ngay từ đầu task
+    await updateTaskMetadata(id, {
+      progress: { current: 0, target: maxCount },
+      phase: command === "search" ? "collecting_posts" : "running",
+      result_state: "running"
+    });
+
     const crawler = CrawlerFactory.create(platform);
+    let crawlerResult: any = null;
 
     const runCrawler = async () => {
       switch (command) {
@@ -152,10 +160,10 @@ export async function executeTask(task: CrawlerTask): Promise<void> {
         case "cache_media":
           throw new Error("Lệnh 'cache_media' đã bị bãi bỏ (deprecated). Vui lòng recrawl/backfill thông thường.");
         case "creator":
-          await crawler.creator(target, max_count);
+          crawlerResult = await crawler.creator(target, max_count);
           break;
         case "search":
-          await crawler.search(target, max_count || 20);
+          crawlerResult = await crawler.search(target, max_count || 20);
           break;
         case "comments":
           await crawler.comments(target, max_count || 50);
@@ -171,51 +179,89 @@ export async function executeTask(task: CrawlerTask): Promise<void> {
     ]);
 
     let errorMessage: string | undefined = undefined;
-    try {
-      const res = await supabaseRest("crawler_tasks", {
-        method: "GET",
-        params: { id: `eq.${id}`, select: "metadata" },
-      }) as any[];
-      if (res && res[0] && res[0].metadata?.progress) {
-        const { current, target } = res[0].metadata.progress;
-        if (current === 0) {
-          logger.warn(`Task ${id} hoàn thành nhưng không lưu được bài đăng nào (0/${target})!`, "Worker");
-          errorMessage = `Cảnh báo: Cào rỗng, không tìm thấy hoặc không lưu được bài đăng nào.`;
-        } else {
-          logger.info(`Hoàn thành task ${id} thành công! Đã lưu ${current}/${target} bài đăng.`, "Worker");
-        }
+    let patchMetadata: Record<string, any> = {};
+
+    if (crawlerResult && typeof crawlerResult === "object") {
+      const { current, target: targetCount, stopReason, resultState } = crawlerResult;
+      patchMetadata = {
+        progress: { current, target: targetCount },
+        result_state: resultState,
+        stop_reason: stopReason,
+        phase: "completed"
+      };
+
+      if (resultState === "empty") {
+        logger.warn(`Task ${id} hoàn thành nhưng không lưu được bài đăng nào (0/${targetCount})! Lý do: ${stopReason}`, "Worker");
+        errorMessage = `Cảnh báo: Cào rỗng. Lý do dừng: ${stopReason}`;
+      } else if (resultState === "partial") {
+        logger.info(`Task ${id} hoàn thành một phần. Đã lưu ${current}/${targetCount} bài đăng. Lý do dừng: ${stopReason}`, "Worker");
+        errorMessage = `Hoàn thành một phần (${current}/${targetCount}). Lý do dừng: ${stopReason}`;
       } else {
+        logger.info(`Task ${id} hoàn thành xuất sắc! Đã lưu ${current}/${targetCount} bài đăng.`, "Worker");
+      }
+    } else {
+      // Cho các task khác không trả về kết quả
+      try {
+        const res = await supabaseRest("crawler_tasks", {
+          method: "GET",
+          params: { id: `eq.${id}`, select: "metadata" },
+        }) as any[];
+        if (res && res[0] && res[0].metadata?.progress) {
+          const { current, target: targetCount } = res[0].metadata.progress;
+          const resultState = current === 0 ? "empty" : (current >= targetCount ? "full" : "partial");
+          patchMetadata = {
+            result_state: resultState,
+            phase: "completed"
+          };
+          if (current === 0) {
+            logger.warn(`Task ${id} hoàn thành nhưng không lưu được bài đăng nào (0/${targetCount})!`, "Worker");
+            errorMessage = `Cảnh báo: Cào rỗng, không tìm thấy hoặc không lưu được bài đăng nào.`;
+          } else {
+            logger.info(`Hoàn thành task ${id} thành công! Đã lưu ${current}/${targetCount} bài đăng.`, "Worker");
+          }
+        } else {
+          logger.info(`Hoàn thành task ${id} thành công!`, "Worker");
+        }
+      } catch (checkErr) {
         logger.info(`Hoàn thành task ${id} thành công!`, "Worker");
       }
-    } catch (checkErr) {
-      logger.info(`Hoàn thành task ${id} thành công!`, "Worker");
     }
 
+    if (Object.keys(patchMetadata).length > 0) {
+      await updateTaskMetadata(id, patchMetadata);
+    }
     await updateTaskStatus(id, "completed", errorMessage);
   } catch (err: any) {
     logger.error(`Thất bại khi xử lý task ${id}: ${err.message}`, "Worker");
     
     let displayError = err.message;
+    let patchMetadata: Record<string, any> = {
+      result_state: "empty",
+      phase: "failed"
+    };
+
     try {
       const res = await supabaseRest("crawler_tasks", {
         method: "GET",
         params: { id: `eq.${id}`, select: "metadata" },
       }) as any[];
       if (res && res[0] && res[0].metadata?.progress) {
-        const { current, target } = res[0].metadata.progress;
+        const { current, target: targetCount } = res[0].metadata.progress;
+        patchMetadata.result_state = current === 0 ? "empty" : "partial";
         if (err.message.includes("Nhiệm vụ bị treo quá thời gian")) {
-          displayError = `Timeout sau ${(TASK_TIMEOUT_MS / 1000).toFixed(0)}s, đã lưu ${current}/${target}`;
+          displayError = `Timeout sau ${(TASK_TIMEOUT_MS / 1000).toFixed(0)}s, đã lưu ${current}/${targetCount}`;
         } else {
-          displayError = `${err.message} (đã lưu ${current}/${target})`;
+          displayError = `${err.message} (đã lưu ${current}/${targetCount})`;
         }
       } else if (err.message.includes("Nhiệm vụ bị treo quá thời gian")) {
-        const target = max_count || (command === "comments" ? 50 : 20);
-        displayError = `Timeout sau ${(TASK_TIMEOUT_MS / 1000).toFixed(0)}s, đã lưu 0/${target}`;
+        const targetCount = max_count || (command === "comments" ? 50 : 20);
+        displayError = `Timeout sau ${(TASK_TIMEOUT_MS / 1000).toFixed(0)}s, đã lưu 0/${targetCount}`;
       }
     } catch (progressErr) {
       // Bỏ qua nếu lỗi
     }
 
+    await updateTaskMetadata(id, patchMetadata);
     await updateTaskStatus(id, "failed", displayError);
     if (err.message.includes("Nhiệm vụ bị treo quá thời gian")) {
       logger.warn("Tự động thoát process để dọn sạch tài nguyên và restart worker mới...", "Worker");
@@ -230,22 +276,64 @@ export async function executeTask(task: CrawlerTask): Promise<void> {
     delete process.env.ENABLE_GET_COMMENTS;
     delete process.env.ENABLE_GET_SUB_COMMENTS;
     CONFIG.headless = defaultHeadless;
-    await closeBrowser().catch(() => { });
   }
 }
 
 /**
- * # Vòng lặp chính của Queue Worker
+ * # Chạy một chu kỳ (Tick) cào dữ liệu dạng Serverless/Batch
+ * Thực hiện lấy tối đa `maxTasks` task và chạy trong khoảng thời gian `timeBudgetMs` cho phép.
+ */
+export async function runCrawlerTick(options?: {
+  timeBudgetMs?: number;
+  maxTasks?: number;
+}): Promise<{ processed: number; completed: number; failed: number }> {
+  const startTime = Date.now();
+  const timeBudgetMs = options?.timeBudgetMs ?? 55000; // Mặc định 55 giây (phù hợp Vercel Timeout 60s)
+  const maxTasks = options?.maxTasks ?? 1;
+
+  let processed = 0;
+  let completed = 0;
+  let failed = 0;
+
+  while (processed < maxTasks) {
+    // Kiểm tra xem thời gian chạy còn đủ để lấy thêm task mới không (chừa lại ít nhất 5s để cào)
+    const elapsed = Date.now() - startTime;
+    if (elapsed + 5000 >= timeBudgetMs) {
+      logger.info(`Đã dùng hết thời gian ngân sách (${elapsed}ms >= ${timeBudgetMs}ms). Dừng chu kỳ tick.`, "Worker");
+      break;
+    }
+
+    const task = await claimNextTask();
+    if (!task) {
+      break;
+    }
+
+    processed++;
+    try {
+      await executeTask(task);
+      completed++;
+    } catch (err) {
+      logger.error(`Lỗi khi thực thi task ${task.id} trong tick: ${(err as Error).message}`, "Worker");
+      failed++;
+    }
+  }
+
+  return { processed, completed, failed };
+}
+
+/**
+ * # Vòng lặp chính của Queue Worker (Duy trì chạy liên tục trên Docker/VPS)
  */
 export async function startQueueWorker(): Promise<void> {
   logger.info("Khởi chạy Crawler Queue Worker... Đang lắng nghe task từ Supabase...", "Worker");
 
   while (true) {
-    const task = await claimNextTask();
-    if (task) {
-      await executeTask(task);
+    try {
+      await runCrawlerTick({ timeBudgetMs: 5000, maxTasks: 1 });
+    } catch (err) {
+      logger.error(`Lỗi trong chu kỳ Queue Worker tick: ${(err as Error).message}`, "Worker");
     }
-    // Dừng 5 giây trước khi check task tiếp theo (Polling)
+    // Dừng 5 giây trước khi thực hiện chu kỳ tiếp theo
     await new Promise((resolve) => setTimeout(resolve, 5000));
   }
 }

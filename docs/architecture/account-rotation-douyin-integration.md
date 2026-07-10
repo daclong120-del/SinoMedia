@@ -5,9 +5,12 @@
 
 ---
 
-## Tổng Quan
+## Tích Hợp Xoay Vòng Tài Khoản & Quản Lý Session Douyin
 
-Tích hợp hệ thống xoay vòng tài khoản Douyin (Account Rotation Pool) trên Supabase, đạt tương đương (parity) với Bilibili. Hệ thống hỗ trợ crawler Douyin hoạt động 24/7 tự trị bằng cách tự động lấy tài khoản từ database, kiểm tra sức khỏe, và fallback về cookie cục bộ hoặc chế độ khách (Guest) khi pool trống.
+> [!NOTE]
+> **Cập nhật ngày 2026-07-10:** Hệ thống đã loại bỏ hoàn toàn `CloakBrowser`. Cơ chế đăng nhập tương tác bằng trình duyệt đã bị vô hiệu hóa; crawler hiện hoạt động theo mô hình **HTTP-First, Fail-Fast** (báo lỗi hết hạn session thay vì khởi động trình duyệt). Mọi cấu hình liên quan đến `CloakBrowser` dưới đây đã được thay bằng fail-fast error.
+
+Tài liệu này mô tả chi tiết giải pháp tích hợp xoay vòng tài khoản (Account Rotation) và quản lý phiên (Session Management) cho nền tảng Douyin trong SinoMedia. Hệ thống hỗ trợ crawler Douyin hoạt động 24/7 tự trị bằng cách tự động lấy tài khoản từ database, kiểm tra sức khỏe, và fallback về cookie cục bộ hoặc chế độ khách (Guest) khi pool trống.
 
 ---
 
@@ -26,8 +29,7 @@ Tích hợp hệ thống xoay vòng tài khoản Douyin (Account Rotation Pool) 
   3. Inject vào client qua `setDouyinSession()`.
   4. Kiểm tra hoạt động qua `checkSessionAlive()`.
   5. Nếu tài khoản không hoạt động → `checkinAccount(id, false)` → thử tài khoản tiếp theo.
-  6. Nếu hết tài khoản DB → reset `setDouyinSession(null)` → thử cookie cục bộ.
-  7. Nếu cookie cục bộ cũng hết hạn → khởi chạy CloakBrowser để đăng nhập thủ công.
+  6. Nếu hết tài khoản DB → reset `setDouyinSession(null)` → thử cookie cục bộ. Nếu cookie cục bộ cũng hết hạn → báo lỗi browser mode removed.
 - **Biến `currentAccountId`**: Theo dõi tài khoản đang sử dụng để báo cáo kết quả.
 - **Bọc tất cả method của `DouyinCrawler`** (`crawl`, `creator`, `search`, `comments`) trong `try/catch` để:
   - Gọi `checkinAccount(id, true)` khi thành công.
@@ -111,7 +113,7 @@ ensureLogin()
   │     │     ├─ Hoạt động → Sẵn sàng cào
   │     │     └─ Hết hạn → Bước 3
   │
-  └─ [3] Khởi chạy CloakBrowser → DouyinLogin → Đăng nhập thủ công
+  └─ [3] Báo lỗi browser mode removed
         ├─ Thành công → saveSession() + tiếp tục cào
         └─ Thất bại → Chế độ ẩn danh (Guest)
 
@@ -145,7 +147,7 @@ DouyinCrawler.crawl/creator/search/comments()
 
 ## Lưu Ý Quan Trọng
 
-1. **Thứ tự ưu tiên session:** `tempSessionOverride` (DB) → `session.json` (cục bộ) → CloakBrowser (đăng nhập thủ công) → Guest mode.
+1. **Thứ tự ưu tiên session:** `tempSessionOverride` (DB) → `session.json` (cục bộ) → Báo lỗi và dừng → Guest mode.
 2. **PostgREST order syntax:** Luôn dùng `column.direction.nulls` — ví dụ `last_used_at.asc.nullsfirst`, KHÔNG phải `last_used_at.nullsfirst.asc`.
-3. **Cast `as any` cho CloakBrowser context:** Do version mismatch giữa playwright-core của CloakBrowser và dự án. Cần cập nhật CloakBrowser (`0.3.31 → 0.4.5`) để giải quyết triệt để.
+3. **Loại bỏ CloakBrowser context hoàn toàn.
 4. **`msToken` là optional trong `LoginResult`:** Luôn dùng `result.msToken || ""` khi truyền vào `saveSession()`.

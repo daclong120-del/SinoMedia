@@ -13,8 +13,7 @@ import {
   checkinAccount,
 } from "../../store/index.js";
 import { CrawledPostRow } from "../../model/storage.js";
-import type { ICrawler, BrowserLaunchOptions } from "../../base/base_crawler.js";
-import type { BrowserContext, Page } from "playwright-core";
+import type { ICrawler } from "../../base/base_crawler.js";
 import { CONFIG } from "../../config.js";
 import { parseCookieString } from "../../utils/crawler.js";
 import { join } from "node:path";
@@ -117,141 +116,19 @@ function mapTiebaComment(c: TiebaComment, platformPostId: string, postUuid?: str
 export class TiebaCrawler implements ICrawler {
   private client: TiebaClient;
   private currentAccountId: string | null = null;
-  private browserContext: BrowserContext | null = null;
-  private browserPage: Page | null = null;
 
   constructor() {
     this.client = new TiebaClient();
   }
 
-  async launchBrowser(options?: BrowserLaunchOptions): Promise<BrowserContext> {
-    if (this.browserContext) {
-      return this.browserContext;
-    }
-    const { launchPersistentContext } = await import("cloakbrowser");
-    const profileDir = join(process.cwd(), "output", "profiles", "tieba");
-
-    const launchOptions: any = {
-      userDataDir: profileDir,
-      headless: options?.headless ?? CONFIG.headless,
-      geoip: true,
-      humanize: true,
-    };
-    if (CONFIG.proxy) {
-      launchOptions.proxy = CONFIG.proxy;
-    }
-
-    const rawContext = await launchPersistentContext(launchOptions);
-    this.browserContext = rawContext as unknown as BrowserContext;
-
-    const pages = this.browserContext.pages();
-    this.browserPage = pages[0] || (await this.browserContext.newPage());
-    await this.browserPage.route("**/*", (route: any) => {
-      const type = route.request().resourceType();
-      if (["image", "media", "font", "stylesheet"].includes(type)) {
-        route.abort();
-      } else {
-        route.continue();
-      }
-    });
-
-    this.client.setPage(this.browserPage);
-    return this.browserContext;
-  }
-
   async ensureLogin(): Promise<void> {
-    let attempts = 0;
-    const maxAttempts = 5;
-    while (attempts < maxAttempts) {
-      const account = await checkoutAccount("tieba");
-      if (!account) {
-        break;
-      }
-      console.log(`Đang kiểm tra tài khoản từ pool: ${account.username} (ID: ${account.id})...`);
-      
-      const context = await this.launchBrowser();
-      const cookieDict = parseCookieString(account.cookie_data);
-      const cookieObjects = Object.entries(cookieDict).map(([name, value]) => ({
-        name,
-        value,
-        domain: ".baidu.com",
-        path: "/",
-      }));
-      await context.addCookies(cookieObjects);
-
-      const isActive = await this.client.pong(context);
-      if (isActive) {
-        console.log(`Tài khoản ${account.username} hoạt động tốt. Sẵn sàng cào.`);
-        this.currentAccountId = account.id;
-        return;
-      } else {
-        console.log(`Tài khoản ${account.username} không hoạt động hoặc bị chặn. Đang đánh dấu lỗi...`);
-        await checkinAccount(account.id, false);
-        this.currentAccountId = null;
-        attempts++;
-      }
-    }
-
-    console.log("Không có tài khoản hoạt động nào từ Pool DB. Đang thử bằng cookie cục bộ/môi trường...");
-    const context = await this.launchBrowser();
-
-    let localCookie = process.env.TIEBA_COOKIE || "";
-    if (!localCookie) {
-      try {
-        const sessionPath = join(process.cwd(), "output", "tieba_session.json");
-        const content = await readFile(sessionPath, "utf8");
-        localCookie = JSON.parse(content).cookie || "";
-      } catch {}
-    }
-
-    if (localCookie) {
-      const cookieDict = parseCookieString(localCookie);
-      const cookieObjects = Object.entries(cookieDict).map(([name, value]) => ({
-        name,
-        value,
-        domain: ".baidu.com",
-        path: "/",
-      }));
-      await context.addCookies(cookieObjects);
-    }
-
-    const localIsActive = await this.client.pong(context);
-    if (localIsActive) {
-      console.log("Cookie cục bộ/môi trường hoạt động tốt.");
-      this.currentAccountId = null;
-      return;
-    }
-
-    console.log("Cookie cục bộ hết hạn hoặc chưa đăng nhập. Tiến hành khởi chạy trình duyệt để thực hiện đăng nhập...");
-    const { TiebaLogin } = await import("./login.js");
-    try {
-      const login = new TiebaLogin({
-        cookieStr: localCookie,
-      });
-      const result = await login.begin(context);
-      if (!result.success) {
-        console.log(`Đăng nhập không thành công: ${result.errorMessage}. Chuyển sang chế độ ẩn danh (Guest)...`);
-      } else {
-        const cookieStr = result.cookies.map(c => `${c.name}=${c.value}`).join("; ");
-        const sessionPath = join(process.cwd(), "output", "tieba_session.json");
-        await mkdir(join(process.cwd(), "output"), { recursive: true });
-        await writeFile(sessionPath, JSON.stringify({ cookie: cookieStr, updatedAt: new Date().toISOString() }, null, 2), "utf8");
-        console.log("Đăng nhập thành công. Đã cập nhật và lưu cookie mới.");
-      }
-    } catch (err) {
-      console.log(`Không thể hoàn thành đăng nhập: ${(err as Error).message}. Tiếp tục bằng chế độ ẩn danh (Guest)...`);
-    }
+    throw new Error("browser mode removed, provide valid cookie/session");
   }
 
-  async releaseAccount(isSuccessful: boolean = true): Promise<void> {
+  async releaseAccount(isSuccessful: boolean): Promise<void> {
     if (this.currentAccountId) {
       await checkinAccount(this.currentAccountId, isSuccessful);
       this.currentAccountId = null;
-    }
-    if (this.browserContext) {
-      await this.browserContext.close();
-      this.browserContext = null;
-      this.browserPage = null;
     }
   }
 

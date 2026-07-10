@@ -10,7 +10,7 @@ export interface SessionData {
 const SESSION_FILE = join(process.cwd(), "output", "session.json");
 
 /**
- * # Lưu thông tin session cào được từ CloakBrowser
+ * # Lưu thông tin session hoạt động
  */
 export async function saveSession(data: { cookies: any[]; msToken: string }) {
   const payload: SessionData = {

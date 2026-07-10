@@ -152,4 +152,4 @@
 
 ## Notes
 - Weibo requests are heavily rate-limited; intervals between note details and comments crawling must be strictly respected (2.0s delay).
-- Testing on Windows runs `CloakBrowser` persistent browser context for reliable cookie synchronization.
+- Testing on Windows runs native fetch and checks credentials.

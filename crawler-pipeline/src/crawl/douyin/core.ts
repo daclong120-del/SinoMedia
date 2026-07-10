@@ -3,8 +3,7 @@ import { upsertAuthor, upsertPost, upsertPosts, getPostUuid, upsertComments, che
 import { DouyinAweme } from "../../model/douyin.js";
 import { CrawledPostRow } from "../../model/storage.js";
 import { CONFIG } from "../../config.js";
-import type { ICrawler, BrowserLaunchOptions } from "../../base/base_crawler.js";
-import type { BrowserContext } from "playwright-core";
+import type { ICrawler } from "../../base/base_crawler.js";
 let currentAccountId: string | null = null;
 
 /**
@@ -63,36 +62,7 @@ async function ensureLogin(): Promise<void> {
     currentAccountId = null;
     return;
   }
-  console.log("Cookie cục bộ hết hạn hoặc chưa đăng nhập. Tiến hành khởi chạy trình duyệt để đăng nhập...");
-  const { closeBrowser } = await import("./client.js");
-  const { DouyinLogin } = await import("./login.js");
-  try {
-    const { launchPersistentContext } = await import("cloakbrowser");
-    const { join } = await import("node:path");
-    const profileDir = join(process.cwd(), "output", "profiles", "douyin");
-    const context = (await launchPersistentContext({
-      userDataDir: profileDir,
-      headless: CONFIG.headless,
-      geoip: true,
-      humanize: true,
-    })) as any;
-    const login = new DouyinLogin({
-      browserContext: context,
-      cookieStr: process.env.DOUYIN_COOKIE,
-    });
-    const result = await login.begin(context);
-    if (!result.success) {
-      console.log(`Đăng nhập không thành công: ${result.errorMessage}. Chuyển sang chế độ ẩn danh (Guest)...`);
-    } else {
-      const { saveSession } = await import("../../sign/session_store.js");
-      await saveSession({ cookies: result.cookies, msToken: result.msToken || "" });
-      console.log("Đăng nhập thành công. Đã cập nhật và lưu cookie mới.");
-    }
-  } catch (err) {
-    console.log(`Không thể hoàn thành đăng nhập: ${(err as Error).message}. Tiếp tục bằng chế độ ẩn danh (Guest)...`);
-  } finally {
-    await closeBrowser();
-  }
+  throw new Error("browser mode removed, provide valid cookie/session");
 }
 
 /**
@@ -651,10 +621,14 @@ export class DouyinCrawler implements ICrawler {
     }
   }
 
-  /**
-   * # Khởi chạy trình duyệt cho Douyin
-   */
-  async launchBrowser(options?: BrowserLaunchOptions): Promise<BrowserContext> {
-    throw new Error("Không dùng: launchBrowser trực tiếp trên DouyinCrawler");
+  async ensureLogin(): Promise<void> {
+    await ensureLogin();
+  }
+
+  async releaseAccount(isSuccessful: boolean): Promise<void> {
+    if (currentAccountId) {
+      await checkinAccount(currentAccountId, isSuccessful);
+      currentAccountId = null;
+    }
   }
 }

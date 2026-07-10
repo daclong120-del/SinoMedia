@@ -74,11 +74,6 @@ let pageLoadCount = 0;
  */
 export async function incrementPageLoad(): Promise<void> {
   pageLoadCount++;
-  if (pageLoadCount >= 50) {
-    console.log(`[Recycle] pageLoadCount: ${pageLoadCount}, closing browser...`);
-    await closeBrowser();
-    pageLoadCount = 0;
-  }
 }
 
 let dispatcher: ProxyAgent | undefined;
@@ -109,97 +104,7 @@ async function getImpitInstance() {
   }
 }
 
-let browserContext: any = null;
-let browserPage: any = null;
-
-/**
- * # Lấy trang browser từ CloakBrowser dùng để gửi request thay thế trên Windows
- */
-async function getBrowserPage() {
-  if (browserPage) {
-    return browserPage;
-  }
-  const { launchPersistentContext } = await import("cloakbrowser");
-  const { join } = await import("node:path");
-  const profileDir = join(process.cwd(), "output", "profiles", "douyin");
-  const launchOptions: any = {
-    userDataDir: profileDir,
-    headless: CONFIG.headless,
-    geoip: true,
-    humanize: true,
-  };
-  if (CONFIG.proxy) {
-    launchOptions.proxy = CONFIG.proxy;
-  }
-  browserContext = await launchPersistentContext(launchOptions);
-  try {
-    const session = await getEffectiveSession();
-    if (session && session.cookies) {
-      const validCookies = session.cookies.filter((c: any) => c.name && c.name.trim() !== "");
-      await browserContext.addCookies(validCookies);
-      console.log(`Loaded ${validCookies.length} cookies into browser context.`);
-    }
-  } catch (err) {
-    console.log("Failed to load cookies into browser context:", err);
-  }
-  const pages = browserContext.pages();
-  browserPage = pages[0] || (await browserContext.newPage());
-  await browserPage.route("**/*", (route: any) => {
-    const type = route.request().resourceType();
-    if (["image", "media", "font", "stylesheet"].includes(type)) {
-      route.abort();
-    } else {
-      route.continue();
-    }
-  });
-  browserPage.on("console", (msg: any) => console.log("PAGE LOG:", msg.text()));
-  browserPage.on("pageerror", (err: any) => console.log("PAGE ERROR:", err.message));
-  activeUserAgent = await browserPage.evaluate(() => navigator.userAgent);
-  console.log("Active User-Agent updated:", activeUserAgent);
-
-  await browserPage.goto("https://www.douyin.com", {
-    waitUntil: "domcontentloaded",
-    timeout: 60000,
-  });
-
-  let hasTtwid = false;
-  for (let i = 0; i < 10; i++) {
-    const cookies = await browserContext.cookies();
-    if (cookies.some((c: any) => c.name === "ttwid")) {
-      hasTtwid = true;
-      break;
-    }
-    await new Promise((r) => setTimeout(r, 500));
-  }
-  if (!hasTtwid) {
-    await new Promise((r) => setTimeout(r, 2000));
-  }
-
-  const actualCookies = await browserContext.cookies();
-  const actualMsToken = await browserPage.evaluate(() => {
-    try {
-      return localStorage.getItem("msToken") || localStorage.getItem("xmst") || "";
-    } catch {
-      return "";
-    }
-  });
-
-  const { saveSession } = await import("../../sign/session_store.js");
-  await saveSession({ cookies: actualCookies, msToken: actualMsToken });
-
-  return browserPage;
-}
-
-/**
- * # Đóng CloakBrowser dọn dẹp tài nguyên khi kết thúc cào
- */
-export async function closeBrowser(): Promise<void> {
-  if (browserContext) {
-    await browserContext.close();
-    browserContext = null;
-    browserPage = null;
-  }
-}
+// browserContext, browserPage, getBrowserPage and closeBrowser removed
 
 /**
  * # Gửi HTTP request đến Douyin API sử dụng session cookie và msToken
@@ -217,134 +122,7 @@ export async function douyinRequest(
     throw new Error("Không tìm thấy session. Vui lòng chạy pipeline:session trước.");
   }
 
-  if (url.includes("/aweme/v1/web/aweme/detail/")) {
-    const urlObj = new URL(url);
-    const awemeId = urlObj.searchParams.get("aweme_id");
-    if (awemeId) {
-      console.log(`Bắt đầu trích xuất chi tiết video ${awemeId} qua DOM...`);
-      try {
-        const page = await getBrowserPage();
-        let interceptedDetail: any = null;
-        
-        const responseHandler = async (response: any) => {
-          const resUrl = response.url();
-          if (resUrl.includes("/aweme/v1/web/aweme/detail/")) {
-            try {
-              const text = await response.text();
-              const json = JSON.parse(text);
-              if (json && json.aweme_detail) {
-                interceptedDetail = json.aweme_detail;
-                console.log(`Đã chặn bắt thành công aweme_detail của video ${awemeId} từ gói tin mạng.`);
-              }
-            } catch (err) {
-            }
-          }
-        };
-        
-        page.on("response", responseHandler);
-        
-        try {
-          await page.goto(`https://www.douyin.com/video/${awemeId}`, {
-            waitUntil: "domcontentloaded",
-            timeout: 30000,
-          });
-          await page.waitForFunction(() => {
-            const el = document.getElementById("RENDER_DATA");
-            return el && el.textContent && el.textContent.trim().length > 0;
-          }, { timeout: 10000 }).catch(() => {});
-        } catch (err) {
-          console.log(`Lỗi khi chuyển trang video ${awemeId}:`, (err as Error).message);
-        } finally {
-          page.off("response", responseHandler);
-        }
-        
-        if (!interceptedDetail) {
-          console.log("Không chặn bắt được từ API mạng, đang thử trích xuất từ RENDER_DATA...");
-          const renderDataText = await page.evaluate(() => {
-            const el = document.getElementById("RENDER_DATA");
-            return el ? el.textContent : "";
-          });
-          if (renderDataText) {
-            try {
-              const decoded = decodeURIComponent(renderDataText);
-              const renderDataObj = JSON.parse(decoded);
-              
-              const findAweme = (obj: any): any => {
-                if (!obj || typeof obj !== "object") return null;
-                if (Array.isArray(obj)) {
-                  for (const item of obj) {
-                    const res = findAweme(item);
-                    if (res) return res;
-                  }
-                } else {
-                  if (obj.aweme_id && (obj.video || obj.desc || obj.statistics)) {
-                    return obj;
-                  }
-                  for (const key of Object.keys(obj)) {
-                    const res = findAweme(obj[key]);
-                    if (res) return res;
-                  }
-                }
-                return null;
-              };
-              
-              const found = findAweme(renderDataObj);
-              if (found) {
-                interceptedDetail = found;
-                console.log(`Đã trích xuất thành công aweme_detail từ RENDER_DATA của video ${awemeId}.`);
-              }
-            } catch (err) {
-              console.log("Lỗi khi giải mã RENDER_DATA:", err);
-            }
-          }
-        }
-        
-        if (!interceptedDetail) {
-          console.log("Đang thử trích xuất từ biến toàn cục...");
-          const globalData = await page.evaluate(() => {
-            try {
-              return (window as any)._ROUTER_DATA || (window as any).__INITIAL_STATE__ || null;
-            } catch {
-              return null;
-            }
-          });
-          if (globalData) {
-            const findAweme = (obj: any): any => {
-              if (!obj || typeof obj !== "object") return null;
-              if (Array.isArray(obj)) {
-                for (const item of obj) {
-                  const res = findAweme(item);
-                  if (res) return res;
-                }
-              } else {
-                if (obj.aweme_id && (obj.video || obj.desc || obj.statistics)) {
-                  return obj;
-                }
-                for (const key of Object.keys(obj)) {
-                  const res = findAweme(obj[key]);
-                  if (res) return res;
-                }
-              }
-              return null;
-            };
-            const found = findAweme(globalData);
-            if (found) {
-              interceptedDetail = found;
-              console.log(`Đã trích xuất thành công aweme_detail từ biến toàn cục của video ${awemeId}.`);
-            }
-          }
-        }
-        
-        if (interceptedDetail) {
-          return { aweme_detail: interceptedDetail };
-        }
-      } catch (err) {
-        console.log(`Lỗi trong quá trình trích xuất DOM của video ${awemeId}:`, err);
-      } finally {
-        await incrementPageLoad();
-      }
-    }
-  }
+  // DOM details extraction removed
 
   const cookieStr = session.cookies
     .filter((c: any) => c.name && c.name.trim() !== "")
@@ -386,67 +164,23 @@ export async function douyinRequest(
   }
 
   if (!responseText) {
-    if (!useImpit) {
-      try {
-        const page = await getBrowserPage();
-        const { join } = await import("node:path");
-        await page.screenshot({ path: join(process.cwd(), "output", "screenshot.png") });
-        console.log("Screenshot saved to output/screenshot.png");
-        const evalResult: any = await page.evaluate(
-          async ({ fetchUrl, method, headers, body }: { fetchUrl: string; method: string; headers: any; body: any }) => {
-            try {
-              const cleanHeaders: any = {};
-              for (const [k, v] of Object.entries(headers || {})) {
-                const lower = k.toLowerCase();
-                if (lower !== "cookie" && lower !== "user-agent" && lower !== "host") {
-                  cleanHeaders[k] = v;
-                }
-              }
-              const fetchOpts: any = { 
-                method, 
-                headers: cleanHeaders,
-                credentials: "include"
-              };
-              if (body) {
-                fetchOpts.body = body;
-              }
-              const res = await fetch(fetchUrl, fetchOpts);
-              const text = await res.text();
-              return {
-                status: res.status,
-                statusText: res.statusText,
-                headers: Array.from(res.headers.entries()),
-                text: text,
-              };
-            } catch (err: any) {
-              return {
-                error: err.message,
-                stack: err.stack,
-              };
-            }
-          },
-          {
-            fetchUrl: url,
-            method: fetchOptions.method,
-            headers: fetchOptions.headers,
-            body: fetchOptions.body,
-          }
-        );
-        console.log("Browser evaluate result:", JSON.stringify({
-          status: evalResult.status,
-          statusText: evalResult.statusText,
-          error: evalResult.error,
-          headers: evalResult.headers,
-          textLength: evalResult.text ? evalResult.text.length : 0,
-        }, null, 2));
-        if (evalResult.error) {
-          responseText = "";
-        } else {
-          responseText = evalResult.text || "";
-        }
-      } catch (err) {
-        console.log("browser failed:", err);
+    try {
+      console.log("Running native fetch fallback...");
+      const nativeOpts: any = {
+        method: fetchOptions.method,
+        headers: fetchOptions.headers,
+      };
+      if (fetchOptions.body) {
+        nativeOpts.body = fetchOptions.body;
       }
+      if (dispatcher) {
+        nativeOpts.dispatcher = dispatcher;
+      }
+      const res = await fetch(url, nativeOpts);
+      responseText = await res.text();
+      console.log(`Native HTTP status: ${res.status} for URL: ${url}`);
+    } catch (err) {
+      console.log(`Native fetch error: ${(err as Error).message}`);
     }
   }
 
@@ -557,13 +291,7 @@ export async function douyinGet(
   extraParams: Record<string, string>,
   opts: { sign?: boolean; referer?: string } = {}
 ): Promise<any> {
-  if (!useImpit) {
-    try {
-      await getBrowserPage();
-    } catch (err) {
-      console.log("Failed to pre-initialize browser page:", err);
-    }
-  }
+  // No browser pre-initialization
 
   const session = await getEffectiveSession();
   if (!session) {

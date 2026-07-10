@@ -151,4 +151,4 @@
 
 ## Notes
 - Kuaishou endpoints are heavily backed by GraphQL APIs (under `_graphqlHost`).
-- Testing on Windows runs `CloakBrowser` persistent browser context for reliable cookie synchronization.
+- Testing on Windows runs native fetch and checks credentials.

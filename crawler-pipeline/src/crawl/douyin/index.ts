@@ -2,7 +2,6 @@
  * # Barrel export cho module Douyin
  */
 
-export { DouyinLogin } from "./login.js";
 export {
   crawlVideo,
   crawlCreator,
@@ -18,7 +17,6 @@ export {
   douyinRequest,
   douyinGet,
   downloadMedia,
-  closeBrowser,
   getActiveUserAgent,
   getClientHintsHeaders,
   incrementPageLoad,

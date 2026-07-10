@@ -5,8 +5,7 @@
 import { bilibiliGet, downloadMedia, pong, setBilibiliCookie } from "./client.js";
 import { upsertAuthor, upsertPost, upsertPosts, getPostUuid, upsertComments, checkoutAccount, checkinAccount, releaseAccount, isTaskCancelled, updateTaskProgress, updateTaskPhase, updateTaskCommentProgress } from "../../store/index.js";
 import { CrawledPostRow } from "../../model/storage.js";
-import type { ICrawler, BrowserLaunchOptions } from "../../base/base_crawler.js";
-import type { BrowserContext } from "playwright-core";
+import type { ICrawler } from "../../base/base_crawler.js";
 import { logger } from "../../utils/index.js";
 
 function sleep(ms: number): Promise<void> {
@@ -45,29 +44,7 @@ async function ensureLogin(): Promise<LoginSession> {
     console.log("Cookie cục bộ/môi trường hoạt động tốt.");
     return { mode: "guest" };
   }
-  console.log("Cookie cục bộ hết hạn hoặc chưa đăng nhập. Tiến hành khởi chạy trình duyệt để thực hiện đăng nhập...");
-  const { getBrowserContext, saveBilibiliCookie, closeBrowser } = await import("./client.js");
-  const { BilibiliLogin } = await import("./login.js");
-  try {
-    const context = await getBrowserContext();
-    const login = new BilibiliLogin({
-      cookieStr: process.env.BILIBILI_COOKIE,
-    });
-    const result = await login.begin(context);
-    if (!result.success) {
-      console.log(`Đăng nhập không thành công: ${result.errorMessage}. Chuyển sang chế độ ẩn danh (Guest)...`);
-    } else {
-      const cookieStr = result.cookies.map(c => `${c.name}=${c.value}`).join("; ");
-      await saveBilibiliCookie(cookieStr);
-      console.log("Đăng nhập thành công. Đã cập nhật và lưu cookie mới.");
-      setBilibiliCookie(cookieStr);
-    }
-  } catch (err) {
-    console.log(`Không thể hoàn thành đăng nhập: ${(err as Error).message}. Tiếp tục bằng chế độ ẩn danh (Guest)...`);
-  } finally {
-    await closeBrowser();
-  }
-  return { mode: "guest" };
+  throw new Error("browser mode removed, provide valid cookie/session");
 }
 
 /**
@@ -654,10 +631,11 @@ export class BilibiliCrawler implements ICrawler {
     }
   }
 
-  /**
-   * # Khởi chạy trình duyệt cho Bilibili
-   */
-  async launchBrowser(options?: BrowserLaunchOptions): Promise<BrowserContext> {
-    throw new Error("Không dùng: launchBrowser trực tiếp trên BilibiliCrawler");
+  async ensureLogin(): Promise<void> {
+    await ensureLogin();
+  }
+
+  async releaseAccount(isSuccessful: boolean): Promise<void> {
+    // Handled internally in methods or no-op
   }
 }

@@ -61,12 +61,12 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 
 | Capability | Trạng thái | Ghi chú |
 |---|---|---|
-| CLI entrypoint | Done | `bootstrap`, `crawl`, `creator`, `search`, `comments`, `add-account`. `crawl` không target sẽ khởi chạy queue worker. |
+| CLI entrypoint | Done | `crawl`, `creator`, `search`, `comments`, `add-account`. Lệnh `bootstrap` đã bị loại bỏ hoàn toàn. Lệnh `crawl` không có target sẽ khởi chạy queue worker. |
 | Queue worker | Done | Claim task Supabase RPC. Đã **gia cố log redaction** và bảo mật **API Token Runtime Enforcement**. Đã pass Security Gate với các chế độ thắt chặt GET crawler_accounts (Mode 1: Checkout chỉ trả về id/username/cookie_data, Mode 2: Status check chỉ trả về id/status/failure_count, cấm leak cookie_data). |
 | Task metadata | Partial | Worker đọc tags, language, crawl_comments, crawl_sub_comments, upload_r2, headless từ `task.metadata`. |
 | Platform factory | Partial | Có factory cho nhiều platform; platform không hỗ trợ sẽ throw rõ ràng. |
-| Platforms | Partial | Có module cho Bilibili, Douyin, Kuaishou, Tieba, Weibo, XHS, Zhihu. Bilibili và Zhihu hoạt động ổn định và hỗ trợ đầy đủ các tính năng cào. |
-| Login/session | Partial | Một số platform còn báo QR auto-login chưa hỗ trợ hoặc cần cookie cục bộ. |
+| Platforms | Partial | Có module cho Bilibili, Douyin, Kuaishou, Tieba, Weibo, XHS, Zhihu. Bilibili, Douyin và Zhihu hoạt động ổn định ở chế độ HTTP-First không sử dụng trình duyệt. |
+| Login/session | Done | Đã loại bỏ hoàn toàn cơ chế đăng nhập tương tác bằng trình duyệt (`CloakBrowser`). Chuyển sang mô hình **HTTP-First, Fail-Fast** (báo lỗi hết hạn session thay vì khởi động trình duyệt). |
 | Account/proxy pool | Partial | Có pool/account rotation, nhưng cần health policy và dashboard mutation hoàn chỉnh hơn. |
 | R2 upload | Optional | Có uploader/dedup, nhưng không còn là đường phát mặc định cho Bilibili. Dùng khi cần archive/cache/report/offline. |
 | Cache media task | Deprecated | Worker đã throw nếu command là `cache_media`. Không thêm UI tạo task này nữa. |

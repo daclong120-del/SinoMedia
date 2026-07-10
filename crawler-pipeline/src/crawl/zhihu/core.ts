@@ -14,9 +14,9 @@ import {
   updateTaskProgress,
 } from "../../store/index.js";
 import { CrawledPostRow } from "../../model/storage.js";
-import type { ICrawler, BrowserLaunchOptions } from "../../base/base_crawler.js";
-import type { BrowserContext, Page } from "playwright-core";
+import type { ICrawler } from "../../base/base_crawler.js";
 import { stripHtml, parseCookieString } from "../../utils/crawler.js";
+import { logger } from "../../utils/index.js";
 import { CONFIG } from "../../config.js";
 import { join } from "node:path";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
@@ -459,30 +459,80 @@ export async function crawlCreator(urlOrToken: string): Promise<void> {
   console.log(`Hoàn thành cào creator ${creatorInfo.name}. Tổng số bài đăng đã xử lý: ${crawlCount}`);
 }
 
-export async function crawlSearch(keyword: string, maxCount = 20, client?: ZhihuClient): Promise<void> {
+export async function crawlSearch(keyword: string, maxCount = 20, client?: ZhihuClient): Promise<{
+  current: number;
+  target: number;
+  stopReason: "target_reached" | "source_exhausted" | "no_valid_items" | "api_empty" | "api_error";
+  resultState: "full" | "partial" | "empty";
+}> {
   const limit = 20;
   let collected = 0;
   let page = 1;
+  let emptyPageCount = 0;
+  let stopReason: "target_reached" | "source_exhausted" | "no_valid_items" | "api_empty" | "api_error" = "source_exhausted";
   const zhihuClient = client || new ZhihuClient();
 
-  console.log(`Bắt đầu cào tìm kiếm Zhihu với từ khóa: "${keyword}", giới hạn: ${maxCount}`);
+  logger.info(`Bắt đầu cào tìm kiếm Zhihu với từ khóa: "${keyword}", giới hạn: ${maxCount}`, "Zhihu");
 
   // URL khởi điểm chuẩn theo trình duyệt thực tế
   let nextUrl = `/api/v4/search_v3?t=general&q=${encodeURIComponent(keyword)}&correction=1&offset=0&limit=${limit}&search_source=Normal&zhida_source=ai_search_general`;
   const referer = `https://www.zhihu.com/search?q=${encodeURIComponent(keyword)}&type=content`;
 
   while (collected < maxCount && nextUrl) {
-    const searchRes = await zhihuClient.request("GET", nextUrl, { referer });
-    const data = searchRes.data || [];
-    console.log(`Lấy được trang tìm kiếm thứ ${page} với ${data.length} phần tử.`);
-
-    if (data.length === 0) {
+    let searchRes: any;
+    try {
+      searchRes = await zhihuClient.request("GET", nextUrl, { referer });
+    } catch (err: any) {
+      logger.error(`Lỗi request API trang tìm kiếm thứ ${page}: ${err.message}`, "Zhihu");
+      stopReason = "api_error";
       break;
     }
 
+    const data = searchRes.data || [];
+    logger.info(`Lấy được trang tìm kiếm thứ ${page} với ${data.length} phần tử.`, "Zhihu");
+
+    if (data.length === 0) {
+      emptyPageCount++;
+      logger.warn(`Trang tìm kiếm thứ ${page} trả về danh sách rỗng (lần ${emptyPageCount}).`, "Zhihu");
+      if (emptyPageCount >= 3) {
+        stopReason = "api_empty";
+        break;
+      }
+      
+      const paging = searchRes.paging || {};
+      if (paging.is_end || !paging.next) {
+        stopReason = "source_exhausted";
+        break;
+      }
+      nextUrl = getRelativeUri(paging.next);
+      page++;
+      // Vẫn ghi nhận progress/offset
+      if (process.env.CURRENT_TASK_ID) {
+        await updateTaskProgress(process.env.CURRENT_TASK_ID, collected, maxCount);
+      }
+      await sleep(1000 + Math.random() * 1000);
+      continue;
+    }
+
+    // Reset bộ đếm empty page nếu lấy được data
+    emptyPageCount = 0;
+
     const searchResults = data.filter((item: any) => item.type === "search_result" || item.type === "zvideo");
     if (searchResults.length === 0) {
-      break;
+      logger.warn(`Trang tìm kiếm thứ ${page} không chứa kết quả hợp lệ (search_result hoặc zvideo). Thử trang tiếp theo...`, "Zhihu");
+      
+      const paging = searchRes.paging || {};
+      if (paging.is_end || !paging.next) {
+        stopReason = "no_valid_items";
+        break;
+      }
+      nextUrl = getRelativeUri(paging.next);
+      page++;
+      if (process.env.CURRENT_TASK_ID) {
+        await updateTaskProgress(process.env.CURRENT_TASK_ID, collected, maxCount);
+      }
+      await sleep(1000 + Math.random() * 1000);
+      continue;
     }
 
     const pagePosts: CrawledPostRow[] = [];
@@ -496,7 +546,7 @@ export async function crawlSearch(keyword: string, maxCount = 20, client?: Zhihu
         continue;
       }
 
-      console.log(`Đang xử lý bài đăng tìm kiếm thứ ${collected + 1}: ${obj.id} - ${obj.title || "Không tiêu đề"}`);
+      logger.info(`Đang xử lý bài đăng tìm kiếm thứ ${collected + 1}: ${obj.id} - ${obj.title || "Không tiêu đề"}`, "Zhihu");
 
       try {
         // Trích xuất thông tin tác giả trực tiếp từ kết quả tìm kiếm
@@ -578,7 +628,7 @@ export async function crawlSearch(keyword: string, maxCount = 20, client?: Zhihu
         pagePosts.push(postData);
         collected++;
       } catch (err) {
-        console.log(`Lỗi khi trích xuất bài đăng tìm kiếm ${obj.id}: ${(err as Error).message}`);
+        logger.error(`Lỗi khi trích xuất bài đăng tìm kiếm ${obj.id}: ${(err as Error).message}`, "Zhihu");
       }
 
       await sleep(100 + Math.random() * 100);
@@ -599,15 +649,20 @@ export async function crawlSearch(keyword: string, maxCount = 20, client?: Zhihu
               withReplies: process.env.ENABLE_GET_SUB_COMMENTS === "true"
             });
           } catch (err) {
-            console.log(`Lỗi khi cào bình luận cho bài đăng ${post.platform_id}: ${(err as Error).message}`);
+            logger.error(`Lỗi khi cào bình luận cho bài đăng ${post.platform_id}: ${(err as Error).message}`, "Zhihu");
           }
         }
       }
     }
 
+    if (collected >= maxCount) {
+      stopReason = "target_reached";
+      break;
+    }
+
     const paging = searchRes.paging || {};
     if (paging.is_end || !paging.next) {
-      console.log("Zhihu báo hết kết quả phân trang.");
+      stopReason = "source_exhausted";
       break;
     }
     
@@ -616,110 +671,33 @@ export async function crawlSearch(keyword: string, maxCount = 20, client?: Zhihu
     page++;
     await sleep(1000 + Math.random() * 1000);
   }
+
+  let resultState: "full" | "partial" | "empty" = "empty";
+  if (collected === 0) {
+    resultState = "empty";
+  } else if (collected >= maxCount) {
+    resultState = "full";
+  } else {
+    resultState = "partial";
+  }
+
+  return {
+    current: collected,
+    target: maxCount,
+    stopReason,
+    resultState,
+  };
 }
 
 export class ZhihuCrawler implements ICrawler {
   private client: ZhihuClient;
   private currentAccountId: string | null = null;
-  private browserContext: BrowserContext | null = null;
-  private browserPage: Page | null = null;
 
   constructor() {
     this.client = new ZhihuClient();
   }
 
-  async launchBrowser(options?: BrowserLaunchOptions): Promise<BrowserContext> {
-    if (this.browserContext) {
-      return this.browserContext;
-    }
-    const { launchPersistentContext } = await import("cloakbrowser");
-    const profileDir = join(process.cwd(), "output", "profiles", "zhihu");
 
-    const launchOptions: any = {
-      userDataDir: profileDir,
-      headless: options?.headless ?? CONFIG.headless,
-      geoip: true,
-      humanize: true,
-    };
-    if (CONFIG.proxy) {
-      launchOptions.proxy = CONFIG.proxy;
-    }
-
-    const rawContext = await launchPersistentContext(launchOptions);
-    this.browserContext = rawContext as unknown as BrowserContext;
-
-    const pages = this.browserContext.pages();
-    this.browserPage = pages[0] || (await this.browserContext.newPage());
-
-    await this.browserPage.route("**/*", (route: any) => {
-      const type = route.request().resourceType();
-      if (["image", "media", "font"].includes(type)) {
-        route.abort();
-      } else {
-        route.continue();
-      }
-    });
-
-    this.client.setPage(this.browserPage, this.browserContext);
-    return this.browserContext;
-  }
-
-  async closeBrowserContextOnly(): Promise<void> {
-    if (this.browserContext) {
-      try {
-        await this.browserContext.close();
-      } catch {}
-      this.browserContext = null;
-      this.browserPage = null;
-    }
-  }
-
-  private async bootstrapSessionWithBrowser(cookieStr?: string): Promise<boolean> {
-    console.log("[Zhihu] HTTP session invalid, bootstrapping with CloakBrowser...");
-    const context = await this.launchBrowser();
-    try {
-      if (cookieStr) {
-        const cookieDict = parseCookieString(cookieStr);
-        const cookieObjects = [".zhihu.com", "www.zhihu.com"].flatMap(domain =>
-          Object.entries(cookieDict).map(([name, value]) => ({
-            name,
-            value,
-            domain,
-            path: "/",
-          }))
-        );
-        await context.addCookies(cookieObjects);
-      }
-
-      // Mở homepage hoặc trang search thật để refresh session và sync cookie
-      if (this.browserPage) {
-        const searchUrl = "https://www.zhihu.com/search?q=girl&type=content";
-        console.log(`[Zhihu] Opening search page on browser to warm up cookie: ${searchUrl}`);
-        await this.browserPage.goto(searchUrl, { waitUntil: "networkidle" }).catch(() => {});
-        console.log("[Zhihu] Waiting 5 seconds to warm up cookie...");
-        await sleep(5000);
-      }
-
-      const freshCookies = await context.cookies();
-      await this.client.updateCookies(freshCookies.map(c => ({ name: c.name, value: c.value, domain: c.domain })));
-      
-      const isValid = await this.client.validateSession();
-      if (isValid) {
-        console.log("[Zhihu] Browser bootstrap completed and validated via HTTP.");
-      } else {
-        console.log("[Zhihu] Browser bootstrap completed but session is still invalid.");
-      }
-      return isValid;
-    } catch (err) {
-      console.log(`[Zhihu] Error during browser bootstrap: ${(err as Error).message}`);
-      return false;
-    } finally {
-      console.log("[Zhihu] Browser bootstrap completed, closing CloakBrowser.");
-      await this.closeBrowserContextOnly();
-      const { closeBrowser } = await import("./client.js");
-      await closeBrowser();
-    }
-  }
 
   async ensureLogin(): Promise<void> {
     let attempts = 0;
@@ -744,19 +722,10 @@ export class ZhihuCrawler implements ICrawler {
       // Validate bằng HTTP thô không mở browser
       const isActive = await this.client.validateSession();
       if (isActive) {
-        console.log(`[Zhihu] Session valid by HTTP, skip CloakBrowser for account: ${account.username}`);
+        console.log(`[Zhihu] Session valid by HTTP for account: ${account.username}`);
         this.currentAccountId = account.id;
         return;
       } else {
-        console.log(`[Zhihu] Account ${account.username} session invalid by HTTP, trying browser bootstrap...`);
-        // Nếu HTTP check fail, thử cứu bằng browser bootstrap
-        const bootstrapOk = await this.bootstrapSessionWithBrowser(account.cookie_data);
-        if (bootstrapOk) {
-          console.log(`[Zhihu] Successfully bootstrapped session for account: ${account.username}`);
-          this.currentAccountId = account.id;
-          return;
-        }
-
         console.log(`[Zhihu] Tài khoản ${account.username} hoàn toàn không hoạt động. Trả lại pool...`);
         await checkinAccount(account.id, false);
         this.currentAccountId = null;
@@ -785,57 +754,19 @@ export class ZhihuCrawler implements ICrawler {
 
       const localIsActive = await this.client.validateSession();
       if (localIsActive) {
-        console.log("[Zhihu] Cookie cục bộ hoạt động tốt bằng HTTP check, skip CloakBrowser.");
+        console.log("[Zhihu] Cookie cục bộ hoạt động tốt bằng HTTP check.");
         this.currentAccountId = null;
         return;
-      } else {
-        console.log("[Zhihu] Cookie cục bộ hết hạn hoặc không hoạt động bằng HTTP check. Khởi chạy browser bootstrap...");
-        const bootstrapOk = await this.bootstrapSessionWithBrowser(localCookie);
-        if (bootstrapOk) {
-          console.log("[Zhihu] Cookie cục bộ đã được refresh thành công qua browser bootstrap.");
-          this.currentAccountId = null;
-          return;
-        }
       }
     }
 
-    // 3. Tiến hành đăng nhập thủ công bằng cookie mới nạp qua ZhihuLogin (mở browser đặc biệt)
-    console.log("Cookie cục bộ hết hạn hoặc chưa đăng nhập. Tiến hành cấu hình qua ZhihuLogin...");
-    const { ZhihuLogin } = await import("./login.js");
-    const context = await this.launchBrowser();
-    try {
-      const login = new ZhihuLogin({
-        cookieStr: localCookie,
-      });
-      const result = await login.begin(context);
-      if (!result.success) {
-        console.log(`Đăng nhập không thành công: ${result.errorMessage}. Chạy chế độ khách (Guest)...`);
-      } else {
-        const cookieStr = result.cookies.map(c => `${c.name}=${c.value}`).join("; ");
-        const sessionPath = join(process.cwd(), "output", "zhihu_session.json");
-        await mkdir(join(process.cwd(), "output"), { recursive: true });
-        await writeFile(sessionPath, JSON.stringify({ cookie: cookieStr, updatedAt: new Date().toISOString() }, null, 2), "utf8");
-        console.log("Đăng nhập thành công. Đã cập nhật và lưu cookie mới.");
-        await this.client.updateCookies(result.cookies);
-      }
-    } catch (err) {
-      console.log(`Không thể hoàn thành đăng nhập: ${(err as Error).message}. Tiếp tục bằng chế độ khách (Guest)...`);
-    } finally {
-      await this.closeBrowserContextOnly();
-      const { closeBrowser } = await import("./client.js");
-      await closeBrowser();
-    }
+    throw new Error("browser mode removed, provide valid cookie/session");
   }
 
-  async releaseAccount(isSuccessful: boolean = true): Promise<void> {
+  async releaseAccount(isSuccessful: boolean): Promise<void> {
     if (this.currentAccountId) {
       await checkinAccount(this.currentAccountId, isSuccessful);
       this.currentAccountId = null;
-    }
-    if (this.browserContext) {
-      await this.browserContext.close();
-      this.browserContext = null;
-      this.browserPage = null;
     }
   }
 
@@ -880,12 +811,13 @@ export class ZhihuCrawler implements ICrawler {
   /**
    * # Tìm kiếm bài đăng Zhihu theo từ khóa
    */
-  async search(keyword: string, maxCount?: number): Promise<void> {
+  async search(keyword: string, maxCount?: number): Promise<any> {
     let success = false;
     try {
       await this.ensureLogin();
-      await crawlSearch(keyword, maxCount, this.client);
+      const res = await crawlSearch(keyword, maxCount, this.client);
       success = true;
+      return res;
     } finally {
       await this.releaseAccount(success);
     }

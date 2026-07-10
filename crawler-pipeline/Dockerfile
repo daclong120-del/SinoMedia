@@ -24,12 +24,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # --- Stage 2: Cài dependencies (cache layer) ---
-COPY package.json ./
-
-# Loại bỏ dependency "cloakbrowser" (dùng file: protocol, chỉ chạy local)
-# Cài dependencies không dùng lock file (vì lock file chứa ref cloakbrowser)
-RUN sed -i '/"cloakbrowser"/d' package.json && \
-    npm install --omit=dev --no-package-lock
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
 
 # Cài Playwright Chromium browser
 RUN npx playwright install chromium

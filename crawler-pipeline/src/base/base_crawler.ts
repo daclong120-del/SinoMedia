@@ -1,5 +1,3 @@
-import type { BrowserContext } from "playwright-core";
-
 /**
  * # Giao diện trừu tượng cho mọi crawler platform
  * Mỗi platform (Douyin, TikTok, XHS...) phải implement interface này
@@ -26,15 +24,13 @@ export interface ICrawler {
   comments(target: string, maxCount?: number): Promise<void>;
 
   /**
-   * # Khởi tạo browser context cho platform tương ứng
+   * # Đảm bảo trạng thái đăng nhập
    */
-  launchBrowser(options?: BrowserLaunchOptions): Promise<BrowserContext>;
-}
+  ensureLogin(): Promise<void>;
 
-export interface BrowserLaunchOptions {
-  headless?: boolean;
-  proxy?: string;
-  userAgent?: string;
-  profileDir?: string;
+  /**
+   * # Giải phóng tài nguyên tài khoản
+   */
+  releaseAccount(isSuccessful: boolean): Promise<void>;
 }
 

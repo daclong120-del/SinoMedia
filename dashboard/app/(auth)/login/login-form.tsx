@@ -141,7 +141,7 @@ export default function LoginForm() {
     setIsLoading(true);
 
     try {
-      const res = await loginAction(email, password, captchaToken);
+      const res = await loginAction(email, password, captchaToken || undefined);
 
       if (!res.success) {
         setPasswordError(res.error || "Đăng nhập thất bại.");

@@ -12,6 +12,7 @@ export {
   isTaskCancelled,
   updateTaskProgress,
   updateTaskPhase,
+  updateTaskMetadata,
   updateTaskCommentProgress,
   insertPostMetricSnapshot,
   insertAuthorMetricSnapshot,

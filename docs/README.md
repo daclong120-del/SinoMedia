@@ -12,7 +12,7 @@ Trang này là cửa vào cho tài liệu hiện hành của SinoMedia. Nếu c�
 
 ## Architecture deep dives
 
-- [Crawler Hybrid Architecture](architecture/crawler-hybrid-architecture.md)
+- [Crawler HTTP-First Architecture](architecture/crawler-hybrid-architecture.md)
 - [Client Storage Strategy](architecture/client-storage-strategy.md)
 - [Account Rotation Douyin Integration](architecture/account-rotation-douyin-integration.md)
 - [Settings Redesign Structure](architecture/settings-redesign-structure.md)

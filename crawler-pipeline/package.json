@@ -4,7 +4,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "bootstrap": "tsx src/index.ts bootstrap",
     "crawl": "tsx src/index.ts crawl",
     "worker:dev": "nodemon --watch src --exec tsx src/index.ts crawl",
     "creator": "tsx src/index.ts creator",
@@ -17,7 +16,6 @@
     "node": ">=18"
   },
   "dependencies": {
-    "cloakbrowser": "file:../../socialpeta_downloader/third-party/CloakBrowser/js",
     "impit": "^0.14.2",
     "playwright-extra": "^4.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",

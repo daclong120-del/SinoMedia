@@ -1,0 +1,4226 @@
+{
+  "catalogVersion": 1,
+  "format": "api-finder-endpoint-catalog",
+  "exportedAt": "2026-07-10T08:48:00.625Z",
+  "reconNotes": "securitySignals are passive heuristics (path, query names, status mix, Content-Type, channel). Not a verdict; validate manually. For Postman or Swagger, use the OpenAPI or Postman export buttons.",
+  "endpoints": [
+    {
+      "contentTypes": {
+        "application/vnd.yt-ump": 9
+      },
+      "count": 9,
+      "firstSeen": 1783673260152,
+      "host": "rr1---sn-42u-q5q6.googlevideo.com",
+      "lastSeen": 1783673279749,
+      "method": "POST",
+      "pathname": "/videoplayback",
+      "queryParamNames": [
+        "alr",
+        "c",
+        "cpn",
+        "cps",
+        "cver",
+        "ei",
+        "expire",
+        "fexp",
+        "fvip",
+        "id",
+        "initcwndbps",
+        "ip",
+        "keepalive",
+        "lsig",
+        "lsparams",
+        "met",
+        "mh",
+        "mm",
+        "mn",
+        "ms",
+        "mt",
+        "mv",
+        "mvi",
+        "n",
+        "ns",
+        "pcm2cms",
+        "pl",
+        "requiressl",
+        "rms",
+        "rn",
+        "rqh",
+        "sabr",
+        "sig",
+        "siu",
+        "source",
+        "sparams",
+        "spc",
+        "svpuc",
+        "xpc"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 9
+      },
+      "sampleUrls": [
+        "https://rr1---sn-42u-q5q6.googlevideo.com/videoplayback?expire=1783694860&ei=q7FQarrGM52Qpt8PzZek8Qo&ip=42.118.241.9&id=o-AMIInGA0uMKbEu8WmA0TEtKFdEYwYOp_AeaQbnrqz2V0&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&cps=667&met=1783673259%2C&mh=63&mm=31%2C29&mn=sn-42u-q5q6%2Csn-42u-i5ol7&ms=au%2Crdu&mv=m&mvi=1&pcm2cms=yes&pl=24&rms=au%2Cau&initcwndbps=3093750&siu=1&spc=SQ-ums5IPpwKgLb8xDtUM6Ff8w72pHipOUEI-V1ttXUbyW61bHA0&svpuc=1&ns=jQA6z8lDk4DFgFkSAxFukhUW&sabr=1&rqh=1&mt=1783672875&fvip=2&keepalive=yes&fexp=51565116%2C51946837%2C51992868%2C52016551%2C52017147&c=WEB&n=Ii4-aeaAVt55_w&sparams=expire%2Cei%2Cip%2Cid%2Csource%2Crequiressl%2Cxpc%2Csiu%2Cspc%2Csvpuc%2Cns%2Csabr%2Crqh&sig=AHEqNM4wRQIgXK4HHejCHiJmsYJLMVnMPNK2sxTZ3zvlv44yIsBFWrQCIQDVEQIY6TB49320SfjlpQUmj8cwFjylazibsNRkLVdZhQ%3D%3D&lsparams=cps%2Cmet%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpcm2cms%2Cpl%2Crms%2Cinitcwndbps&lsig=APaTxxMwRAIgJtuZb_KXnjbt1VKJNyM2wxFioplz7iO38CDvHfEOp5UCIF7Tsur1H-e5Cbn8Vr6kjjPSVg6-wNj8LLx9Yv1pgbL7&cpn=zJfqhskvfsxPYKkL&cver=2.20260708.00.00&rn=1621&alr=yes",
+        "https://rr1---sn-42u-q5q6.googlevideo.com/videoplayback?expire=1783694860&ei=q7FQarrGM52Qpt8PzZek8Qo&ip=42.118.241.9&id=o-AMIInGA0uMKbEu8WmA0TEtKFdEYwYOp_AeaQbnrqz2V0&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&cps=667&met=1783673259%2C&mh=63&mm=31%2C29&mn=sn-42u-q5q6%2Csn-42u-i5ol7&ms=au%2Crdu&mv=m&mvi=1&pcm2cms=yes&pl=24&rms=au%2Cau&initcwndbps=3093750&siu=1&spc=SQ-ums5IPpwKgLb8xDtUM6Ff8w72pHipOUEI-V1ttXUbyW61bHA0&svpuc=1&ns=jQA6z8lDk4DFgFkSAxFukhUW&sabr=1&rqh=1&mt=1783672875&fvip=2&keepalive=yes&fexp=51565116%2C51946837%2C51992868%2C52016551%2C52017147&c=WEB&n=Ii4-aeaAVt55_w&sparams=expire%2Cei%2Cip%2Cid%2Csource%2Crequiressl%2Cxpc%2Csiu%2Cspc%2Csvpuc%2Cns%2Csabr%2Crqh&sig=AHEqNM4wRQIgXK4HHejCHiJmsYJLMVnMPNK2sxTZ3zvlv44yIsBFWrQCIQDVEQIY6TB49320SfjlpQUmj8cwFjylazibsNRkLVdZhQ%3D%3D&lsparams=cps%2Cmet%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpcm2cms%2Cpl%2Crms%2Cinitcwndbps&lsig=APaTxxMwRAIgJtuZb_KXnjbt1VKJNyM2wxFioplz7iO38CDvHfEOp5UCIF7Tsur1H-e5Cbn8Vr6kjjPSVg6-wNj8LLx9Yv1pgbL7&cpn=zJfqhskvfsxPYKkL&cver=2.20260708.00.00&rn=1622&alr=yes",
+        "https://rr1---sn-42u-q5q6.googlevideo.com/videoplayback?expire=1783694860&ei=q7FQarrGM52Qpt8PzZek8Qo&ip=42.118.241.9&id=o-AMIInGA0uMKbEu8WmA0TEtKFdEYwYOp_AeaQbnrqz2V0&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&cps=667&met=1783673259%2C&mh=63&mm=31%2C29&mn=sn-42u-q5q6%2Csn-42u-i5ol7&ms=au%2Crdu&mv=m&mvi=1&pcm2cms=yes&pl=24&rms=au%2Cau&initcwndbps=3093750&siu=1&spc=SQ-ums5IPpwKgLb8xDtUM6Ff8w72pHipOUEI-V1ttXUbyW61bHA0&svpuc=1&ns=jQA6z8lDk4DFgFkSAxFukhUW&sabr=1&rqh=1&mt=1783672875&fvip=2&keepalive=yes&fexp=51565116%2C51946837%2C51992868%2C52016551%2C52017147&c=WEB&n=Ii4-aeaAVt55_w&sparams=expire%2Cei%2Cip%2Cid%2Csource%2Crequiressl%2Cxpc%2Csiu%2Cspc%2Csvpuc%2Cns%2Csabr%2Crqh&sig=AHEqNM4wRQIgXK4HHejCHiJmsYJLMVnMPNK2sxTZ3zvlv44yIsBFWrQCIQDVEQIY6TB49320SfjlpQUmj8cwFjylazibsNRkLVdZhQ%3D%3D&lsparams=cps%2Cmet%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpcm2cms%2Cpl%2Crms%2Cinitcwndbps&lsig=APaTxxMwRAIgJtuZb_KXnjbt1VKJNyM2wxFioplz7iO38CDvHfEOp5UCIF7Tsur1H-e5Cbn8Vr6kjjPSVg6-wNj8LLx9Yv1pgbL7&cpn=zJfqhskvfsxPYKkL&cver=2.20260708.00.00&rn=1623&alr=yes",
+        "https://rr1---sn-42u-q5q6.googlevideo.com/videoplayback?expire=1783694860&ei=q7FQarrGM52Qpt8PzZek8Qo&ip=42.118.241.9&id=o-AMIInGA0uMKbEu8WmA0TEtKFdEYwYOp_AeaQbnrqz2V0&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&cps=667&met=1783673259%2C&mh=63&mm=31%2C29&mn=sn-42u-q5q6%2Csn-42u-i5ol7&ms=au%2Crdu&mv=m&mvi=1&pcm2cms=yes&pl=24&rms=au%2Cau&initcwndbps=3093750&siu=1&spc=SQ-ums5IPpwKgLb8xDtUM6Ff8w72pHipOUEI-V1ttXUbyW61bHA0&svpuc=1&ns=jQA6z8lDk4DFgFkSAxFukhUW&sabr=1&rqh=1&mt=1783672875&fvip=2&keepalive=yes&fexp=51565116%2C51946837%2C51992868%2C52016551%2C52017147&c=WEB&n=Ii4-aeaAVt55_w&sparams=expire%2Cei%2Cip%2Cid%2Csource%2Crequiressl%2Cxpc%2Csiu%2Cspc%2Csvpuc%2Cns%2Csabr%2Crqh&sig=AHEqNM4wRQIgXK4HHejCHiJmsYJLMVnMPNK2sxTZ3zvlv44yIsBFWrQCIQDVEQIY6TB49320SfjlpQUmj8cwFjylazibsNRkLVdZhQ%3D%3D&lsparams=cps%2Cmet%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpcm2cms%2Cpl%2Crms%2Cinitcwndbps&lsig=APaTxxMwRAIgJtuZb_KXnjbt1VKJNyM2wxFioplz7iO38CDvHfEOp5UCIF7Tsur1H-e5Cbn8Vr6kjjPSVg6-wNj8LLx9Yv1pgbL7&cpn=zJfqhskvfsxPYKkL&cver=2.20260708.00.00&rn=1624&alr=yes",
+        "https://rr1---sn-42u-q5q6.googlevideo.com/videoplayback?expire=1783694860&ei=q7FQarrGM52Qpt8PzZek8Qo&ip=42.118.241.9&id=o-AMIInGA0uMKbEu8WmA0TEtKFdEYwYOp_AeaQbnrqz2V0&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&cps=667&met=1783673259%2C&mh=63&mm=31%2C29&mn=sn-42u-q5q6%2Csn-42u-i5ol7&ms=au%2Crdu&mv=m&mvi=1&pcm2cms=yes&pl=24&rms=au%2Cau&initcwndbps=3093750&siu=1&spc=SQ-ums5IPpwKgLb8xDtUM6Ff8w72pHipOUEI-V1ttXUbyW61bHA0&svpuc=1&ns=jQA6z8lDk4DFgFkSAxFukhUW&sabr=1&rqh=1&mt=1783672875&fvip=2&keepalive=yes&fexp=51565116%2C51946837%2C51992868%2C52016551%2C52017147&c=WEB&n=Ii4-aeaAVt55_w&sparams=expire%2Cei%2Cip%2Cid%2Csource%2Crequiressl%2Cxpc%2Csiu%2Cspc%2Csvpuc%2Cns%2Csabr%2Crqh&sig=AHEqNM4wRQIgXK4HHejCHiJmsYJLMVnMPNK2sxTZ3zvlv44yIsBFWrQCIQDVEQIY6TB49320SfjlpQUmj8cwFjylazibsNRkLVdZhQ%3D%3D&lsparams=cps%2Cmet%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpcm2cms%2Cpl%2Crms%2Cinitcwndbps&lsig=APaTxxMwRAIgJtuZb_KXnjbt1VKJNyM2wxFioplz7iO38CDvHfEOp5UCIF7Tsur1H-e5Cbn8Vr6kjjPSVg6-wNj8LLx9Yv1pgbL7&cpn=zJfqhskvfsxPYKkL&cver=2.20260708.00.00&rn=1625&alr=yes"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.youtube.com",
+        "server": "gvs 1.0",
+        "x-content-type-options": "nosniff"
+      },
+      "statusCodes": {
+        "200": 9
+      },
+      "templatedPath": "/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 12
+      },
+      "count": 12,
+      "firstSeen": 1783673128161,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673278037,
+      "method": "GET",
+      "pathname": "/api/v4/search/hot_search",
+      "queryParamNames": [
+        "q"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 12
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/search/hot_search",
+        "https://www.zhihu.com/api/v4/search/customize",
+        "https://www.zhihu.com/api/v4/search/calendar?q=girl",
+        "https://www.zhihu.com/api/v4/search/calendar?q=grok",
+        "https://www.zhihu.com/api/v4/search/calendar?q=%E5%9F%83%E5%8F%8A%E8%B6%B3%E5%8D%8F%E6%AD%A3%E5%BC%8F%E7%94%B3%E8%AF%89+%E8%A6%81%E6%B1%82%E8%B0%83%E6%9F%A5%E4%B8%BB%E8%A3%81%E5%88%A4"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 12
+      },
+      "templatedPath": "/api/v4/search/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/html": 10
+      },
+      "count": 10,
+      "firstSeen": 1783673122058,
+      "host": "www.youtube.com",
+      "lastSeen": 1783673277144,
+      "method": "POST",
+      "pathname": "/api/stats/watchtime",
+      "queryParamNames": [
+        "afmt",
+        "autonav",
+        "autoplay",
+        "c",
+        "cbr",
+        "cbrver",
+        "cl",
+        "cmt",
+        "cos",
+        "cosver",
+        "cplatform",
+        "cplayer",
+        "cpn",
+        "cr",
+        "cver",
+        "delay",
+        "docid",
+        "dtm",
+        "ei",
+        "el",
+        "et",
+        "euri",
+        "feature",
+        "fexp",
+        "final",
+        "fmt",
+        "fs",
+        "hl",
+        "idpj",
+        "lact",
+        "ldpj",
+        "len",
+        "list",
+        "mos",
+        "muted",
+        "ns",
+        "of",
+        "pe",
+        "plid",
+        "referrer",
+        "rt",
+        "rti",
+        "rtn",
+        "sdetail",
+        "sourceid",
+        "st",
+        "state",
+        "uga",
+        "ver",
+        "vis",
+        "vm",
+        "volume"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 10
+      },
+      "sampleUrls": [
+        "https://www.youtube.com/api/stats/watchtime?ns=yt&el=detailpage&cpn=1kuZ9dblZPYJuVNC&ver=2&cmt=221.528&fmt=397&fs=0&rt=226.015&euri&lact=75737&cl=944603399&state=playing&volume=100&cbr=Chrome&cbrver=150.0.0.0&c=WEB&cver=2.20260708.00.00&cplayer=UNIPLAYER&cos=Windows&cosver=10.0&cplatform=DESKTOP&autoplay=1&delay=4&hl=vi_VN&cr=VN&uga=m23&len=358.401&rtn=266&feature=autoplay&afmt=251&idpj=-4&ldpj=-9&rti=226&st=181.528&et=221.528&muted=0&vis=3&docid=lVWIAe4jjX0&ei=P7BQaoj_EtDG1d8P5_K4-Ak&plid=AAZWPbVSx3CwMHgR&referrer=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dt4IW3031zgE%26list%3DRDml_Scx-tlEA%26index%3D15&sdetail=rv%3At4IW3031zgE&sourceid=yw&autonav=1&list=RDml_Scx-tlEA&of=mGVagZPijlChnziifOmpWA&vm=CAMQARgBOjJBSHFpSlRKVGRvSjYyOENldS1pVmR2RmlUVGNFblB3bWRrcGNzVGdydmhWOFNJWktxZ2JnQUxkcUFQSjZEYXpzUVptY3Y2d2dwenZNNlY2eHlMeU9LS3dVRnJWLWo4Nnp6SEl1ZkM3cTlxTXQ3dV9xT1ZWS09kRFdJbVoyZWZVUnFfbC1PTDhLMXJlcHlLWFhKMVYzM3dKWmtMWbgBAQ",
+        "https://www.youtube.com/api/stats/watchtime?ns=yt&el=detailpage&cpn=1kuZ9dblZPYJuVNC&ver=2&cmt=261.528&fmt=397&fs=0&rt=266.016&euri&lact=115737&cl=944603399&state=playing&volume=100&cbr=Chrome&cbrver=150.0.0.0&c=WEB&cver=2.20260708.00.00&cplayer=UNIPLAYER&cos=Windows&cosver=10.0&cplatform=DESKTOP&autoplay=1&delay=4&hl=vi_VN&cr=VN&uga=m23&len=358.401&rtn=306&feature=autoplay&afmt=251&idpj=-4&ldpj=-9&rti=266&st=221.528&et=261.528&muted=0&vis=3&docid=lVWIAe4jjX0&ei=P7BQaoj_EtDG1d8P5_K4-Ak&plid=AAZWPbVSx3CwMHgR&referrer=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dt4IW3031zgE%26list%3DRDml_Scx-tlEA%26index%3D15&sdetail=rv%3At4IW3031zgE&sourceid=yw&autonav=1&list=RDml_Scx-tlEA&of=mGVagZPijlChnziifOmpWA&vm=CAMQARgBOjJBSHFpSlRKVGRvSjYyOENldS1pVmR2RmlUVGNFblB3bWRrcGNzVGdydmhWOFNJWktxZ2JnQUxkcUFQSjZEYXpzUVptY3Y2d2dwenZNNlY2eHlMeU9LS3dVRnJWLWo4Nnp6SEl1ZkM3cTlxTXQ3dV9xT1ZWS09kRFdJbVoyZWZVUnFfbC1PTDhLMXJlcHlLWFhKMVYzM3dKWmtMWbgBAQ",
+        "https://www.youtube.com/api/stats/watchtime?ns=yt&el=detailpage&cpn=1kuZ9dblZPYJuVNC&ver=2&cmt=301.528&fmt=397&fs=0&rt=306.016&euri&lact=155737&cl=944603399&state=playing&volume=100&cbr=Chrome&cbrver=150.0.0.0&c=WEB&cver=2.20260708.00.00&cplayer=UNIPLAYER&cos=Windows&cosver=10.0&cplatform=DESKTOP&autoplay=1&delay=4&hl=vi_VN&cr=VN&uga=m23&len=358.401&rtn=346&feature=autoplay&afmt=251&idpj=-4&ldpj=-9&rti=306&st=261.528&et=301.528&muted=0&vis=3&docid=lVWIAe4jjX0&ei=P7BQaoj_EtDG1d8P5_K4-Ak&plid=AAZWPbVSx3CwMHgR&referrer=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dt4IW3031zgE%26list%3DRDml_Scx-tlEA%26index%3D15&sdetail=rv%3At4IW3031zgE&sourceid=yw&autonav=1&list=RDml_Scx-tlEA&of=mGVagZPijlChnziifOmpWA&vm=CAMQARgBOjJBSHFpSlRKVGRvSjYyOENldS1pVmR2RmlUVGNFblB3bWRrcGNzVGdydmhWOFNJWktxZ2JnQUxkcUFQSjZEYXpzUVptY3Y2d2dwenZNNlY2eHlMeU9LS3dVRnJWLWo4Nnp6SEl1ZkM3cTlxTXQ3dV9xT1ZWS09kRFdJbVoyZWZVUnFfbC1PTDhLMXJlcHlLWFhKMVYzM3dKWmtMWbgBAQ",
+        "https://www.youtube.com/api/stats/watchtime?ns=yt&el=detailpage&cpn=1kuZ9dblZPYJuVNC&ver=2&cmt=341.528&fmt=397&fs=0&rt=346.016&euri&lact=195738&cl=944603399&state=playing&volume=100&cbr=Chrome&cbrver=150.0.0.0&c=WEB&cver=2.20260708.00.00&cplayer=UNIPLAYER&cos=Windows&cosver=10.0&cplatform=DESKTOP&autoplay=1&delay=4&hl=vi_VN&cr=VN&uga=m23&len=358.401&rtn=386&feature=autoplay&afmt=251&idpj=-4&ldpj=-9&rti=346&st=301.528&et=341.528&muted=0&vis=3&docid=lVWIAe4jjX0&ei=P7BQaoj_EtDG1d8P5_K4-Ak&plid=AAZWPbVSx3CwMHgR&referrer=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dt4IW3031zgE%26list%3DRDml_Scx-tlEA%26index%3D15&sdetail=rv%3At4IW3031zgE&sourceid=yw&autonav=1&list=RDml_Scx-tlEA&of=mGVagZPijlChnziifOmpWA&vm=CAMQARgBOjJBSHFpSlRKVGRvSjYyOENldS1pVmR2RmlUVGNFblB3bWRrcGNzVGdydmhWOFNJWktxZ2JnQUxkcUFQSjZEYXpzUVptY3Y2d2dwenZNNlY2eHlMeU9LS3dVRnJWLWo4Nnp6SEl1ZkM3cTlxTXQ3dV9xT1ZWS09kRFdJbVoyZWZVUnFfbC1PTDhLMXJlcHlLWFhKMVYzM3dKWmtMWbgBAQ",
+        "https://www.youtube.com/api/stats/watchtime?ns=yt&el=detailpage&cpn=1kuZ9dblZPYJuVNC&ver=2&cmt=358.401&fmt=397&fs=0&rt=362.956&euri&lact=212678&cl=944603399&state=paused&volume=100&cbr=Chrome&cbrver=150.0.0.0&c=WEB&cver=2.20260708.00.00&cplayer=UNIPLAYER&cos=Windows&cosver=10.0&cplatform=DESKTOP&autoplay=1&delay=4&hl=vi_VN&cr=VN&uga=m23&len=358.401&feature=autoplay&afmt=251&idpj=-4&ldpj=-9&rti=386&st=341.528&et=358.401&muted=0&vis=3&docid=lVWIAe4jjX0&ei=P7BQaoj_EtDG1d8P5_K4-Ak&plid=AAZWPbVSx3CwMHgR&referrer=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Dt4IW3031zgE%26list%3DRDml_Scx-tlEA%26index%3D15&sdetail=rv%3At4IW3031zgE&sourceid=yw&autonav=1&list=RDml_Scx-tlEA&of=mGVagZPijlChnziifOmpWA&vm=CAMQARgBOjJBSHFpSlRKVGRvSjYyOENldS1pVmR2RmlUVGNFblB3bWRrcGNzVGdydmhWOFNJWktxZ2JnQUxkcUFQSjZEYXpzUVptY3Y2d2dwenZNNlY2eHlMeU9LS3dVRnJWLWo4Nnp6SEl1ZkM3cTlxTXQ3dV9xT1ZWS09kRFdJbVoyZWZVUnFfbC1PTDhLMXJlcHlLWFhKMVYzM3dKWmtMWbgBAQ"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.youtube.com",
+        "server": "Video Stats Server",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      },
+      "statusCodes": {
+        "204": 10
+      },
+      "templatedPath": "/api/stats/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/html": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673261596,
+      "host": "www.youtube.com",
+      "lastSeen": 1783673261596,
+      "method": "GET",
+      "pathname": "/@Chidori204",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.youtube.com/@Chidori204"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "content-security-policy": "base-uri 'self';object-src 'none';script-src 'report-sample' 'nonce-b1TanO6SSNP9z_7stgZ2Bg' 'unsafe-inline' 'strict-dynamic' https: http: 'unsafe-eval';report-uri https://csp.withgoogle.com/csp/youtube_main/strict",
+        "permissions-policy": "ch-ua-arch=*, ch-ua-bitness=*, ch-ua-full-version=*, ch-ua-full-version-list=*, ch-ua-model=*, ch-ua-wow64=*, ch-ua-form-factors=*, ch-ua-platform=*, ch-ua-platform-version=*",
+        "server": "ESF",
+        "strict-transport-security": "max-age=31536000",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/@Chidori204",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json+protobuf": 1
+      },
+      "count": 1,
+      "credentialHints": {
+        "apiKeyHeaders": [
+          {
+            "name": "X-Goog-Api-Key",
+            "mask": "AIza…oAnw"
+          }
+        ],
+        "bearerMasks": [],
+        "queryParamSecrets": []
+      },
+      "firstSeen": 1783673260524,
+      "host": "www.youtube.com",
+      "lastSeen": 1783673260524,
+      "method": "POST",
+      "pathname": "/api/jnn/v1/GenerateIT",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.youtube.com/api/jnn/v1/GenerateIT"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "ESF",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/jnn/v1/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "api-key-header",
+          "versioned-api"
+        ],
+        "riskScore": 28,
+        "notes": [
+          "API-style key header observed (masked). Rotate if this capture leaves your machine."
+        ]
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673260342,
+      "host": "www.youtube.com",
+      "lastSeen": 1783673260342,
+      "method": "POST",
+      "pathname": "/youtubei/v1/att/get",
+      "queryParamNames": [
+        "prettyPrint"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.youtube.com/youtubei/v1/att/get?prettyPrint=false"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "scaffolding on HTTPServer2",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/{b64id}/v1/att/get",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/html": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673260234,
+      "host": "www.youtube.com",
+      "lastSeen": 1783673260234,
+      "method": "GET",
+      "pathname": "/watch",
+      "queryParamNames": [
+        "v"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.youtube.com/watch?v=tDcKxgQE3bg"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "content-security-policy": "require-trusted-types-for 'script'",
+        "permissions-policy": "ch-ua-arch=*, ch-ua-bitness=*, ch-ua-full-version=*, ch-ua-full-version-list=*, ch-ua-model=*, ch-ua-wow64=*, ch-ua-form-factors=*, ch-ua-platform=*, ch-ua-platform-version=*",
+        "server": "ESF",
+        "strict-transport-security": "max-age=31536000",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/watch",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673259989,
+      "host": "www.youtube.com",
+      "lastSeen": 1783673259989,
+      "method": "POST",
+      "pathname": "/youtubei/v1/get_watch",
+      "queryParamNames": [
+        "prettyPrint"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.youtube.com/youtubei/v1/get_watch?prettyPrint=false"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "scaffolding on HTTPServer2",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/{b64id}/v1/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 133,
+      "firstSeen": 1783673119499,
+      "host": "zhihu-web-analytics.zhihu.com",
+      "lastSeen": 1783673244284,
+      "method": "POST",
+      "pathname": "/api/v3inv2/za/logs/batch",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 133
+      },
+      "sampleUrls": [
+        "https://zhihu-web-analytics.zhihu.com/api/v3inv2/za/logs/batch"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-origin": "*",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 133
+      },
+      "templatedPath": "/api/v3inv2/za/logs/batch",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 7
+      },
+      "count": 7,
+      "firstSeen": 1783673158566,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673243898,
+      "method": "GET",
+      "pathname": "/api/v4/creation_project/square/projects",
+      "queryParamNames": [
+        "limit",
+        "offset",
+        "sort"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 7
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/creation_project/square/projects?sort=hot&offset=0&limit=20",
+        "https://www.zhihu.com/api/v4/creation_project/square/projects?sort=hot&offset=20&limit=20",
+        "https://www.zhihu.com/api/v4/creation_project/square/projects?sort=hot&offset=40&limit=20",
+        "https://www.zhihu.com/api/v4/creation_project/square/projects?sort=hot&offset=60&limit=20",
+        "https://www.zhihu.com/api/v4/creation_project/square/projects?sort=hot&offset=80&limit=20"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 7
+      },
+      "templatedPath": "/api/v4/{b64id}/square/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 79,
+      "firstSeen": 1783673129394,
+      "host": "zhihu-web-analytics.zhihu.com",
+      "lastSeen": 1783673236334,
+      "method": "POST",
+      "pathname": "/api/v2/za/logs/batch",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 79
+      },
+      "sampleUrls": [
+        "https://zhihu-web-analytics.zhihu.com/api/v2/za/logs/batch"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-origin": "*",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 79
+      },
+      "templatedPath": "/api/v2/za/logs/batch",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 13
+      },
+      "count": 13,
+      "firstSeen": 1783673128761,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673235492,
+      "method": "GET",
+      "pathname": "/api/v3/oauth/account/unlock/request",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 13
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v3/oauth/account/unlock/request"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 13
+      },
+      "templatedPath": "/api/v3/oauth/account/unlock/request",
+      "securitySignals": {
+        "tags": [
+          "auth-flow",
+          "user-data",
+          "versioned-api"
+        ],
+        "riskScore": 36,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 12
+      },
+      "count": 12,
+      "firstSeen": 1783673128075,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673235229,
+      "method": "GET",
+      "pathname": "/commercial_api/banners_v3/pc_top_banner",
+      "queryParamNames": [
+        "article_token",
+        "question_token"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 12
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/commercial_api/banners_v3/pc_top_banner?",
+        "https://www.zhihu.com/commercial_api/banners_v3/home_bottom",
+        "https://www.zhihu.com/commercial_api/banners_v3/pc_article_bottom?article_token=16268662423",
+        "https://www.zhihu.com/commercial_api/banners_v3/article_right?article_token=16268662423",
+        "https://www.zhihu.com/commercial_api/banners_v3/article_right?article_token=2058692076590706753"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 12
+      },
+      "templatedPath": "/{b64id}/{b64id}/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 30
+      },
+      "count": 30,
+      "firstSeen": 1783673120250,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673235141,
+      "method": "POST",
+      "pathname": "/lastread/touch",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 30
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/lastread/touch"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "201": 30
+      },
+      "templatedPath": "/{b64id}/touch",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 6
+      },
+      "count": 6,
+      "firstSeen": 1783673221909,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673234768,
+      "method": "GET",
+      "pathname": "/api/v4/answers/2058536001786614313/relationship",
+      "queryParamNames": [
+        "desktop"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 6
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/answers/2058536001786614313/relationship?desktop=true",
+        "https://www.zhihu.com/api/v4/answers/2057766750830192588/relationship?desktop=true",
+        "https://www.zhihu.com/api/v4/answers/2057823633087673135/relationship?desktop=true",
+        "https://www.zhihu.com/api/v4/answers/2057436087119827934/relationship?desktop=true",
+        "https://www.zhihu.com/api/v4/answers/2057221792176010183/relationship?desktop=true"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 6
+      },
+      "templatedPath": "/api/v4/answers/{id}/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 3
+      },
+      "count": 3,
+      "firstSeen": 1783673187030,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673234743,
+      "method": "GET",
+      "pathname": "/api/v4/members/tian-bao-tong-51",
+      "queryParamNames": [
+        "include"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/members/tian-bao-tong-51?include=xinzhi_creator%2Cjuror%2Clocations%2Cemployments%2Cgender%2Ceducations%2Cbusiness%2Cmcn_company%2Cvoteup_count%2Cthanked_Count%2Cfollower_count%2Cfollowing_count%2Ccover_url%2Cfollowing_topic_count%2Cfollowing_question_count%2Cfollowing_favlists_count%2Cfollowing_columns_count%2Cavatar_hue%2Canswer_count%2Czvideo_count%2Carticles_count%2Cpins_count%2Cquestion_count%2Ccolumns_count%2Ccommercial_question_count%2Cfavorite_count%2Cfavorited_count%2Cline_comment_count%2Cproject_count%2Clogs_count%2Cincluded_answers_count%2Cincluded_articles_count%2Cincluded_text%2Cmessage_thread_token%2Caccount_status%2Cis_intelligence%2Cis_active%2Cis_bind_phone%2Cis_force_renamed%2Cis_privacy_protected%2Cis_blocking%2Cis_blocked%2Chidden_following_members_by_user%2Cis_following%2Cis_followed%2Cmutual_followees_count%2Cvote_to_count%2Cvote_from_count%2Cthank_to_count%2Cthank_from_count%2Cthanked_count%2Cdescription%2Chosted_live_count%2Cparticipated_live_count%2Callow_message%2Cwidgets%2Crealname%2Cinstitution%2Cindustry_category%2Corg_name%2Corg_homepage%2Cis_org_createpin_white_user%2Cis_navigator%2Cbadge%5B%3F%28type%3Dbest_answerer%29%5D.topics",
+        "https://www.zhihu.com/api/v4/members/wei-jin-yan-jiu?include=xinzhi_creator%2Cjuror%2Clocations%2Cemployments%2Cgender%2Ceducations%2Cbusiness%2Cmcn_company%2Cvoteup_count%2Cthanked_Count%2Cfollower_count%2Cfollowing_count%2Ccover_url%2Cfollowing_topic_count%2Cfollowing_question_count%2Cfollowing_favlists_count%2Cfollowing_columns_count%2Cavatar_hue%2Canswer_count%2Czvideo_count%2Carticles_count%2Cpins_count%2Cquestion_count%2Ccolumns_count%2Ccommercial_question_count%2Cfavorite_count%2Cfavorited_count%2Cline_comment_count%2Cproject_count%2Clogs_count%2Cincluded_answers_count%2Cincluded_articles_count%2Cincluded_text%2Cmessage_thread_token%2Caccount_status%2Cis_intelligence%2Cis_active%2Cis_bind_phone%2Cis_force_renamed%2Cis_privacy_protected%2Cis_blocking%2Cis_blocked%2Chidden_following_members_by_user%2Cis_following%2Cis_followed%2Cmutual_followees_count%2Cvote_to_count%2Cvote_from_count%2Cthank_to_count%2Cthank_from_count%2Cthanked_count%2Cdescription%2Chosted_live_count%2Cparticipated_live_count%2Callow_message%2Cwidgets%2Crealname%2Cinstitution%2Cindustry_category%2Corg_name%2Corg_homepage%2Cis_org_createpin_white_user%2Cis_navigator%2Cbadge%5B%3F%28type%3Dbest_answerer%29%5D.topics",
+        "https://www.zhihu.com/api/v4/members/wang-jin-23-64?include=allow_message%2Cis_followed%2Cis_following%2Cis_org%2Cis_blocking%2Cemployments%2Canswer_count%2Cfollower_count%2Carticles_count%2Cgender%2Cbadge%5B%3F%28type%3Dbest_answerer%29%5D.topics"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/api/v4/members/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673234675,
+      "host": "api.zhihu.com",
+      "lastSeen": 1783673234675,
+      "method": "GET",
+      "pathname": "/v5.1/topics/question/2057216066271573493/relation/v2",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://api.zhihu.com/v5.1/topics/question/2057216066271573493/relation/v2"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/v5.1/topics/{b64id}/{id}/{b64id}/v2",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 6
+      },
+      "count": 6,
+      "firstSeen": 1783673186901,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673234591,
+      "method": "GET",
+      "pathname": "/api/v4/articles/16268662423/relationship",
+      "queryParamNames": [
+        "desktop",
+        "include",
+        "limit",
+        "offset"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 6
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/articles/16268662423/relationship?desktop=true",
+        "https://www.zhihu.com/api/v4/articles/16268662423/contribute_requests",
+        "https://www.zhihu.com/api/v4/articles/2058692076590706753/contribute_requests",
+        "https://www.zhihu.com/api/v4/articles/2058692076590706753/relationship?desktop=true",
+        "https://www.zhihu.com/api/v4/questions/2057216066271573493/concerned_followers?limit=7&offset=0"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 6
+      },
+      "templatedPath": "/api/v4/{b64id}/{id}/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "credentialHints": {
+        "apiKeyHeaders": [],
+        "bearerMasks": [],
+        "queryParamSecrets": [
+          {
+            "param": "token",
+            "mask": "2058…4313"
+          },
+          {
+            "param": "token",
+            "mask": "2057…7934"
+          }
+        ]
+      },
+      "firstSeen": 1783673221850,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673234438,
+      "method": "GET",
+      "pathname": "/api/v3/entity_word",
+      "queryParamNames": [
+        "token",
+        "type"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v3/entity_word?type=answer&token=2058536001786614313",
+        "https://www.zhihu.com/api/v3/entity_word?type=answer&token=2057436087119827934"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/api/v3/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "secret-in-query",
+          "sensitive-query-param",
+          "versioned-api"
+        ],
+        "riskScore": 59,
+        "notes": [
+          "Query name “token” often carries secrets: verify leakage.",
+          "Secret-like query value observed (masked). Prefer headers over URL tokens."
+        ]
+      }
+    },
+    {
+      "contentTypes": {
+        "text/html": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673234404,
+      "host": "api.zhihu.com",
+      "lastSeen": 1783673234404,
+      "method": "OPTIONS",
+      "pathname": "/v5.1/topics/question/2057216066271573493/relation/v2",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://api.zhihu.com/v5.1/topics/question/2057216066271573493/relation/v2"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "X-Requested-With, X-Zse-93, X-Zse-96, X-Ab-Param, x-ab-pb, x-zst-82, x-ms-id,  x-zst-81, x-zse-83, x-zse-86, x-zse-93, x-zse-96, x-traffic-free, x-ac-udid, x-hd, x-app-version, x-du-bid, x-du-sid, x-frontend-encrypt",
+        "access-control-allow-methods": "GET",
+        "access-control-allow-origin": "https://www.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/v5.1/topics/{b64id}/{id}/{b64id}/v2",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 5
+      },
+      "count": 5,
+      "firstSeen": 1783673154109,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673234120,
+      "method": "POST",
+      "pathname": "/api/v4/read_history/add",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 5
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/read_history/add"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 5
+      },
+      "templatedPath": "/api/v4/{b64id}/add",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 29
+      },
+      "count": 29,
+      "firstSeen": 1783673128055,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673234016,
+      "method": "GET",
+      "pathname": "/api/v4/me",
+      "queryParamNames": [
+        "include"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 29
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/me?include=is_realname",
+        "https://www.zhihu.com/api/v4/me?include=email%2Cis_active%2Cis_bind_phone",
+        "https://www.zhihu.com/api/v4/me?include=email%2Caccount_status%2Cis_bind_phone%2Cavailable_message_types%2Cdefault_notifications_count%2Cfollow_notifications_count%2Cvote_thank_notifications_count%2Cmessages_count%2Cis_org%2Cavatar_url%2Cname%2Curl_token%2Cdraft_count%2Cfollowing_question_count%2Cis_realname%2Cis_force_renamed%2Crenamed_fullname%2Cis_destroy_waiting",
+        "https://www.zhihu.com/api/v4/me?include=url_token",
+        "https://www.zhihu.com/api/v4/me?include=email%2Caccount_status%2Cis_bind_phone%2Cavailable_message_types%2Cis_destroy_waiting"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 29
+      },
+      "templatedPath": "/api/v4/me",
+      "securitySignals": {
+        "tags": [
+          "user-data",
+          "versioned-api"
+        ],
+        "riskScore": 24,
+        "notes": []
+      }
+    },
+    {
+      "count": 25,
+      "firstSeen": 1783673130273,
+      "host": "apm.zhihu.com",
+      "lastSeen": 1783673233863,
+      "method": "POST",
+      "pathname": "/collector/apm",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 25
+      },
+      "sampleUrls": [
+        "https://apm.zhihu.com/collector/apm"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "*",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE,UPDATE",
+        "access-control-allow-origin": "*",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 25
+      },
+      "templatedPath": "/{b64id}/apm",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 9
+      },
+      "count": 9,
+      "firstSeen": 1783673150517,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673230543,
+      "method": "GET",
+      "pathname": "/api/v3/feed/topstory/recommend",
+      "queryParamNames": [
+        "action",
+        "ad_interval",
+        "after_id",
+        "desktop",
+        "end_offset",
+        "limit",
+        "page_number",
+        "session_token"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 9
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v3/feed/topstory/recommend?limit=10&desktop=true",
+        "https://www.zhihu.com/api/v3/feed/topstory/recommend?action=down&ad_interval=-10&after_id=5&desktop=true&end_offset=5&page_number=2&session_token=e09bc6e592eb07b6daaf2b98948a1047",
+        "https://www.zhihu.com/api/v3/feed/topstory/recommend?action=down&ad_interval=-10&after_id=5&desktop=true&end_offset=5&page_number=2&session_token=34a75cc389ebf10d99cafdbbfc2b15d3",
+        "https://www.zhihu.com/api/v3/feed/topstory/recommend?action=down&ad_interval=-10&after_id=5&desktop=true&end_offset=5&page_number=2&session_token=b70adb30885ea1a9adfa4fb1ddfbb3f3",
+        "https://www.zhihu.com/api/v3/feed/topstory/recommend?action=down&ad_interval=-10&after_id=5&desktop=true&end_offset=5&page_number=2&session_token=6adefbe6bdb4e06de211a23239fb7144"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 9
+      },
+      "templatedPath": "/api/v3/feed/{b64id}/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1783673151013,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673230325,
+      "method": "GET",
+      "pathname": "/api/v3/feed/topstory/hot-lists/total",
+      "queryParamNames": [
+        "desktop",
+        "limit"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v3/feed/topstory/hot-lists/total?limit=50&desktop=true"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/api/v3/feed/{b64id}/{b64id}/total",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 27,
+      "firstSeen": 1783673128165,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673229601,
+      "method": "POST",
+      "pathname": "/sc-profiler",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 27
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/sc-profiler"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "204": 27
+      },
+      "templatedPath": "/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 4
+      },
+      "count": 4,
+      "firstSeen": 1783673128338,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673229584,
+      "method": "GET",
+      "pathname": "/api/v4/moments/recommend_follow_people",
+      "queryParamNames": [
+        "rec_type"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 4
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/moments/recommend_follow_people?rec_type=PC_HOME_FEED"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 4
+      },
+      "templatedPath": "/api/v4/moments/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 4
+      },
+      "count": 4,
+      "firstSeen": 1783673128145,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673229542,
+      "method": "GET",
+      "pathname": "/api/v4/creators/analysis/card",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 4
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/creators/analysis/card"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 4
+      },
+      "templatedPath": "/api/v4/{b64id}/{b64id}/card",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/html": 3
+      },
+      "count": 3,
+      "firstSeen": 1783673169377,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673229436,
+      "method": "GET",
+      "pathname": "/api/v4/creator/apply",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/creator/apply"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "403": 3
+      },
+      "templatedPath": "/api/v4/creator/apply",
+      "securitySignals": {
+        "tags": [
+          "auth-boundary",
+          "versioned-api"
+        ],
+        "riskScore": 23,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 3
+      },
+      "count": 3,
+      "firstSeen": 1783673226334,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673228374,
+      "method": "GET",
+      "pathname": "/api/v3/moments/neotype/activities",
+      "queryParamNames": [
+        "desktop",
+        "limit",
+        "offset",
+        "page_num",
+        "ws_qiangzhisafe"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v3/moments/neotype/activities?limit=5&desktop=true&ws_qiangzhisafe=0",
+        "https://www.zhihu.com/api/v3/moments/neotype/activities?offset=1782299666031&page_num=1",
+        "https://www.zhihu.com/api/v3/moments/neotype/activities?offset=1779799636676&page_num=2"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/api/v3/moments/neotype/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 5,
+      "firstSeen": 1783673129903,
+      "host": "datahub.zhihu.com",
+      "lastSeen": 1783673227560,
+      "method": "POST",
+      "pathname": "/collector/zlab",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 5
+      },
+      "sampleUrls": [
+        "https://datahub.zhihu.com/collector/zlab"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-origin": "*",
+        "server": "BLB/25.05.0.3"
+      },
+      "statusCodes": {
+        "200": 5
+      },
+      "templatedPath": "/{b64id}/zlab",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 4
+      },
+      "count": 4,
+      "firstSeen": 1783673137915,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673227206,
+      "method": "POST",
+      "pathname": "/zbst/events/r",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 4
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/zbst/events/r"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "",
+        "access-control-allow-methods": "POST, OPTIONS",
+        "access-control-allow-origin": "https://www.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 4
+      },
+      "templatedPath": "/zbst/events/r",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 11
+      },
+      "count": 11,
+      "firstSeen": 1783673135782,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673226905,
+      "method": "GET",
+      "pathname": "/api/v4/me/switches",
+      "queryParamNames": [
+        "include"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 11
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/me/switches?include=is_creator",
+        "https://www.zhihu.com/api/v4/me/switches?include=oppose_right"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 11
+      },
+      "templatedPath": "/api/v4/me/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "user-data",
+          "versioned-api"
+        ],
+        "riskScore": 24,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673226367,
+      "host": "api.zhihu.com",
+      "lastSeen": 1783673226367,
+      "method": "GET",
+      "pathname": "/books/people/neotype/publications",
+      "queryParamNames": [
+        "limit",
+        "offset"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://api.zhihu.com/books/people/neotype/publications?offset=0&limit=5"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "",
+        "access-control-allow-methods": "GET, PATCH, PUT, POST, DELETE, OPTIONS",
+        "access-control-allow-origin": "https://www.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/books/people/neotype/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/html": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673225884,
+      "host": "api.zhihu.com",
+      "lastSeen": 1783673225884,
+      "method": "OPTIONS",
+      "pathname": "/books/people/neotype/publications",
+      "queryParamNames": [
+        "limit",
+        "offset"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://api.zhihu.com/books/people/neotype/publications?offset=0&limit=5"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "x-requested-with,x-zse-93,x-zse-96, X-Ab-Param, x-ab-pb, x-zst-82, x-ms-id,  x-zst-81, x-zse-83, x-zse-86, x-zse-93, x-zse-96, x-traffic-free, x-ac-udid, x-hd, x-app-version, x-du-bid, x-du-sid, x-frontend-encrypt",
+        "access-control-allow-methods": "GET, PATCH, PUT, POST, DELETE, OPTIONS",
+        "access-control-allow-origin": "https://www.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/books/people/neotype/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1783673221938,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673222108,
+      "method": "GET",
+      "pathname": "/api/v4/video/play/watermark_switch",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/video/play/watermark_switch"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/api/v4/video/play/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673222051,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673222051,
+      "method": "POST",
+      "pathname": "/api/v4/video/play/watermark",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/video/play/watermark"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/video/play/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673221887,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673221887,
+      "method": "POST",
+      "pathname": "/api/v4/video/play_info",
+      "queryParamNames": [
+        "r"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/video/play_info?r=20585627913180705062058536001786614313"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/video/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673221864,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673221864,
+      "method": "GET",
+      "pathname": "/api/v4/answers/2058536001786614313/labels/v3",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/answers/2058536001786614313/labels/v3"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/answers/{id}/labels/v3",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 3
+      },
+      "count": 3,
+      "firstSeen": 1783673211387,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673219333,
+      "method": "GET",
+      "pathname": "/api/v3/oauth/sms/supported_countries",
+      "queryParamNames": [
+        "version"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v3/oauth/sms/supported_countries?version=2026_188_4_6"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/api/v3/oauth/sms/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "auth-flow",
+          "versioned-api"
+        ],
+        "riskScore": 24,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673213757,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673213757,
+      "method": "GET",
+      "pathname": "/api/v4/account/list",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/account/list"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/account/list",
+      "securitySignals": {
+        "tags": [
+          "user-data",
+          "versioned-api"
+        ],
+        "riskScore": 24,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 3
+      },
+      "count": 3,
+      "firstSeen": 1783673128507,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673210374,
+      "method": "GET",
+      "pathname": "/api/v4/content/drafts/count",
+      "queryParamNames": [
+        "action"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/content/drafts/count?action=pin"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/api/v4/content/drafts/count",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 3
+      },
+      "count": 3,
+      "firstSeen": 1783673128201,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673210213,
+      "method": "GET",
+      "pathname": "/api/v4/home/sidebar",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/home/sidebar"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/api/v4/home/sidebar",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 3
+      },
+      "count": 3,
+      "firstSeen": 1783673128130,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673210083,
+      "method": "GET",
+      "pathname": "/api/v4/creators/extra_card",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/creators/extra_card"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/api/v4/{b64id}/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 6
+      },
+      "count": 6,
+      "firstSeen": 1783673177648,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673208739,
+      "method": "GET",
+      "pathname": "/api/v4/search/suggest",
+      "queryParamNames": [
+        "q"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 6
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/search/suggest?q=c",
+        "https://www.zhihu.com/api/v4/search/suggest?q=bi",
+        "https://www.zhihu.com/api/v4/search/suggest?q=gr",
+        "https://www.zhihu.com/api/v4/search/suggest?q=girl",
+        "https://www.zhihu.com/api/v4/search/suggest?q=%E9%A6%99%E6%B8%AF%E7%9F%A5%E5%90%8D%E7%94%9F%E6%AE%96%E4%B8%AD%E5%BF%83%E5%8F%91%E7%94%9F%E9%94%99%E9%85%8D%E4%BA%8B%E6%95%85"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 6
+      },
+      "templatedPath": "/api/v4/search/suggest",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 2,
+      "firstSeen": 1783673130022,
+      "host": "static.zhihu.com",
+      "lastSeen": 1783673205438,
+      "method": "GET",
+      "pathname": "/heifetz/search.xml",
+      "queryParamNames": [],
+      "resourceType": "other",
+      "resourceTypeHits": {
+        "other": 2
+      },
+      "sampleUrls": [
+        "https://static.zhihu.com/heifetz/search.xml"
+      ],
+      "scheme": "https",
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/heifetz/search.xml",
+      "securitySignals": {
+        "tags": [
+          "mostly-other-channel"
+        ],
+        "riskScore": 6,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 4
+      },
+      "count": 4,
+      "firstSeen": 1783673183228,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673205009,
+      "method": "GET",
+      "pathname": "/api/v4/search_v3",
+      "queryParamNames": [
+        "correction",
+        "filter_fields",
+        "gk_version",
+        "lc_idx",
+        "limit",
+        "offset",
+        "q",
+        "search_hash_id",
+        "search_source",
+        "show_all_topics",
+        "t",
+        "vertical_info",
+        "zhida_source"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 4
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/search_v3?gk_version=gz-gaokao&t=general&q=girl&correction=1&offset=0&limit=20&filter_fields=&lc_idx=0&show_all_topics=0&search_source=Normal&zhida_source=ai_search_general",
+        "https://www.zhihu.com/api/v4/search_v3?gk_version=gz-gaokao&t=general&q=grok&correction=1&offset=0&limit=20&filter_fields=&lc_idx=0&show_all_topics=0&search_source=Normal&zhida_source=ai_search_general",
+        "https://www.zhihu.com/api/v4/search_v3?gk_version=gz-gaokao&t=general&q=grok&correction=1&offset=20&limit=20&filter_fields=&lc_idx=20&show_all_topics=0&search_hash_id=b8988b395d06aedd4ea6574200c66f7a&search_source=Normal&zhida_source=ai_search_general&vertical_info=0%2C0%2C0%2C0%2C0%2C0%2C0%2C0%2C0%2C2%2C0%2C0",
+        "https://www.zhihu.com/api/v4/search_v3?gk_version=gz-gaokao&t=general&q=%E5%9F%83%E5%8F%8A%E8%B6%B3%E5%8D%8F%E6%AD%A3%E5%BC%8F%E7%94%B3%E8%AF%89+%E8%A6%81%E6%B1%82%E8%B0%83%E6%9F%A5%E4%B8%BB%E8%A3%81%E5%88%A4&correction=1&offset=0&limit=20&filter_fields=&lc_idx=0&show_all_topics=0&search_source=Trending&zhida_source=ai_search_general"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 4
+      },
+      "templatedPath": "/api/v4/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 3
+      },
+      "count": 3,
+      "firstSeen": 1783673182173,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673204283,
+      "method": "GET",
+      "pathname": "/api/v4/search/sidebar",
+      "queryParamNames": [
+        "q"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/search/sidebar?q=girl",
+        "https://www.zhihu.com/api/v4/search/sidebar?q=grok",
+        "https://www.zhihu.com/api/v4/search/sidebar?q=%E5%9F%83%E5%8F%8A%E8%B6%B3%E5%8D%8F%E6%AD%A3%E5%BC%8F%E7%94%B3%E8%AF%89+%E8%A6%81%E6%B1%82%E8%B0%83%E6%9F%A5%E4%B8%BB%E8%A3%81%E5%88%A4"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/api/v4/search/sidebar",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1783673187163,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673202284,
+      "method": "GET",
+      "pathname": "/api/v4/members/chieu-56/column-contributions",
+      "queryParamNames": [
+        "include",
+        "limit",
+        "offset"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/members/chieu-56/column-contributions?offset=0&limit=50&include=data%5B*%5D.column.articles_count%2Cvoteup_count"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/api/v4/members/{b64id}/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1783673187263,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673202023,
+      "method": "GET",
+      "pathname": "/api/v4/comment_v5/articles/16268662423/root_comment",
+      "queryParamNames": [
+        "limit",
+        "offset",
+        "order_by"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/comment_v5/articles/16268662423/root_comment?order_by=score&limit=20&offset=",
+        "https://www.zhihu.com/api/v4/comment_v5/articles/2058692076590706753/root_comment?order_by=score&limit=20&offset="
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/api/v4/{b64id}/{b64id}/{id}/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1783673186965,
+      "host": "zhuanlan.zhihu.com",
+      "lastSeen": 1783673202011,
+      "method": "GET",
+      "pathname": "/api/articles/16268662423/recommendation",
+      "queryParamNames": [
+        "include",
+        "limit",
+        "offset"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://zhuanlan.zhihu.com/api/articles/16268662423/recommendation?include=data%5B*%5D.article.column&limit=12&offset=0",
+        "https://zhuanlan.zhihu.com/api/articles/2058692076590706753/recommendation?include=data%5B*%5D.article.column&limit=12&offset=0"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/api/{b64id}/{id}/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1783673187132,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673201946,
+      "method": "GET",
+      "pathname": "/api/v4/comment_v5/articles/16268662423/config",
+      "queryParamNames": [
+        "show_ai_comment"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/comment_v5/articles/16268662423/config?show_ai_comment=",
+        "https://www.zhihu.com/api/v4/comment_v5/articles/2058692076590706753/config?show_ai_comment="
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/api/v4/{b64id}/{b64id}/{id}/config",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1783673186785,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673201931,
+      "method": "GET",
+      "pathname": "/api/v4/articles/16268662423/labels/v3",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/articles/16268662423/labels/v3",
+        "https://www.zhihu.com/api/v4/articles/2058692076590706753/labels/v3"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/api/v4/{b64id}/{id}/labels/v3",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1783673186927,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673201908,
+      "method": "GET",
+      "pathname": "/api/v4/unlimited/vip_rights/popup",
+      "queryParamNames": [
+        "token"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/unlimited/vip_rights/popup?token="
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "Authorization, Content-Type, X-API-Version, X-Traffic-Free, X-Requested-With, x-ab-param, x-ab-pb",
+        "access-control-allow-methods": "GET, PATCH, PUT, POST, DELETE, OPTIONS",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/api/v4/{b64id}/{b64id}/popup",
+      "securitySignals": {
+        "tags": [
+          "sensitive-query-param",
+          "versioned-api"
+        ],
+        "riskScore": 37,
+        "notes": [
+          "Query name “token” often carries secrets: verify leakage."
+        ]
+      }
+    },
+    {
+      "contentTypes": {
+        "text/html": 2
+      },
+      "count": 2,
+      "firstSeen": 1783673186728,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673201749,
+      "method": "OPTIONS",
+      "pathname": "/api/v4/comment_v5/articles/16268662423/root_comment",
+      "queryParamNames": [
+        "limit",
+        "offset",
+        "order_by"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/comment_v5/articles/16268662423/root_comment?order_by=score&limit=20&offset=",
+        "https://www.zhihu.com/api/v4/comment_v5/articles/2058692076590706753/root_comment?order_by=score&limit=20&offset="
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "X-Requested-With, X-Zse-93, X-Zse-96, x-zst-82, x-ms-id,  x-zst-81, x-zse-83, x-zse-86, x-zse-93, x-zse-96, x-traffic-free, x-ac-udid, x-hd, x-app-version, x-du-bid, x-du-sid, x-frontend-encrypt",
+        "access-control-allow-methods": "GET",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/api/v4/{b64id}/{b64id}/{id}/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/html": 2
+      },
+      "count": 2,
+      "firstSeen": 1783673201649,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673201707,
+      "method": "OPTIONS",
+      "pathname": "/api/v4/me",
+      "queryParamNames": [
+        "include"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/me?include=email%2Caccount_status%2Cis_bind_phone%2Cavailable_message_types%2Cdefault_notifications_count%2Cfollow_notifications_count%2Cvote_thank_notifications_count%2Cmessages_count%2Cis_org%2Cis_realname%2Cis_destroy_waiting",
+        "https://www.zhihu.com/api/v4/me?include=email%2Cis_active%2Cis_bind_phone"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "x-requested-with, x-zse-93, x-zse-96, x-zst-82, x-ms-id,  x-zst-81, x-zse-83, x-zse-86, x-zse-93, x-zse-96, x-traffic-free, x-ac-udid, x-hd, x-app-version, x-du-bid, x-du-sid, x-frontend-encrypt",
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/api/v4/me",
+      "securitySignals": {
+        "tags": [
+          "user-data",
+          "versioned-api"
+        ],
+        "riskScore": 24,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/html": 3
+      },
+      "count": 3,
+      "firstSeen": 1783673186629,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673201627,
+      "method": "OPTIONS",
+      "pathname": "/api/v4/articles/16268662423/relationship",
+      "queryParamNames": [
+        "desktop"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/articles/16268662423/relationship?desktop=true",
+        "https://www.zhihu.com/api/v4/articles/2058692076590706753/contribute_requests",
+        "https://www.zhihu.com/api/v4/articles/2058692076590706753/relationship?desktop=true"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "X-Requested-With, X-Zse-93, X-Zse-96, x-zst-82, x-ms-id,  x-zst-81, x-zse-83, x-zse-86, x-zse-93, x-zse-96, x-traffic-free, x-ac-udid, x-hd, x-app-version, x-du-bid, x-du-sid, x-frontend-encrypt",
+        "access-control-allow-methods": "GET",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/api/v4/{b64id}/{id}/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/html": 2
+      },
+      "count": 2,
+      "firstSeen": 1783673186687,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673201614,
+      "method": "OPTIONS",
+      "pathname": "/api/v4/members/tian-bao-tong-51",
+      "queryParamNames": [
+        "include"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/members/tian-bao-tong-51?include=xinzhi_creator%2Cjuror%2Clocations%2Cemployments%2Cgender%2Ceducations%2Cbusiness%2Cmcn_company%2Cvoteup_count%2Cthanked_Count%2Cfollower_count%2Cfollowing_count%2Ccover_url%2Cfollowing_topic_count%2Cfollowing_question_count%2Cfollowing_favlists_count%2Cfollowing_columns_count%2Cavatar_hue%2Canswer_count%2Czvideo_count%2Carticles_count%2Cpins_count%2Cquestion_count%2Ccolumns_count%2Ccommercial_question_count%2Cfavorite_count%2Cfavorited_count%2Cline_comment_count%2Cproject_count%2Clogs_count%2Cincluded_answers_count%2Cincluded_articles_count%2Cincluded_text%2Cmessage_thread_token%2Caccount_status%2Cis_intelligence%2Cis_active%2Cis_bind_phone%2Cis_force_renamed%2Cis_privacy_protected%2Cis_blocking%2Cis_blocked%2Chidden_following_members_by_user%2Cis_following%2Cis_followed%2Cmutual_followees_count%2Cvote_to_count%2Cvote_from_count%2Cthank_to_count%2Cthank_from_count%2Cthanked_count%2Cdescription%2Chosted_live_count%2Cparticipated_live_count%2Callow_message%2Cwidgets%2Crealname%2Cinstitution%2Cindustry_category%2Corg_name%2Corg_homepage%2Cis_org_createpin_white_user%2Cis_navigator%2Cbadge%5B%3F%28type%3Dbest_answerer%29%5D.topics",
+        "https://www.zhihu.com/api/v4/members/wei-jin-yan-jiu?include=xinzhi_creator%2Cjuror%2Clocations%2Cemployments%2Cgender%2Ceducations%2Cbusiness%2Cmcn_company%2Cvoteup_count%2Cthanked_Count%2Cfollower_count%2Cfollowing_count%2Ccover_url%2Cfollowing_topic_count%2Cfollowing_question_count%2Cfollowing_favlists_count%2Cfollowing_columns_count%2Cavatar_hue%2Canswer_count%2Czvideo_count%2Carticles_count%2Cpins_count%2Cquestion_count%2Ccolumns_count%2Ccommercial_question_count%2Cfavorite_count%2Cfavorited_count%2Cline_comment_count%2Cproject_count%2Clogs_count%2Cincluded_answers_count%2Cincluded_articles_count%2Cincluded_text%2Cmessage_thread_token%2Caccount_status%2Cis_intelligence%2Cis_active%2Cis_bind_phone%2Cis_force_renamed%2Cis_privacy_protected%2Cis_blocking%2Cis_blocked%2Chidden_following_members_by_user%2Cis_following%2Cis_followed%2Cmutual_followees_count%2Cvote_to_count%2Cvote_from_count%2Cthank_to_count%2Cthank_from_count%2Cthanked_count%2Cdescription%2Chosted_live_count%2Cparticipated_live_count%2Callow_message%2Cwidgets%2Crealname%2Cinstitution%2Cindustry_category%2Corg_name%2Corg_homepage%2Cis_org_createpin_white_user%2Cis_navigator%2Cbadge%5B%3F%28type%3Dbest_answerer%29%5D.topics"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "X-Requested-With, X-Zse-93, X-Zse-96, x-zst-82, x-ms-id,  x-zst-81, x-zse-83, x-zse-86, x-zse-93, x-zse-96, x-traffic-free, x-ac-udid, x-hd, x-app-version, x-du-bid, x-du-sid, x-frontend-encrypt",
+        "access-control-allow-methods": "GET",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/api/v4/members/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/html": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673201601,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673201601,
+      "method": "OPTIONS",
+      "pathname": "/api/v4/members/wei-jin-yan-jiu/relations/mutuals",
+      "queryParamNames": [
+        "include",
+        "limit",
+        "offset"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/members/wei-jin-yan-jiu/relations/mutuals?include=data%5B*%5D.answer_count%2Carticles_count%2Cgender%2Cfollower_count%2Cis_followed%2Cis_following%2Cbadge%5B%3F%28type%3Dbest_answerer%29%5D.topics&offset=0&limit=10"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "x-requested-with, x-zse-93, x-zse-96, x-zst-82, x-ms-id,  x-zst-81, x-zse-83, x-zse-86, x-zse-93, x-zse-96, x-traffic-free, x-ac-udid, x-hd, x-app-version, x-du-bid, x-du-sid, x-frontend-encrypt",
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/members/{b64id}/{b64id}/mutuals",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673197168,
+      "host": "accounts.youtube.com",
+      "lastSeen": 1783673197168,
+      "method": "POST",
+      "pathname": "/RotateCookies",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://accounts.youtube.com/RotateCookies"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "content-security-policy": "require-trusted-types-for 'script';report-uri https://csp.withgoogle.com/csp/IdentityRotateCookiesHttp",
+        "permissions-policy": "ch-ua-arch=*, ch-ua-bitness=*, ch-ua-full-version=*, ch-ua-full-version-list=*, ch-ua-model=*, ch-ua-wow64=*, ch-ua-form-factors=*, ch-ua-platform=*, ch-ua-platform-version=*",
+        "server": "ESF",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1783673191432,
+      "host": "crash2.zhihu.com",
+      "lastSeen": 1783673196334,
+      "method": "POST",
+      "pathname": "/api/1224/store/",
+      "queryParamNames": [
+        "sentry_client",
+        "sentry_key",
+        "sentry_version"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://crash2.zhihu.com/api/1224/store/?sentry_version=7&sentry_client=raven-js%2F3.24.0&sentry_key=2d8d764432cc4f6fb3bc78ab9528299d"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-origin": "*",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "429": 2
+      },
+      "templatedPath": "/api/{id}/store/",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1783673182246,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673195778,
+      "method": "GET",
+      "pathname": "/api/v4/search/recommend_query/v2",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/search/recommend_query/v2"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/api/v4/search/{b64id}/v2",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 12
+      },
+      "count": 12,
+      "firstSeen": 1783673187468,
+      "host": "mcs.volceapplog.com",
+      "lastSeen": 1783673194759,
+      "method": "POST",
+      "pathname": "/list",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 12
+      },
+      "sampleUrls": [
+        "https://mcs.volceapplog.com/list"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-methods": "GET, OPTIONS, HEAD, PUT, POST",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "server": "Tengine"
+      },
+      "statusCodes": {
+        "200": 12
+      },
+      "templatedPath": "/list",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/html": 3
+      },
+      "count": 3,
+      "firstSeen": 1783673188883,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673191279,
+      "method": "OPTIONS",
+      "pathname": "/api/v4/search/suggest",
+      "queryParamNames": [
+        "q"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/search/suggest?q=gr",
+        "https://www.zhihu.com/api/v4/search/suggest?q=g%E1%BB%8Fk",
+        "https://www.zhihu.com/api/v4/search/suggest?q=grok"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "X-Api-Version, X-App-Za, X-Requested-With, X-Zse-93, X-Zse-96, X-Zst-81, x-zst-82, x-ms-id,  x-zst-81, x-zse-83, x-zse-86, x-zse-93, x-zse-96, x-traffic-free, x-ac-udid, x-hd, x-app-version, x-du-bid, x-du-sid, x-frontend-encrypt",
+        "access-control-allow-methods": "GET",
+        "access-control-allow-origin": "*",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/api/v4/search/suggest",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673187877,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673187877,
+      "method": "OPTIONS",
+      "pathname": "/zbst/events/r",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/zbst/events/r"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "x-requested-with,x-zse-83, x-zst-82, x-ms-id,  x-zst-81, x-zse-83, x-zse-86, x-zse-93, x-zse-96, x-traffic-free, x-ac-udid, x-hd, x-app-version, x-du-bid, x-du-sid, x-frontend-encrypt",
+        "access-control-allow-methods": "POST, OPTIONS",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/zbst/events/r",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1783673187807,
+      "host": "zhihu-web-analytics.zhihu.com",
+      "lastSeen": 1783673187807,
+      "method": "OPTIONS",
+      "pathname": "/api/v3inv2/za/logs/batch",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://zhihu-web-analytics.zhihu.com/api/v3inv2/za/logs/batch"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-headers": "content-encoding, content-type, x-za-batch-size, x-za-clientid, x-za-log-version, x-za-platform, x-za-product",
+        "access-control-allow-methods": "POST",
+        "access-control-allow-origin": "*",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v3inv2/za/logs/batch",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1783673187794,
+      "host": "zhihu-web-analytics.zhihu.com",
+      "lastSeen": 1783673187794,
+      "method": "OPTIONS",
+      "pathname": "/api/v2/za/logs/batch",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://zhihu-web-analytics.zhihu.com/api/v2/za/logs/batch"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-headers": "content-encoding, content-type, x-za-batch-size, x-za-clientid, x-za-log-version, x-za-platform, x-za-product",
+        "access-control-allow-methods": "POST",
+        "access-control-allow-origin": "*",
+        "server": "BLB/25.05.0.3"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v2/za/logs/batch",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1783673187253,
+      "host": "mcs.volceapplog.com",
+      "lastSeen": 1783673187253,
+      "method": "OPTIONS",
+      "pathname": "/list",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://mcs.volceapplog.com/list"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "content-type",
+        "access-control-allow-methods": "GET, OPTIONS, HEAD, PUT, POST",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "server": "Tengine"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/list",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/html": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673187153,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673187153,
+      "method": "OPTIONS",
+      "pathname": "/api/v4/search/recommend_query/v2",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/search/recommend_query/v2"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "X-Requested-With, X-Zse-93, X-Zse-96, x-zst-82, x-ms-id,  x-zst-81, x-zse-83, x-zse-86, x-zse-93, x-zse-96, x-traffic-free, x-ac-udid, x-hd, x-app-version, x-du-bid, x-du-sid, x-frontend-encrypt",
+        "access-control-allow-methods": "GET",
+        "access-control-allow-origin": "*",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/search/{b64id}/v2",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673187141,
+      "host": "zhuanlan.zhihu.com",
+      "lastSeen": 1783673187141,
+      "method": "POST",
+      "pathname": "/lastread/touch",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://zhuanlan.zhihu.com/lastread/touch"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "201": 1
+      },
+      "templatedPath": "/{b64id}/touch",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "image/webp": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673187043,
+      "host": "pic1.zhimg.com",
+      "lastSeen": 1783673187043,
+      "method": "GET",
+      "pathname": "/70/v2-57d49156b8ed60b61dcd4f67b1630e4b_1440w.avis",
+      "queryParamNames": [
+        "biz_tag",
+        "source"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://pic1.zhimg.com/70/v2-57d49156b8ed60b61dcd4f67b1630e4b_1440w.avis?source=172ae18b&biz_tag=Post"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-origin": "*",
+        "server": "volc-dcdn",
+        "x-powered-by": "ImageX"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/{id}/v2-57d49156b8ed60b61dcd4f67b1630e4b_1440w.avis",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673186891,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673186891,
+      "method": "GET",
+      "pathname": "/api/v4/members/tian-bao-tong-51/relations/mutuals",
+      "queryParamNames": [
+        "include",
+        "limit",
+        "offset"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/members/tian-bao-tong-51/relations/mutuals?include=data%5B*%5D.answer_count%2Carticles_count%2Cgender%2Cfollower_count%2Cis_followed%2Cis_following%2Cbadge%5B%3F%28type%3Dbest_answerer%29%5D.topics&offset=0&limit=10"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/members/{b64id}/{b64id}/mutuals",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1783673186746,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673186746,
+      "method": "OPTIONS",
+      "pathname": "/api/v4/unlimited/vip_rights/popup",
+      "queryParamNames": [
+        "token"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/unlimited/vip_rights/popup?token="
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "Authorization, Content-Type, X-API-Version, X-Traffic-Free, X-Requested-With, x-ab-param, x-ab-pb, x-zst-82, x-ms-id,  x-zst-81, x-zse-83, x-zse-86, x-zse-93, x-zse-96, x-traffic-free, x-ac-udid, x-hd, x-app-version, x-du-bid, x-du-sid, x-frontend-encrypt",
+        "access-control-allow-methods": "GET, PATCH, PUT, POST, DELETE, OPTIONS",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "204": 1
+      },
+      "templatedPath": "/api/v4/{b64id}/{b64id}/popup",
+      "securitySignals": {
+        "tags": [
+          "sensitive-query-param",
+          "versioned-api"
+        ],
+        "riskScore": 37,
+        "notes": [
+          "Query name “token” often carries secrets: verify leakage."
+        ]
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673186700,
+      "host": "zhuanlan.zhihu.com",
+      "lastSeen": 1783673186700,
+      "method": "GET",
+      "pathname": "/api/v4/search/hot_search",
+      "queryParamNames": [
+        "content_token",
+        "content_type"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://zhuanlan.zhihu.com/api/v4/search/hot_search?content_type=article&content_token=16268662423"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/search/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/html": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673186658,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673186658,
+      "method": "OPTIONS",
+      "pathname": "/api/v4/me/switches",
+      "queryParamNames": [
+        "include"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/me/switches?include=is_creator"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "x-requested-with, x-zse-93, x-zse-96, x-zst-82, x-ms-id,  x-zst-81, x-zse-83, x-zse-86, x-zse-93, x-zse-96, x-traffic-free, x-ac-udid, x-hd, x-app-version, x-du-bid, x-du-sid, x-frontend-encrypt",
+        "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/me/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "user-data",
+          "versioned-api"
+        ],
+        "riskScore": 24,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/html": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673186640,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673186640,
+      "method": "OPTIONS",
+      "pathname": "/api/v4/articles/16268662423/labels/v3",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/articles/16268662423/labels/v3"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "X-Requested-With, X-Zse-93, X-Zse-96, x-zst-82, x-ms-id,  x-zst-81, x-zse-83, x-zse-86, x-zse-93, x-zse-96, x-traffic-free, x-ac-udid, x-hd, x-app-version, x-du-bid, x-du-sid, x-frontend-encrypt",
+        "access-control-allow-methods": "GET",
+        "access-control-allow-origin": "https://zhuanlan.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/{b64id}/{id}/labels/v3",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673185341,
+      "host": "zhida.zhihu.com",
+      "lastSeen": 1783673185341,
+      "method": "GET",
+      "pathname": "/ai_ingress/session/3740633785052804512/list",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://zhida.zhihu.com/ai_ingress/session/3740633785052804512/list"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/{b64id}/session/{id}/list",
+      "securitySignals": {
+        "tags": [
+          "auth-flow"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/html": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673184943,
+      "host": "zhida.zhihu.com",
+      "lastSeen": 1783673184943,
+      "method": "OPTIONS",
+      "pathname": "/ai_ingress/session/3740633785052804512/list",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://zhida.zhihu.com/ai_ingress/session/3740633785052804512/list"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "X-Requested-With, X-Zse-93, X-Zse-96, x-zst-82, x-ms-id,  x-zst-81, x-zse-83, x-zse-86, x-zse-93, x-zse-96, x-traffic-free, x-ac-udid, x-hd, x-app-version, x-du-bid, x-du-sid, x-frontend-encrypt",
+        "access-control-allow-methods": "GET",
+        "access-control-allow-origin": "https://www.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/{b64id}/session/{id}/list",
+      "securitySignals": {
+        "tags": [
+          "auth-flow"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673184740,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673184740,
+      "method": "GET",
+      "pathname": "/ai_ingress/session/3740633785052804512",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/ai_ingress/session/3740633785052804512"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/{b64id}/session/{id}",
+      "securitySignals": {
+        "tags": [
+          "auth-flow"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673184336,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673184336,
+      "method": "GET",
+      "pathname": "/ai_ingress/general/conf",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/ai_ingress/general/conf"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/{b64id}/general/conf",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/event-stream": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673184013,
+      "host": "zhida.zhihu.com",
+      "lastSeen": 1783673184013,
+      "method": "POST",
+      "pathname": "/ai_ingress/stream/completion",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://zhida.zhihu.com/ai_ingress/stream/completion"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/{b64id}/stream/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "sse"
+        ],
+        "riskScore": 5,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673183724,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673183724,
+      "method": "GET",
+      "pathname": "/ai_ingress/general/me",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/ai_ingress/general/me"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/{b64id}/general/me",
+      "securitySignals": {
+        "tags": [
+          "user-data"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 3
+      },
+      "count": 3,
+      "firstSeen": 1783673147892,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673169432,
+      "method": "GET",
+      "pathname": "/content/publish/configs",
+      "queryParamNames": [
+        "scene"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/content/publish/configs?scene=ring_config"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/content/publish/configs",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/plain": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673160942,
+      "host": "api.zhihu.com",
+      "lastSeen": 1783673160942,
+      "method": "POST",
+      "pathname": "/km_story/km_feed/last_read",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://api.zhihu.com/km_story/km_feed/last_read"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/{b64id}/km_feed/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/html": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673160774,
+      "host": "api.zhihu.com",
+      "lastSeen": 1783673160774,
+      "method": "OPTIONS",
+      "pathname": "/km_story/km_feed/last_read",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://api.zhihu.com/km_story/km_feed/last_read"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "Content-Type, X-Requested-With, X-Zse-93, X-Zse-96, X-Ab-Param, x-ab-pb, x-zst-82, x-ms-id,  x-zst-81, x-zse-83, x-zse-86, x-zse-93, x-zse-96, x-traffic-free, x-ac-udid, x-hd, x-app-version, x-du-bid, x-du-sid, x-frontend-encrypt",
+        "access-control-allow-methods": "POST",
+        "access-control-allow-origin": "https://www.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/{b64id}/km_feed/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673158318,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673158318,
+      "method": "GET",
+      "pathname": "/api/v4/creation_project/tags",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/creation_project/tags"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/{b64id}/tags",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673158290,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673158290,
+      "method": "GET",
+      "pathname": "/api/v4/creation_project/square/banners",
+      "queryParamNames": [
+        "source"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/creation_project/square/banners?source=project-square-banner-pc"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/{b64id}/square/banners",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1783673152923,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673157063,
+      "method": "GET",
+      "pathname": "/api/v3/moments",
+      "queryParamNames": [
+        "desktop",
+        "limit",
+        "moment_start_offset",
+        "offset",
+        "page_num"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v3/moments?limit=10&desktop=true",
+        "https://www.zhihu.com/api/v3/moments?offset=1783668140575&moment_start_offset=1783668140575&limit=10&page_num=1"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/api/v3/moments",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673154089,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673154089,
+      "method": "GET",
+      "pathname": "/api/v4/columns/c_155611518/pinned-items/v2",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/columns/c_155611518/pinned-items/v2"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/columns/{b64id}/{b64id}/v2",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673154081,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673154081,
+      "method": "POST",
+      "pathname": "/api/v4/column/feed/c_155611518/read",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/column/feed/c_155611518/read"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.zhihu.com",
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/column/feed/{b64id}/read",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673151840,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673151840,
+      "method": "GET",
+      "pathname": "/api/v4/column/recommend/web",
+      "queryParamNames": [
+        "limit"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/column/recommend/web?limit=10"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/column/{b64id}/web",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673151777,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673151777,
+      "method": "GET",
+      "pathname": "/api/v4/column/hot-ranking",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/column/hot-ranking"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/column/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673151767,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673151767,
+      "method": "GET",
+      "pathname": "/api/v4/column/subscribed/updates",
+      "queryParamNames": [
+        "limit"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/column/subscribed/updates?limit=2"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/column/{b64id}/updates",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673147826,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673147826,
+      "method": "GET",
+      "pathname": "/api/v3/moments/extra",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v3/moments/extra"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v3/moments/extra",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 10
+      },
+      "count": 10,
+      "firstSeen": 1783673129469,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673146223,
+      "method": "GET",
+      "pathname": "/api/v4/rings/v1/root_tab/recommend_web",
+      "queryParamNames": [
+        "limit",
+        "offset",
+        "page",
+        "session_id"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 10
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/rings/v1/root_tab/recommend_web?limit=10&offset=0",
+        "https://www.zhihu.com/api/v4/rings/v1/root_tab/recommend_web?limit=10&offset=0&page=2&session_id=98378de46d5117e6c3193413441cd165",
+        "https://www.zhihu.com/api/v4/rings/v1/root_tab/recommend_web?limit=10&offset=0&page=3&session_id=5bf711d942c7f8d2841173b18446ea71",
+        "https://www.zhihu.com/api/v4/rings/v1/root_tab/recommend_web?limit=10&offset=0&page=4&session_id=c74c88c5be7b7be692e452b9c357b860",
+        "https://www.zhihu.com/api/v4/rings/v1/root_tab/recommend_web?limit=10&offset=0&page=5&session_id=ba7111c735f281c2adc7ed594035b693"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 10
+      },
+      "templatedPath": "/api/v4/rings/v1/{b64id}/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673136147,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673136147,
+      "method": "GET",
+      "pathname": "/api/v4/rings/v1/1941485371083952473/ring/friend",
+      "queryParamNames": [
+        "limit",
+        "offset"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/rings/v1/1941485371083952473/ring/friend?limit=20&offset=0"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/rings/v1/{id}/ring/friend",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673136095,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673136095,
+      "method": "GET",
+      "pathname": "/api/v4/rings/v1/1941485371083952473/invite/recommend",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/rings/v1/1941485371083952473/invite/recommend"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/rings/v1/{id}/invite/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673136032,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673136032,
+      "method": "GET",
+      "pathname": "/api/v4/rings/v1/1941485371083952473/rank",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/rings/v1/1941485371083952473/rank"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/rings/v1/{id}/rank",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673135959,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673135959,
+      "method": "GET",
+      "pathname": "/api/v4/rings/v1/my",
+      "queryParamNames": [
+        "scene"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/rings/v1/my?scene=pc"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/rings/v1/my",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673135888,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673135888,
+      "method": "GET",
+      "pathname": "/api/v4/rings/v1/1941485371083952473/banner",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/rings/v1/1941485371083952473/banner"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/rings/v1/{id}/banner",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673135877,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673135877,
+      "method": "GET",
+      "pathname": "/api/v4/rings/v1/1941485371083952473",
+      "queryParamNames": [
+        "tab"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/rings/v1/1941485371083952473?tab=hot"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/rings/v1/{id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673135635,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673135635,
+      "method": "GET",
+      "pathname": "/api/v4/rings/v1/1941485371083952473/cards",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/rings/v1/1941485371083952473/cards"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/rings/v1/{id}/cards",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673135563,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673135563,
+      "method": "GET",
+      "pathname": "/api/v4/rings/v1/1941485371083952473/check_in",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/rings/v1/1941485371083952473/check_in"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/rings/v1/{id}/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673135557,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673135557,
+      "method": "GET",
+      "pathname": "/api/v4/rings/v1/1941485371083952473/check_in/award",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/rings/v1/1941485371083952473/check_in/award"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/rings/v1/{id}/{b64id}/award",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/vnd.yt-ump": 5
+      },
+      "count": 5,
+      "firstSeen": 1783673120139,
+      "host": "rr3---sn-42u-q5q6.googlevideo.com",
+      "lastSeen": 1783673132233,
+      "method": "POST",
+      "pathname": "/videoplayback",
+      "queryParamNames": [
+        "alr",
+        "c",
+        "cpn",
+        "cps",
+        "cver",
+        "ei",
+        "expire",
+        "fexp",
+        "fvip",
+        "id",
+        "initcwndbps",
+        "ip",
+        "keepalive",
+        "lsig",
+        "lsparams",
+        "met",
+        "mh",
+        "mm",
+        "mn",
+        "ms",
+        "mt",
+        "mv",
+        "mvi",
+        "n",
+        "ns",
+        "pl",
+        "requiressl",
+        "rms",
+        "rn",
+        "rqh",
+        "sabr",
+        "sig",
+        "siu",
+        "source",
+        "sparams",
+        "spc",
+        "svpuc",
+        "xpc"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 5
+      },
+      "sampleUrls": [
+        "https://rr3---sn-42u-q5q6.googlevideo.com/videoplayback?expire=1783694495&ei=P7BQaoj_EtDG1d8P5_K4-Ak&ip=118.70.188.147&id=o-AFyTByHWAihNjoX4nT5BX6GmOUlSTXDI6rxmjGz0Fz7X&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&cps=725&met=1783672895%2C&mh=Ah&mm=31%2C29&mn=sn-42u-q5q6%2Csn-42u-i5olk&ms=au%2Crdu&mv=m&mvi=3&pl=24&rms=au%2Cau&initcwndbps=3303750&siu=1&spc=SQ-ums3mttcn5iBgg4BSPeZ0J5TcI3N_lhXV_yESvkM-RLkUXR28&svpuc=1&ns=d_yaJSWlCM6JBXbk2ybNj30W&sabr=1&rqh=1&mt=1783672643&fvip=2&keepalive=yes&fexp=51565116%2C51946837%2C51992868%2C52016551%2C52017147&c=WEB&n=uT-lgiKyKoShvw&sparams=expire%2Cei%2Cip%2Cid%2Csource%2Crequiressl%2Cxpc%2Csiu%2Cspc%2Csvpuc%2Cns%2Csabr%2Crqh&sig=AHEqNM4wRAIgEeCMlA-EmYZdaE1vcCZHPC-bZ6L4ibGm_AODhvk7FuMCIAQLsbBksh9QyYtY3BsG_clvTvYj8p9IjGC033RJmZkf&lsparams=cps%2Cmet%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpl%2Crms%2Cinitcwndbps&lsig=APaTxxMwRAIgFMILk-tUeVuaT_bEx4Jn0ue-CCF4uzeNF0zR1P924_gCICBg860XI3lNYUZmIHGkJtT5qeQtAsz0Qg_QdNlMlHlj&cpn=1kuZ9dblZPYJuVNC&cver=2.20260708.00.00&rn=1616&alr=yes",
+        "https://rr3---sn-42u-q5q6.googlevideo.com/videoplayback?expire=1783694495&ei=P7BQaoj_EtDG1d8P5_K4-Ak&ip=118.70.188.147&id=o-AFyTByHWAihNjoX4nT5BX6GmOUlSTXDI6rxmjGz0Fz7X&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&cps=725&met=1783672895%2C&mh=Ah&mm=31%2C29&mn=sn-42u-q5q6%2Csn-42u-i5olk&ms=au%2Crdu&mv=m&mvi=3&pl=24&rms=au%2Cau&initcwndbps=3303750&siu=1&spc=SQ-ums3mttcn5iBgg4BSPeZ0J5TcI3N_lhXV_yESvkM-RLkUXR28&svpuc=1&ns=d_yaJSWlCM6JBXbk2ybNj30W&sabr=1&rqh=1&mt=1783672643&fvip=2&keepalive=yes&fexp=51565116%2C51946837%2C51992868%2C52016551%2C52017147&c=WEB&n=uT-lgiKyKoShvw&sparams=expire%2Cei%2Cip%2Cid%2Csource%2Crequiressl%2Cxpc%2Csiu%2Cspc%2Csvpuc%2Cns%2Csabr%2Crqh&sig=AHEqNM4wRAIgEeCMlA-EmYZdaE1vcCZHPC-bZ6L4ibGm_AODhvk7FuMCIAQLsbBksh9QyYtY3BsG_clvTvYj8p9IjGC033RJmZkf&lsparams=cps%2Cmet%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpl%2Crms%2Cinitcwndbps&lsig=APaTxxMwRAIgFMILk-tUeVuaT_bEx4Jn0ue-CCF4uzeNF0zR1P924_gCICBg860XI3lNYUZmIHGkJtT5qeQtAsz0Qg_QdNlMlHlj&cpn=1kuZ9dblZPYJuVNC&cver=2.20260708.00.00&rn=1617&alr=yes",
+        "https://rr3---sn-42u-q5q6.googlevideo.com/videoplayback?expire=1783694495&ei=P7BQaoj_EtDG1d8P5_K4-Ak&ip=118.70.188.147&id=o-AFyTByHWAihNjoX4nT5BX6GmOUlSTXDI6rxmjGz0Fz7X&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&cps=725&met=1783672895%2C&mh=Ah&mm=31%2C29&mn=sn-42u-q5q6%2Csn-42u-i5olk&ms=au%2Crdu&mv=m&mvi=3&pl=24&rms=au%2Cau&initcwndbps=3303750&siu=1&spc=SQ-ums3mttcn5iBgg4BSPeZ0J5TcI3N_lhXV_yESvkM-RLkUXR28&svpuc=1&ns=d_yaJSWlCM6JBXbk2ybNj30W&sabr=1&rqh=1&mt=1783672643&fvip=2&keepalive=yes&fexp=51565116%2C51946837%2C51992868%2C52016551%2C52017147&c=WEB&n=uT-lgiKyKoShvw&sparams=expire%2Cei%2Cip%2Cid%2Csource%2Crequiressl%2Cxpc%2Csiu%2Cspc%2Csvpuc%2Cns%2Csabr%2Crqh&sig=AHEqNM4wRAIgEeCMlA-EmYZdaE1vcCZHPC-bZ6L4ibGm_AODhvk7FuMCIAQLsbBksh9QyYtY3BsG_clvTvYj8p9IjGC033RJmZkf&lsparams=cps%2Cmet%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpl%2Crms%2Cinitcwndbps&lsig=APaTxxMwRAIgFMILk-tUeVuaT_bEx4Jn0ue-CCF4uzeNF0zR1P924_gCICBg860XI3lNYUZmIHGkJtT5qeQtAsz0Qg_QdNlMlHlj&cpn=1kuZ9dblZPYJuVNC&cver=2.20260708.00.00&rn=1618&alr=yes",
+        "https://rr3---sn-42u-q5q6.googlevideo.com/videoplayback?expire=1783694495&ei=P7BQaoj_EtDG1d8P5_K4-Ak&ip=118.70.188.147&id=o-AFyTByHWAihNjoX4nT5BX6GmOUlSTXDI6rxmjGz0Fz7X&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&cps=725&met=1783672895%2C&mh=Ah&mm=31%2C29&mn=sn-42u-q5q6%2Csn-42u-i5olk&ms=au%2Crdu&mv=m&mvi=3&pl=24&rms=au%2Cau&initcwndbps=3303750&siu=1&spc=SQ-ums3mttcn5iBgg4BSPeZ0J5TcI3N_lhXV_yESvkM-RLkUXR28&svpuc=1&ns=d_yaJSWlCM6JBXbk2ybNj30W&sabr=1&rqh=1&mt=1783672643&fvip=2&keepalive=yes&fexp=51565116%2C51946837%2C51992868%2C52016551%2C52017147&c=WEB&n=uT-lgiKyKoShvw&sparams=expire%2Cei%2Cip%2Cid%2Csource%2Crequiressl%2Cxpc%2Csiu%2Cspc%2Csvpuc%2Cns%2Csabr%2Crqh&sig=AHEqNM4wRAIgEeCMlA-EmYZdaE1vcCZHPC-bZ6L4ibGm_AODhvk7FuMCIAQLsbBksh9QyYtY3BsG_clvTvYj8p9IjGC033RJmZkf&lsparams=cps%2Cmet%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpl%2Crms%2Cinitcwndbps&lsig=APaTxxMwRAIgFMILk-tUeVuaT_bEx4Jn0ue-CCF4uzeNF0zR1P924_gCICBg860XI3lNYUZmIHGkJtT5qeQtAsz0Qg_QdNlMlHlj&cpn=1kuZ9dblZPYJuVNC&cver=2.20260708.00.00&rn=1619&alr=yes",
+        "https://rr3---sn-42u-q5q6.googlevideo.com/videoplayback?expire=1783694495&ei=P7BQaoj_EtDG1d8P5_K4-Ak&ip=118.70.188.147&id=o-AFyTByHWAihNjoX4nT5BX6GmOUlSTXDI6rxmjGz0Fz7X&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&cps=725&met=1783672895%2C&mh=Ah&mm=31%2C29&mn=sn-42u-q5q6%2Csn-42u-i5olk&ms=au%2Crdu&mv=m&mvi=3&pl=24&rms=au%2Cau&initcwndbps=3303750&siu=1&spc=SQ-ums3mttcn5iBgg4BSPeZ0J5TcI3N_lhXV_yESvkM-RLkUXR28&svpuc=1&ns=d_yaJSWlCM6JBXbk2ybNj30W&sabr=1&rqh=1&mt=1783672643&fvip=2&keepalive=yes&fexp=51565116%2C51946837%2C51992868%2C52016551%2C52017147&c=WEB&n=uT-lgiKyKoShvw&sparams=expire%2Cei%2Cip%2Cid%2Csource%2Crequiressl%2Cxpc%2Csiu%2Cspc%2Csvpuc%2Cns%2Csabr%2Crqh&sig=AHEqNM4wRAIgEeCMlA-EmYZdaE1vcCZHPC-bZ6L4ibGm_AODhvk7FuMCIAQLsbBksh9QyYtY3BsG_clvTvYj8p9IjGC033RJmZkf&lsparams=cps%2Cmet%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpl%2Crms%2Cinitcwndbps&lsig=APaTxxMwRAIgFMILk-tUeVuaT_bEx4Jn0ue-CCF4uzeNF0zR1P924_gCICBg860XI3lNYUZmIHGkJtT5qeQtAsz0Qg_QdNlMlHlj&cpn=1kuZ9dblZPYJuVNC&cver=2.20260708.00.00&rn=1620&alr=yes"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.youtube.com",
+        "server": "gvs 1.0",
+        "x-content-type-options": "nosniff"
+      },
+      "statusCodes": {
+        "200": 5
+      },
+      "templatedPath": "/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673128904,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673128904,
+      "method": "GET",
+      "pathname": "/api/v4/rings/v1/root_tab",
+      "queryParamNames": [
+        "scene"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/api/v4/rings/v1/root_tab?scene=pcweb"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.12.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/v4/rings/v1/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1783673128103,
+      "host": "www.zhihu.com",
+      "lastSeen": 1783673128103,
+      "method": "GET",
+      "pathname": "/commercial_api/banners_v3/home_up",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.zhihu.com/commercial_api/banners_v3/home_up"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "referrer-policy": "no-referrer-when-downgrade",
+        "server": "BLB/25.11.0.2"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/{b64id}/{b64id}/home_up",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    }
+  ]
+}

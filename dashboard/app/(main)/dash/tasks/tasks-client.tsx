@@ -563,21 +563,27 @@ export default function TasksClient({ initialTasks, initialError }: TasksClientP
                         )}
                         {task.metadata?.progress && (
                           <span className="text-[10px] font-semibold text-muted-foreground ml-1">
-                            Video: {task.metadata.progress.current}/{task.metadata.progress.target}
+                            Đã lưu: {task.metadata.progress.current}/{task.metadata.progress.target}
                           </span>
                         )}
                       </div>
                       {task.status === "running" && task.metadata?.phase && (
                         <div className="text-[9.5px] font-medium text-blue-500 dark:text-blue-400 mt-0.5 flex items-center gap-1 select-none">
                           <span className="inline-block size-1 bg-blue-500 rounded-full animate-ping" style={{ animationDuration: '2s' }} />
-                          {task.metadata.phase === "collecting_posts" && "Đang thu thập video"}
+                          {task.metadata.phase === "collecting_posts" && (
+                            ["bilibili", "douyin", "kuaishou"].includes(task.platform)
+                              ? "Đang thu thập video"
+                              : "Đang thu thập bài đăng"
+                          )}
                           {task.metadata.phase === "crawling_comments" && (
                             <>
                               Đang cào bình luận
                               {task.metadata.comment_progress ? (
-                                ` ${task.metadata.comment_progress.current}/${task.metadata.comment_progress.target} video`
+                                ` ${task.metadata.comment_progress.current}/${task.metadata.comment_progress.target} ${
+                                  ["bilibili", "douyin", "kuaishou"].includes(task.platform) ? "video" : "bài"
+                                }`
                               ) : (
-                                " video"
+                                ["bilibili", "douyin", "kuaishou"].includes(task.platform) ? " video" : " bài"
                               )}
                             </>
                           )}

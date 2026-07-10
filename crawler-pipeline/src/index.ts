@@ -2,11 +2,6 @@
  * # File entrypoint khởi chạy CLI và Queue Worker
  */
 
-import { bootstrapSession } from "./sign/browser_sign.js";
-import { saveSession } from "./sign/session_store.js";
-import { closeBrowser as closeDouyinBrowser } from "./crawl/douyin/index.js";
-import { closeBrowser as closeZhihuBrowser } from "./crawl/zhihu/index.js";
-import { closeBrowser as closeBilibiliBrowser } from "./crawl/bilibili/index.js";
 import { join } from "node:path";
 import { CrawlerFactory } from "./crawl/crawler_factory.js";
 import { PlatformType } from "./constant/index.js";
@@ -54,10 +49,7 @@ async function main() {
     const command = args[0];
 
     if (command === "bootstrap") {
-      const profileDir = args[1] || join(process.cwd(), "output", "profiles", "douyin");
-      const sessionData = await bootstrapSession(profileDir);
-      await saveSession(sessionData);
-      return;
+      throw new Error("Lệnh bootstrap đã bị gỡ bỏ. Vui lòng cung cấp session/cookie hợp lệ.");
     }
 
     if (command === "crawl") {
@@ -141,13 +133,9 @@ async function main() {
       return;
     }
 
-    throw new Error("Lệnh không hợp lệ. Các lệnh hỗ trợ: bootstrap, crawl <url_or_id>, creator <url_or_uid>, search <keyword> [max_count], comments <id> [max_count], add-account <platform> <username> <cookie_or_json_file_path>, refresh");
+    throw new Error("Lệnh không hợp lệ. Các lệnh hỗ trợ: crawl <url_or_id>, creator <url_or_uid>, search <keyword> [max_count], comments <id> [max_count], add-account <platform> <username> <cookie_or_json_file_path>, refresh");
   } finally {
-    await Promise.all([
-      closeDouyinBrowser().catch(() => {}),
-      closeZhihuBrowser().catch(() => {}),
-      closeBilibiliBrowser().catch(() => {})
-    ]);
+    // Không còn browser context để dọn dẹp
   }
 }
 

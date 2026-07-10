@@ -46,7 +46,7 @@
 
 ## 2026-07-02 — Cơ chế Chống chặn Bilibili Crawler trên Windows
 - **Bối cảnh:** Bilibili chặn request trên Windows do thiếu spoofing JA3.
-- **Quyết định:** Dùng `CloakBrowser` gửi request qua `page.evaluate`, tự động đồng bộ cookie, ưu tiên `BILIBILI_COOKIE` từ env.
+- **Quyết định:** [SUPERSEDED by 2026-07-10 ADR] Trước đây dùng `CloakBrowser` gửi request qua `page.evaluate`. Hiện đã thay thế hoàn toàn bằng mô hình HTTP-only.
 
 ## 2026-07-02 — Gỡ bỏ hoàn toàn OpenAI
 - **Bối cảnh:** Yêu cầu dọn sạch OpenAI khỏi dự án.
@@ -194,26 +194,30 @@
 ## 2026-07-09 — Thống nhất Lộ trình Desktop App & Nguyên tắc Portable-First
 - **Bối cảnh:** Cần xác định rõ ranh giới và thứ tự ưu tiên cho việc phát triển Desktop App.
 - **Quyết định:**
-  1. **Nguyên tắc Portable-First**: Ưu tiên "chạy độc lập thật" (Portable) trước, "cài đặt bộ cài" (Inno Setup) sau, "UI shell native" (Tauri/Electron) sau cùng.
-  2. **Thứ tự thực thi**: Chốt Portable Runtime -> Smoke test sạch -> Inno Setup -> Config UI -> Worker control UI -> Supabase Cloud Integration -> Auto-update.
-  3. **Tách biệt Cloud và Config**: Giữ kết nối Supabase Cloud ở sau cùng.
-- **Đánh đổi:** UI shell tạm thời sử dụng script launcher và Launcher C# CLI (`SinoMedia.exe`) thay vì Tauri/Electron UI.
+  1. **Nguyên tắc Portable-First**: Ưu tiên "chạy độc lập thật" (Po- **Evidence:** `tsc --noEmit` pass, `npm run build` pass, build output xác nhận không còn `/api/creative/*`.
+- **Revisit trigger:** Cần public API cho creative data, hoặc cần thêm HTTP methods cho worker API.
 
-## 2026-07-09 — Loại bỏ Mock Auth Bypass & Gia cố Server Actions Hệ thống [initiative: Security Hardening]
-- **Bối cảnh:** Mock session cookies cho phép bypass xác thực trên môi trường local, gây rò rỉ nếu lọt lên production.
-- **Quyết định:**
-  1. **Loại bỏ triệt để Mock Auth** khỏi toàn bộ auth flow.
-  2. **Yêu cầu Xác thực thật**: Viết script `create-dev-admin.ts` cho tài khoản local.
-  3. **Lớp Guard App-level cho System Actions**: Bọc `requireAdmin()` và `verifyCSRF()`.
-  4. **Không leak Audit Action**: Gỡ bỏ export `logAuditEvent` ra client.
-- **Hậu quả:** Hệ thống đạt chuẩn bảo mật fail-closed tuyệt đối.
+## 2026-07-10 — Phòng chống Brute-force Đăng nhập bằng Turnstile Invisible & Hardening Rate Limit [initiative: Security Hardening]
+- **Context:** Đánh giá bảo mật phát hiện hệ thống không có rate limiting ở application layer, dẫn đến nguy cơ brute-force mật khẩu và lạm dụng API qua các auth server actions.
+- **Options considered:**
+  - A: Triển khai rate limiting ở Next.js Middleware hoặc dùng thư viện bên ngoài (Upstash).
+  - B: Tích hợp Cloudflare Turnstile Invisible Captcha và siết chặt cấu hình Supabase auth rate limit/password policy (Được chọn vì chi phí UX bằng 0 và tích hợp native với Supabase Auth).
+- **Decision:**
+  1. Siết cấu hình auth trong [config.toml](file:///d:/Python/SinoMedia/supabase/config.toml): tăng chiều dài mật khẩu tối thiểu lên 8 ký tự, bật yêu cầu có chữ và số (`letters_digits`), giảm giới hạn login/signup mỗi IP từ 30 xuống 10 lần trong 5 phút.
+  2. Tích hợp `@marsidev/react-turnstile` để kích hoạt Turnstile Invisible Captcha chạy ẩn ở background cho cả [login-form.tsx](file:///d:/Python/SinoMedia/dashboard/app/(auth)/login/login-form.tsx) và [sign-up-form.tsx](file:///d:/Python/SinoMedia/dashboard/app/(auth)/sign-up/sign-up-form.tsx).
+  3. Cập nhật `AuthService`, `loginAction` và `signUpAction` để truyền `captchaToken` vào Supabase options khi xác thực.
+- **Trade-off:** Cần cấu hình `NEXT_PUBLIC_TURNSTILE_SITE_KEY` và `[auth.captcha]` (Turnstile secret) cho Supabase ở môi trường dev nếu muốn kiểm thử captcha cục bộ.
+- **Revisit trigger:** Khi Cloudflare Turnstile thay đổi API hoặc Supabase thay đổi cách handle captcha verification.
 
-## 2026-07-09 — Bảo mật Cấu hình hệ thống (Settings Server Boundary & Webhook Encryption) [initiative: Security Hardening]
-- **Bối cảnh:** Cấu hình hệ thống (API Key, Webhook URL) được lưu tại `localStorage` ở client, tạo ra rò rỉ bảo mật nghiêm trọng.
-- **Quyết định:**
-  1. Di chuyển cấu hình từ `localStorage` sang bảng `system_settings` trong Supabase, bảo vệ bằng RLS admin-only.
-  2. Mã hóa `api_key` và `default_webhook_url` bằng `aes-256-cbc` trước khi ghi DB.
-  3. Browser client chỉ nhận thông tin đã che dấu (sanitized props).
+## 2026-07-10 — Loại bỏ CloakBrowser & Chuyển sang Kiến trúc HTTP-First [initiative: deprecate-browser-interactive]
+- **Context:** `CloakBrowser` là một dependency trình duyệt tương tác nặng nề, chỉ chạy được ở môi trường local và gây phức tạp cho Docker/Production. Nó được dùng cho cơ chế đăng nhập thủ công/QR dự phòng.
+- **Options considered:**
+  - A: Cập nhật `CloakBrowser` và duy trì luồng login tương tác.
+  - B: Loại bỏ hoàn toàn `CloakBrowser` và chuyển hợp đồng crawler sang "HTTP-first, fail-fast nếu không có session/cookie hợp lệ". (Được chọn).
+- **Decision:** Chọn B. Gỡ bỏ `cloakbrowser` khỏi `package.json`, xóa các file `login.ts` và `browser_sign.ts` liên quan đến login tương tác. Cập nhật `ensureLogin` của 6 platform để quăng lỗi báo hết hạn session/cookie thay vì khởi tạo trình duyệt.
+- **Trade-off:** Các platform chưa có HTTP-only parity (XHS, Weibo, Tieba, Kuaishou) sẽ không thể cào nếu không được nạp sẵn cookie hợp lệ từ trước.
+- **Evidence:** `npx tsc --noEmit` pass, dependencies sạch bóng `cloakbrowser`.
+- **Revisit trigger:** Khi có nhu cầu phát triển công cụ tự động hóa cấp credential mới từ dashboard.��n thông tin đã che dấu (sanitized props).
   4. Server Action `saveSettingsAction` áp dụng đầy đủ guards và ghi log audit event không lưu thô.
 - **Hậu quả:** Bảo vệ tuyệt đối secrets ở cả REST API, database và audit logs.
 

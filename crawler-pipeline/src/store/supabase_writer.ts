@@ -392,6 +392,35 @@ export async function updateTaskPhase(taskId: string | null | undefined, phase: 
 }
 
 /**
+ * # Cập nhật metadata chung của task (hỗ trợ patch một phần)
+ */
+export async function updateTaskMetadata(taskId: string | null | undefined, patch: Record<string, any>): Promise<void> {
+  if (!taskId) return;
+  try {
+    const res = await supabaseRest("crawler_tasks", {
+      method: "GET",
+      params: {
+        id: `eq.${taskId}`,
+        select: "metadata"
+      }
+    });
+    if (Array.isArray(res) && res[0]) {
+      const metadata = { ...(res[0].metadata || {}), ...patch };
+      await supabaseRest("crawler_tasks", {
+        method: "PATCH",
+        params: { id: `eq.${taskId}` },
+        body: {
+          metadata,
+          updated_at: new Date().toISOString(),
+        }
+      });
+    }
+  } catch (err) {
+    console.error(`Lỗi khi cập nhật metadata của task: ${(err as Error).message}`);
+  }
+}
+
+/**
  * # Cập nhật tiến độ cào bình luận của task vào metadata
  */
 export async function updateTaskCommentProgress(taskId: string | null | undefined, current: number, target: number): Promise<void> {

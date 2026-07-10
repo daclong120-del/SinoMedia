@@ -127,102 +127,7 @@ export async function saveBilibiliCookie(cookie: string): Promise<void> {
   await writeFile(sessionPath, JSON.stringify({ cookie, updatedAt: new Date().toISOString() }, null, 2), "utf8");
 }
 
-let browserContext: any = null;
-let browserPage: any = null;
-
-/**
- * # Lấy trang browser từ CloakBrowser dùng để nạp cookie và đăng nhập
- */
-async function getBrowserPage() {
-  if (browserPage) {
-    return browserPage;
-  }
-  const { launchPersistentContext } = await import("cloakbrowser");
-  const { join } = await import("node:path");
-  const profileDir = join(process.cwd(), "output", "profiles", "bilibili");
-  const launchOptions: any = {
-    userDataDir: profileDir,
-    headless: CONFIG.headless,
-    geoip: true,
-    humanize: true,
-  };
-  if (CONFIG.proxy) {
-    launchOptions.proxy = CONFIG.proxy;
-  }
-  browserContext = await launchPersistentContext(launchOptions);
-  try {
-    const cookieStr = await loadBilibiliCookie();
-    if (cookieStr) {
-      const cookieDict: Record<string, string> = {};
-      for (const pair of cookieStr.split(";")) {
-        const trimmed = pair.trim();
-        const eqIndex = trimmed.indexOf("=");
-        if (eqIndex > 0) {
-          const name = trimmed.substring(0, eqIndex).trim();
-          const value = trimmed.substring(eqIndex + 1).trim();
-          if (name) {
-            cookieDict[name] = value;
-          }
-        }
-      }
-      const cookieObjects = Object.entries(cookieDict).map(([name, value]) => ({
-        name,
-        value,
-        domain: ".bilibili.com",
-        path: "/",
-      }));
-      await browserContext.addCookies(cookieObjects);
-    }
-  } catch (err) {
-    console.log("Không thể nạp cookie vào trình duyệt:", err);
-  }
-
-  const pages = browserContext.pages();
-  browserPage = pages[0] || (await browserContext.newPage());
-  await browserPage.route("**/*", (route: any) => {
-    const type = route.request().resourceType();
-    if (["image", "media", "font", "stylesheet"].includes(type)) {
-      route.abort();
-    } else {
-      route.continue();
-    }
-  });
-
-  activeUserAgent = await browserPage.evaluate(() => navigator.userAgent);
-  await browserPage.goto("https://www.bilibili.com", {
-    waitUntil: "load",
-    timeout: 60000,
-  }).catch(() => {});
-
-  const actualCookies = await browserContext.cookies();
-  const actualCookieStr = actualCookies.map((c: any) => `${c.name}=${c.value}`).join("; ");
-  if (!process.env.BILIBILI_COOKIE) {
-    await saveBilibiliCookie(actualCookieStr);
-  }
-
-  return browserPage;
-}
-
-/**
- * # Lấy browserContext phục vụ đăng nhập
- */
-export async function getBrowserContext() {
-  if (!browserContext) {
-    await getBrowserPage();
-  }
-  return browserContext;
-}
-
-/**
- * # Đóng CloakBrowser giải phóng tài nguyên khi hoàn thành đăng nhập
- */
-export async function closeBrowser(): Promise<void> {
-  if (browserContext) {
-    await browserContext.close();
-    browserContext = null;
-    browserPage = null;
-  }
-}
+// browserContext, browserPage, getBrowserPage, getBrowserContext and closeBrowser removed
 
 /**
  * # Gửi request HTTP thô lên API Bilibili và trả về JSON data
@@ -329,35 +234,7 @@ export async function pong(): Promise<boolean> {
  * # Lấy img_key và sub_key từ Bilibili API để phục vụ ký WBI
  */
 async function fetchWbiKeys(): Promise<{ imgKey: string; subKey: string }> {
-  if (browserPage) {
-    try {
-      const keys = await browserPage.evaluate(() => {
-        const getUrlKey = (url: string) => {
-          if (!url) return "";
-          const parts = url.split("/");
-          const filename = parts[parts.length - 1];
-          return filename.split(".")[0];
-        };
-        const local = window.localStorage;
-        const wbiImgUrls = local.getItem("wbi_img_urls");
-        if (wbiImgUrls && wbiImgUrls.includes("-")) {
-          const [img, sub] = wbiImgUrls.split("-");
-          return { imgKey: getUrlKey(img), subKey: getUrlKey(sub) };
-        }
-        const img = local.getItem("wbi_img_url");
-        const sub = local.getItem("wbi_sub_url");
-        if (img && sub) {
-          return { imgKey: getUrlKey(img), subKey: getUrlKey(sub) };
-        }
-        return null;
-      });
-      if (keys && keys.imgKey && keys.subKey) {
-        return keys;
-      }
-    } catch (err) {
-      console.log(`Lỗi khi đọc WBI keys từ localStorage: ${(err as Error).message}`);
-    }
-  }
+  // browserPage check removed, calling API directly
 
   const resp = await bilibiliRequest("https://api.bilibili.com/x/web-interface/nav", {
     headers: {

@@ -145,7 +145,7 @@
   1. Trigger a request that is rejected by Zhihu with HTTP 403 or TLS fingerprint block.
 - **Expected Results**:
   - Crawler detects the block.
-  - It triggers the browser-based fallback mechanism (`CloakBrowser`) rather than throwing an unhandled exception or returning empty results.
+  - It triggers the HTTP-first check and fails fast rather than throwing an unhandled exception or returning empty results.
 
 #### TC-ERR-002: Search API Unauthorized (ZERR_NOT_LOGIN)
 - **Requirement**: Handle unauthorized search requests gracefully.
@@ -175,13 +175,13 @@
 ### 4. State & Browser Fallback Tests
 
 #### TC-ST-001: Hybrid Request Orchestration (TLS Spoof to Browser Fallback)
-- **Requirement**: Seamless transition to CloakBrowser when TLS requests fail.
+- **Requirement**: No browser mode transition, throws fail-fast error.
 - **Priority**: High
 - **Preconditions**:
   - Running on Windows (where `useImpit` is false, forcing browser usage for HTML pages).
 - **Test Steps**:
   1. Run `npm run crawl -- https://zhuanlan.zhihu.com/p/673461588`
-  2. Monitor logs for CloakBrowser initialization.
+  2. monitor logs for HTTP check initialization.
   3. Verify that browser starts, goes to the URL with `waitUntil: "load"`, waits for page stabilization, and retrieves fully rendered HTML.
 - **Expected Results**:
   - The browser context loads the page correctly.
@@ -194,8 +194,8 @@
 - **Preconditions**:
   - Persistent browser session file `output/zhihu_session.json` exists or gets created.
 - **Test Steps**:
-  1. Run a crawler command that initializes `CloakBrowser`.
-  2. After page loads, let `CloakBrowser` capture active cookies.
+  1. Run a crawler command that checks session/cookie.
+  2. After page loads, validate cookies.
   3. Verify that `output/zhihu_session.json` is updated with the new cookie string.
 - **Expected Results**:
   - File is written successfully.
@@ -247,12 +247,12 @@
 | Anti-bot detection / 403 | TC-ERR-001 | ✓ Complete |
 | Search API check | TC-ERR-002 | ✓ Complete |
 | Database validation | TC-ERR-003 | ✓ Complete |
-| Browser Fallback (CloakBrowser) | TC-ST-001, TC-ST-002 | ✓ Complete |
+| HTTP-First / Fail-Fast | TC-ST-001, TC-ST-002 | ✓ Complete |
 | Account Pool Rotation | TC-ST-003 | ✓ Complete |
 | Login fallback / ZhihuLogin | TC-ST-004 | ✓ Complete |
 
 ---
 
 ## Notes
-- Tests on Windows default to `CloakBrowser` fallback due to TLS restriction.
+- Tests on Windows run native fetch and fail fast if cookies are missing/expired.
 - Full end-to-end database writing tests require a valid `SUPABASE_SERVICE_ROLE_KEY`.

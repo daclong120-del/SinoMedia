@@ -125,7 +125,7 @@
   1. Trigger a crawl task.
   2. Observe logs indicating no active accounts from DB pool.
   3. Verify the crawler falls back to using local cookie environment or `process.env.BILIBILI_COOKIE`.
-  4. If local session is dead, verify it launches browser-based login via `BilibiliLogin` or continues in guest/anonymous mode.
+  4. If local session is dead, verify it fails fast and throws a browser mode removed error.
 - **Expected Results**:
   - The crawler handles the absence of DB accounts gracefully without crashing.
 
@@ -148,4 +148,4 @@
 
 ## Notes
 - Bilibili uses WBI signing endpoints which require cryptographic query string parameter signing.
-- Windows environments run `CloakBrowser` to maintain persistent network contexts and cookies.
+- Windows environments default to native fetch and use credentials prepared in database or session store.
