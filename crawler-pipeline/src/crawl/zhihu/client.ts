@@ -72,7 +72,7 @@ export async function saveZhihuCookie(cookie: string): Promise<void> {
 /**
  * # Lấy tương đối URI từ một URL đầy đủ
  */
-function getRelativeUri(url: string): string {
+export function getRelativeUri(url: string): string {
   if (url.startsWith("http://") || url.startsWith("https://")) {
     const parsed = new URL(url);
     return parsed.pathname + parsed.search;

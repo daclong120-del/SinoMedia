@@ -2,7 +2,7 @@
  * # Crawler chính cho Zhihu (知乎) — điều phối search, detail, creator, comments
  */
 
-import { ZhihuClient, downloadMedia } from "./client.js";
+import { ZhihuClient, downloadMedia, getRelativeUri } from "./client.js";
 import {
   upsertAuthor,
   upsertPost,
@@ -11,6 +11,7 @@ import {
   upsertComments,
   checkoutAccount,
   checkinAccount,
+  updateTaskProgress,
 } from "../../store/index.js";
 import { CrawledPostRow } from "../../model/storage.js";
 import type { ICrawler, BrowserLaunchOptions } from "../../base/base_crawler.js";
@@ -438,13 +439,12 @@ export async function crawlSearch(keyword: string, maxCount = 20, client?: Zhihu
 
   console.log(`Bắt đầu cào tìm kiếm Zhihu với từ khóa: "${keyword}", giới hạn: ${maxCount}`);
 
-  while (collected < maxCount) {
-    const offset = (page - 1) * limit;
-    const url = `/api/v4/search_v3?gk_version=gz-gaokao&t=general&q=${encodeURIComponent(keyword)}&correction=1&offset=${offset}&limit=${limit}&filter_fields=&lc_idx=${offset}&show_all_topics=0&search_source=Filter&time_interval=all&sort=default&vertical=general`;
-    
-    // Đặt Referer là trang search thực tế
-    const referer = `https://www.zhihu.com/search?q=${encodeURIComponent(keyword)}&type=content`;
-    const searchRes = await zhihuClient.request("GET", url, { referer });
+  // URL khởi điểm chuẩn theo trình duyệt thực tế
+  let nextUrl = `/api/v4/search_v3?t=general&q=${encodeURIComponent(keyword)}&correction=1&offset=0&limit=${limit}&search_source=Normal&zhida_source=ai_search_general`;
+  const referer = `https://www.zhihu.com/search?q=${encodeURIComponent(keyword)}&type=content`;
+
+  while (collected < maxCount && nextUrl) {
+    const searchRes = await zhihuClient.request("GET", nextUrl, { referer });
     const data = searchRes.data || [];
     console.log(`Lấy được trang tìm kiếm thứ ${page} với ${data.length} phần tử.`);
 
@@ -523,6 +523,11 @@ export async function crawlSearch(keyword: string, maxCount = 20, client?: Zhihu
 
     if (pagePosts.length > 0) {
       await upsertPosts(pagePosts);
+      // Cập nhật tiến độ task lên Supabase
+      if (process.env.CURRENT_TASK_ID) {
+        await updateTaskProgress(process.env.CURRENT_TASK_ID, collected, maxCount);
+      }
+      
       for (const post of pagePosts) {
         if (process.env.ENABLE_GET_COMMENTS !== "false") {
           try {
@@ -537,6 +542,14 @@ export async function crawlSearch(keyword: string, maxCount = 20, client?: Zhihu
       }
     }
 
+    const paging = searchRes.paging || {};
+    if (paging.is_end || !paging.next) {
+      console.log("Zhihu báo hết kết quả phân trang.");
+      break;
+    }
+    
+    // Gán relative path cho trang tiếp theo
+    nextUrl = getRelativeUri(paging.next);
     page++;
     await sleep(1000 + Math.random() * 1000);
   }

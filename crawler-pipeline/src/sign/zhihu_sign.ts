@@ -157,7 +157,14 @@ function getZse96(encodeMd5: string): string {
 function extractDc0ValueFromCookies(cookies: string): string {
   const regex = /d_c0=([^;]+)/;
   const match = regex.exec(cookies);
-  return match ? match[1] : "";
+  if (!match) {
+    return "";
+  }
+  let val = match[1].trim();
+  if (val.startsWith('"') && val.endsWith('"')) {
+    val = val.substring(1, val.length - 1);
+  }
+  return val;
 }
 
 /**

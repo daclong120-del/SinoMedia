@@ -170,8 +170,28 @@ export async function executeTask(task: CrawlerTask): Promise<void> {
       timeoutPromise
     ]);
 
-    logger.info(`Hoàn thành task ${id} thành công!`, "Worker");
-    await updateTaskStatus(id, "completed");
+    let errorMessage: string | undefined = undefined;
+    try {
+      const res = await supabaseRest("crawler_tasks", {
+        method: "GET",
+        params: { id: `eq.${id}`, select: "metadata" },
+      }) as any[];
+      if (res && res[0] && res[0].metadata?.progress) {
+        const { current, target } = res[0].metadata.progress;
+        if (current === 0) {
+          logger.warn(`Task ${id} hoàn thành nhưng không lưu được bài đăng nào (0/${target})!`, "Worker");
+          errorMessage = `Cảnh báo: Cào rỗng, không tìm thấy hoặc không lưu được bài đăng nào.`;
+        } else {
+          logger.info(`Hoàn thành task ${id} thành công! Đã lưu ${current}/${target} bài đăng.`, "Worker");
+        }
+      } else {
+        logger.info(`Hoàn thành task ${id} thành công!`, "Worker");
+      }
+    } catch (checkErr) {
+      logger.info(`Hoàn thành task ${id} thành công!`, "Worker");
+    }
+
+    await updateTaskStatus(id, "completed", errorMessage);
   } catch (err: any) {
     logger.error(`Thất bại khi xử lý task ${id}: ${err.message}`, "Worker");
     
