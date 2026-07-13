@@ -1,87 +1,37 @@
-import { douyinGet, downloadMedia, sleep, CRAWL_SLEEP_MS, setDouyinSession, checkSessionAlive } from "./client.js";
-import { upsertAuthor, upsertPost, upsertPosts, getPostUuid, upsertComments, checkoutAccount, checkinAccount } from "../../store/index.js";
+import {
+  getSelfProfile,
+  getAwemeDetail,
+  getCreatorProfile,
+  getCreatorPosts,
+  getComments,
+  getReplyComments,
+  searchAweme,
+} from "./api.js";
+import { mapAwemeToPostRow, mapCommentRow } from "./mapper.js";
+import {
+  checkoutAccount,
+  checkinAccount,
+  releaseAccount,
+  upsertAuthor,
+  upsertPost,
+  upsertPosts,
+  upsertComments,
+  getPostUuid,
+} from "../../store/index.js";
+import {
+  resolveShortUrl,
+} from "./help.js";
+import { DouyinSession, createSessionFromRaw } from "./session.js";
+import { runSessionDiagnostic } from "./session_diagnostic.js";
+import { sleep, CRAWL_SLEEP_MS } from "./http_client.js";
 import { DouyinAweme } from "../../model/douyin.js";
 import { CrawledPostRow } from "../../model/storage.js";
-import { CONFIG } from "../../config.js";
 import type { ICrawler } from "../../base/base_crawler.js";
+import { SessionExpiredError } from "./exception.js";
+
+let currentSession: DouyinSession | null = null;
 let currentAccountId: string | null = null;
-
-/**
- * # Đảm bảo trạng thái đăng nhập Douyin hợp lệ trước khi cào
- */
-async function ensureLogin(): Promise<void> {
-  let attempts = 0;
-  const maxAttempts = 5;
-  while (attempts < maxAttempts) {
-    const account = await checkoutAccount("douyin");
-    if (!account) {
-      break;
-    }
-    console.log(`Đang kiểm tra tài khoản từ pool: ${account.username} (ID: ${account.id})...`);
-    try {
-      const data = JSON.parse(account.cookie_data);
-      if (data && (data.cookies || data.msToken)) {
-        setDouyinSession(data.cookies || [], data.msToken || "");
-      } else if (Array.isArray(data)) {
-        setDouyinSession(data, "");
-      } else {
-        setDouyinSession([], "");
-      }
-    } catch (err) {
-      const cookies = account.cookie_data.split(";").map(part => {
-        const trimmed = part.trim();
-        const eqIdx = trimmed.indexOf("=");
-        if (eqIdx > 0) {
-          const name = trimmed.substring(0, eqIdx);
-          const value = trimmed.substring(eqIdx + 1);
-          return { name, value, domain: ".douyin.com", path: "/" };
-        }
-        return null;
-      }).filter(Boolean);
-      const msTokenCookie = cookies.find(c => c && c.name === "msToken");
-      const msToken = msTokenCookie ? msTokenCookie.value : "";
-      setDouyinSession(cookies, msToken);
-    }
-    const isActive = await checkSessionAlive();
-    if (isActive) {
-      console.log(`Tài khoản ${account.username} hoạt động tốt. Sẵn sàng cào.`);
-      currentAccountId = account.id;
-      return;
-    } else {
-      console.log(`Tài khoản ${account.username} không hoạt động hoặc bị chặn. Đang đánh dấu lỗi...`);
-      await checkinAccount(account.id, false);
-      currentAccountId = null;
-      attempts++;
-    }
-  }
-  console.log("Không có tài khoản hoạt động nào từ Pool DB. Đang thử bằng cookie cục bộ...");
-  setDouyinSession(null);
-  const localIsActive = await checkSessionAlive();
-  if (localIsActive) {
-    console.log("Cookie cục bộ hoạt động tốt.");
-    currentAccountId = null;
-    return;
-  }
-  throw new Error("browser mode removed, provide valid cookie/session");
-}
-
-/**
- * # Phân giải link ngắn v.douyin.com để lấy link đầy đủ chứa ID
- */
-export async function resolveShortUrl(shortUrl: string): Promise<string> {
-  if (!shortUrl.includes("v.douyin.com")) {
-    return shortUrl;
-  }
-  try {
-    const res = await fetch(shortUrl, { method: "GET", redirect: "manual" });
-    if (res.status >= 300 && res.status < 400) {
-      return res.headers.get("location") || "";
-    }
-    return "";
-  } catch (err) {
-    throw new Error(`Lỗi phân giải short URL: ${(err as Error).message}`);
-  }
-}
+let currentAccountIsSuspect = false;
 
 /**
  * # Trích xuất aweme_id (ID video) từ URL Douyin bất kỳ
@@ -102,105 +52,83 @@ export function extractAwemeId(url: string): string {
 }
 
 /**
- * # Lưu thông tin tác giả và bài đăng chi tiết vào Supabase + upload R2
+ * # Trích xuất ID kênh (sec_user_id) từ URL Douyin bất kỳ
  */
-export async function persistAweme(
-  detail: DouyinAweme,
-  options?: { authorUuid?: string; skipDbWrite?: boolean }
-): Promise<CrawledPostRow> {
-  const awemeId = detail.aweme_id;
-  const authorData = detail.author;
-  let authorUuid = options?.authorUuid;
-  if (!authorUuid) {
-    const rawAvatarUrl = authorData?.avatar_thumb?.url_list?.[0] || authorData?.avatar_larger?.url_list?.[0];
-    authorUuid = await upsertAuthor({
-      platform: "douyin",
-      platform_uid: authorData?.sec_uid || "unknown",
-      nickname: authorData?.nickname || "Người dùng Douyin",
-      avatar_url: rawAvatarUrl || undefined,
-      raw: authorData,
-    });
+export async function extractSecUserId(url: string): Promise<string> {
+  if (url.startsWith("MS4wLjABAAAA")) {
+    return url;
   }
-
-  // 1. Xác định media type
-  let mediaType = "unknown";
-  if (detail.video) {
-    mediaType = "video";
-  } else if (detail.images && Array.isArray(detail.images)) {
-    mediaType = detail.images.length > 1 ? "carousel" : "image";
-  } else {
-    mediaType = "image";
+  const resolvedUrl = await resolveShortUrl(url);
+  const match = resolvedUrl.match(/\/user\/([^/?]+)/);
+  if (match) {
+    return match[1];
   }
+  throw new Error("Không thể trích xuất ID kênh (sec_user_id) từ URL cung cấp");
+}
 
-  // 2. Thu thập original URLs
-  const originalMediaUrls: string[] = [];
-  let originalCoverUrl = "";
+/**
+ * # Đảm bảo trạng thái đăng nhập Douyin hợp lệ trước khi cào bằng xoay vòng tài khoản và chuẩn đoán phiên
+ */
+export async function ensureLogin(): Promise<DouyinSession> {
+  let attempts = 0;
+  const maxAttempts = 5;
+  const seenAccountIds = new Set<string>();
 
-  if (detail.video) {
-    const videoUrl = detail.video.play_addr?.url_list?.[0];
-    if (videoUrl) originalMediaUrls.push(videoUrl);
-    
-    const coverUrlVal = detail.video.cover?.url_list?.[0];
-    if (coverUrlVal) originalCoverUrl = coverUrlVal;
-  }
-
-  if (detail.images && Array.isArray(detail.images)) {
-    for (const img of detail.images) {
-      const imgUrl = img.display_image_width_goods?.url_list?.[0] || img.url_list?.[0];
-      if (imgUrl) {
-        originalMediaUrls.push(imgUrl);
-      }
+  while (attempts < maxAttempts) {
+    const account = await checkoutAccount("douyin");
+    if (!account) {
+      break;
     }
-    if (originalMediaUrls.length > 0 && !originalCoverUrl) {
-      originalCoverUrl = originalMediaUrls[0];
+
+    if (seenAccountIds.has(account.id)) {
+      console.log(`Tài khoản ${account.username} (ID: ${account.id}) đã được kiểm tra trong phiên này. Kết thúc tìm kiếm pool.`);
+      await releaseAccount(account.id);
+      break;
+    }
+    seenAccountIds.add(account.id);
+
+    console.log(`Đang kiểm tra tài khoản từ pool: ${account.username} (ID: ${account.id})...`);
+
+    let session: DouyinSession;
+    try {
+      const data = JSON.parse(account.cookie_data);
+      session = createSessionFromRaw(data, "pool");
+    } catch {
+      session = createSessionFromRaw(account.cookie_data, "pool");
+    }
+
+    const isHealthy = await runSessionDiagnostic(session);
+    if (isHealthy) {
+      console.log(`Tài khoản ${account.username} hoạt động tốt. Sẵn sàng cào.`);
+      currentSession = session;
+      currentAccountId = account.id;
+      currentAccountIsSuspect = false;
+      return currentSession;
+    } else {
+      console.warn(`[Douyin Heartbeat] Tài khoản ${account.username} không pass được heartbeat. Đánh dấu lỗi và xoay vòng...`);
+      // Đánh dấu tài khoản lỗi (tăng failure_count và tự động ban nếu đạt 3 lần lỗi)
+      await checkinAccount(account.id, false);
+      attempts++;
     }
   }
 
-  // 3. Xử lý R2 cache (removed)
-  const mediaUrls: string[] = [...originalMediaUrls];
-  let coverUrl = originalCoverUrl;
-  
-  let mediaSource = "original";
-  let mediaStatus = "original_only";
-  let mediaError: string | null = null;
-  let mediaCachedAt: string | null = null;
-
-  if (originalMediaUrls.length === 0 && !originalCoverUrl) {
-    mediaSource = "none";
-    mediaStatus = "unavailable";
+  console.log("Không có tài khoản hoạt động nào từ Pool DB. Đang thử bằng cookie cục bộ...");
+  const { loadSession } = await import("../../sign/session_store.js");
+  const localSessionData = await loadSession();
+  if (localSessionData) {
+    const localSession = createSessionFromRaw(localSessionData, "local");
+    const localIsActive = await runSessionDiagnostic(localSession);
+    if (localIsActive) {
+      console.log("Cookie cục bộ hoạt động tốt.");
+      currentSession = localSession;
+      currentAccountId = null;
+      currentAccountIsSuspect = false;
+      return currentSession;
+    }
+    console.warn(`[Douyin Heartbeat] Cookie cục bộ không pass heartbeat check.`);
   }
 
-  const publishedAt = detail.create_time ? new Date(detail.create_time * 1000).toISOString() : new Date().toISOString();
-
-  const postData: CrawledPostRow = {
-    platform: "douyin",
-    platform_id: awemeId,
-    author_id: authorUuid,
-    caption: detail.desc || "",
-    media_urls: mediaUrls,
-    cover_url: coverUrl || undefined,
-    stats: {
-      digg_count: detail.statistics?.digg_count ?? 0,
-      comment_count: detail.statistics?.comment_count ?? 0,
-      share_count: detail.statistics?.share_count ?? 0,
-      play_count: detail.statistics?.play_count ?? 0,
-    },
-    raw: detail,
-    published_at: publishedAt,
-    media_type: mediaType,
-    original_media_urls: originalMediaUrls,
-    original_cover_url: originalCoverUrl || undefined,
-    media_status: mediaStatus,
-    media_source: mediaSource,
-    media_error: mediaError,
-    media_cached_at: mediaCachedAt || undefined,
-  };
-
-  if (!options?.skipDbWrite) {
-    await upsertPost(postData);
-  }
-
-  return postData;
+  throw new SessionExpiredError("No valid browser-authenticated session available for Douyin crawler. Diagnostic check failed.");
 }
 
 /**
@@ -238,45 +166,57 @@ function validateUserProfile(res: any): void {
 }
 
 /**
- * # Cào chi tiết một video từ Douyin và thực hiện upload media + lưu DB
+ * # Lưu thông tin tác giả và bài đăng chi tiết vào Supabase
+ */
+export async function persistAweme(
+  detail: DouyinAweme,
+  options?: { authorUuid?: string; skipDbWrite?: boolean }
+): Promise<CrawledPostRow> {
+  let authorUuid = options?.authorUuid;
+  if (!authorUuid) {
+    const authorData = detail.author;
+    const rawAvatarUrl = authorData?.avatar_thumb?.url_list?.[0] || authorData?.avatar_larger?.url_list?.[0];
+    authorUuid = await upsertAuthor({
+      platform: "douyin",
+      platform_uid: authorData?.sec_uid || "unknown",
+      nickname: authorData?.nickname || "Người dùng Douyin",
+      avatar_url: rawAvatarUrl || undefined,
+      raw: authorData,
+    });
+  }
+
+  const postData = mapAwemeToPostRow(detail, authorUuid);
+
+  if (!options?.skipDbWrite) {
+    await upsertPost(postData);
+  }
+
+  return postData;
+}
+
+/**
+ * # Cào chi tiết một video từ Douyin và thực hiện lưu DB
  */
 export async function crawlVideo(urlOrId: string): Promise<void> {
+  const session = currentSession || await ensureLogin();
   const resolvedUrl = await resolveShortUrl(urlOrId);
   const awemeId = extractAwemeId(resolvedUrl || urlOrId);
 
-  const res = await douyinGet("/aweme/v1/web/aweme/detail/", { aweme_id: awemeId });
+  const res = await getAwemeDetail(session, awemeId);
   const detail = validateAwemeDetail(res.aweme_detail);
 
   await persistAweme(detail);
 }
 
 /**
- * # Trích xuất sec_user_id từ URL creator
- */
-export async function extractSecUserId(url: string): Promise<string> {
-  if (url.startsWith("MS4wLjABAAAA") || (!url.startsWith("http") && !url.includes("douyin.com"))) {
-    return url;
-  }
-  const resolvedUrl = await resolveShortUrl(url);
-  const match = resolvedUrl.match(/\/user\/([^/?]+)/);
-  if (match) {
-    return match[1];
-  }
-  throw new Error("Không thể trích xuất ID kênh (sec_user_id) từ URL cung cấp");
-}
-
-/**
- * # Cào toàn bộ video từ một creator và lưu vào DB + R2
+ * # Cào toàn bộ video từ một creator và lưu vào DB
  */
 export async function crawlCreator(urlOrSecUid: string): Promise<void> {
+  const session = currentSession || await ensureLogin();
   const secUserId = await extractSecUserId(urlOrSecUid);
 
   console.log(`Bắt đầu cào thông tin creator cho sec_user_id: ${secUserId}`);
-  const userProfileRes = await douyinGet("/aweme/v1/web/user/profile/other/", {
-    sec_user_id: secUserId,
-    publish_video_strategy_type: "2",
-    personal_center_strategy: "1",
-  });
+  const userProfileRes = await getCreatorProfile(session, secUserId);
 
   validateUserProfile(userProfileRes);
   const user = userProfileRes.user;
@@ -298,13 +238,7 @@ export async function crawlCreator(urlOrSecUid: string): Promise<void> {
   console.log(`Bắt đầu cào danh sách video của creator, giới hạn tối đa: ${maxPosts}`);
 
   while (hasMore === 1 && crawlCount < maxPosts) {
-    const postRes = await douyinGet("/aweme/v1/web/aweme/post/", {
-      sec_user_id: secUserId,
-      count: "18",
-      max_cursor: maxCursor,
-      locate_query: "false",
-      publish_video_strategy_type: "2",
-    });
+    const postRes = await getCreatorPosts(session, secUserId, maxCursor);
 
     hasMore = postRes.has_more ?? 0;
     maxCursor = postRes.max_cursor ? String(postRes.max_cursor) : "0";
@@ -329,7 +263,7 @@ export async function crawlCreator(urlOrSecUid: string): Promise<void> {
         const needsRefetch = !item.video?.play_addr?.url_list?.[0] && !(item.images && item.images.length > 0);
         if (needsRefetch) {
           console.log(`Video ${item.aweme_id} thiếu link media, tiến hành re-fetch chi tiết...`);
-          const detailRes = await douyinGet("/aweme/v1/web/aweme/detail/", { aweme_id: item.aweme_id });
+          const detailRes = await getAwemeDetail(session, item.aweme_id);
           detail = validateAwemeDetail(detailRes.aweme_detail);
         } else {
           detail = validateAwemeDetail(item);
@@ -354,9 +288,10 @@ export async function crawlCreator(urlOrSecUid: string): Promise<void> {
 }
 
 /**
- * # Cào danh sách video từ Douyin theo từ khóa và lưu vào Supabase + R2
+ * # Cào danh sách video từ Douyin theo từ khóa và lưu vào Supabase
  */
 export async function crawlSearch(keyword: string, maxCount = 20): Promise<void> {
+  const session = currentSession || await ensureLogin();
   let page = 0;
   let searchId = "";
   let collected = 0;
@@ -366,26 +301,21 @@ export async function crawlSearch(keyword: string, maxCount = 20): Promise<void>
 
   while (collected < maxCount) {
     const offset = page * limit;
-    const referer = encodeURI(`https://www.douyin.com/search/${keyword}?aid=f594bbd9-a0e2-4651-9319-ebe3cb6298c1&type=general`);
-    const res = await douyinGet("/aweme/v1/web/general/search/single/", {
-      search_channel: "aweme_general",
-      enable_history: "1",
-      keyword: keyword,
-      search_source: "tab_search",
-      query_correct_type: "1",
-      is_filter_search: "0",
-      from_group_id: "7378810571505847586",
-      offset: String(offset),
-      count: "15",
-      need_filter_settings: "1",
-      list_type: "multi",
-      search_id: searchId,
-    }, { sign: false, referer });
+    const res = await searchAweme(session, keyword, offset, searchId);
 
     const data = res.data ?? [];
     console.log(`Lấy được trang kết quả tìm kiếm thứ ${page + 1} với ${data.length} phần tử.`);
 
     if (data.length === 0) {
+      if (!res.data) {
+        console.warn(`[Douyin Search Warning] Phản hồi không chứa trường "data". Response dump:`, JSON.stringify(res).substring(0, 400));
+      } else {
+        console.log(`[Douyin Search] Kết thúc tìm kiếm do hết kết quả (empty thật).`);
+      }
+
+      if (page === 0) {
+        throw new Error("Douyin Search returned 0 results on page 1 (possible soft block or empty session)");
+      }
       break;
     }
 
@@ -406,7 +336,7 @@ export async function crawlSearch(keyword: string, maxCount = 20): Promise<void>
 
       try {
         console.log(`Tiến hành tải chi tiết video ${info.aweme_id} từ endpoint detail...`);
-        const detailRes = await douyinGet("/aweme/v1/web/aweme/detail/", { aweme_id: info.aweme_id });
+        const detailRes = await getAwemeDetail(session, info.aweme_id);
         const detail = validateAwemeDetail(detailRes.aweme_detail);
 
         const postRow = await persistAweme(detail, { skipDbWrite: true });
@@ -437,29 +367,20 @@ export async function crawlComments(
   awemeId: string,
   options: { maxCount?: number; withReplies?: boolean } = {}
 ): Promise<void> {
+  const session = currentSession || await ensureLogin();
   const maxCount = options.maxCount ?? 50;
   const withReplies = options.withReplies ?? false;
 
   console.log(`Bắt đầu cào bình luận cho video: ${awemeId}, giới hạn tối đa: ${maxCount}`);
 
   const postUuid = await getPostUuid("douyin", awemeId);
-  const referer = encodeURI(`https://www.douyin.com/search/抖音?aid=3a3cec5a-9e27-4040-b6aa-ef548c2c1138&publish_time=0&sort_type=0&source=search_history&type=general`);
 
   const collected: any[] = [];
   let commentsHasMore = true;
   let commentsCursor = 0;
 
   while (commentsHasMore && collected.length < maxCount) {
-    const commentsRes = await douyinGet(
-      "/aweme/v1/web/comment/list/",
-      {
-        aweme_id: awemeId,
-        cursor: String(commentsCursor),
-        count: "20",
-        item_type: "0",
-      },
-      { referer }
-    );
+    const commentsRes = await getComments(session, awemeId, commentsCursor);
 
     commentsHasMore = commentsRes.has_more === 1 || commentsRes.has_more === true;
     commentsCursor = commentsRes.cursor ?? 0;
@@ -470,7 +391,7 @@ export async function crawlComments(
     }
 
     const primaryComments = comments.slice(0, maxCount - collected.length);
-    const mappedPrimary = primaryComments.map((c: any) => mapComment(c, awemeId, postUuid));
+    const mappedPrimary = primaryComments.map((c: any) => mapCommentRow(c, awemeId, postUuid));
     await upsertComments(mappedPrimary);
 
     for (const c of primaryComments) {
@@ -487,17 +408,7 @@ export async function crawlComments(
           const subCollected: any[] = [];
 
           while (subCommentsHasMore) {
-            const subCommentsRes = await douyinGet(
-              "/aweme/v1/web/comment/list/reply/",
-              {
-                comment_id: commentId,
-                cursor: String(subCommentsCursor),
-                count: "20",
-                item_type: "0",
-                item_id: awemeId,
-              },
-              { referer }
-            );
+            const subCommentsRes = await getReplyComments(session, commentId, awemeId, subCommentsCursor);
 
             subCommentsHasMore = subCommentsRes.has_more === 1 || subCommentsRes.has_more === true;
             subCommentsCursor = subCommentsRes.cursor ?? 0;
@@ -507,7 +418,7 @@ export async function crawlComments(
               break;
             }
 
-            const mappedSub = subComments.map((sc: any) => mapComment(sc, awemeId, postUuid, commentId));
+            const mappedSub = subComments.map((sc: any) => mapCommentRow(sc, awemeId, postUuid, commentId));
             await upsertComments(mappedSub);
 
             for (const sc of subComments) {
@@ -527,25 +438,6 @@ export async function crawlComments(
 }
 
 /**
- * # Chuyển đổi dữ liệu bình luận gốc sang cấu trúc database
- */
-function mapComment(c: any, awemeId: string, postUuid?: string, parentCid?: string) {
-  return {
-    platform: "douyin",
-    platform_cid: c.cid,
-    post_id: postUuid,
-    platform_post_id: awemeId,
-    parent_cid: parentCid,
-    author_uid: c.user?.sec_uid || "",
-    author_nickname: c.user?.nickname || "",
-    content: c.text || "",
-    like_count: c.digg_count || 0,
-    raw: c,
-    published_at: c.create_time ? new Date(c.create_time * 1000).toISOString() : undefined,
-  };
-}
-
-/**
  * # Lớp Crawler dành riêng cho nền tảng Douyin triển khai giao diện ICrawler
  */
 export class DouyinCrawler implements ICrawler {
@@ -557,13 +449,20 @@ export class DouyinCrawler implements ICrawler {
       await ensureLogin();
       await crawlVideo(target);
       if (currentAccountId) {
-        await checkinAccount(currentAccountId, true);
+        if (currentAccountIsSuspect) {
+          await releaseAccount(currentAccountId);
+        } else {
+          await checkinAccount(currentAccountId, true);
+        }
       }
     } catch (err) {
       if (currentAccountId) {
         await checkinAccount(currentAccountId, false);
       }
       throw err;
+    } finally {
+      currentSession = null;
+      currentAccountId = null;
     }
   }
 
@@ -575,13 +474,20 @@ export class DouyinCrawler implements ICrawler {
       await ensureLogin();
       await crawlCreator(target);
       if (currentAccountId) {
-        await checkinAccount(currentAccountId, true);
+        if (currentAccountIsSuspect) {
+          await releaseAccount(currentAccountId);
+        } else {
+          await checkinAccount(currentAccountId, true);
+        }
       }
     } catch (err) {
       if (currentAccountId) {
         await checkinAccount(currentAccountId, false);
       }
       throw err;
+    } finally {
+      currentSession = null;
+      currentAccountId = null;
     }
   }
 
@@ -593,13 +499,20 @@ export class DouyinCrawler implements ICrawler {
       await ensureLogin();
       await crawlSearch(keyword, maxCount);
       if (currentAccountId) {
-        await checkinAccount(currentAccountId, true);
+        if (currentAccountIsSuspect) {
+          await releaseAccount(currentAccountId);
+        } else {
+          await checkinAccount(currentAccountId, true);
+        }
       }
     } catch (err) {
       if (currentAccountId) {
         await checkinAccount(currentAccountId, false);
       }
       throw err;
+    } finally {
+      currentSession = null;
+      currentAccountId = null;
     }
   }
 
@@ -611,13 +524,20 @@ export class DouyinCrawler implements ICrawler {
       await ensureLogin();
       await crawlComments(target, { maxCount, withReplies: false });
       if (currentAccountId) {
-        await checkinAccount(currentAccountId, true);
+        if (currentAccountIsSuspect) {
+          await releaseAccount(currentAccountId);
+        } else {
+          await checkinAccount(currentAccountId, true);
+        }
       }
     } catch (err) {
       if (currentAccountId) {
         await checkinAccount(currentAccountId, false);
       }
       throw err;
+    } finally {
+      currentSession = null;
+      currentAccountId = null;
     }
   }
 
@@ -627,8 +547,17 @@ export class DouyinCrawler implements ICrawler {
 
   async releaseAccount(isSuccessful: boolean): Promise<void> {
     if (currentAccountId) {
-      await checkinAccount(currentAccountId, isSuccessful);
+      if (isSuccessful) {
+        if (currentAccountIsSuspect) {
+          await releaseAccount(currentAccountId);
+        } else {
+          await checkinAccount(currentAccountId, true);
+        }
+      } else {
+        await checkinAccount(currentAccountId, false);
+      }
       currentAccountId = null;
+      currentSession = null;
     }
   }
 }

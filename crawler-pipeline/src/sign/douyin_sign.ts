@@ -100,7 +100,7 @@ class SM3 {
       : e;
 
     this.size += a.length;
-    const f = 64 - this.chunk.length;
+    let f = 64 - this.chunk.length;
     if (a.length < f) {
       this.chunk = this.chunk.concat(a);
     } else {
@@ -109,6 +109,7 @@ class SM3 {
         this._compress(this.chunk);
         if (f < a.length) {
           this.chunk = a.slice(f, Math.min(f + 64, a.length));
+          f += 64;
         } else {
           this.chunk = [];
         }

@@ -10,7 +10,8 @@
     "search": "tsx src/index.ts search",
     "comments": "tsx src/index.ts comments",
     "add-account": "tsx src/index.ts add-account",
-    "refresh": "tsx src/index.ts refresh"
+    "refresh": "tsx src/index.ts refresh",
+    "douyin:diagnostic": "tsx scratch/run-douyin-diagnostic.ts"
   },
   "engines": {
     "node": ">=18"

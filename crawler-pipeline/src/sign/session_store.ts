@@ -4,6 +4,12 @@ import { join } from "node:path";
 export interface SessionData {
   cookies: any[];
   msToken: string;
+  userAgent?: string;
+  webid?: string;
+  verifyFp?: string;
+  fp?: string;
+  uifid?: string;
+  xmst?: string;
   updatedAt: string;
 }
 
@@ -12,10 +18,25 @@ const SESSION_FILE = join(process.cwd(), "output", "session.json");
 /**
  * # Lưu thông tin session hoạt động
  */
-export async function saveSession(data: { cookies: any[]; msToken: string }) {
+export async function saveSession(data: {
+  cookies: any[];
+  msToken: string;
+  userAgent?: string;
+  webid?: string;
+  verifyFp?: string;
+  fp?: string;
+  uifid?: string;
+  xmst?: string;
+}) {
   const payload: SessionData = {
     cookies: data.cookies,
     msToken: data.msToken,
+    userAgent: data.userAgent,
+    webid: data.webid,
+    verifyFp: data.verifyFp,
+    fp: data.fp,
+    uifid: data.uifid,
+    xmst: data.xmst,
     updatedAt: new Date().toISOString(),
   };
 

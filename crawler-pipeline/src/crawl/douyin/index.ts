@@ -7,12 +7,14 @@ export {
   crawlCreator,
   crawlSearch,
   crawlComments,
-  resolveShortUrl,
-  extractAwemeId,
   persistAweme,
-  extractSecUserId,
   DouyinCrawler,
+  extractAwemeId,
+  extractSecUserId,
 } from "./core.js";
+export {
+  resolveShortUrl,
+} from "./help.js";
 export {
   douyinRequest,
   douyinGet,
@@ -28,3 +30,8 @@ export {
 export * from "./field.js";
 export * from "./help.js";
 export * from "./exception.js";
+export * from "./session.js";
+export * from "./session_diagnostic.js";
+export * from "./api.js";
+export * from "./http_client.js";
+export * from "./mapper.js";
