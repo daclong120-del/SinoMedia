@@ -296,6 +296,8 @@ Platforms hiện có:
 - `xhs`
 - `zhihu`
 
+> **Douyin session boundary (2026-07-13):** Douyin vẫn đi theo hướng HTTP API crawler, nhưng raw cookie không còn được xem là session hoàn chỉnh. Worker có thể dùng Playwright Chromium persistent context như bước bootstrap/hydrator để xuất enriched `DouyinSession`, sau đó phải pass diagnostic hard gate trước khi HTTP API crawler chạy. Browser bootstrap không được biến thành crawler runtime mặc định.
+
 ### 6.2 Queue worker contract
 
 Worker flow:

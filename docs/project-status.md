@@ -1,6 +1,6 @@
 # Project Status
 
-Cập nhật lần cuối: 2026-07-09  
+Cập nhật lần cuối: 2026-07-13
 Mục đích: một trang sống để biết SinoMedia đã làm được gì, phần nào đang chạy, phần nào chỉ là phác thảo, và phần nào cần agent kiểm tra trước khi phát triển tiếp.
 
 ## Legend
@@ -65,8 +65,8 @@ SinoMedia hiện là hệ thống gồm 4 khối:
 | Queue worker | Done | Claim task Supabase RPC. Đã **gia cố log redaction** và bảo mật **API Token Runtime Enforcement**. Đã pass Security Gate với các chế độ thắt chặt GET crawler_accounts (Mode 1: Checkout chỉ trả về id/username/cookie_data, Mode 2: Status check chỉ trả về id/status/failure_count, cấm leak cookie_data). |
 | Task metadata | Partial | Worker đọc tags, language, crawl_comments, crawl_sub_comments, upload_r2, headless từ `task.metadata`. |
 | Platform factory | Partial | Có factory cho nhiều platform; platform không hỗ trợ sẽ throw rõ ràng. |
-| Platforms | Partial | Có module cho Bilibili, Douyin, Kuaishou, Tieba, Weibo, XHS, Zhihu. Bilibili, Douyin và Zhihu hoạt động ổn định ở chế độ HTTP-First không sử dụng trình duyệt. |
-| Login/session | Done | Đã loại bỏ hoàn toàn cơ chế đăng nhập tương tác bằng trình duyệt (`CloakBrowser`). Chuyển sang mô hình **HTTP-First, Fail-Fast** (báo lỗi hết hạn session thay vì khởi động trình duyệt). |
+| Platforms | Partial | Có module cho Bilibili, Douyin, Kuaishou, Tieba, Weibo, XHS, Zhihu. Bilibili và Zhihu đi theo hướng HTTP-first. Douyin hiện đã tách HTTP API client + diagnostic hard gate, nhưng chưa được coi là Done cho tới khi session bootstrap bằng Playwright persistent context pass diagnostic và crawl ra dữ liệu thật ổn định. |
+| Login/session | Partial | `CloakBrowser` vẫn bị loại bỏ. Hướng mới cho Douyin là **browser bootstrap tối thiểu** bằng Playwright Chromium persistent context để hydrate cookie thô thành `DouyinSession` đầy đủ, sau đó crawler vẫn chạy HTTP API. Raw cookie không còn được xem là session Douyin hoàn chỉnh. Firecrawl không phải phương án thay thế core Douyin crawler; nếu dùng thì chỉ là sidecar/diagnostic ngoài hot path. |
 | Account/proxy pool | Partial | Có pool/account rotation, nhưng cần health policy và dashboard mutation hoàn chỉnh hơn. |
 | R2 upload | Optional | Có uploader/dedup, nhưng không còn là đường phát mặc định cho Bilibili. Dùng khi cần archive/cache/report/offline. |
 | Cache media task | Deprecated | Worker đã throw nếu command là `cache_media`. Không thêm UI tạo task này nữa. |

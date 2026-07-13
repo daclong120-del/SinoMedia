@@ -6,7 +6,7 @@ import { searchAweme, getAwemeDetail } from "../src/crawl/douyin/api.js";
 
 async function main() {
   console.log("=============================================================");
-  console.log("⚽ CRAWLING CREATIVE SEARCH ITEMS FROM DOUYIN (NO-DB TEST)");
+  console.log("⚽ CRAWLING VOICE CHANGER CREATIVES FROM DOUYIN (NO-DB TEST)");
   console.log("=============================================================\n");
 
   const cookiePath = join(process.cwd(), "scratch", "douyin_enriched_session.json");
@@ -18,7 +18,7 @@ async function main() {
     raw = JSON.parse(sessionContent);
   } catch (err: any) {
     console.error(`❌ Error reading or parsing scratch/douyin_enriched_session.json: ${err.message}`);
-    console.log("Please make sure you have run the bootstrap script first:\n  npx tsx scratch/bootstrap-douyin-session.ts");
+    console.log("Please make sure you have run the bootstrap script first:\n  npm run douyin:bootstrap");
     process.exit(1);
   }
 
@@ -45,8 +45,8 @@ async function main() {
   const rows: any[] = [];
   let page = 0;
   let searchId = "";
-  const keyword = process.argv[2] || "marketing";
-  const limit = parseInt(process.argv[3] || "100", 10);
+  const keyword = process.argv[2] || "变声器";
+  const limit = parseInt(process.argv[3] || "120", 10);
 
   console.log(`\nStarting search for keyword: "${keyword}" (limit: ${limit})...`);
 
@@ -154,8 +154,8 @@ async function main() {
   }
 
   const csvContent = csvRows.join("\n");
-  const localCsvPath = join(process.cwd(), "scratch", "douyin_search_result.csv");
-  const rootCsvPath = join(process.cwd(), "..", "scratch", "douyin_search_result.csv");
+  const localCsvPath = join(process.cwd(), "scratch", "voice_changer_creatives_douyin.csv");
+  const rootCsvPath = join(process.cwd(), "..", "scratch", "voice_changer_creatives_douyin.csv");
 
   console.log(`Writing CSV to: ${localCsvPath}`);
   await writeFile(localCsvPath, csvContent, "utf8");
@@ -175,6 +175,7 @@ async function main() {
 
   console.log("\n=============================================================");
   console.log("🎉 SUCCESS: CSV file generated successfully!");
+  console.log(`Path: ${rootCsvPath}`);
   console.log("=============================================================");
 }
 

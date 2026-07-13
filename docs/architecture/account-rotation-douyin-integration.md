@@ -10,6 +10,9 @@
 > [!NOTE]
 > **Cập nhật ngày 2026-07-10:** Hệ thống đã loại bỏ hoàn toàn `CloakBrowser`. Cơ chế đăng nhập tương tác bằng trình duyệt đã bị vô hiệu hóa; crawler hiện hoạt động theo mô hình **HTTP-First, Fail-Fast** (báo lỗi hết hạn session thay vì khởi động trình duyệt). Mọi cấu hình liên quan đến `CloakBrowser` dưới đây đã được thay bằng fail-fast error.
 
+> [!WARNING]
+> **Cập nhật ngày 2026-07-13:** Các phần dưới đây là lịch sử tích hợp account rotation và không còn là source of truth đầy đủ cho Douyin session. Hướng hiện tại là: raw cookie Douyin chỉ là input, phải được hydrate bằng Playwright Chromium persistent context thành enriched `DouyinSession`, sau đó pass `runSessionDiagnostic` trước khi HTTP API crawler chạy. Browser bootstrap không phải `CloakBrowser` và không được dùng làm crawler runtime mặc định.
+
 Tài liệu này mô tả chi tiết giải pháp tích hợp xoay vòng tài khoản (Account Rotation) và quản lý phiên (Session Management) cho nền tảng Douyin trong SinoMedia. Hệ thống hỗ trợ crawler Douyin hoạt động 24/7 tự trị bằng cách tự động lấy tài khoản từ database, kiểm tra sức khỏe, và fallback về cookie cục bộ hoặc chế độ khách (Guest) khi pool trống.
 
 ---

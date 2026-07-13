@@ -1,0 +1,631 @@
+index,aweme_id,desc,author_nickname,author_sec_uid,create_time,digg_count,comment_count,share_count,play_count,url
+1,BV1Eq7AziEyd,-,CallME路杰,3546883540650812,2025-05-31T09:00:00.000Z,1163,548,222,268034,https://www.bilibili.com/video/BV1Eq7AziEyd
+2,BV11rT164Ep8,"本期资料💾：
+https://tmxk.pp.ua/d/124-quan-neng-shen-qi-yi-ge-wang-ye-gao-ding-iptvsuo-you-tong-dian-jia-mi-yuan-jie-mi-zhi-neng-xi-yuan-yong-jiu-ding-yue-re-geng-xin",大亨2017,205839731,2026-07-05T13:39:44.000Z,312,44,20,11263,https://www.bilibili.com/video/BV11rT164Ep8
+3,BV1Ka411W7Hf,"之前干掉光猫那期，一不小心把IPTV也干掉了，然后试了下openWRT组播转单播，经过简单的设置，就能在手机电脑上直接看电视，光猫桥接和Ponstick都能玩！
+
+网盘1：upming.site
+网盘2：day3.upming.site (密码day3)",科技宅小明,5626102,2022-06-25T13:29:38.000Z,34033,1758,2904,1819965,https://www.bilibili.com/video/BV1Ka411W7Hf
+4,BV1JFzCBSEgh,"博客地址：
+https://blog.910501.xyz/archives/iptv4
+DockerHub地址：
+https://hub.docker.com/r/yiwanaishare/iptv-aggregator
+
+▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+
+还在手动找 m3u 直播源？还在为源失效而烦恼？本文教你在飞牛 NAS (FnOS) 上部署 IPTV Spider + Aggregator 自动化伴侣，打造一个“会自己更新”的直播源中心。
+
+▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+
+🤝 合作联系
+微信：yiwanaifenxiang（请备注来意，谢谢）
+
+▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+⏱️ 视频章节
+
+00:00 视频目录
+00:12 IPTV 聚合方案与核心思路
+00:35 Spider + 聚合器架构介绍
+01:50 关键参数配置讲解
+04:00 Docker / 飞牛 NAS 部署
+06:18 多端演示
+08:10 感谢观看
+
+▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+
+如果你觉得这个方案有用👇
+👍 欢迎点赞
+💬 欢迎留言交流
+🔔 订阅频道，不错过新玩法！
+
+▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+
+#IPTV #看电视 #直播",一万AI分享,59438380,2026-01-24T11:47:00.000Z,3023,844,531,111762,https://www.bilibili.com/video/BV1JFzCBSEgh
+5,BV17QNM6MEdc,-,谢殿瑞,3546683665288110,2026-07-12T03:05:51.000Z,14,0,0,210,https://www.bilibili.com/video/BV17QNM6MEdc
+6,BV1yNKD6YETK,"录制时间：2026_06_29_13_51_55
+本视频仅限电视节目、机顶盒收看交流，严禁用于其他用途",永爱音乐台,477356590,2026-06-29T06:26:31.000Z,12,2,0,1927,https://www.bilibili.com/video/BV1yNKD6YETK
+7,BV1Ymf8YbESz,丢掉机顶盒，自建IPTV直播源！,美男少战士,48238484,2025-01-22T05:43:26.000Z,1500,390,246,138390,https://www.bilibili.com/video/BV1Ymf8YbESz
+8,BV19Mj46zE4K,"全球最大公开IPTV频道播放列表项目 iptv-org/iptv 完全指南！
+
+这个GitHub上124K+星标的开源项目，收集了全世界公开的IPTV直播频道链接，让你在任何设备上都能观看全球电视内容。
+
+🔥 本期视频涵盖：
+• 什么是IPTV？互联网电视的基本原理
+• 播放列表结构（30+类别 / 100+语言 / 全球覆盖）
+• 如何使用（VLC / Kodi / 手机播放器）
+• iptv-org 生态系统（EPG / Database / API）
+• API 接入与开发指南
+
+📌 项目信息：
+• GitHub: https://github.com/iptv-org/iptv",兔子老大小白,393626569,2026-06-23T01:00:00.000Z,54,6,6,3319,https://www.bilibili.com/video/BV19Mj46zE4K
+9,BV1A5Gt6DEom,"💾 本期视频附件/资料：
+https://tmxk.pp.ua/d/111-dockeryi-jian-bu-shu-quan-xin-iptv-zhi-bo-guan-li-xi-tong-shou-kan-dian-shi-he-guan-li-yi-yang-jian-dan",大亨2017,205839731,2026-05-22T09:52:17.000Z,363,100,70,24126,https://www.bilibili.com/video/BV1A5Gt6DEom
+10,BV1oCJw6JEsx,如何免费看电视直播,520小云同学,3546877693790781,2026-06-14T08:51:34.000Z,14,14,3,3364,https://www.bilibili.com/video/BV1oCJw6JEsx
+11,BV1La7K64EU7,-,卫星节目影视,472829347,2026-06-22T10:26:53.000Z,13,16,1,896,https://www.bilibili.com/video/BV1La7K64EU7
+12,BV1KjNn6DEBQ,-,美女剑豪带着烤肉莱了,24590803,2026-07-10T10:09:12.000Z,14,5,0,276,https://www.bilibili.com/video/BV1KjNn6DEBQ
+13,BV1cEZjBtEpp,"博客地址https://blog.humorously.cn/archives/39
+Docker地址https://hub.docker.com/r/hurryos/iptvs-app
+求求你们点个三连吧！",快点Hurry,243835211,2026-02-14T05:52:32.000Z,767,424,93,23919,https://www.bilibili.com/video/BV1cEZjBtEpp
+14,BV1iBEq6mEga,体育赛事+电视直播，飞牛 NAS 全打通？ IPTV 功能上手体验,飞牛fnOS,3546751629790134,2026-06-11T09:53:47.000Z,612,447,113,36365,https://www.bilibili.com/video/BV1iBEq6mEga
+15,BV18W4y1b7wz,"https://www.youtube.com/watch?v=LTA0B437w_k&t=366s
+通过抓包自家IPTV盒子的播放源，通过M3U播放列表实现内外网任何设置都可以播放自家的IPTV的直播电视。",Moore科技,456970784,2022-08-19T02:31:34.000Z,1072,238,369,126024,https://www.bilibili.com/video/BV18W4y1b7wz
+16,BV1Ps4y1s7ww,"IPTV-Checker 汉化版：https://bittly.cc/2JroL
+播放软件客户端： https://bittly.cc/sMufS
+wtv去重复：https://bittly.cc/ng1YB
+检测是否支持IPV6网络：https://bittly.cc/o5uQV
+直播源大全（含ipv6）：https://bittly.cc/1KeWd",零度解说,625267185,2023-02-07T12:13:02.000Z,5388,437,1026,355589,https://www.bilibili.com/video/BV1Ps4y1s7ww
+17,BV1oDNaedEgm,"产品名称：新魔百和
+产品型号：M310H
+移动IPTV很难评，没有广东4K超高清频道，标清 高清 超清信号全部都分开排序，换台也有点慢，而且正常看着电视会突然没信号……",牵着蜗牛一起旅行,140221132,2025-02-10T14:05:48.000Z,67,50,14,14438,https://www.bilibili.com/video/BV1oDNaedEgm
+18,BV1XQwzetEcv,-,bili_818041112,3546657216006188,2025-01-19T04:59:24.000Z,8,2,0,3205,https://www.bilibili.com/video/BV1XQwzetEcv
+19,BV1SY4y1G7Af,"自录
+去年底把联通更换成了电信
+所以缺了联通IPTV部分
+不过联通的电视频道少得可怜
+可以忽略（doge",BFSLEE,358964564,2022-06-15T21:32:58.000Z,169,183,29,53052,https://www.bilibili.com/video/BV1SY4y1G7Af
+20,BV1v94y1V7pr,"服务器带宽不够用了，建议联通用户下载
+https://ddns.byqwe.cn:23350/cu-iptv.m3u，以节约本人服务器带宽。
+反向代理技术实现原理：https://www.bilibili.com/read/cv27675495
+目前已通过反向代理允许全球ipv4的ip收看四川联通的iptv
+m3u下载链接：https://ddns.byqwe.cn:23350/iptv.m3u
+potplay下载链接：https://soft.byqwe.cn:23350/potplay.exe
+安卓端kodi下载链接：https://soft.byqwe.cn:23350/kodi.apk",made_by_qwe,39793123,2023-11-07T13:13:41.000Z,368,117,119,55636,https://www.bilibili.com/video/BV1v94y1V7pr
+21,BV1Ly5x6uEN5,2026 年 618 保姆级电视选购完整版！一帧画面讲透电视成像底层逻辑，深度科普色域、背光分区峰值亮度、原生刷新率、抗反光材质、观影尺寸五大核心参数，狠狠揭穿行业套路：色域面积比造假、噱头名词包装、假高刷营销乱象。全价位近百款机型横向实测横评，覆盖入门 / 中高端 / 高端 / 旗舰全档位，视频讲解了红米 X85、Vidda 发现 XMini 、海信E5S、创维A7H、Vidda 发现X 2027、雷鸟鹤7 26款、TCL T7L Ultra、Vidda 大玩家G7、海信E7S Pro、海信E8S Pro、海信E8Q、海信E8Q、创维A8H、创维A10H Pro、TCL Q9M Pro、TCL Q10M等型号，拆解 MiniLED、RGB-MiniLED、SQD、蓝光量子点各大技术差异，教你按客厅距离选尺寸、按观影场景挑抗反光，从原理到机型一站式讲透，看完再也不用被参数忽悠！,Wilson学长,13207529,2026-05-11T10:59:52.000Z,7549,816,1457,462334,https://www.bilibili.com/video/BV1Ly5x6uEN5
+22,BV1AtN16JEUf,究竟是审核机构出了轨，还是运营商劈了腿？,是蜜糖星雨吖,698154008,2026-07-13T08:15:48.000Z,21,3,0,42,https://www.bilibili.com/video/BV1AtN16JEUf
+23,BV1U5411U7UD,"链接：https://pan.baidu.com/s/1DtLi9a0h8WCC7u5P4YjkQg 
+提取码：p04y
+电信IPTV机顶盒 
+型号:E900V21E
+CPU型号:Hi3798(小颗粒的，散热片是一块铝片)
+网卡型号:MT7668
+理论上只要是同款芯片主板应该都是可以刷机的，因为手上只有这一款，没办法测试其他的.
+刷机有风险,操作需谨慎，本教程不对操作中所造成的损失负责，软件包从互联网中下载，非本人制作不可作为商业用途.
+如百度网盘下载慢请留言邮箱.
+大家如有好的经验和建议欢迎评论区分享.",讲不信,167959209,2022-04-12T06:00:55.000Z,2012,365,367,263058,https://www.bilibili.com/video/BV1U5411U7UD
+24,BV1jsJzzMEzC,接上期全网独一份旁路由模式IPTV观看教程后续教程，有问题评论区留言。,酱油大叔style,189809489,2025-05-21T08:07:25.000Z,369,219,85,30426,https://www.bilibili.com/video/BV1jsJzzMEzC
+25,BV1gL4y1L7TA,"破案式推理，不仅要会设置，还仔细分析了背后的原理。
+
+这个视频应该能让你彻底明白光猫设置问题，省的你再去网上搜索各种帖子，很多说的还不怎么全面。所以我就花了点时间，去研究了下光猫，做出这个视频，应该能帮到你。
+很多人可能都会这2种操作，但可能没有深入思考过其背后的知识，（我）也没想到竟然还可以讲出来这么多知识。
+
+视频制作不易，喜欢的同学，求一键三连！",领略技术的美,507757733,2022-04-14T10:21:34.000Z,7750,773,795,329050,https://www.bilibili.com/video/BV1gL4y1L7TA
+26,BV1yN411y7yg,7.1.1 IPTV原理,IUV在线仿真,666653205,2023-05-26T01:51:40.000Z,12,3,5,2120,https://www.bilibili.com/video/BV1yN411y7yg
+27,BV1jb4y1G7dC,"中国移动IPTV
+坐标：广州
+产品名称：咪咕盒子
+产品型号：MGV2000",精密机械狂热,163065996,2023-12-25T14:10:52.000Z,104,157,15,23806,https://www.bilibili.com/video/BV1jb4y1G7dC
+28,BV1Hb7Y65Eo7,-,Pan烁视频,412843726,2026-06-25T10:42:28.000Z,18,4,1,1384,https://www.bilibili.com/video/BV1Hb7Y65Eo7
+29,BV1Xn5R67EUx,"本期视频解决精装房痛点：客厅电视柜只有 1 根网线，如何同时实现全屋有线 Mesh 组网 + IPTV 机顶盒直连，全程用中兴智慧生活app配置，新手也能跟着一步步操作。
+✨ 核心方案亮点：
+主路由直接弱电箱收纳，不占电视柜空间
+单网线复用：同时传输 Mesh 数据 + IPTV 信号
+2.5G 网口直接用，支持多子路由扩展，大户型可加交换机
+APP 一键配置 IPTV，子路由自动 Mesh 配对，全程无复杂设置
+适合：精装房 / 网线口不足 / 想做全屋有线回程又不想放弃 IPTV 的朋友。
+# 全屋 WiFi 教程 #中兴星云 MAX #Mesh 组网 #IPTV 单线复用 #家庭网络改造 #弱电箱改造 #装修干货 #网络配置教程 #有线回程 #无线路由器推荐",极简智策,3546902517779013,2026-05-15T10:00:00.000Z,109,98,18,4029,https://www.bilibili.com/video/BV1Xn5R67EUx
+30,BV1MiNyzNEqT,YouTube,bili_33744693136,1082431298,2025-06-21T05:41:31.000Z,46,9,3,7167,https://www.bilibili.com/video/BV1MiNyzNEqT
+31,BV1mL411y7df,只要加一个交换机，家里所有的网线，既可上网又可看IPTV高清电视,账号已注销,1765873557,2023-03-13T05:36:05.000Z,355,63,52,53141,https://www.bilibili.com/video/BV1mL411y7df
+32,BV1ZTttzbEzx,"正则表达式：ChannelName=""([^""]+)""|ChannelURL=""([^""]+)""
+教程参考：恩山论坛mywinr、蠢黑通行",Oo天亮讲晚安O,171180492,2025-08-09T05:46:46.000Z,127,116,62,20093,https://www.bilibili.com/video/BV1ZTttzbEzx
+33,BV1xktRznECS,-,bili_454336769,454336769,2025-08-12T05:26:12.000Z,23,9,0,4444,https://www.bilibili.com/video/BV1xktRznECS
+34,BV17c7xz8Euf,"上级	EPG节目单
+ https://epg.hicloud.co/epg.php
+https://m3u.ibert.me/epg/fmml.xml
+https://m3u.ibert.me/epg/112114_xyz.xml
+https://m3u.ibert.me/epg/51zmt.xml
+访问：IP+端口号+/manage.php
+epg：IP+端口+/index.php
+q群 1051467910  有什么不会的 可以直接问我",正经人谁还搞硬件啊,34325703,2025-05-30T14:49:14.000Z,609,104,130,61471,https://www.bilibili.com/video/BV17c7xz8Euf
+35,BV1vtMg6VEP8,"本期资料💾
+https://tmxk.pp.ua/d/17-sheng-ji-dockerbu-shu-phpyun-xing-jiao-cheng-xiang-mu-fen-xiang-guo-nei-gao-qing-zhi-bo/21",大亨2017,205839731,2026-07-08T11:48:34.000Z,63,21,6,1926,https://www.bilibili.com/video/BV1vtMg6VEP8
+36,BV1TsTx6qEEf,优酷视频,乐乐3888,1588546295,2026-07-03T05:47:58.000Z,12,4,1,405,https://www.bilibili.com/video/BV1TsTx6qEEf
+37,BV1vuxszCEZm,"录制自天津联通IPTV终端
+尊重各频道所属电视台的版权
+和上一期类似扫频相比，广播服务已经取消，部分频道也有变动
+这换着台非得先弹出来天津联通自己的“假电视频道”、“广告”，就挺烦人的……
+另外，还发现了两个假电视频道……
+电视声音之外的噪音为家里几个鱼缸的噪音",东丽大道飞驰的风采,94377493,2025-10-04T02:46:52.000Z,19,10,1,5034,https://www.bilibili.com/video/BV1vuxszCEZm
+38,BV1qaTh6TE7c,-,我爱吉林四平伊通,3690994308483733,2026-07-01T02:20:52.000Z,11,0,0,764,https://www.bilibili.com/video/BV1qaTh6TE7c
+39,BV1RYtPzWEx6,以防你不知道在这波过后楚钧艾克就彻底成为IPTV：仅以此视频致敬Peyz在2024全球总决赛中使用寒冰射手打出的致败表现,秋夜悬笔,284456998,2025-08-06T12:43:20.000Z,628,327,78,114962,https://www.bilibili.com/video/BV1RYtPzWEx6
+40,BV1R55n6WEm3,"（UP主本人采集）
+如题，拍摄自家里提供的广东电信IPTV机顶盒。感觉电信IPTV的电视频道挺丰富的。广东电信IPTV今天上线陕西卫视高清频道，内蒙古卫视高清频道，你就知道吗？",Pan烁视频,412843726,2026-05-10T14:01:22.000Z,21,7,1,2746,https://www.bilibili.com/video/BV1R55n6WEm3
+41,BV1myDWBMEMR,六款800万像素家用摄像头对比：谁更适合你？,假如科技,25592156,2026-04-09T11:00:00.000Z,1836,239,191,138916,https://www.bilibili.com/video/BV1myDWBMEMR
+42,BV12fNC6JE9D,来源：CCTV-2,新华社,473837611,2026-07-13T03:28:04.000Z,3905,372,327,44321,https://www.bilibili.com/video/BV12fNC6JE9D
+43,BV1HLcmewE9L,不用机顶盒直接看电视频道的教程,雨后彩虹的梦想家,3493260823628526,2025-01-13T11:41:00.000Z,689,185,201,189803,https://www.bilibili.com/video/BV1HLcmewE9L
+44,BV1iCTZ6yE7o,山东有线享TV4K浪潮机顶盒,让唱花絮,3546559046224807,2026-07-04T03:13:52.000Z,18,5,2,1249,https://www.bilibili.com/video/BV1iCTZ6yE7o
+45,BV1aoNw66EWV,-,yyyytttrrrr,498903596,2026-07-11T16:03:33.000Z,21,1,0,1247,https://www.bilibili.com/video/BV1aoNw66EWV
+46,BV1w7411h7h2,"大家知道CMG（中央广播电视总台）作为国家最权威的广电中心，旗下的新闻、综艺、社教等节目受到大家的欢迎，在新闻节目方面，最受欢迎还是《新闻联播》、《焦点访谈》等。
+         本人以手机录屏的形式在央视影音截取了部分内容做成合集，砍掉了重大时政新闻，希望大家多多支持，记得来个“三连”、收藏、发弹幕、评论以及私信和订阅我哦！
+提示：本合集所有内容已更新完毕，本人不再继续更新，大家有什么更新内容告诉我的，记得在评论区回复哟！",账号已注销,504137623,2020-02-06T04:21:16.000Z,102,22,19,75504,https://www.bilibili.com/video/BV1w7411h7h2
+47,BV13CNj62ELm,很强！,IT小栈,1949854568,2026-07-10T02:52:22.000Z,87,17,1,1607,https://www.bilibili.com/video/BV13CNj62ELm
+48,BV1McLg67E4m,最详细的影视仓电视版教程！无敌4K观影，无限速秒加载！！附带4K接口+直播推荐！,叶落QVC,3546960067824582,2026-05-16T09:03:02.000Z,6830,6499,389,124301,https://www.bilibili.com/video/BV1McLg67E4m
+49,BV1LKXtBqEuf,如何换2.5G光猫？如何获取到宽带识别码loid？千兆宽带如何真正突破千兆？#光猫 #光猫设置 #换光猫 #宽带装维 #南通,南通弱电全屋WiFi,449090211,2026-03-26T23:05:19.000Z,225,85,18,18074,https://www.bilibili.com/video/BV1LKXtBqEuf
+50,BV1WPNH6mEDk,"ts4K
+速度和业务能力比GRT强多了",BFSLEE,358964564,2026-07-10T16:43:39.000Z,54,12,3,2923,https://www.bilibili.com/video/BV1WPNH6mEDk
+51,BV1uRNF6PELM,本次开机测试主要CPU在本地bandwidth-test和nat带宽测试负载情况，L2 Hardware offload支持问题，简单看了下WiFi 7的配置参数,Athlon_sds,2037423613,2026-07-11T13:21:20.000Z,28,19,4,1517,https://www.bilibili.com/video/BV1uRNF6PELM
+52,BV1ibTb6hEZw,-,宝藏软件收藏侠,3706923673193148,2026-07-03T14:16:28.000Z,253,239,6,3730,https://www.bilibili.com/video/BV1ibTb6hEZw
+53,BV19tjN6jEFL,中国联通电视,快乐牛大汉,3546802458463134,2026-06-15T14:27:05.000Z,12,1,0,1516,https://www.bilibili.com/video/BV19tjN6jEFL
+54,BV1QJMV6LE6j,-,薯条资源库,3546955271637183,2026-07-08T12:56:46.000Z,125,131,5,1886,https://www.bilibili.com/video/BV1QJMV6LE6j
+55,BV133M86dEAG,世界杯看球别选错电视！2026 年 7 月全品牌全价位电视选购攻略，高刷、运动补偿、游戏观影机型全覆盖，避开参数陷阱。 预算、需求打在评论区，帮你精准匹配机型，一键三连收藏不迷路！ # 电视选购 #大屏看球 #MiniLED 电视,好物猎人,3493140145113586,2026-07-07T11:18:04.000Z,60,44,16,2904,https://www.bilibili.com/video/BV133M86dEAG
+56,BV11usTe7Eww,办宽带要不要选IPTV呢？一个视频给你讲清楚,九橙通信,3546678445476590,2024-08-28T09:27:19.000Z,150,108,20,33745,https://www.bilibili.com/video/BV11usTe7Eww
+57,BV1n7QHYaEmb,电信软终端，不用机顶盒也能看直播了！,徐州Telecom网络工程,1968391261,2025-03-12T11:14:27.000Z,286,370,81,74845,https://www.bilibili.com/video/BV1n7QHYaEmb
+58,BV1nvN16yEd2,"低价大流量卡免费申请戳⬇️蓝色链接
+https://b23.tv/cm-cmt-1-1NqECuXYvfk 
+运营商正规手机卡，官方可查验！
+免费申请且包邮，有任何疑问欢迎评论区提问",流量卡枫哥,3546977967015966,2026-07-13T07:49:51.000Z,841,31,216,1964,https://www.bilibili.com/video/BV1nvN16yEd2
+59,BV1MkMh6sENj,"之前的作品不出意外被锁定了，那这次咱不用画面总行了吧
+把之前问的最多的问题汇总一下，一次性讲全，有用请三连！",熊哥BigBearTV,9064153,2026-07-07T14:42:56.000Z,810,642,73,9677,https://www.bilibili.com/video/BV1MkMh6sENj
+60,BV1LjPszWEPh,"哈喽大家好，我是你们的小伙伴司波图！
+上一期Apple TV评测发包后，评论区惊现“最强传说”——“400块买二手Xbox One S才是最强电视盒子”。在2026年，花500多块钱买一台十年前的老游戏机当客厅大屏的核心，到底是变废为宝，还是纯纯的冤大头？
+这期视频我们从“客厅媒体中心”的视角，抛开情怀，深度实测这台昔日王者！
+你能看到它降维打击的一面：顶级流媒体DRM认证、绝版的物理4K蓝光光驱、Kodi 21完全体硬件加速，以及白嫖的PC串流和复古模拟器；
+但同时，我也会无情揭露它那足以让人崩溃的“致命短板”——国内影音生态断层、杜比视界支持残缺、还有感人的体积与功耗。
+到底谁该买它？谁又该果断拔草？答案都在视频里了！",司波图,28457,2026-03-06T10:22:27.000Z,11492,1816,2024,617156,https://www.bilibili.com/video/BV1LjPszWEPh
+61,BV12HSEB9E9J,"中国4K直播时代来临！
+九大卫视超高清4K频道免费开播，
+直击体验4K直播频道的效果。",杰夫视点,618622902,2025-11-28T12:31:31.000Z,73,44,6,7062,https://www.bilibili.com/video/BV12HSEB9E9J
+62,BV1GS4y1v73Q,"自录
+去年9月下旬装不成的移动更换成了电信
+所以缺了移动IPTV部分
+不过移动的电视频道并移动宽带装不成少的可怜
+可以忽略 (doge",Pan烁视频,412843726,2022-06-16T15:39:10.000Z,44,24,7,24511,https://www.bilibili.com/video/BV1GS4y1v73Q
+63,BV1DtFVzrE9E,"谁说看地方台非要装电视盒子来着？
+
+只要有手机，就能在线看央视8K直播和地方卫视！
+
+免费无广告！央视官方出品！",殇小辛,17867932,2026-02-03T08:27:12.000Z,727,168,202,34958,https://www.bilibili.com/video/BV1DtFVzrE9E
+64,BV1HXNg6LE3g,-,yyyytttrrrr,498903596,2026-07-12T15:41:44.000Z,22,0,1,688,https://www.bilibili.com/video/BV1HXNg6LE3g
+65,BV1Sa7ezgEwt,-,犀利的田,3546908456913614,2025-06-04T01:32:38.000Z,13,7,0,1725,https://www.bilibili.com/video/BV1Sa7ezgEwt
+66,BV14e411Y7rN,-,视听中国,513411707,2024-01-24T12:10:14.000Z,742,254,271,80771,https://www.bilibili.com/video/BV14e411Y7rN
+67,BV1GB7P6yEBx,好强哦！,IT小栈,1949854568,2026-06-22T07:05:55.000Z,842,599,33,15749,https://www.bilibili.com/video/BV1GB7P6yEBx
+68,BV1BrMu6yENE,-,醋醋1223,1379568558,2026-07-05T04:14:59.000Z,11,7,0,1120,https://www.bilibili.com/video/BV1BrMu6yENE
+69,BV1ovT96YEYA,-,连收破烂都失业了,493310886,2026-07-06T11:48:34.000Z,52,46,1,2863,https://www.bilibili.com/video/BV1ovT96YEYA
+70,BV114Ns6bEjk,"视频下方置顶评论区免费申请：
+移动极光卡2.0→268G流量+100分钟通话+白金速率+本地号码+流量结转+亲情号
+电信天马卡→280G流量+流量结转+黄金速率+20年流量有效期+自主激活+首月免租
+联通游云卡→255G流量+100分钟通话+20年长期套餐+5G高速率+首月免租+无合约期",流量卡老白,3546706150951347,2026-07-11T02:38:13.000Z,280,444,127,15187,https://www.bilibili.com/video/BV114Ns6bEjk
+71,BV1Aj421D7c5,优酷,海上奇兵,480242164,2024-02-29T11:33:54.000Z,28,14,4,4359,https://www.bilibili.com/video/BV1Aj421D7c5
+72,BV1gq4y1b7xC,三代中九户户通,终于找到啦,499677306,2022-02-05T13:19:23.000Z,110,90,11,81751,https://www.bilibili.com/video/BV1gq4y1b7xC
+73,BV1U14y1j7iu,搭载华为处理器的电视盒子，基本上都可以使用这个方法给电视盒子升级系统。个别奇葩的型号除外。可以说90%的型号都通用。,小飞同学聊科技,2092055972,2022-10-20T13:24:52.000Z,859,127,151,195555,https://www.bilibili.com/video/BV1U14y1j7iu
+74,BV16ZNA6ZESp,-,江城秋雨,32663042,2026-07-11T14:12:14.000Z,17,3,1,2251,https://www.bilibili.com/video/BV16ZNA6ZESp
+75,BV1LL411N7iN,Tivimate 地表最强最好用IPTV   秒杀其他IPTV 没有竞争对手 支持M3U Xtream Codes Stalker Portal协议 多屏同播,SO5君,14772240,2022-02-28T16:12:38.000Z,110,56,48,22704,https://www.bilibili.com/video/BV1LL411N7iN
+76,BV1wS4y1f76Y,宽带是无锡电信，估计是华为悦盒的机顶盒都可以设置。,Nbpokemon,281251125,2022-01-17T13:19:10.000Z,286,209,37,114914,https://www.bilibili.com/video/BV1wS4y1f76Y
+77,BV12pMu6oEkW,"录制
+明天2026年7月6日、央视各个频道原标清系统正式停播、央视各个频道由标清系统转换为高清系统独立播出（明天央视各个频道标清停播）",郑文广州警车粤A警,356129658,2026-07-05T04:11:02.000Z,48,28,10,6155,https://www.bilibili.com/video/BV12pMu6oEkW
+78,BV1kYPuzxEQn,烧星日记：1,-星-海漫步者,3690987014588674,2026-03-01T16:42:05.000Z,49,83,5,7197,https://www.bilibili.com/video/BV1kYPuzxEQn
+79,BV143Tk6nE24,bilibili,醉梦の摄氏度,1829724009,2026-07-02T03:19:17.000Z,13,5,1,1327,https://www.bilibili.com/video/BV143Tk6nE24
+80,BV1zK411N7Zf,电视频道停播,bili_18204233856,495372173,2020-09-06T16:00:49.000Z,18,6,3,5977,https://www.bilibili.com/video/BV1zK411N7Zf
+81,BV1rdNc6HE5U,宁波电视台-直击台风“巴威”特别直播-2026年7月11日下午1点开启首档直播,nbstephen,341404855,2026-07-11T11:23:46.000Z,18,2,2,1591,https://www.bilibili.com/video/BV1rdNc6HE5U
+82,BV18oXABxEzZ,"录制自酒店提供的重庆电信IPTV终端
+回重庆参加了个考试，备考整得人是晕头转向，索性先利用房间里的电视换换脑子
+视频最后为试用重庆IPTV的倍速时移功能，但没鼓捣明白点播到底该怎么个点播法……",东丽大道飞驰的风采,94377493,2026-03-27T07:32:47.000Z,9,0,1,1549,https://www.bilibili.com/video/BV18oXABxEzZ
+83,BV1s3Ey6EE81,「 fR频帧」 美加墨世界杯 电视观看教程 (海信 索尼 LG),fR频帧,259982846,2026-06-12T04:12:52.000Z,26,36,3,4870,https://www.bilibili.com/video/BV1s3Ey6EE81
+84,BV1Wo4y147LD,"91电视直播 自定义频道 西藏IPTV电视频道 共计116套
+地址为 iptv.xizang3300.tv10.com:1935/",武进有线数字电视,13609266,2023-05-10T00:55:48.000Z,20,21,1,3575,https://www.bilibili.com/video/BV1Wo4y147LD
+85,BV1m9ZHYbEZe,IPTV内网融合教程 扔掉运营商机顶盒，全家任何设备都可以同时观看,ADliuyan,488185861,2025-03-31T13:04:50.000Z,439,141,76,58194,https://www.bilibili.com/video/BV1m9ZHYbEZe
+86,BV11t411t7mY,"刚才突然想起来的。。so，把电视机打开，之后一个一个看。
+网络：电信IPTV。
+不包含时政内容，请注意，谢谢！",tonycolin,11191432,2019-03-06T16:36:14.000Z,21,39,1,10172,https://www.bilibili.com/video/BV11t411t7mY
+87,BV1AE2PYgEdH,百元成本废弃手机秒变骁龙888机顶盒+手游游戏机+高清播放机,老张是大佬,3070996,2024-10-11T11:05:16.000Z,12214,1344,2020,529159,https://www.bilibili.com/video/BV1AE2PYgEdH
+88,BV1FL4y1b7Dp,"总所周知 最强机顶盒是XBOX，那么如何使用它来观看IPTV？
+以后就可以大大方方的把它放在电视柜边上了。",futonfutonda,258049740,2022-01-03T04:29:19.000Z,3398,643,586,197775,https://www.bilibili.com/video/BV1FL4y1b7Dp
+89,BV1YVNP6mEnV,折腾NAS外网访问3年，我把9种方案全试了一遍：别再乱选了,阿邦不emo,350102305,2026-07-12T01:00:00.000Z,285,236,24,9429,https://www.bilibili.com/video/BV1YVNP6mEnV
+90,BV1Nv4y1k7Gf,上期视频我们分别对光猫设置、获取直播源以及多网口软路由和双网口软路由的设置操作进行了实操演示。本期视频我们补全华硕路由器的设置方法。,卡卡的鼓捣日记,310343153,2023-01-25T12:00:00.000Z,1686,441,240,126038,https://www.bilibili.com/video/BV1Nv4y1k7Gf
+91,BV1suE96rEyX,-,bili17273860229,1416876180,2026-06-10T10:25:00.000Z,14,2,1,2465,https://www.bilibili.com/video/BV1suE96rEyX
+92,BV1v6421Z7Qh,1分钟教会你！如何在iPhone手机上免费观看电视直播！,小核数码,46957906,2024-07-01T03:55:00.000Z,271,45,53,20456,https://www.bilibili.com/video/BV1v6421Z7Qh
+93,BV15eMW62ESu,-,bili_33744693136,1082431298,2026-07-06T23:34:25.000Z,30,4,2,590,https://www.bilibili.com/video/BV15eMW62ESu
+94,BV11n6oBiEP4,组播转单播系列第一期,青岛潮哥,73246147,2026-01-11T14:45:09.000Z,203,204,53,13029,https://www.bilibili.com/video/BV11n6oBiEP4
+95,BV1tN9PYeEHP,"ts
+自录
+IPTV回看信号
+
+
+PS：湖南卫视添加一刻在播电视剧
+版权问题，无法回看",Pan烁视频,412843726,2025-02-27T12:19:07.000Z,21,6,0,3471,https://www.bilibili.com/video/BV1tN9PYeEHP
+96,BV1xBdhYCEqN,-,星海_Online,647403484,2025-04-12T14:18:20.000Z,36,4,2,2071,https://www.bilibili.com/video/BV1xBdhYCEqN
+97,BV1cHNN6wEoa,"【260711】
+【渣翻，请勿二传】",coco椰奶,1328785393,2026-07-12T00:00:00.000Z,320,25,7,2344,https://www.bilibili.com/video/BV1cHNN6wEoa
+98,BV1b5LX6BEJX,-,我爱吉林四平伊通,3690994308483733,2026-06-17T09:22:38.000Z,7,7,1,985,https://www.bilibili.com/video/BV1b5LX6BEJX
+99,BV1zA411Y7bn,广东IPTV,Pan烁视频,412843726,2020-08-08T01:33:08.000Z,28,21,18,19873,https://www.bilibili.com/video/BV1zA411Y7bn
+100,BV1Fd4y1E7BV,中国iptv怎么投屏，中国iptv投屏,懂视,3493089148668841,2023-01-06T02:47:23.000Z,85,12,17,27437,https://www.bilibili.com/video/BV1Fd4y1E7BV
+101,BV1okigerE5F,广东台,花带plus,560495114,2024-08-02T12:55:25.000Z,258,65,27,32626,https://www.bilibili.com/video/BV1okigerE5F
+102,BV1os4y1e7HR,-,田桥语,673421528,2023-06-08T03:46:49.000Z,10,3,45,1045,https://www.bilibili.com/video/BV1os4y1e7HR
+103,BV1GW41147zW,我家的电视只有几百个台（包括辽宁IPTV、本溪无线电视信号的节目）,阳光男孩是东北人,73310301,2018-02-24T04:01:50.000Z,50,40,10,12733,https://www.bilibili.com/video/BV1GW41147zW
+104,BV1yTMH64ECC,-,东东海的烟花,668578424,2026-07-09T13:03:41.000Z,19,3,0,763,https://www.bilibili.com/video/BV1yTMH64ECC
+105,BV1Jx411c7AZ,jiaoliyu37 今天他这能收到90个频道 还是没到100,霓红光的飞舞蝶,41227,2013-03-17T09:52:23.000Z,93,49,21,39312,https://www.bilibili.com/video/BV1Jx411c7AZ
+106,BV1VJKZ6TESh,优酷视频,乐乐3888,1588546295,2026-06-30T06:24:55.000Z,24,5,1,699,https://www.bilibili.com/video/BV1VJKZ6TESh
+107,BV1XPkvBRE7f,"开源安全、无任何广告，适合给家里智能电视TV盒子安装，长辈观看，遥控操作，新老设备兼容，手机，平板，电脑兼容性OK~
+——————————————————————
+下载地址：https://ewm.bzfxz.com/xiazai.html?=mnxda3tklisuy9
+——————————————————————
+安装教程+下载地址：https://bzfxz.com/642.html
+——————————————————————
+油桃TV声明:
+适配平台均为正规正版资源发行平台 不得代码被修改适配不正规平台
+由于某些既存的规定 这软件不会收费 也不会商业化 除非不合理规定不再存在
+纯粹TV声明：
+本项目为 非盈利性开源软件，遵循 GPL-3.0 协议。
+不提供任何 VIP 解锁、视频破解或盗链服务。高清直播需您在对应平台拥有合法账号权限。
+所有直播内容（视频、音频、图像等）版权归属原平台所有，本软件仅作技术聚合与转码展示。
+WebView声明：
+本应用仅嵌套展示电视台公开的直播页面，所有内容来自原网站，版权归原网站所有。
+本应用不提供任何视频资源，不储存、不转发，仅用于学习研究用途。
+本应用不会破解或绕过源站的限制，若原站点内容变更或限制访问，本应用不作任何修复和破解。
+本应用中收录的官方直播地址均为网友自行收集提交，若无意中侵犯了版权方的权益，请联系开发者删除。",宝藏分享,451560057,2026-01-19T06:08:31.000Z,5409,1077,477,249095,https://www.bilibili.com/video/BV1XPkvBRE7f
+108,BV1WfdzYwEQE,这就是我这次IPTV改造的全过程，从抓包到路由器配置，折腾一番，终于实现电视自由！你们家IPTV还绑着机顶盒吗？欢迎留言分享你的折腾经验，下期见！,浩繁的星空,3743977,2025-04-13T12:59:58.000Z,426,233,39,52139,https://www.bilibili.com/video/BV1WfdzYwEQE
+109,BV1kuJA6aEVY,部分频道花屏是线路问题,biIi_55762428177,495091325,2026-06-14T07:43:14.000Z,17,3,0,871,https://www.bilibili.com/video/BV1kuJA6aEVY
+110,BV1QKjo6pEHZ,-,账号已注销,3546977369328368,2026-06-24T15:55:30.000Z,5,1,0,95,https://www.bilibili.com/video/BV1QKjo6pEHZ
+111,BV1Da411s74H,成功实现单线复用的小伙伴欢迎分享经验,哏工侃智能,1370833924,2022-06-19T10:18:00.000Z,4945,434,387,184894,https://www.bilibili.com/video/BV1Da411s74H
+112,BV13XTZ6BEjo,昨天湖北广电网络全省冬奥纪实已置换农林卫视，25年9月30日山西卫视已置换内蒙古蒙语，青海卫视已置换宁夏卫视高清，25年7日28日云南卫视已置换内蒙古，新疆，兵团，西藏卫视高清，22年12日13日武汉云南卫视已置换CCTV4高清,我爱吉林四平伊通,3690994308483733,2026-07-04T03:49:05.000Z,15,0,0,432,https://www.bilibili.com/video/BV13XTZ6BEjo
+113,BV1X5Me6gEFF,【i-dle】[I-TALK] - EP. 253  'Gimme Dat Love' M/V 拍摄花絮 PART 1,i-dle_official,624243924,2026-07-08T10:00:00.000Z,6944,297,147,78623,https://www.bilibili.com/video/BV1X5Me6gEFF
+114,BV16m411d7xQ,-,顺哥聊弱电,1039640584,2024-03-12T11:05:07.000Z,235,79,49,46190,https://www.bilibili.com/video/BV16m411d7xQ
+115,BV1SKS2BBEkc,广东电信IPTV南传平台喜粤TV，广东移动IPTV南传平台喜粤TV，广东广电网络珠海有线电视，深圳电信IPTV广信平台，深圳天威视讯频道一览，本视频只做学术交流而用（本次因采集卡原因声并未录制上）,Pan烁视频,412843726,2025-12-01T11:56:55.000Z,23,5,4,3597,https://www.bilibili.com/video/BV1SKS2BBEkc
+116,BV1s1NH6SEQV,-,月初资源库,40618169,2026-07-10T14:45:52.000Z,7,9,0,316,https://www.bilibili.com/video/BV1s1NH6SEQV
+117,BV1LqwvepEBT,"第一次搞这么长的视频教程，说的有点啰嗦，希望大家见谅，有什么问题随时提问，我会的尽量解答。
+创作不易，对你有帮助的话务必点赞支持一下",_小愚_,15856864,2025-01-19T00:13:44.000Z,453,447,99,39500,https://www.bilibili.com/video/BV1LqwvepEBT
+118,BV1nh411c7K7,爱奇艺,史诗夫观察,3493108576684177,2023-05-24T09:02:22.000Z,75,16,10,24780,https://www.bilibili.com/video/BV1nh411c7K7
+119,BV1CaM36bEsr,-,我是奈亚子呀,528001716,2026-07-08T07:59:52.000Z,24,3,2,2296,https://www.bilibili.com/video/BV1CaM36bEsr
+120,BV1NqzLBDEbw,-,脑瘫治疗师捅主任,484400635,2026-01-21T10:17:38.000Z,48,69,4,4586,https://www.bilibili.com/video/BV1NqzLBDEbw
+121,BV145411Y7i7,和有线电视的频道排序基本相同，对于有高清信号的频道，把高清信号前置。没有空白的预留频道号，也不存在频道购买的问题,唱起草原的歌,430909774,2020-06-30T10:28:36.000Z,11,2,0,10626,https://www.bilibili.com/video/BV145411Y7i7
+122,BV153CtYHE6v,小米电视安装电视直播应用的详细教程来了，可实现免米看电视直播,罗大花花花花花,3493283445606443,2024-12-28T02:58:17.000Z,973,108,252,56239,https://www.bilibili.com/video/BV153CtYHE6v
+123,BV1VyTg6BE4p,腾讯极光盒子6实测：4K入门真香？🔥,兔兔要躺会,3546862611073688,2026-07-11T09:00:00.000Z,3,2,0,284,https://www.bilibili.com/video/BV1VyTg6BE4p
+124,BV1wT4y1K7XP,优酷,bili_525619025,525619025,2021-01-19T13:22:57.000Z,31,11,0,11301,https://www.bilibili.com/video/BV1wT4y1K7XP
+125,BV1Aoj86eEPy,优酷视频，由于早期的上海IPTV是由百视通IPTV集成播控平台负责，2005年获得国家广电总局首个IPTV牌照，与2006年东方有线推出的互动电视业务不同（电信称IPTV，有线称互动电视），直到2012年中国网络电视台与上海广播电视台IPTV集成播控平台正式合并，统一为全国的IPTV中央集成播控总平台，从此以后，上海的IPTV正式成为分平台。现在的上海IPTV运营商从原来的电信的唯一一家运营商变成电信，移动，联通三家,乐乐3888,1588546295,2026-06-21T11:07:53.000Z,16,2,2,647,https://www.bilibili.com/video/BV1Aoj86eEPy
+126,BV135m4ByEk9,"录屏
+组播地址
+翡翠：239.77.1.107_5146 
+明珠：239.77.1.189_5146 
+好家伙，近乎原版信号",BFSLEE,358964564,2025-12-10T08:24:36.000Z,185,223,102,19072,https://www.bilibili.com/video/BV135m4ByEk9
+127,BV1kL4y1g7dK,闭上你的嘴,昊东,523611069,2022-02-25T02:40:29.000Z,34,0,7,60857,https://www.bilibili.com/video/BV1kL4y1g7dK
+128,BV1Kz421m7UT,在之前做过一期IPTV教程不全面，这次把他补全,凡兴分享,399688888,2024-05-11T13:50:05.000Z,514,173,112,58284,https://www.bilibili.com/video/BV1Kz421m7UT
+129,BV1Ta41177K7,91看手机电视APP,专子,676965830,2022-06-04T23:29:50.000Z,29,0,12,16313,https://www.bilibili.com/video/BV1Ta41177K7
+130,BV1EiNu6MEqy,"录制自蜻蜓FM青岛新闻综合广播直播及回放信号
+常听的青岛新闻综合广播，在毫无征兆的情况下，突然把用了很多年的那首经典的《大海啊故乡》的台呼连带着整点报时给换了下去，新换上来的是“又臭又长”的新台呼和整点报时后都要配一段听起来和青岛的工业、市民生活相关的文案……
+发现这一变动还是回听早上的1377早新闻，听到台呼不是《大海啊故乡》，猛然一怔，随后反应过来是青岛台改版了……于是趁着青岛台现在还存有回放，赶忙做了这份记录
+目前已知凌晨时段、早7点、早10点、晚7点及之后青岛新闻综合广播不安排播出新版整点报时；凌晨3点仍维持旧版大海啊故乡交响乐版台呼
+尊重青岛广播电视台的版权",东丽大道飞驰的风采,94377493,2026-07-12T09:43:25.000Z,12,7,2,163,https://www.bilibili.com/video/BV1EiNu6MEqy
+131,BV1qWNW6kE1v,"-
+【广东卫视】备用信号在19：30继续转播CCTV1广告的时段片段（包含备用信号、HD、SD、4K版本的切片）（日期：2026-7-9）",石粒针难人666,354041750,2026-07-10T19:22:14.000Z,22,5,2,1367,https://www.bilibili.com/video/BV1qWNW6kE1v
+132,BV14K411n7pw,优酷,bili_525619025,525619025,2020-06-17T03:07:42.000Z,54,7,22,20684,https://www.bilibili.com/video/BV14K411n7pw
+133,BV1yu4y187C2,-,smokendate,32409110,2023-11-08T14:42:54.000Z,71,47,9,17152,https://www.bilibili.com/video/BV1yu4y187C2
+134,BV1dj411p7qm,-,慕黎视界,249175645,2023-12-14T15:52:55.000Z,1006,32,54,115456,https://www.bilibili.com/video/BV1dj411p7qm
+135,BV1HB9oBwEu8,江苏电信南通市通州区IPTV电视节目频道列表2026.05.03【4K插入式微型机顶盒】,老虎86,470470225,2026-05-03T07:06:34.000Z,24,13,1,2390,https://www.bilibili.com/video/BV1HB9oBwEu8
+136,BV1SuNE62E3T,广东卫视 停机检修 2026-07-10 (IPTV备用),爱喜灰的救世主,516175670,2026-07-10T06:55:43.000Z,19,10,0,1544,https://www.bilibili.com/video/BV1SuNE62E3T
+137,BV1g7R8YLEHj,坐标：广东惠州,2_Be_Named,490355532,2025-03-09T04:43:02.000Z,20,4,0,2801,https://www.bilibili.com/video/BV1g7R8YLEHj
+138,BV1TGNE61ECP,"ts4K
+自录",BFSLEE,358964564,2026-07-10T06:33:14.000Z,48,19,1,1790,https://www.bilibili.com/video/BV1TGNE61ECP
+139,BV1qy4y1g7XK,拍摄时间：2020年1月12日011938,我系苏打饼,242104,2021-05-31T00:06:34.000Z,20,13,2,8989,https://www.bilibili.com/video/BV1qy4y1g7XK
+140,BV18kJN6mETQ,"录制于广东IPTV
+观察了好几天，正赛都没被屏蔽，这回是谈成了？",KMChuko,176280980,2026-06-14T17:47:09.000Z,78,60,4,5789,https://www.bilibili.com/video/BV18kJN6mETQ
+141,BV11o4y1d7Zj,家长为了孩子学习舍弃有线电视，多年来只看一个台，总算熬出头了,午夜寻影,454201462,2021-01-04T10:10:02.000Z,129,34,81,13715,https://www.bilibili.com/video/BV11o4y1d7Zj
+142,BV12q4y1B7RF,-,RBC放送中心,1864661210,2021-11-28T01:44:53.000Z,17,6,5,13863,https://www.bilibili.com/video/BV12q4y1B7RF
+143,BV1v54y1X7fq,"欢迎大家收看这次的视频，录制的是一些频道的夜间停机检修画面，给个关注点个赞和收藏吧感谢,已更新新的内容(2020.5.9---2026年7月10日为止)ο(=•ω＜=)ρ⌒☆",Moonの小希,394484599,2020-05-09T08:30:21.000Z,442,160,64,66684,https://www.bilibili.com/video/BV1v54y1X7fq
+144,BV1rnjR6NEBK,-,卫星节目影视,472829347,2026-06-24T10:52:14.000Z,10,3,0,514,https://www.bilibili.com/video/BV1rnjR6NEBK
+145,BV1eb7p6YEcL,-,PAL114514_,1380685861,2026-06-27T09:54:17.000Z,16,4,2,1839,https://www.bilibili.com/video/BV1eb7p6YEcL
+146,BV1CATR65EAD,"最近电视的价格开始回升了，相比618期间都普遍涨了小一千，但是今年新出的产品都挺不错的，各位如果有换电视的需求，直接入手就OK
+最好也是能够先去线下看一眼",不懂就问仓老师,3546611093342703,2026-07-06T13:00:00.000Z,5148,331,114,35087,https://www.bilibili.com/video/BV1CATR65EAD
+147,BV1ZX786FEt7,-,卫星节目影视,472829347,2026-06-25T10:18:12.000Z,9,0,0,492,https://www.bilibili.com/video/BV1ZX786FEt7
+148,BV1Lk4y1m7fm,"刚刚过去的八一建军节，对于电视人而言，是一个极为伤感的日子：这一天是“耕战频道”分家一周年祭；而与此同时，拥有近20多年历史的浙江电视台影视娱乐频道（浙江5套）也在这一天凌晨0点戛然而止，骤然停播，实在令人遗憾，唏嘘不已！
+2019年起，电视业的寒冬悄然来袭，随着“关停并转”纵深推进，“电视停播潮”席卷全行业，很多陪伴我们一起走过的电视频道也与我们依依惜别。
+2022/1/13增补：大连公共频道、大连财经频道、广西科教频道、广西公共频道。
+2022/2/25增补：中央新影新科动漫频道。",-请-叫-我-活-雷-锋-,306508710,2020-08-02T10:59:08.000Z,469,596,43,86868,https://www.bilibili.com/video/BV1Lk4y1m7fm
+149,BV14WMn6dEjd,"网络收集
+为保障各方的版权权益，本次投稿特投转载。
+收集不全，也请各位多多支持。",TVSTA电视站,3707027492702891,2026-07-09T13:55:51.000Z,148,40,8,6047,https://www.bilibili.com/video/BV14WMn6dEjd
+150,BV1J94y1Y71R,-,顺哥聊弱电,1039640584,2023-09-30T10:20:41.000Z,581,155,213,80091,https://www.bilibili.com/video/BV1J94y1Y71R
+151,BV1Mt5r6KEyh,联通的电视频道列表序号与移动相同，但联通在上个月第三周的时候把吴忠公共(1)由原来的35调到了30 ，吴忠综合(2)由原来的36调到了29 。而移动还很正常 。,北斗七星之小和,1027102752,2026-05-16T03:33:00.000Z,20,5,0,1329,https://www.bilibili.com/video/BV1Mt5r6KEyh
+152,BV1pUkUYXEei,"地址：https://d.yyzq.gq/iptv-feiyang
+打不开的给我留言
+飞牛云NAS用Docker搭建稳定的iptv服务-配合局域网电视观看",有云转晴,519573454,2024-12-20T15:55:12.000Z,846,263,146,69049,https://www.bilibili.com/video/BV1pUkUYXEei
+153,BV1NAT16WEye,"ts
+源码自录",BFSLEE,358964564,2026-07-05T14:32:27.000Z,43,11,2,2226,https://www.bilibili.com/video/BV1NAT16WEye
+154,BV1o64y1A7fn,-,平壤市晟通緊固件公司,406844101,2024-01-21T09:35:17.000Z,12,7,3,4556,https://www.bilibili.com/video/BV1o64y1A7fn
+155,BV1YDMn6MEi2,-,蟋蟀709,387820136,2026-07-09T12:44:26.000Z,20,0,1,1541,https://www.bilibili.com/video/BV1YDMn6MEi2
+156,BV1zG411q7FK,机顶盒遥控器学习电视遥控器操作教程,_连,3494358097594806,2024-01-06T03:31:05.000Z,272,54,125,40854,https://www.bilibili.com/video/BV1zG411q7FK
+157,BV1mQ4y137p8,-,薛定谔の艾瑞,137683614,2023-12-11T09:36:35.000Z,1397,340,183,108206,https://www.bilibili.com/video/BV1mQ4y137p8
+158,BV11tSXBmEnC,"✨宽带办理链接总店铺✨
+https://app.hk.jkcae.com/shareStore/#/?user_key=7dV6aDrmN0",丷玲珑丷,419241939,2026-04-05T16:01:38.000Z,395,574,117,75205,https://www.bilibili.com/video/BV11tSXBmEnC
+159,BV1yJ4m157DF,"2022.10.4 BV1CR4y1d7SZ
+mp4
+1080p25
+自录
+录制于江西联通IPTV(恩赐版)",Pan烁视频,412843726,2024-04-01T10:59:29.000Z,24,15,2,8714,https://www.bilibili.com/video/BV1yJ4m157DF
+160,BV1dPNp6iEkG,【充电专属】1998年 央视八套文艺频道电视广告等电视录像,TOMVideos,93633785,2026-07-10T15:05:55.000Z,64,17,4,3173,https://www.bilibili.com/video/BV1dPNp6iEkG
+161,BV11ZTh6JEQ2,"感谢@KMChuko  大佬提供部分素材4K源文件
+在此表示衷心感激",BFSLEE,358964564,2026-07-01T01:22:45.000Z,65,11,4,2250,https://www.bilibili.com/video/BV11ZTh6JEQ2
+162,BV1uHK96JEdj,APTV使用,Justin_DanHK,3707021178178297,2026-06-29T15:30:52.000Z,10,3,1,419,https://www.bilibili.com/video/BV1uHK96JEdj
+163,BV12M746YEK1,-,天之光2021,1263120648,2026-06-24T17:04:47.000Z,54,13,2,2984,https://www.bilibili.com/video/BV12M746YEK1
+164,BV17fNg63ELY,央视网（原视频已挂）,哲哲速来,3706949528979937,2026-07-12T16:25:26.000Z,15,1,0,192,https://www.bilibili.com/video/BV17fNg63ELY
+165,BV1CUMh6JE9y,【55寸电视】2026年7月55寸电视|TCL电视、Vidda电视、创维电视、海信电视、Vision电视、华为电视、雷鸟电视、小米电视,墨叔者也,3546976847137357,2026-07-08T03:25:00.000Z,161,54,41,3203,https://www.bilibili.com/video/BV1CUMh6JE9y
+166,BV1qqNn6KE2b,"高州南雄
+乳源廉江
+恭喜以上四个电视台获得播映权(不是",BFSLEE,358964564,2026-07-10T18:14:12.000Z,74,27,7,3099,https://www.bilibili.com/video/BV1qqNn6KE2b
+167,BV19tCoYAEQN,路由器如何打开IPTV使能？IPTV传到路由器，连电视机顶盒 一根网线传IPTV电视和网络,Office之光,1058357494,2024-10-19T11:44:20.000Z,126,35,23,30719,https://www.bilibili.com/video/BV19tCoYAEQN
+168,BV1pg411A7Xk,河北有线数字电视银河HDC6910 3D6型高清机顶盒开机,马凡舒的大千世界,383844176,2021-12-19T11:45:46.000Z,79,382,9,41175,https://www.bilibili.com/video/BV1pg411A7Xk
+169,BV1Mq736bEDL,"本期资料💾：
+https://tmxk.pp.ua/d/122-zheng-li-liao-yi-fen-rebeliptviptv-de-jian-hua-ban-ke-yong-bu-shu-fang-an",大亨2017,205839731,2026-06-26T08:17:41.000Z,37,13,5,1945,https://www.bilibili.com/video/BV1Mq736bEDL
+170,BV1ESNM6zER3,网盘:https://1827444650.share.123pan.cn/123pan/Ue70jv-HzWMd,芸宪,3546905030167428,2026-07-12T03:02:07.000Z,12,0,0,101,https://www.bilibili.com/video/BV1ESNM6zER3
+171,BV1YoEC6ZEP4,BGM：英语高考听力前小曲《多心》,bili_12892158478,3493143792060771,2026-06-12T05:02:33.000Z,7,0,0,437,https://www.bilibili.com/video/BV1YoEC6ZEP4
+172,BV1w7TS68Esk,腾讯极光6SE一键切换纯净桌面，里面安装了免费影视资源，适合家里老人的去使用，可以看直播央视和卫视，电影电视剧综艺，都是免费的！！！_#电视频道#地方卫视#央视新闻4k#腾讯极光盒子#腾讯-758,哦呦就是你你你,3546982526224775,2026-07-05T21:32:28.000Z,6,1,0,66,https://www.bilibili.com/video/BV1w7TS68Esk
+173,BV1X64y1s7do,电视音量过大机顶盒出杂音，高清盒子配个标清线，有线用户：换它,午夜寻影,454201462,2021-07-24T10:05:19.000Z,90,15,7,17439,https://www.bilibili.com/video/BV1X64y1s7do
+174,BV12C411b7dK,"LG电视是web os系统，没有像安卓系统那样方便的玩耍安装各种软件，但是有很多隐藏功能等我们去发掘，比如直接下载软件看电视台直播，清晰度也很好，这期节目就让大家一起来玩，后面还有更多内容
+比如：安卓电视直播那个软件好？
+kodi在web os上使用体验如何？
+路由器怎么设置ipv6或刷机解锁更多奥秘...",大亨2017,205839731,2024-03-25T12:19:37.000Z,118,131,26,14239,https://www.bilibili.com/video/BV12C411b7dK
+175,BV1k1iMBnEtP,"后来安装了个机顶盒，感觉画质好多了；4K频道方面：所有已开播的4K卫视频道都有，只是CCTV-4K帧率只有25FPS（是测试版的），CCTV-16仍然没有4K版本
+CCTV-5+不知道为什么是测试版，而且帧率只有25FPS；还有湖南卫视的回看不知道为什么只有25FPS，其他频道都没出现这个问题，广东卫视的回看都是4K_50Hz的
+CCTV-5没有出现“超清”是标清的问题
+众所周知的，想看翡翠明珠凤凰只能切回有线电视，挺麻烦的；连州的有线电视还是银视，根据网上的一些资讯，说是今年年底要完成“一省一网”工作的，而且我拨打过有线电视服务电话咨询，答复都说“没有”，向省广电局咨询说是预计9月底完成，可是到了2025年的最后一天了，连州仍未并入省网，真的没救了",无聊先生BROING,479192156,2025-12-31T08:18:58.000Z,21,15,2,6022,https://www.bilibili.com/video/BV1k1iMBnEtP
+176,BV1tX4y1h7Ls,9.7.1 全网业务配置-IPTV配置（上）,IUV在线仿真,666653205,2023-05-26T02:14:25.000Z,15,2,20,3898,https://www.bilibili.com/video/BV1tX4y1h7Ls
+177,BV1vEM46WE1o,你们要的车载飞牛NAS 顺带搞定车载互联网 整活,老张是大佬,3070996,2026-07-12T04:30:00.000Z,617,146,39,22204,https://www.bilibili.com/video/BV1vEM46WE1o
+178,BV1SMK7zaEzk,飞牛iptv搭建效果,蔡叔的房车NAS露影记,320178233,2025-06-25T04:14:11.000Z,287,104,38,26469,https://www.bilibili.com/video/BV1SMK7zaEzk
+179,BV1UabizME1m,YouTube,bili_33744693136,1082431298,2025-08-13T23:47:54.000Z,48,31,2,11797,https://www.bilibili.com/video/BV1UabizME1m
+180,BV1KM411d7Qg,-,思冬圈,3546568273692700,2023-12-02T02:13:17.000Z,22,31,1,5984,https://www.bilibili.com/video/BV1KM411d7Qg
+181,BV19ioGBvEUt,介绍家庭组网，路由器摆放最佳位置。客厅有1个，2个，3个网口，怎么连线，最合理,凌寒云,30873637,2026-04-24T05:24:39.000Z,44,88,10,4730,https://www.bilibili.com/video/BV19ioGBvEUt
+182,BV1CbZZYHEFP,-,樱木花道114514,360755472,2025-04-04T13:19:36.000Z,15,4,0,1776,https://www.bilibili.com/video/BV1CbZZYHEFP
+183,BV1w8M86CEDr,住七年卧室无电源，靠空调扯临时线，上寻线仪找到暗盒解决病根,米师傅安装,1359917078,2026-07-07T09:16:24.000Z,1980,156,21,48309,https://www.bilibili.com/video/BV1w8M86CEDr
+184,BV1oyTx6XEPr,-,世界树姬辰月,3546960619374902,2026-07-03T13:07:52.000Z,16,7,0,1047,https://www.bilibili.com/video/BV1oyTx6XEPr
+185,BV1Li5J6nExT,看球吗，还是跟看电影侧重点不太一样，大家一起来看看我的推荐设置吧！,Salivaxiu_张七七-喵,29078781,2026-05-11T03:35:00.000Z,121,77,14,12436,https://www.bilibili.com/video/BV1Li5J6nExT
+186,BV163CRYKEda,飞牛云NAS安装IPTV服务配合Tvbox使用,有云转晴,519573454,2024-10-19T07:50:07.000Z,644,130,132,53486,https://www.bilibili.com/video/BV163CRYKEda
+187,BV1UcimY5Ez7,TCL电视开机直接看直播方法,知乎蓝大仙人,34586446,2024-12-05T04:00:00.000Z,473,88,88,46926,https://www.bilibili.com/video/BV1UcimY5Ez7
+188,BV1T57b6MEVB,手机录制,我爱吉林长春公主岭,3493078461582089,2026-06-25T05:44:17.000Z,16,3,1,594,https://www.bilibili.com/video/BV1T57b6MEVB
+189,BV1Ab41117WS,http://video.tudou.com/v/XMTc4OTQ3OTMyNA==.html?spm=a2hzp.8253869.0.0,岁月炒冷饭,29648603,2019-02-17T11:10:00.000Z,169,47,6,63184,https://www.bilibili.com/video/BV1Ab41117WS
+190,BV1unMF6MEN6,台湾电视公司落地福建广电网络(福州市、厦门市、莆田市、三明市、泉州市、漳州市、南平市、龙岩市、宁德市9个地级市，另设有平潭综合实验区),voicemailand,3690971856374603,2026-07-04T07:21:09.000Z,119,56,2,7202,https://www.bilibili.com/video/BV1unMF6MEN6
+191,BV1cPr4YnEHM,"飞牛云NAS部署iptv-api项目-实现看IPTV电视
+version: '3.8'
+
+services:
+ iptv-api:
+  image: guovern/iptv-api
+  ports:
+   - ""8700:8000""  #左侧的8700可以自定义
+  volumes:
+   - ./config:/iptv-api/config
+   - ./output:/iptv-api/output
+  restart: always # 可选，确保容器崩溃时自动重启",有云转晴,519573454,2025-01-04T14:15:24.000Z,321,98,62,30346,https://www.bilibili.com/video/BV1cPr4YnEHM
+192,BV1rTNM6MEmv,"7月背包选购指南：BV1eEN76QEev
+7月升降桌选购指南：BV1bbTX6UEUt
+7月98/100寸电视选购指南：BV14ATi6aEP7
+7月人体工学椅选购指南：BV1BYKf6jEBR
+7月燃气灶选购指南：BV1Wv7564EPY
+6-7月滚筒洗衣机选购指南：BV1sA7a6GEVW
+6-7月三匹空调选购指南：BV1XqjX61EaQ
+6-7月按摩椅选购指南：BV1b8jy6EEpZ
+618洗衣机选购指南：BV1187A6cECC
+618扫地机选购指南：BV1oVjc6gEQW
+618冰箱选购指南：BV1JXLQ6XEaC
+618鼠标选购指南：BV1BiLD61EAR
+618手柄选购指南：BV1X2jV6KErq
+618空调选购指南：BV17JJG62EE4
+618升降桌选购指南：BV1uLJw6zEiF",硬件选物,3546964243253252,2026-07-12T06:09:25.000Z,1214,22,2,9820,https://www.bilibili.com/video/BV1rTNM6MEmv
+193,BV1uLN16tEQJ,酒店房间里的智能视听体验，IPTV为你带来精彩！ #酒店IPTV #广东酒店IPTV推荐 #山东酒店IPTV哪家专业,达光网络科技,3706951791807095,2026-07-13T07:38:23.000Z,11,0,0,0,https://www.bilibili.com/video/BV1uLN16tEQJ
+194,BV1z4mWYbE2a,北京IPTV天津IPTV河北IPTV山西IPTV内蒙古IPTV辽宁IPTV吉林IPTV黑龙江IPTV上海IPTV江苏IPTV浙江IPTV安徽IPTV福建IPTV湖北IPTV江西IPTV湖南IPTV广东IPTV海南IPTV广西IPTV山东IPTV河南IPTV，贵州IPTV，重庆IPTV四川IPTV云南IPTV陕西IPTV甘肃IPTV宁夏IPTV青海IPTV新疆IPTV等,全国了,1773950310,2024-11-11T13:52:56.000Z,30,6,1,6403,https://www.bilibili.com/video/BV1z4mWYbE2a
+195,BV1SKkcBxEHw,原视频已旋转90度,谢殿瑞,3546683665288110,2026-01-15T10:59:10.000Z,15,5,2,2636,https://www.bilibili.com/video/BV1SKkcBxEHw
+196,BV1QqdwBcETZ,"下载方式一：https://pan.xunlei.com/s/VOs0bhnViSrortHTTOAp7xY3A1?pwd=e5ie#
+
+下载方式二：https://drive.uc.cn/s/5261e9ee83614?public=1
+
+更多尽在：https://link3.cc/muhou",幕后软资库,250500895,2026-05-07T08:52:15.000Z,418,89,46,20821,https://www.bilibili.com/video/BV1QqdwBcETZ
+197,BV19MjB6uE6V,"山东省地市级电视台地面频道ID。
+
+©济南广播电视台、青岛广播电视台、淄博广播电视台、枣庄广播电视台、德州广播电视台、潍坊广播电视台、东营广播电视台、日照广播电视台、临沂广播电视台、菏泽广播电视台、烟台广播电视台、威海广播电视台、泰安广播电视台、济宁广播电视台、聊城广播电视台、滨州广播电视台",guestice,3659265,2026-06-19T14:00:00.000Z,63,35,3,5336,https://www.bilibili.com/video/BV19MjB6uE6V
+198,BV1i4TQz3Eu1,"坐标：广东佛山
+录像日期：2025.06.06-06.07",2_Be_Named,490355532,2025-06-08T03:31:33.000Z,15,2,2,3614,https://www.bilibili.com/video/BV1i4TQz3Eu1
+199,BV1qhNj69EeC,"央视频录制
+2025.9.28期",妮宝尼宝,3690996898466468,2026-07-10T02:20:02.000Z,26,2,0,794,https://www.bilibili.com/video/BV1qhNj69EeC
+200,BV1fr4y1573k,nick.com,兔小贝儿童,2098299596,2022-08-07T06:26:40.000Z,256,10,23,263450,https://www.bilibili.com/video/BV1fr4y1573k
+201,BV1ss411L7JD,嗯，信号最好的就VHF发射的6频道和18频道的C1和文昌台，而信号最清晰的是16频道的CCTV7 28频道的海南综合。 开头的话是21频道的c1有重影，。,HNC-TV,122060641,2018-06-24T13:44:13.000Z,250,68,21,89723,https://www.bilibili.com/video/BV1ss411L7JD
+202,BV1jt411U7eV,本视频录制时间 20031123,岁月炒冷饭,29648603,2018-11-12T03:58:39.000Z,2511,593,75,635658,https://www.bilibili.com/video/BV1jt411U7eV
+203,BV1pUKD6PEL5,-,邪恶莫迪,892107,2026-06-29T12:27:49.000Z,16,24,2,1383,https://www.bilibili.com/video/BV1pUKD6PEL5
+204,BV1pY411g7Cw,-,纯洁善良的孩子,304395490,2022-06-04T06:03:09.000Z,7447,1411,539,609278,https://www.bilibili.com/video/BV1pY411g7Cw
+205,BV1uxG9zEEtD,"（UP主本人采集）
+如题，拍摄自牛始埔的另一个别人个家里的提供的广东电信IPTV机顶盒。感觉深圳电信IPTV的电视频道挺丰富的。深圳电信也上线了央视3568频道，后来汕头广播电视台只在潮汕专区可以看到，就可以收看或者是回放节目了。如果拍摄视频画质差，使用USB采集卡再采集一遍！你就知道吗？",Pan烁视频,412843726,2025-04-30T08:44:27.000Z,22,6,4,7181,https://www.bilibili.com/video/BV1uxG9zEEtD
+206,BV1CmX5YQEcA,你不知道的可以在电视上使用的APP——浏览器！,野草助手,75365513,2025-03-19T09:50:00.000Z,322,87,32,52108,https://www.bilibili.com/video/BV1CmX5YQEcA
+207,BV14u411G7JU,晶晨S905L3-B机顶盒刷安卓9纯净系统，解决短接问题和刷机卡进程问题。视频中提到的刷机包和刷机工具有需要可以私信我。,班墨停,366091917,2023-07-29T12:04:15.000Z,1787,800,172,115126,https://www.bilibili.com/video/BV14u411G7JU
+208,BV1xNXSBmEMo,"本次在3.24根据频道运营方要求，下线""环球奇观""频道，频道序号为128；下线""茶""频道，频道序号为130。
+型号:DVBIP-1001，采集卡录制",DVBIP-4101,3546837956954811,2026-03-29T09:55:53.000Z,33,12,0,3184,https://www.bilibili.com/video/BV1xNXSBmEMo
+209,BV13p4y1q7Mv,土豆,bili_525619025,525619025,2020-08-04T05:44:26.000Z,91,151,7,63279,https://www.bilibili.com/video/BV13p4y1q7Mv
+210,BV1ApMt66Eu4,憋了整整四年换代！2026 Apple TV 4K 搭载 A17 Pro，电视盒子终于支持本地 Apple Intelligence【中英双字】,海外科技情报局,3546572457511836,2026-07-08T21:00:00.000Z,17,21,5,7588,https://www.bilibili.com/video/BV1ApMt66Eu4
+211,BV1qiNu6MEHq,"广电正向卡【全国发货、仅限私域推广】29元/月享192G全国通用流量+多用多送赠送30G+0.15元/分钟通话，办理地址：https://h5.dandanhou.net/order/index?uid=bm1jN3hWR1FLZU09&pid=1669
+电信天粤卡【广东专属】19元/月享175G全国通用流量+30G定向流量+100分钟，办理地址：https://h5.dandanhou.net/order/index?uid=bm1jN3hWR1FLZU09&pid=1504",大聪明的流量卡,3546722389199404,2026-07-12T09:41:58.000Z,17,1,1,44,https://www.bilibili.com/video/BV1qiNu6MEHq
+212,BV1NwNy6EEWv,韩国Anibox电视频道动画片《托宝战士之字母能量》第二季前广告（2026.7.13）,孙元哲,1315541941,2026-07-13T01:54:28.000Z,4,1,0,145,https://www.bilibili.com/video/BV1NwNy6EEWv
+213,BV19ydJBJEYD,"没想到的是 湖南有线三种频道都有（XD
+后面会发一个我在同一时间录制的 但是在自动搜台前可以看到的频道 你可以看到一堆被隐藏的频道 U1S1 原来真的可以隐藏频道",Gcxue的BiLi官方频道,451472680,2026-04-18T07:20:13.000Z,96,59,8,10172,https://www.bilibili.com/video/BV19ydJBJEYD
+214,BV1vW4y1K7ko,-,bili_3493104092973992,3493104092973992,2022-12-26T15:20:47.000Z,540,38,139,46054,https://www.bilibili.com/video/BV1vW4y1K7ko
+215,BV1tNT662EN1,-,我爱吉林四平伊通,3690994308483733,2026-07-01T23:51:59.000Z,15,1,0,407,https://www.bilibili.com/video/BV1tNT662EN1
+216,BV1bzjuzvERE,-,岁月炒冷饭,29648603,2025-05-25T10:50:44.000Z,24,9,0,1979,https://www.bilibili.com/video/BV1bzjuzvERE
+217,BV1DR4y1F7pF,这期讲的很细致，也比较全面，而且还有一个比较另类的玩法，一个傻瓜交换机也能实现单线复用！你想知道的和有疑问的，应该都可以在视频中找到答案。,领略技术的美,507757733,2022-03-16T12:41:21.000Z,2195,629,439,141579,https://www.bilibili.com/video/BV1DR4y1F7pF
+218,BV1GxEB6yE56,"（UP主本人录制）
+如题，感谢@방송미디어통신  、@法彭频道114514  提供的部分资料和视频素材。（本系列已完结）",Simon_007,13793618,2026-06-11T19:00:00.000Z,1067,310,136,107260,https://www.bilibili.com/video/BV1GxEB6yE56
+219,BV1vd4y147vu,"该视频为WEB版实验工坊中，宽带光接入网络板块内的IPTV业务开通案例的实验配置讲解指导视频。
+各位老师及学生可以参考指导视频中的配置流程，完成实验工坊中的：IPTV业务开通案例。
+
+	IPTV即交互式网络电视，是一种利用宽带网，集互联网、多媒体、通讯等技术于一体，向家庭用户提供包括数字电视在内的多种交互式服务的技术。其系统结构主要包括流媒体服务、节目采编、存储及认证计费等子系统，主要存储及传送的内容是以MPEG-2/4标准为编码核心的流媒体文件，基于IP网络传输，通常要设置内容分配服务节点，配置流媒体服务及存储设备，用户终端可以是IP机顶盒+电视机，也可以是PC机。IPTV可以利用有线电视网的基础设施，以家用电视机作为主要终端设备，通过互联网络协议来提供包括电视节目在内的多种数字媒体服务。 
+	IPTV的主要特点表现在以下4个方面： 
+	(1)承载在IP网络上，能够为用户提供高质量的数字媒体信息服务； 
+	(2)实现媒体提供者和媒体消费者的实质性互动，用户可以互动点播自己喜欢的内容； 
+	(3)IPTV能够提供实时和非实时业务，IP技术和个性化的按需服务，使得用户可按需获取宽带IP网提供的实时、非实时的媒体节目； 
+	(4)用户可以随意选择宽带IP网上各网站提供的视频节目。",武汉丰迈信息技术,111953898,2022-12-02T08:10:37.000Z,11,0,22,2483,https://www.bilibili.com/video/BV1vd4y147vu
+220,BV1jxsDexEx4,AppleTV外区ID注册注意事项，爱优腾tvos 对比国内版的体验差异，IPTV收看指南,爱看风景的宅叔,27877396,2024-09-23T14:36:42.000Z,234,77,40,37675,https://www.bilibili.com/video/BV1jxsDexEx4
+221,BV1D64y1F7RT,https://www.tudou.com/,bili_525619025,525619025,2020-08-03T07:26:04.000Z,43,15,5,18608,https://www.bilibili.com/video/BV1D64y1F7RT
+222,BV1pmEB68EpD,"湖南IPTV电信云电视 录屏(剪辑快进版)
+喜欢，请一键三链吧！",帅气老大叔baby,3546950393661658,2026-06-11T16:53:55.000Z,8,0,0,820,https://www.bilibili.com/video/BV1pmEB68EpD
+223,BV1sKMg6tE58,-,电视放送迷,3546556642888518,2026-07-05T03:14:26.000Z,9,5,1,884,https://www.bilibili.com/video/BV1sKMg6tE58
+224,BV1j841197xQ,如何搭建一台免费的IPTV服务器：IPTV服务器的概念,禹年电子,3494351424456888,2023-08-19T06:54:23.000Z,138,9,35,33737,https://www.bilibili.com/video/BV1j841197xQ
+225,BV1JzEX6wET8,网盘 618 活动 感谢支持,蔡叔的房车NAS露影记,320178233,2026-06-12T11:00:00.000Z,35,11,8,3067,https://www.bilibili.com/video/BV1JzEX6wET8
+226,BV1YfL4zQETo,"江苏移动魔百盒电视节目更新 2025年4月23日下午
+
+
+参考江苏移动魔百盒频道变化调整。",武进有线数字电视,13609266,2025-04-23T10:14:51.000Z,16,5,0,3937,https://www.bilibili.com/video/BV1YfL4zQETo
+227,BV1f44y1v78H,北京广电网络,终于找到啦,499677306,2021-10-23T13:20:51.000Z,85,214,10,46444,https://www.bilibili.com/video/BV1f44y1v78H
+228,BV1UHFDzgE8c,"（UP主本人采集）
+如题，拍摄自惠州南昆山碧泉湾温泉度假村酒店提供的广东移动IPTV机顶盒。感觉移动IPTV传送的广东卫视4K和广东本地台和深圳卫视4K超高清频道和惠州电视台的电视频道有挺丰富的。",Pan烁视频,412843726,2026-02-10T13:44:00.000Z,19,7,1,2563,https://www.bilibili.com/video/BV1UHFDzgE8c
+229,BV1byoYBDE6c,"（UP主本人采集）
+如题，拍摄自家里提供的广东电信IPTV机顶盒。感觉电信IPTV的电视频道挺丰富的。去年3月28日北京卫视超高清上线IPTV，去年6月28日新增广东卫视超高清频道上线IPTV，深圳卫视超高清频道上线IPTV，去年9月28号新增6家卫视超高清频道上线IPTV，你就知道吗？",Pan烁视频,412843726,2026-04-23T09:48:07.000Z,22,3,1,2806,https://www.bilibili.com/video/BV1byoYBDE6c
+230,BV1GG4y167Dn,中国移动手机电视效果(高清) 3,tccgf34,494736414,2022-08-31T09:00:38.000Z,2358,673,226,175902,https://www.bilibili.com/video/BV1GG4y167Dn
+231,BV1nLNc6SEjZ,"十年前的线下机市场真是如日中天 蒸蒸日上 OPPO靠R9系列的轻薄机身 抗打拍照及明星代言实现了名利双收 虽然配置不咋 但今天看它还有独特的时代价值。
+那现在 我们再次拿起它 看看它在今天还有哪些亮度。",TV768工作室,79567067,2026-07-11T13:00:10.000Z,334,72,19,9830,https://www.bilibili.com/video/BV1nLNc6SEjZ
+232,BV1NV411H7Hd,-,bili_525619025,525619025,2021-04-16T11:23:09.000Z,30,5,3,11878,https://www.bilibili.com/video/BV1NV411H7Hd
+233,BV19jt7ePEhg,新房装修，客厅只有一根网线。不要慌！只需要更换一根线就能解决！,北京穿线大神全屋智能,436361964,2024-09-18T13:04:52.000Z,125,35,20,28123,https://www.bilibili.com/video/BV19jt7ePEhg
+234,BV1GH4y117Vt,新疆电信IPTV之前虽然有开机进直播在十月底的时候还得按一下电视频道才能真正的进直播我昨天还是前天看了一下机顶盒发现开机直接就可以进直播了我是把他设置成了开机进直播（在选择开机进入交互界面以后无操作20秒后自动进入全屏直播）,星笙Stellison,1046376998,2023-11-29T14:38:59.000Z,64,31,3,18559,https://www.bilibili.com/video/BV1GH4y117Vt
+235,BV1g8wxz1EbD,-,旋风裤衩无敌,51406142,2026-03-14T08:49:27.000Z,13,46,2,3203,https://www.bilibili.com/video/BV1g8wxz1EbD
+236,BV1qV411f7iL,-,一笑倾城269,35731568,2020-04-04T12:59:20.000Z,67,32,38,41063,https://www.bilibili.com/video/BV1qV411f7iL
+237,BV1SqjN6gEwU,"观前提醒：
+1. 电视盒子的价格仍然在变动，本视频仅针对618期间情况
+2. 有需求再购买，切勿创造需求
+3. 买之前看看家里的电视，再强的盒子，配上很弱的电视，
+那也是白瞎
+4. 视频中的盒子，如果你有更优惠的渠道，不妨在评论区分享一下
+5. 夯拉排名均为娱乐制作，无恰饭，也不具备任何参考价值
+6. 如果需要咨询盒子/软件，请给合集10个视频三连，
+再截图私信主播",当时只道是-寻常-,390423616,2026-06-16T11:05:00.000Z,120,158,28,18166,https://www.bilibili.com/video/BV1SqjN6gEwU
+238,BV1xM411b7uD,91，23～27频道没有，就厂里面接跳过,账号已注销,1966636553,2023-01-13T11:05:46.000Z,15,3,2,3588,https://www.bilibili.com/video/BV1xM411b7uD
+239,BV1eCjw6zEA1,本期视频给大家带来TCL三台主流价位的电视横评，带大家直观体验QD/SQD/RGB Miniled的三种技术的差别，喜欢的话还请点赞转发支持一下我们~,家电总动员,589152650,2026-06-18T13:28:19.000Z,1810,305,268,56949,https://www.bilibili.com/video/BV1eCjw6zEA1
+240,BV16jjj6WEiy,"1.在表格中位置越靠上的电视，屏幕模组素质就越好。
+2.如果挤在同一横行里就是屏幕素质属于同水平的电视。
+3.停产型号标灰，保留在表格中作为参考。
+4.AG磨砂雾面屏的型号标星号。
+5.同一型号的不同尺寸可能配置不同，导致位置不同。
+此外就是TCL电视的很多图像优化算法也直接由soc提供，两大电视soc中联发科要比Amlogic强很多，soc也会直接影响排序。",苍云,252082,2026-06-17T00:38:41.000Z,82,193,19,9671,https://www.bilibili.com/video/BV16jjj6WEiy
+241,BV15gNs63Egs,影视仓不能用了 一招教你搞定,果然无乐趣vg,697790148,2026-07-11T03:43:06.000Z,3,0,0,135,https://www.bilibili.com/video/BV15gNs63Egs
+242,BV1r4411n7Aw,学习网络技术,A平行世界A,110544026,2019-06-06T18:59:59.000Z,32,14,7,9006,https://www.bilibili.com/video/BV1r4411n7Aw
+243,BV19yN36zE2N,"前几天看到一个问题：最想回到哪一年？2008、2016、2020、2024，我只选2008。
+
+那年家里通了宽带、有了第一部手机，一切都是新鲜的，可惜再也回不去了。
+
+我花24元淘到一台2008年的联想ET880经典WM智能机。
+它砍掉GPS，主打CMMB免费手机电视，配置在当年算是大幅升级。
+
+2.8英寸电阻屏、经典商务按键，类肤机身、2.5mm耳机孔兼电视天线。
+搭载Windows Mobile 6.0系统，满满年代老软件，复古感十足。
+
+最大亮点是不用流量、不用插卡就能看电视。
+2015年信号关停失效，但机子里还留着十几年前录制的老电视剧片段。
+
+拍照自带泛黄复古滤镜，外放洪亮，怀旧氛围拉满。
+
+这台机首发2500元，短短几年一路暴跌至几百块。
+
+如今几十块把玩这台老机子，才明白：
+它不只是一台手机，更是2008年智能机萌芽、时代变好的青春印记。",怎么了苏木,319112245,2026-07-12T14:02:42.000Z,128,38,3,4344,https://www.bilibili.com/video/BV19yN36zE2N
+244,BV1fUKZ6jExs,别再看那些全是参数、看完跟没看一样的软广了！为了搞清楚家用摄像头到底有没有智商税，我耗时三个月，自掏腰包实测了市面上热度最高的14款热门机型。从几十块的入门款到三百多的高端机，白天逆光、深夜全黑环境、甚至模拟了各种翻车场景。今天这期视频，我直接掀掉行业底牌，告诉你哪些是真好用，哪些是纯卖噱头。如果你不想买回来个只能拍飞蛾的摆设，也不想隐私被时刻“直播”，一定要认真看。选购建议、避坑指南、各档位首选清单全在这里了。视频里没说够的，或者你有具体的安装难题，直接评论区打出你的需求，我帮你“拆机”分析！,小白好物说,481717018,2026-06-30T06:15:46.000Z,35,98,14,6473,https://www.bilibili.com/video/BV1fUKZ6jExs
+245,BV13e4y1Y7EN,【放送文化】河北联通IPTV频道列表一览,黄河东流去,243457034,2022-08-30T13:34:39.000Z,12,24,8,8566,https://www.bilibili.com/video/BV13e4y1Y7EN
+246,BV1yTNG69E1q,央视曝光网络测评造假 部分测评直播间竟是剧本 财经调查,央视财经,106086780,2026-07-12T12:02:07.000Z,2594,0,686,42390,https://www.bilibili.com/video/BV1yTNG69E1q
+247,BV1zm421V7qd,"IPTV直播源
+https://iptv.b2og.com/
+https://github.com/HerbertHe/iptv-sources/tree/gh-pages",老邓玩数码,6963822,2024-06-25T04:13:08.000Z,253,33,30,30617,https://www.bilibili.com/video/BV1zm421V7qd
+248,BV1YyZHYvExL,-,bili_33744693136,1082431298,2025-03-31T14:49:02.000Z,18,7,1,5362,https://www.bilibili.com/video/BV1YyZHYvExL
+249,BV1Lp4y1T7d4,FTTR组网下，如何使用IPTV业务,曾肖涛zxt19930727,315488031,2023-10-14T10:01:08.000Z,39,9,23,7416,https://www.bilibili.com/video/BV1Lp4y1T7d4
+250,BV1M6arezEZz,【考古】河南三网融合产品IPTV上线,bili_33744693136,1082431298,2024-08-06T14:45:16.000Z,9,3,0,1071,https://www.bilibili.com/video/BV1M6arezEZz
+251,BV1Dd4y1Z7Sh,-,中寻TV电视网,550656042,2023-05-21T20:17:38.000Z,45,36,0,11516,https://www.bilibili.com/video/BV1Dd4y1Z7Sh
+252,BV1tosfeKEJq,第一次发视频，没经验。,lsgfyz87,13557648,2024-09-27T13:20:29.000Z,154,79,20,29852,https://www.bilibili.com/video/BV1tosfeKEJq
+253,BV1JLMJ6VEPa,精选好物分享,锅包肉的一生推,3706949010983621,2026-07-09T07:58:22.000Z,0,1,0,7,https://www.bilibili.com/video/BV1JLMJ6VEPa
+254,BV1bG4y1K7eu,2023 年了，Apple TV 在中国大陆地区到底有什么用？值得买吗？怎么用？,黄杨ME,91527228,2023-02-15T04:00:00.000Z,10761,1166,3224,500186,https://www.bilibili.com/video/BV1bG4y1K7eu
+255,BV1SeE46zEHe,-,YQ雅琪呀-徐欣怡姐妹,3706954333554750,2026-06-07T06:45:23.000Z,9,2,0,380,https://www.bilibili.com/video/BV1SeE46zEHe
+256,BV1yp4y1b76f,中国移动机顶盒（四川南充）频道一览,bili_47821320695,533024232,2021-03-30T09:00:57.000Z,17,8,3,11413,https://www.bilibili.com/video/BV1yp4y1b76f
+257,BV1bF411n7iN,新买个电视接不了机顶盒，想用网络看电视却没有直播，怎么选择？,午夜寻影,454201462,2022-01-27T10:10:05.000Z,396,193,42,100877,https://www.bilibili.com/video/BV1bF411n7iN
+258,BV1364y1T7Ap,"统计截止至2024年。
+注：包含观前提示，有危险性或换台标次数多的频道、附类频道和外语频道不在范围内。",账号已注销,1053665515,2024-01-13T13:41:06.000Z,330,114,13,33014,https://www.bilibili.com/video/BV1364y1T7Ap
+259,BV1Kx411z7R7,"录制，来自网络
+到了up的了。。河北省今天好多台检修呢。感觉带音乐的电子大圆好奇怪。。。
+顺便说一下我们邢台2套应该是频道回收再处理，不知道还会不会再用。
+为啥许多地方台放出来的音质不太好。。。",账号已注销,11568369,2017-07-04T07:01:44.000Z,14,4,3,6097,https://www.bilibili.com/video/BV1Kx411z7R7
+260,BV1QkjwzJEFS,这是我家的华为EC6108V9E机顶盒，现在只有我姥爷还在看电视,永生の勇者,98730700,2025-04-27T01:37:27.000Z,34,25,9,9549,https://www.bilibili.com/video/BV1QkjwzJEFS
+261,BV1vLwseoEVY,节假日看电视系列更新~IPTV-API，启动时间过长，效果尚可~,好用斋,3546380987533935,2025-01-20T12:42:23.000Z,312,296,44,19636,https://www.bilibili.com/video/BV1vLwseoEVY
+262,BV1LVMw6DEJp,"福建省地市级电视台地面频道ID。
+
+©龙岩广播电视台、厦门电视台、漳州电视台、福州广播电视台、泉州广播电视台、三明广播电视台、南平广播电视台、莆田广播电视台、宁德广播电视台",guestice,3659265,2026-07-04T13:00:00.000Z,52,28,2,3179,https://www.bilibili.com/video/BV1LVMw6DEJp
+263,BV1FV4y167hH,@两个孩子一间房 ,中寻TV电视网,550656042,2023-05-17T16:21:16.000Z,680,222,32,57509,https://www.bilibili.com/video/BV1FV4y167hH
+264,BV1YB4y1R7UR,开箱4款号称永久无广告免会员的机顶盒，最低50元一台，能有用吗,馋大鑫,382375531,2023-10-25T11:28:32.000Z,17429,948,379,1829041,https://www.bilibili.com/video/BV1YB4y1R7UR
+265,BV1jy4y1v7pc,优酷,bili_525619025,525619025,2021-01-06T08:02:23.000Z,35,9,9,15288,https://www.bilibili.com/video/BV1jy4y1v7pc
+266,BV1bR4y1F7NR,-,拆修玩评,1496155059,2022-03-17T05:10:37.000Z,25316,3215,2885,1140722,https://www.bilibili.com/video/BV1bR4y1F7NR
+267,BV1tuNE6mE1x,又来了，打卡日更第3天！如果大家喜欢这个系列我还会更新的!,素思思,433824400,2026-07-10T06:55:09.000Z,80787,3102,1623,978821,https://www.bilibili.com/video/BV1tuNE6mE1x
+268,BV1YLYteGEVV,"总有一个适合你！IPTV与上网业务共存，单线复用方法。
+介绍几种单线复用方法：
+0:00 引导
+01:21 光猫与路由器之间的单线复用
+03:42 光猫与网管交换机之间的单线复用
+07:28 网管交换机与路由器之间的单线复用
+09:51 双网管交换机设置单线复用
+
+TG群：https://t.me/Bro24k
+Blog：https://blog.24kbrother.top
+WeChat: china_24kbro",24K钢丝,1375690031,2024-08-08T15:38:50.000Z,1096,432,305,67070,https://www.bilibili.com/video/BV1YLYteGEVV
+269,BV1fZMJ6CExt,2026最强电视直播神器分享/内置央卫高码/岗奥抬全频道/地方台4K超清/秒点秒播,小夏发布,501014754,2026-07-09T14:50:34.000Z,56,40,1,1031,https://www.bilibili.com/video/BV1fZMJ6CExt
+270,BV1bg411t7br,"央视 直播录像
+-",wxlys2000,312791513,2023-01-01T03:02:24.000Z,64,21,3,7594,https://www.bilibili.com/video/BV1bg411t7br
+271,BV1fxahzmE8v,嗨嗨嗨,小五爱玩机,277401436,2025-09-05T12:16:15.000Z,31437,914,308,996835,https://www.bilibili.com/video/BV1fxahzmE8v
+272,BV1wBNL6cEVq,-,我是名山大川宝,3493078824389338,2026-07-10T04:32:06.000Z,3,1,1,438,https://www.bilibili.com/video/BV1wBNL6cEVq
+273,BV1U1421R7KE,腾讯、咪咕NBA 1080P、4K 50帧率直播，马上精彩的季后赛了，带回放功能！,咖喱加美式,522123842,2024-04-14T20:29:13.000Z,353,125,7,18144,https://www.bilibili.com/video/BV1U1421R7KE
+274,BV1ZGMMzRE9P,"https://cloud.189.cn/t/mIrMreUFj6zq（访问码：km04）
+QQ群里也有",枉TV,1650632458,2025-06-13T04:36:53.000Z,106,210,24,16259,https://www.bilibili.com/video/BV1ZGMMzRE9P
+275,BV1DoMF6kEUy,2026最新经典电视直播神器 丨央卫高码 港澳台 4K频道 地方台 全网通 免费分享！内置央卫高码 港澳台全频道专即点即播2026年堪称全网最强的电视直播神器！,小猪姐姐来啦,3546561636207209,2026-07-04T06:49:09.000Z,183,191,5,5370,https://www.bilibili.com/video/BV1DoMF6kEUy
+276,BV1kf421q7ku,-,酱紫表_official,1038506536,2024-07-23T14:03:46.000Z,3683,275,535,124446,https://www.bilibili.com/video/BV1kf421q7ku
+277,BV1yhM36FE3h,"佛山台、丽水台、Cctv12社会与法频道:6
+文体频道播控想必跟信阳台两个频道播控一模一样
+链接:https://b23.tv/zKzIGup 
+         https://b23.tv/67SFww9
+注:二套有个bug，总喜欢把普通的台标直接旋转一下，其他频道都是普通的样子
+所有频道停播后，旗下优质节目已经调整至看光伏APP、光伏新融媒体平台(官方短视频账号、公众号)播出。
+停播原因:
+因为资金不足，节目过旧。导致收视率下降，所以本台旗下的9个电视频道永久停播",雪药_114514,3537108866172943,2026-07-08T07:59:54.000Z,3,3,0,173,https://www.bilibili.com/video/BV1yhM36FE3h
+278,BV1sRoHB5EWW,-,观社会百态GM,3690973771073658,2026-04-21T23:05:18.000Z,236,154,128,15787,https://www.bilibili.com/video/BV1sRoHB5EWW
+279,BV1mf4y1G7WR,网络工程师现场演示酒店IPTV组播解决方案，通过OLT组网来实现,锋哥AI智习社,630283044,2021-07-30T23:00:05.000Z,282,79,34,26609,https://www.bilibili.com/video/BV1mf4y1G7WR
+280,BV1UGNceHEF8,"*ts
+*1080P50
+*源码自录",Pan烁视频,412843726,2025-02-04T06:28:21.000Z,33,5,6,2304,https://www.bilibili.com/video/BV1UGNceHEF8
+281,BV1Li4y1a7d2,"直播源收集网站(永久包更新):https://m3u.ibert.me/
+
+(安卓)IPTV(空壳软件)
+会员破解版https://wwi.lanzoup.com/ibmec0cao6ud
+全机型通用版https://wwi.lanzoup.com/ihvrQ0cao75e
+
+(win)optplayer全球原始官网https://potplayer.daum.net/?lang=zh_CN
+
+(安卓+苹果)oplayer官方下载渠道(大陆应用商店也有官方原版哦)
+苹果商店https://apps.apple.com/cn/app/%E6%92%AD%E6%94%BE%E5%99%A8oplayer/id344784375
+谷歌商店https://play.google.com/store/apps/details?id=com.olimsoft.android.oplayer.pro",卓哥李卓扬,219266492,2023-12-19T07:40:32.000Z,1504,213,264,126895,https://www.bilibili.com/video/BV1Li4y1a7d2
+282,BV1EGvpBjEPc,4K电视怎么获得最佳画质？如何获取片源？,花钱一时爽马晓冰,518509854,2025-12-29T09:00:00.000Z,3762,972,217,159599,https://www.bilibili.com/video/BV1EGvpBjEPc
+283,BV11DYqzUE5d,-,bili_35015276481,636135429,2025-08-16T14:19:03.000Z,13,5,0,2764,https://www.bilibili.com/video/BV11DYqzUE5d
+284,BV1o1t2zLEVn,"部分频道因为线路问题显示没信号。
+高清单向目前都是高清频道+未高清的标清频道。所有标清频道同时也在传输但是不会出现在频道列表里面。",一笑倾城269,35731568,2025-08-08T12:48:34.000Z,27,6,0,6966,https://www.bilibili.com/video/BV1o1t2zLEVn
+285,BV1FZ4y1T7JQ,电视偶尔不识别标清线，师傅建议更换高清HDMI，这线收多钱合适？,午夜寻影,454201462,2020-08-27T10:50:59.000Z,182,123,11,12803,https://www.bilibili.com/video/BV1FZ4y1T7JQ
+286,BV1na4y1a7uT,电视回看直播源,bili_525619025,525619025,2020-07-23T04:24:32.000Z,33,5,4,7317,https://www.bilibili.com/video/BV1na4y1a7uT
+287,BV1He411N7Gy,"https://v.youku.com/v_show/id_XNzUyNDczODg4.html?spm=a2hbt.13141534.1_2.d_0&scm=20140719.manual.114461.video_XNzUyNDczODg4
+录像时间：2014年8月7日",AXTV,496763544,2022-12-03T11:01:04.000Z,102,34,16,43246,https://www.bilibili.com/video/BV1He411N7Gy
+288,BV1P5MW68EzH,"♣️
+前两年下载的",之山放送文化资料馆,486127559,2026-07-06T23:03:56.000Z,22,17,0,911,https://www.bilibili.com/video/BV1P5MW68EzH
+289,BV1pS421K7bt,-,司机小羊2,436689267,2024-02-10T14:47:40.000Z,172,117,6,14305,https://www.bilibili.com/video/BV1pS421K7bt
+290,BV18dTv6TEjw,-,天之光2021,1263120648,2026-07-01T09:11:37.000Z,13,4,0,912,https://www.bilibili.com/video/BV18dTv6TEjw
+291,BV18e7mzjEoi,如题，梅地亚中心位于总台复兴路办公区旁边，属于彩电中心的配套酒店，也因此其客房内提供了总台央视所有免费及加密频道（高清全套+标清全套+付费全套+CCTV1港澳版+CCTV戏曲+CCTV娱乐），也因此成为了可能是内地唯一一个有线落地CCTV1港澳版的机构。此外，由于前端使用歌华有线的同轴信号，因此还包含了BRTV全套（卫视高清及地面标清）、卫视全套、CETV1、CETV4，部分134平台频道，以及总台央广部分频率。（在此特感谢@泰拉纽斯Channel  的指导）,Simon_007,13793618,2025-06-02T12:00:00.000Z,122,48,19,7980,https://www.bilibili.com/video/BV18e7mzjEoi
+292,BV1Nz421d7vz,-,顺哥聊弱电,1039640584,2024-02-16T10:54:05.000Z,302,150,21,67079,https://www.bilibili.com/video/BV1Nz421d7vz
+293,BV1aYL965E5r,真有后门？热门家用摄像头选购指南：萤石、小米、海雀、TP-Link,深入了解PreInsight,346592292,2026-06-17T14:58:02.000Z,1300,104,451,120404,https://www.bilibili.com/video/BV1aYL965E5r
+294,BV1fr4y1m7DT,"来自各大县市区电视台网络直播源
+以一套新闻综合频道为准。",IC融媒_遍地辽M,480801201,2021-12-31T21:00:17.000Z,148,116,18,46899,https://www.bilibili.com/video/BV1fr4y1m7DT
+295,BV1RpMJ6qE8t,全能小钢炮，海信E5S测评,知乎蓝大仙人,34586446,2026-07-09T08:45:09.000Z,37,3,5,8750,https://www.bilibili.com/video/BV1RpMJ6qE8t
+296,BV1Zs4y1h7Vi,"肇庆IPTV
+标清频道将于2025年底关停，广东公共频道将于2023年3月1日更名为广东民生频道",我背负着世界,668981288,2023-02-10T10:35:19.000Z,21,18,3,3713,https://www.bilibili.com/video/BV1Zs4y1h7Vi
+297,BV1uCmXBDEms,-,voicemailand,3690971856374603,2025-12-13T09:44:01.000Z,21,6,4,2245,https://www.bilibili.com/video/BV1uCmXBDEms
+298,BV1kRTS6PEq9,这两个大家的童年聚集在一起，互相通话,Z重型主隆哥,3706985115552325,2026-07-06T03:49:18.000Z,23,13,3,1745,https://www.bilibili.com/video/BV1kRTS6PEq9
+299,BV1xa4y1Y7ey,土豆,bili_525619025,525619025,2020-06-14T11:14:46.000Z,58,0,5,29727,https://www.bilibili.com/video/BV1xa4y1Y7ey
+300,BV1bK4y1D76U,有线师傅上门调试电视，满满的自信不能有问题，打脸速度还真快,午夜寻影,454201462,2021-03-06T10:10:19.000Z,84,30,12,14421,https://www.bilibili.com/video/BV1bK4y1D76U

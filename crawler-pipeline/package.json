@@ -11,13 +11,15 @@
     "comments": "tsx src/index.ts comments",
     "add-account": "tsx src/index.ts add-account",
     "refresh": "tsx src/index.ts refresh",
-    "douyin:diagnostic": "tsx scratch/run-douyin-diagnostic.ts"
+    "douyin:bootstrap": "tsx scratch/bootstrap-douyin-session.ts",
+    "douyin:diagnostic": "tsx scratch/douyin-diagnostic.ts"
   },
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
     "impit": "^0.14.2",
+    "playwright": "^1.61.1",
     "undici": "^6.20.0"
   },
   "devDependencies": {

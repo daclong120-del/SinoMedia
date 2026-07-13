@@ -198,6 +198,63 @@ export function classifyDouyinError(res: any): void {
 }
 
 /**
+ * # Cập nhật cookies của session từ header set-cookie của phản hồi
+ */
+export function updateSessionCookies(session: DouyinSession, setCookieHeader: string | null): void {
+  if (!setCookieHeader) return;
+
+  // Tách các cookie riêng lẻ từ header set-cookie
+  const parts = setCookieHeader.split(/,(?=[^;]*=)/);
+  const cookieStrMap = new Map<string, string>();
+  for (const c of session.cookies) {
+    if (c && c.name) {
+      cookieStrMap.set(c.name, c.value);
+    }
+  }
+
+  let updated = false;
+  for (const part of parts) {
+    const trimmed = part.trim();
+    const cookiePart = trimmed.split(";")[0];
+    const eqIdx = cookiePart.indexOf("=");
+    if (eqIdx > 0) {
+      const name = cookiePart.substring(0, eqIdx).trim();
+      const value = cookiePart.substring(eqIdx + 1).trim();
+
+      if (name) {
+        cookieStrMap.set(name, value);
+
+        if (name === "msToken") {
+          session.msToken = value;
+        }
+        if (name === "__ac_webid" || name === "dy_did") {
+          session.webid = value;
+        }
+        if (name === "s_v_web_id") {
+          session.verifyFp = value;
+          session.fp = value;
+        }
+        updated = true;
+      }
+    }
+  }
+
+  if (updated) {
+    session.cookies = Array.from(cookieStrMap.entries()).map(([name, value]) => ({
+      name,
+      value,
+      domain: ".douyin.com",
+      path: "/"
+    }));
+
+    session.cookieString = session.cookies
+      .filter((c: any) => c.name && c.name.trim() !== "")
+      .map((c: any) => `${c.name}=${c.value}`)
+      .join("; ");
+  }
+}
+
+/**
  * # Gửi request HTTP JSON đến Douyin API
  */
 export async function requestJson(
@@ -235,6 +292,12 @@ export async function requestJson(
       console.log("impit status:", response.status);
       responseText = await response.text();
       console.log("impit response length:", responseText.length);
+
+      // Cập nhật cookies tự động từ header set-cookie
+      const setCookie = response.headers.get("set-cookie");
+      if (setCookie) {
+        updateSessionCookies(session, setCookie);
+      }
     } catch (err) {
       console.log("impit failed:", err);
     }
@@ -257,6 +320,12 @@ export async function requestJson(
       const res = await fetch(url, nativeOpts);
       responseText = await res.text();
       console.log(`Native HTTP status: ${res.status} for URL: ${redactUrl(url)}`);
+
+      // Cập nhật cookies tự động từ header set-cookie
+      const setCookie = res.headers.get("set-cookie");
+      if (setCookie) {
+        updateSessionCookies(session, setCookie);
+      }
     } catch (err) {
       console.log(`Native fetch error: ${(err as Error).message}`);
     }

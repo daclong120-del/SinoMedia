@@ -1,6 +1,27 @@
 
 # Decision Log — SinoMedia
 
+## 2026-07-13 — Douyin dùng Playwright Persistent Context để Bootstrap Session [initiative: douyin-session-bootstrap]
+
+- **Context:** Douyin HTTP API vẫn có thể gọi trực tiếp, nhưng raw cookie thô không đủ ổn định vì session còn phụ thuộc browser context/localStorage/fingerprint như `xmst/msToken`, `webid`, `verifyFp/fp`, `uifid`, `navigator.userAgent`, viewport và language/platform. Việc bắt người vận hành tự gom các token này thủ công làm quy trình dễ sai và không phù hợp vận hành worker.
+- **Options considered:**
+  - A: Giữ mô hình cookie-only, yêu cầu account data phải chứa đủ `msToken`, `webid`, `fp`, `uifid` trước khi worker chạy.
+  - B: Thêm bước Playwright Chromium persistent context làm session hydrator: nạp raw cookie hoặc login, mở `douyin.com`, đọc cookies/localStorage/navigator, xuất enriched `DouyinSession`, chạy diagnostic, rồi chuyển lại HTTP API crawler. (Được chọn).
+- **Decision:** Chọn B cho Douyin. Browser được phép tồn tại trong backend/worker như bước bootstrap hoặc refresh session, không phải runtime crawl chính. `runSessionDiagnostic` vẫn là hard gate trước khi search/detail/comment. Raw cookie Douyin chỉ là input bootstrap, không được coi là session hoàn chỉnh.
+- **Trade-off:** Worker/VPS chạy Douyin cần môi trường chạy Playwright Chromium và persistent profile. Chi phí RAM/ops tăng ở bước bootstrap, nhưng crawl chính vẫn giữ HTTP API để nhẹ hơn browser crawling toàn phần.
+- **Evidence:** So sánh với `D:\Python\ChinaMediaCrawler\_mediaCrawler` cho thấy họ launch browser context, kiểm tra `window.localStorage.HasUserLogin`, lấy cookie từ `browser_context.cookies()` và lấy `xmst` từ localStorage trước khi HTTP client gọi API. Trong SinoMedia, diagnostic/checkpoint đã chứng minh session cookie-only chưa đủ để coi là hoạt động thật.
+- **Revisit trigger:** Khi Douyin HTTP-only có thể pass diagnostic ổn định bằng session capture không cần browser runtime, hoặc khi Playwright bootstrap không còn pass do thay đổi cơ chế platform.
+
+## 2026-07-13 — Không thay Douyin HTTP API crawler bằng Firecrawl [initiative: douyin-http-first]
+
+- **Context:** Khi Douyin search tiếp tục fail vì session chưa được API chấp nhận (`status_code = 2483`, "请先登录"), có đề xuất dùng repo Firecrawl tại `D:\Python\firecrawl` như phương án thay thế. Firecrawl self-host là crawler web tổng quát, có API scrape/search/crawl/interact và service Playwright riêng, phù hợp với web/docs public hơn là platform adapter có signed HTTP API như Douyin.
+- **Options considered:**
+  - A: Thay core Douyin search/detail/comment bằng Firecrawl page crawler hoặc Firecrawl Agent.
+  - B: Giữ Douyin là HTTP API adapter riêng; Firecrawl chỉ là sidecar tùy chọn cho generic web/docs crawl hoặc diagnostic ngoài hot path. (Được chọn).
+- **Decision:** Chọn B. Douyin crawler tiếp tục đi theo hướng `DouyinSession -> signed HTTP request -> normalized storage`. Browser/Playwright nếu có chỉ được dùng ở tầng session bootstrap/diagnostic để hydrate cookie thô thành session đầy đủ; Firecrawl không được thay thế `crawler-pipeline/src/crawl/douyin` làm runtime search/detail/comment.
+- **Trade-off:** Không tận dụng được abstraction scrape/crawl tổng quát của Firecrawl cho Douyin, nhưng giữ dữ liệu có cấu trúc, kiểm soát signing/session/account pool tốt hơn và tránh kéo thêm Redis/RabbitMQ/Postgres/Playwright service vào hot path.
+- **Revisit trigger:** Chỉ xem xét lại khi Douyin đóng hoàn toàn signed HTTP API nhưng rendered web page public vẫn trả đủ dữ liệu có cấu trúc, hoặc khi SinoMedia cần một module crawl web public không phụ thuộc platform API.
+
 ## 2026-07-10 — Nâng cấp Cơ sở dữ liệu Content-Aware & zvideo media check [initiative: Content-Aware Schema]
 
 - **Context:** Trước đây hệ thống phát triển xoay quanh các platform video-centric (Bilibili, Douyin, XHS), giả định mọi bài đăng tốt đều phải có media (ảnh/video/cover). Điều này dẫn tới việc cào zhihu text-only posts bị hiểu lầm là lỗi media (media_status = 'unavailable'). Tiêu đề bài viết zhihu bị cắt thô từ caption và thiếu canonical link nguồn (`source_url`) cho người dùng.

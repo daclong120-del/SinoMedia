@@ -1,6 +1,6 @@
 # Roadmap
 
-Cập nhật lần cuối: 2026-07-08  
+Cập nhật lần cuối: 2026-07-13
 Mục đích: ghi hướng đi hiện tại để người và AI agent không kéo dự án về các kiến trúc cũ.
 
 ## North star
@@ -71,6 +71,7 @@ Backlog:
 - Retry policy: phân biệt lỗi rate-limit, auth expired, proxy dead, parsing/schema.
 - Platform smoke tests: ít nhất search/crawl/comments cho platform ưu tiên.
 - Account/proxy health policy: tự ban/tạm nghỉ/rotate có audit log.
+- Douyin session bootstrap: thêm Playwright Chromium persistent context làm session hydrator (`raw cookie -> browser context -> enriched DouyinSession -> diagnostic -> HTTP API crawler`). Browser chỉ phục vụ bootstrap/diagnostic, không trở lại thành crawler runtime mặc định.
 
 Không làm:
 
@@ -78,6 +79,8 @@ Không làm:
 - Không tạo lại command `cache_media`.
 - Không để UI bấm play tạo task crawl/cache mới.
 - Không upload R2 mặc định cho Bilibili nếu chỉ cần xem trên Dashboard; lưu BVID/canonical URL và dùng embedded iframe player.
+- Không bắt người vận hành Douyin tự điền thủ công `msToken`, `webid`, `fp`, `uifid`; các field này phải được hydrate/xuất từ browser bootstrap hoặc session capture tương đương.
+- Không thay thế Douyin HTTP API adapter bằng Firecrawl. Firecrawl chỉ được xem là sidecar tùy chọn cho generic web/docs crawl hoặc diagnostic ngoài hot path, không phải crawler runtime cho Douyin search/detail/comment.
 
 ## Phase 3: Video Downloader Service
 

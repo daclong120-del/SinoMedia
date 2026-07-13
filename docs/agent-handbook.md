@@ -1,6 +1,6 @@
 # Agent Handbook
 
-Cập nhật lần cuối: 2026-07-09  
+Cập nhật lần cuối: 2026-07-13
 Mục đích: hướng dẫn ngắn cho AI agent làm việc trong SinoMedia mà không phá hướng hiện tại.
 
 ## Read first
@@ -44,6 +44,7 @@ Docs-only edits không sửa code symbol, nhưng vẫn nên chạy `detect_chang
 - Worker claim task qua Supabase RPC.
 - Worker ghi logs vào `crawler_logs`.
 - Worker không được dùng `console.log` thuần túy cho các logs tiến trình cào quan trọng trong core crawler; bắt buộc sử dụng `logger.info` / `logger.error` của hệ thống để logs được đẩy thành công vào Supabase `crawler_logs` trên Dashboard.
+- **Douyin session bootstrap**: Không xem raw cookie Douyin là session hoàn chỉnh. Nếu cần khỏi bắt người vận hành tự lấy `msToken`, `webid`, `fp`, `uifid`, worker phải dùng Playwright Chromium persistent context làm bước hydrate: nạp raw cookie hoặc login, mở `douyin.com`, đọc cookies/localStorage/navigator, xuất `DouyinSession`, chạy diagnostic hard gate, rồi mới cho HTTP API crawler chạy. Browser bootstrap không được biến thành crawler runtime mặc định.
 - Database client của worker (`supabaseRest`) phải đọc response dưới dạng text trước khi parse JSON để tránh crash (`Unexpected end of JSON input`) khi PostgREST trả về response body trống (ví dụ: HTTP 201 Created với Prefer: return=minimal).
 - Worker cập nhật task status completed/failed.
 - Tương lai worker cần heartbeat, worker_id, capabilities và graceful shutdown.
@@ -123,9 +124,10 @@ Ví dụ bẫy hiện tại:
   - Đi kèm với RLS, các route tương ứng trên Dashboard (`/dash/tasks`, `/dash/accounts`) cũng phải được cấu hình chặn bằng Next.js Middleware (`proxy.ts`) để bảo vệ nguyên tắc 2 lớp (UI chuyển hướng + DB chặn query).
 - **Test Scripts & Credentials**: Tuyệt đối không hardcode credentials (email/password) hoặc tự động gọi API `signup` trong các test scripts e2e (như `test-db-harden-e2e.ts`) để tránh rủi ro tạo rác/lộ lọt trên production. Bắt buộc phải đọc từ Environment Variables (VD: `TEST_ADMIN_EMAIL`). Mọi file scratch chứa dữ liệu nhạy cảm hoặc logic service_role phải nằm trong `.gitignore` (như `crawler-pipeline/scratch/`).
 - **Bảo mật Cấu hình & Secrets (Settings & Secrets)**: Cấm lưu trữ cấu hình hệ thống nhạy cảm (như API key, Webhook URLs chứa token bí mật) ở `localStorage`. Bắt buộc phải di chuyển cấu hình nhạy cảm sang cơ sở dữ liệu `system_settings` được mã hóa tại server boundary. Các Server Actions tương ứng phải bọc bằng `requireAdmin()` và `verifyCSRF()`, đồng thời che giấu (masking) trước khi trả về client và không log các chuỗi nhạy cảm thô này vào `audit_logs`.
-- **Chuẩn hóa & Validate Cookie**: Cookie nạp cho tài khoản crawler bắt buộc phải là dạng cookie string (`name=value; name2=value2`). Dashboard tự động chuẩn hóa (normalize) các định dạng cookie (JSON array export từ extension, JSON object phẳng, hoặc trích xuất trường `cookie` trong JSON) về dạng cookie string sạch trước khi lưu vào DB, riêng các JSON phức tạp chứa non-primitive (như Douyin session) sẽ được giữ nguyên cấu trúc JSON gốc. Worker crawler duy trì bộ parser thông minh tại `parseCookieString` để tự động parse nếu phát hiện dữ liệu là JSON array hoặc JSON object (hỗ trợ trích xuất trường `cookie`, `cookies`, `msToken` hoặc map phẳng primitive values) để đảm bảo tính tương thích ngược hoàn toàn.
+- **Chuẩn hóa & Validate Cookie**: Cookie nạp cho tài khoản crawler mặc định là dạng cookie string (`name=value; name2=value2`). Dashboard tự động chuẩn hóa (normalize) các định dạng cookie (JSON array export từ extension, JSON object phẳng, hoặc trích xuất trường `cookie` trong JSON) về dạng cookie string sạch trước khi lưu vào DB, riêng các JSON phức tạp chứa non-primitive (như Douyin session) sẽ được giữ nguyên cấu trúc JSON gốc. Với Douyin, cookie string thô chỉ là nguyên liệu bootstrap; session chạy thật phải là enriched `DouyinSession` đã hydrate qua browser context hoặc capture tương đương và pass diagnostic.
 - **Nguyên tắc Content-Aware (Không video-centric)**: Hệ thống chấp nhận bài đăng chữ thuần (text-only) đặc trưng của Zhihu/Weibo. Khi không có media, phải gán `media_type = 'text'` và `media_status = 'not_applicable'` (không áp dụng media, không phải lỗi). Cấm tự ý gán `unavailable` hoặc sinh lỗi cào media cho text post. Cung cấp đầy đủ `title` (tiêu đề thật của câu hỏi/bài viết), `content_type` (ví dụ `answer`, `article`, `zvideo`, `note`), và `source_url` canonical cho bài viết.
 - **Warm-up Cookie & Zhihu Search**: [DEPRECATED by 2026-07-10 ADR] Trước đây yêu cầu Playwright mở trang search thật (`/search?q=...`) trong 5 giây để warm-up/sync cookie. Hiện tại hệ thống đã chuyển đổi hoàn toàn sang kiến trúc HTTP-First không sử dụng trình duyệt.
+- **Firecrawl không thay Douyin core**: Không chuyển Douyin search/detail/comment sang Firecrawl khi gặp lỗi session. Firecrawl là crawler web tổng quát có thể dùng như sidecar cho docs/web public hoặc diagnostic, nhưng không giải quyết trực tiếp lỗi Douyin API `status_code = 2483`/session chưa được chấp nhận. Root issue Douyin phải được xử lý trong `DouyinSession` bootstrap, fingerprint/traits, signing và session validator.
 - **Cookie d_c0 Stripping**: Khi xử lý cookie zhihu để sinh chữ ký `x-zse-96`, phải strip dấu nháy kép `"` bọc ngoài của cookie `d_c0` (nếu có) để tránh lỗi chữ ký (`请求头或参数封装错误`, code 100).
 - **Trạng thái zvideo**: Bài đăng `zvideo` của Zhihu mặc định được gán `media_type = 'video'`. Tuy nhiên, nếu zvideo thiếu cả cover URL lẫn video playlist thực tế (lỗi hoặc bị chặn), phải chuyển `media_status = 'unavailable'` và `media_source = 'none'`.
 
