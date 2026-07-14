@@ -84,6 +84,7 @@
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 0.5rem;
     }
 
@@ -119,9 +120,76 @@
       box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
     }
 
+    .btn-sm {
+      padding: 0.5rem 0.875rem;
+      font-size: 0.75rem;
+      border-radius: 6px;
+      width: 100%;
+    }
+
     .btn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
+    }
+
+    /* Module Grid Section */
+    .module-section {
+      margin-bottom: 2rem;
+    }
+
+    .module-section-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--text-main);
+    }
+
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .module-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .module-card:hover {
+      border-color: rgba(59, 130, 246, 0.3);
+      background: rgba(30, 41, 59, 0.8);
+      transform: translateY(-2px);
+    }
+
+    .module-card h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-main);
+    }
+
+    .module-card p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      line-height: 1.4;
+      flex-grow: 1;
+    }
+
+    .module-card .badge-list {
+      display: flex;
+      gap: 0.25rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
     }
 
     /* Stats Grid */
@@ -364,12 +432,20 @@
       </div>
     </header>
 
-    <!-- Control Buttons -->
+    <!-- Global Control Buttons -->
     <div class="actions-bar" style="margin-bottom: 2rem; background: var(--card-bg); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--card-border);">
-      <button class="btn btn-primary" onclick="runTest('all')">Run All Tests</button>
-      <button class="btn btn-secondary" onclick="runTest('ui')">Run UI Tests</button>
-      <button class="btn btn-secondary" onclick="runTest('backend')">Run Backend Tests</button>
-      <button class="btn btn-secondary" onclick="runTest('role')">Run Role Management Tests</button>
+      <button class="btn btn-primary" onclick="runTest('all')">Chạy Toàn Bộ (Run All)</button>
+      <button class="btn btn-secondary" onclick="runTest('type', 'ui')">Chạy UI Tests</button>
+      <button class="btn btn-secondary" onclick="runTest('type', 'backend')">Chạy Backend Tests</button>
+    </div>
+
+    <!-- Dynamic Modules Section -->
+    <div class="module-section">
+      <div class="module-section-title">Chạy theo phân hệ (Module Registry)</div>
+      <div class="module-grid" id="module-grid-container">
+        <!-- Render động modules tại đây -->
+        <div style="grid-column: 1/-1; color: var(--text-muted); font-size: 0.875rem;">Đang tải danh sách module...</div>
+      </div>
     </div>
 
     <!-- Runner Loader -->
@@ -445,8 +521,21 @@
     let timerInterval = null;
     let startTime = 0;
 
-    // Tự động load kết quả chạy gần nhất khi mở trang
+    // Tự động load kết quả chạy gần nhất và list modules khi mở trang
     window.onload = function() {
+      // 1. Tải danh sách modules
+      fetch('/api/modules')
+        .then(res => res.json())
+        .then(modules => {
+          renderModules(modules);
+        })
+        .catch(err => {
+          console.error('Không thể load modules:', err);
+          document.getElementById('module-grid-container').innerHTML =
+            `<div style="grid-column: 1/-1; color: var(--failure); font-size: 0.875rem;">Lỗi tải danh sách module từ server.</div>`;
+        });
+
+      // 2. Tải kết quả gần nhất
       fetch('/api/results')
         .then(response => response.json())
         .then(data => {
@@ -457,6 +546,38 @@
         })
         .catch(err => console.error('Không tìm thấy kết quả cũ:', err));
     };
+
+    function renderModules(modules) {
+      const container = document.getElementById('module-grid-container');
+      container.innerHTML = '';
+
+      if (!modules || modules.length === 0) {
+        container.innerHTML = `<div style="grid-column: 1/-1; color: var(--text-muted); font-size: 0.875rem;">Không tìm thấy module kiểm thử nào.</div>`;
+        return;
+      }
+
+      modules.forEach(mod => {
+        const card = document.createElement('div');
+        card.className = 'module-card';
+
+        let badgeListHtml = '';
+        mod.type.forEach(t => {
+          badgeListHtml += `<span class="badge badge-type">${t}</span> `;
+        });
+
+        card.innerHTML = `
+          <div>
+            <h3>${mod.name}</h3>
+            <p>${mod.description}</p>
+            <div class="badge-list">
+              ${badgeListHtml}
+            </div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="runTest('module', '${mod.id}')">Chạy Module</button>
+        `;
+        container.appendChild(card);
+      });
+    }
 
     function startTimer() {
       startTime = Date.now();
@@ -472,7 +593,7 @@
       clearInterval(timerInterval);
     }
 
-    function runTest(type) {
+    function runTest(mode, target = null) {
       // 1. Vô hiệu hóa các nút bấm chạy test
       const buttons = document.querySelectorAll('.btn');
       buttons.forEach(btn => btn.disabled = true);
@@ -482,22 +603,41 @@
       const loaderStatus = document.getElementById('loader-status');
       loader.style.display = 'flex';
       
-      const typeLabels = {
-        all: 'tất cả kiểm thử E2E',
-        ui: 'kiểm thử giao diện (UI)',
-        backend: 'kiểm thử API backend',
-        role: 'kiểm thử quản lý vai trò'
-      };
-      loaderStatus.innerText = `Đang chạy các kịch bản ${typeLabels[type] || 'kiểm thử'}...`;
+      let payload = { mode };
+      let runLabel = 'tất cả kiểm thử';
+
+      if (mode === 'all') {
+        runLabel = 'tất cả kiểm thử E2E';
+      } else if (mode === 'type') {
+        payload.type = target;
+        runLabel = `các kiểm thử thuộc nhóm [${target.toUpperCase()}]`;
+      } else if (mode === 'module') {
+        payload.moduleId = target;
+        runLabel = `phân hệ [${target}]`;
+      }
+
+      loaderStatus.innerText = `Đang chạy ${runLabel}...`;
       
-      document.getElementById('console-output').innerText = `[INFO] Kích hoạt Playwright Runner...\nLệnh: npm run test:${type}\nVui lòng đợi cho đến khi hoàn tất.`;
+      document.getElementById('console-output').innerText = `[INFO] Gửi yêu cầu chạy kiểm thử...\nPayload: ${JSON.stringify(payload)}\nVui lòng đợi cho đến khi hoàn tất.`;
       document.getElementById('log-status').innerText = "RUNNING";
 
       startTimer();
 
       // 3. Gọi API kích hoạt chạy test
-      fetch(`/api/run-test?type=${type}`)
-        .then(res => res.json())
+      fetch('/api/run', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+        .then(async res => {
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.error || `Request failed with status ${res.status}`);
+          }
+          return data;
+        })
         .then(data => {
           stopTimer();
           loader.style.display = 'none';
@@ -517,7 +657,7 @@
           buttons.forEach(btn => btn.disabled = false);
           document.getElementById('log-status').innerText = "ERROR";
           document.getElementById('console-output').innerText = `Lỗi hệ thống: ${err.message}`;
-          alert('Không thể kết nối với Runner Server!');
+          alert(`Yêu cầu thất bại: ${err.message}`);
         });
     }
 

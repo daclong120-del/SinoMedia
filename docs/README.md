@@ -31,6 +31,7 @@ Trang này là cửa vào cho tài liệu hiện hành của SinoMedia. Nếu c�
 ## Operational notes
 
 - [Automation Test & One-Click Runner](../notes/automation-test.md)
+- [Automation Test Workspace README](../automation-test/README.md)
 
 ## Maintenance rule
 

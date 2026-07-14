@@ -1,175 +1,214 @@
 # Automation Test & One-Click Runner
 
-Cập nhật: 2026-07-14
-Mục tiêu: chuẩn hóa hướng triển khai automation test cho SinoMedia theo mô hình "nhấn một cái chạy hết A-Z", có dashboard local hiển thị pass/fail cho từng test case.
+Cap nhat: 2026-07-14
 
-## 1. Trạng thái hiện tại
+Tai lieu nay la source note cho he thong automation test cua SinoMedia. Tai lieu thao tac nhanh nam tai `automation-test/README.md`.
 
-| Hạng mục | Trạng thái | Bằng chứng / ghi chú |
-|---|---|---|
-| Antigravity workflow | Partial | Workflow đã được chuyển sang `.agent/workflow/` với 6 workflow chính. |
-| Antigravity skill | Partial | Skill đã có ở `.agent/skill/`. Nếu `.agents/skills/tester` vẫn còn được repo khác dùng thì không xóa vội. |
-| Playwright framework | Partial | `automation-test/package.json`, `playwright.config.ts`, `src/pages/*`, `src/utils/ConfigReader.ts`, `tests/role_management.spec.ts`. |
-| Test suite chính | Partial | `automation-test/tests/` chỉ nên chứa test chính. File khảo sát DOM nằm ở `automation-test/explore/`. |
-| One-click dashboard | Partial | Đã có `automation-test/runner/server.js` và `automation-test/runner/index.html`; cần verify end-to-end bằng `npm run dashboard`. |
-| Report | Partial | Playwright HTML report và JSON report đã cấu hình, nhưng artifact phải được ignore và không commit. |
-| Coverage A-Z | Planned | Mới có Role Management. Chưa có đủ suite cho từng service/module. |
+## Muc Tieu
 
-## 2. Kiến trúc đúng
-
-HTML tĩnh không được tự chạy lệnh shell. Vì vậy one-click runner bắt buộc phải có Node server local đứng giữa:
+Huong di dung la:
 
 ```text
-Browser dashboard
-  -> automation-test/runner/server.js
-    -> npm run test:all / test:ui / test:backend / test:role
-      -> Playwright
-        -> reports/results.json
-        -> playwright-report/index.html
+1 dashboard local
+  -> bam Run All / Run UI / Run Backend / Run Module
+    -> Node runner server goi Playwright
+      -> Playwright chay test theo module/spec/tag
+        -> sinh reports/results.json va playwright-report/
+          -> dashboard doc ket qua va hien pass/fail tung test case
 ```
 
-Các thành phần:
+HTML tinh khong duoc tu chay shell. `automation-test/runner/index.html` chi la UI va phai duoc serve boi `automation-test/runner/server.js`.
 
-| Thành phần | Vai trò |
-|---|---|
-| `.agent/workflow/` | Workflow AI/Antigravity để sinh framework, requirement, manual test, automation script, road module, flaky analysis. |
-| `.agent/skill/` | Skill được workflow gọi trong quá trình phân tích/sinh test. |
-| `automation-test/tests/` | Chỉ chứa test case chính được chạy bởi `npm test`. |
-| `automation-test/explore/` | Script khảo sát DOM/debug, không chạy trong suite chính. |
-| `automation-test/src/pages/` | Page Object Model: locator/action của từng trang. |
-| `automation-test/src/utils/` | Config reader/helper dùng chung. |
-| `automation-test/runner/` | Local dashboard + Node server để bấm chạy test. |
-| `automation-test/reports/` | JSON result/summary đọc bởi dashboard. |
-| `automation-test/playwright-report/` | HTML report sinh bởi Playwright, không commit. |
+Neu mo truc tiep:
 
-## 3. Commands chuẩn
+```text
+file:///D:/Python/SinoMedia/automation-test/runner/index.html
+```
 
-Chạy trong `automation-test/`:
+thi cac API `/api/modules`, `/api/results`, `/api/run` khong ton tai. Dashboard se giu gia tri mac dinh `0 test case`. Day la loi cach mo dashboard, khong phai loi test registry.
+
+## Trang Thai Hien Tai
+
+| Hang muc | Trang thai | Bang chung / ghi chu |
+|---|---|---|
+| Playwright TS framework | Partial | `package.json`, `playwright.config.ts`, `tsconfig.json`; `npm run typecheck` pass ngay 2026-07-14. |
+| Module registry/factory | Partial | `tests/<module>/module.json`, `src/utils/ModuleRegistry.js`, `ModuleRegistry.ts`, `runner/run-module.js`. Dashboard doc `/api/modules` de render module dong. |
+| Runner dashboard | Partial | `runner/server.js` + `runner/index.html`; phai chay bang `npm run dashboard`, khong mo file HTML truc tiep. |
+| Module hien co | Partial | `auth`, `roles`, `settings`, `tasks`. Moi module co spec va `module.json`. |
+| Role Management regression | Partial | Backend case pass; UI case dang fail do `TEST_USER_EMAIL=admin_test@sinomedia.vn` bi redirect `/dash/home?error=unauthorized` khi vao `/dash/manage-account/members`. Can fix quyen/test data, khong sua dashboard source trong test-only mode. |
+| A-Z coverage | Planned | Chua co du suite cho Accounts, Proxies, Data, Creative Hub, worker/API regression. |
+| Artifact hygiene | Partial | `.gitignore` da co, nhung artifact runtime nhu `reports/results.json`, `test-results`, `playwright-report` co the van dang nam trong worktree/tracked tu truoc. |
+
+## Kien Truc Thu Muc
+
+```text
+automation-test/
+├─ runner/
+│  ├─ index.html
+│  ├─ server.js
+│  └─ run-module.js
+├─ src/
+│  ├─ pages/
+│  └─ utils/
+│     ├─ ConfigReader.ts
+│     ├─ ModuleRegistry.js
+│     └─ ModuleRegistry.ts
+├─ tests/
+│  ├─ _setup/
+│  ├─ auth/
+│  ├─ roles/
+│  ├─ settings/
+│  └─ tasks/
+├─ explore/
+├─ evidence/requirements/
+├─ reports/
+└─ playwright-report/
+```
+
+Quy tac:
+
+- `tests/` chi chua test chinh.
+- `tests/_setup/` chi chua setup auth/storage state; dashboard parser khong tinh setup la test case nghiep vu.
+- `tests/<module>/module.json` la manh ghep dang ky module.
+- `explore/` chi dung khao sat DOM/debug, khong de test chinh o day.
+- `runner/` la dashboard local va server Node de goi Playwright.
+- `evidence/requirements/` la noi luu bang chung requirement; khong dung ten cu `evident_requirements`.
+
+## Module Registry Contract
+
+Moi module can file:
+
+```text
+automation-test/tests/<moduleId>/module.json
+```
+
+Schema hien tai:
+
+```json
+{
+  "id": "roles",
+  "name": "Role Management",
+  "description": "Kiem thu quan ly vai tro va bao ve vai tro he thong.",
+  "type": ["ui", "backend"],
+  "specs": ["tests/roles/role_management.spec.ts"],
+  "tags": ["@role", "@ui", "@backend"],
+  "requiresAuth": true,
+  "enabled": true
+}
+```
+
+`ModuleRegistry.js` validate:
+
+- co `id`;
+- co `name`;
+- `specs` la array khong rong;
+- moi spec ton tai trong `automation-test`;
+- spec path khong duoc escape ra ngoai root `automation-test`.
+
+## Commands Chuan
+
+Chay trong `automation-test/`:
 
 ```powershell
 npm run typecheck
-npm run test:role
-npm run test:ui
-npm run test:backend
-npm run test:all
+npx.cmd playwright test --list
+npm run test:ui -- --list
+npm run test:backend -- --list
+npm run test:module -- roles -- --list
+npm run test:module -- roles
 npm run dashboard
 ```
 
-Dashboard local hiện chạy qua:
+Dashboard local:
 
 ```powershell
 npm run dashboard
 ```
 
-Mặc định mở:
+Mo:
 
 ```text
 http://localhost:3005
 ```
 
-Nếu đổi port, dùng:
+Neu port 3005 bi trung:
 
 ```powershell
-$env:DASHBOARD_PORT='9324'; npm run dashboard
+$env:DASHBOARD_PORT='9324'
+npm run dashboard
 ```
 
-## 4. Quy ước test case
+## Cach Them Test Case
 
-Mọi test case phải có ID ở đầu title:
+Them case vao module co san:
 
-```ts
-test('TC_ROLE_001 - Chặn xóa vai trò mặc định "admin" trên UI', async ({ page }) => {
-  // ...
-});
+1. Sua spec trong `tests/<module>/*.spec.ts`.
+2. Dat ID o dau title: `TC_TASK_002 - ...`.
+3. Gan tag vao title: `@tasks @ui`, `@role @backend`, ...
+4. Chay:
+
+```powershell
+npm run test:module -- <moduleId> -- --list
 ```
 
-Quy ước ID:
+Them module moi:
 
-| Prefix | Module |
-|---|---|
-| `TC_ROLE_*` | Role Management |
-| `TC_LOGIN_*` | Login/Auth |
-| `TC_MEMBER_*` | Member Management |
-| `TC_API_*` | API |
-| `TC_SERVICE_*` | Backend service |
+1. Tao `tests/<moduleId>/`.
+2. Tao `<module>.spec.ts`.
+3. Tao `module.json`.
+4. Them Page Object trong `src/pages/` neu can.
+5. Chay typecheck va list:
 
-Quy ước tag:
+```powershell
+npm run typecheck
+npm run test:module -- <moduleId> -- --list
+```
 
-| Tag | Ý nghĩa |
-|---|---|
-| `@ui` | Test cần browser/UI. |
-| `@backend` | Test service/backend không cần browser. |
-| `@role` | Test thuộc Role Management. |
+Khong can sua source dashboard production. Khong can sua `runner/index.html` neu module registry da dung.
 
-Các script `test:ui`, `test:backend`, `test:role` phải grep theo tag hoặc chạy đúng file tương ứng.
+## Environment
 
-## 5. Environment
-
-Test chính không được hardcode credential. Bắt buộc đọc từ `automation-test/.env` hoặc environment của máy chạy:
+Test chinh khong hardcode credential. Bat buoc doc tu `.env` hoac environment:
 
 ```env
-BASE_URL=http://localhost:3000
-PARALLEL_WORKERS=4
+BASE_URL=http://127.0.0.1:3000
+PARALLEL_WORKERS=1
 HEADLESS=true
 TEST_USER_EMAIL=...
 TEST_USER_PASSWORD=...
 ```
 
-`ConfigReader` phải fail rõ nếu thiếu `TEST_USER_EMAIL` hoặc `TEST_USER_PASSWORD`; không fallback sang tài khoản thật trong test chính.
-
-## 6. Artifact và git hygiene
-
-Các artifact không được commit:
+Neu test UI can route admin, user test phai co quyen tuong ung. Vi du Role Management UI can vao:
 
 ```text
-automation-test/playwright-report/
-automation-test/test-results/
-automation-test/tests/*.html
-automation-test/evident_requirements/
+/dash/manage-account/members
 ```
 
-`automation-test/.gitignore` tối thiểu:
-
-```gitignore
-node_modules/
-playwright-report/
-test-results/
-.env
-tests/*.html
-evident_requirements/
-```
-
-Nếu artifact đã tracked từ trước, phải gỡ khỏi index bằng `git rm --cached <file>` hoặc `git rm --cached -r <folder>` đúng phạm vi. Không xóa nhầm source.
-
-## 7. Evidence path chuẩn
-
-Không dùng tên cũ `evident_requirements`.
-
-Đường dẫn chuẩn:
+Neu app redirect ve:
 
 ```text
-automation-test/evidence/requirements/
+/dash/home?error=unauthorized
 ```
 
-Áp dụng cho workflow, script explore, và mọi tài liệu mới.
+thi can cap quyen member/admin cho test user hoac doi `TEST_USER_EMAIL`. Khong sua dashboard source chi de test xanh.
 
-## 8. Definition of Done cho one-click runner
+## Definition of Done
 
-Chỉ coi one-click automation test runner là Done khi đủ các điều kiện:
+One-click runner chi duoc coi la Done khi:
 
 - `npm run typecheck` pass.
-- `npm run test:role` chạy được.
-- `npm run dashboard` mở dashboard local.
-- Bấm `Run Role Management` trên dashboard chạy test thật.
-- Dashboard hiển thị total/passed/failed/skipped và từng test case.
-- Có link mở Playwright HTML report.
-- `automation-test/explore/` không bị chạy trong `npm test`.
-- Không còn reference `evident_requirements` trong workflow chính.
-- `playwright-report`, `test-results`, HTML dump và evidence cũ không còn tracked trong git.
+- `npx.cmd playwright test --list` list dung suite.
+- `npm run dashboard` mo duoc runner qua `http://localhost:<port>`.
+- `/api/modules` tra dung danh sach module.
+- Bam Run All/Run Module tren dashboard chay test that.
+- Dashboard hien total/passed/failed/skipped va chi tiet tung test case.
+- Link Playwright HTML report hoat dong.
+- Test user co quyen phu hop va cac UI regression khong fail vi unauthorized.
+- Artifact runtime khong nam trong commit.
 
-## 9. Hướng mở rộng A-Z
+## Backlog Coverage A-Z
 
-Sau khi runner ổn, mở rộng coverage theo thứ tự:
+Thu tu mo rong:
 
 1. Auth/Login.
 2. Role Management.
@@ -182,10 +221,10 @@ Sau khi runner ổn, mở rộng coverage theo thứ tự:
 9. Creative Hub.
 10. Worker/API/service regression.
 
-Mỗi module phải có:
+Moi module moi phai co:
 
-- manual test case hoặc requirement trace;
-- automation spec trong `automation-test/tests/`;
-- tag rõ ràng;
-- test data/env rõ ràng;
-- pass/fail hiển thị được trên runner dashboard.
+- `module.json`;
+- spec Playwright co ID/tag;
+- test data/env ro rang;
+- neu can UI thi co Page Object;
+- pass/fail hien duoc tren runner dashboard.

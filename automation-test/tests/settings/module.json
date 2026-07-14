@@ -1,0 +1,10 @@
+{
+  "id": "settings",
+  "name": "Settings Security",
+  "description": "Kiểm thử bảo mật cấu hình hệ thống.",
+  "type": ["ui"],
+  "specs": ["tests/settings/settings.spec.ts"],
+  "tags": ["@settings", "@ui"],
+  "requiresAuth": true,
+  "enabled": true
+}

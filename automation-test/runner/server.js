@@ -1,10 +1,15 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { exec } = require('child_process');
+const { spawn } = require('child_process');
 const url = require('url');
+const { loadTestModules, findTestModule, buildPlaywrightArgsForModule } = require('../src/utils/ModuleRegistry');
 
 const PORT = process.env.DASHBOARD_PORT || 3005;
+const playwrightCli = require.resolve('@playwright/test/cli');
+const nodeBin = process.execPath;
+
+let activeTestProcess = null; // Quản lý tiến trình đang chạy
 
 const mimeTypes = {
   '.html': 'text/html; charset=utf-8',
@@ -42,6 +47,11 @@ function parsePlaywrightResults(filePath) {
     const testCases = [];
 
     function processSuite(suite, moduleName = 'General') {
+      const suiteFile = (suite.file || '').replace(/\\/g, '/');
+      if (suiteFile.startsWith('_setup/') || suiteFile.includes('/_setup/')) {
+        return;
+      }
+
       let currentModule = moduleName;
       if (suite.title) {
         if (suite.title.endsWith('.spec.ts')) {
@@ -50,7 +60,6 @@ function parsePlaywrightResults(filePath) {
             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
             .join(' ');
         } else {
-          // Trích xuất tên module từ tag mô tả hoặc title
           currentModule = suite.title.replace(/@\w+/g, '').trim();
         }
       }
@@ -60,20 +69,15 @@ function parsePlaywrightResults(filePath) {
           spec.tests.forEach(testRun => {
             summary.total++;
 
-            // Lấy ID từ spec title
             const idMatch = spec.title.match(/TC_[A-Z0-9_]+/i);
             const testCaseId = idMatch ? idMatch[0] : 'N/A';
 
-            // Xóa ID khỏi title
             let title = spec.title;
             if (idMatch) {
               title = title.replace(idMatch[0], '').replace(/^\s*-\s*/, '').trim();
             }
-
-            // Xóa tags khỏi title hiển thị
             title = title.replace(/@\w+/g, '').trim();
 
-            // Xác định Type (UI hoặc Backend hoặc Service)
             let type = 'UI';
             if (spec.title.toLowerCase().includes('backend') || spec.title.toLowerCase().includes('service')) {
               type = 'Backend';
@@ -86,7 +90,7 @@ function parsePlaywrightResults(filePath) {
             let errorMessage = '';
 
             if (testRun.results && testRun.results.length > 0) {
-              const res = testRun.results[0];
+              const res = testRun.results[testRun.results.length - 1];
               duration = res.duration || 0;
               if (res.status === 'passed') {
                 status = 'passed';
@@ -98,9 +102,7 @@ function parsePlaywrightResults(filePath) {
                 status = 'failed';
                 summary.failed++;
                 if (res.errors && res.errors.length > 0) {
-                  // Ghép các thông báo lỗi nếu có
                   errorMessage = res.errors.map(e => e.message || '').join('\n');
-                  // Lọc ansi color codes
                   errorMessage = errorMessage.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
                 } else if (res.error) {
                   errorMessage = (res.error.message || '').replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
@@ -147,6 +149,17 @@ const server = http.createServer((req, res) => {
   const parsedUrl = url.parse(req.url, true);
   const pathname = parsedUrl.pathname;
 
+  // CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
   // 1. Phục vụ Dashboard HTML (Trang chủ)
   if (pathname === '/' || pathname === '/index.html') {
     const htmlPath = path.join(__dirname, 'index.html');
@@ -162,41 +175,114 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // 2. API Chạy Test
-  if (pathname === '/api/run-test') {
-    const type = parsedUrl.query.type || 'all';
-    let cmd = 'npm run test:all';
+  // 2. API Lấy danh sách modules
+  if (pathname === '/api/modules' && req.method === 'GET') {
+    const modules = loadTestModules();
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(modules));
+    return;
+  }
 
-    if (type === 'ui') {
-      cmd = 'npm run test:ui';
-    } else if (type === 'backend') {
-      cmd = 'npm run test:backend';
-    } else if (type === 'role') {
-      cmd = 'npm run test:role';
+  // 3. API Chạy Test
+  if (pathname === '/api/run' && req.method === 'POST') {
+    if (activeTestProcess) {
+      res.writeHead(409, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Đang có một tiến trình kiểm thử đang chạy!', running: true }));
+      return;
     }
 
-    console.log(`Bắt đầu chạy câu lệnh kiểm thử: ${cmd}`);
+    let bodyData = '';
+    req.on('data', chunk => {
+      bodyData += chunk;
+    });
 
-    // Thực thi lệnh kiểm thử Playwright
-    // Sử dụng CWD là thư mục cha của runner (thư mục automation-test)
-    const testProcess = exec(cmd, { cwd: path.resolve(__dirname, '..') }, (error, stdout, stderr) => {
-      console.log(`Chạy lệnh test hoàn tất.`);
-      
-      // Đọc file kết quả JSON sau khi chạy xong
+    req.on('end', () => {
+      let params = {};
+      try {
+        if (bodyData) {
+          params = JSON.parse(bodyData);
+        }
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'JSON payload không hợp lệ' }));
+        return;
+      }
+
+      const mode = params.mode || 'all';
+      let args = [playwrightCli, 'test'];
+
+      if (mode === 'type') {
+        const type = params.type;
+        if (type === 'ui') {
+          args.push('--grep', '@ui');
+        } else if (type === 'backend') {
+          args.push('--grep', '@backend');
+        } else {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Type không hợp lệ. Phải là "ui" hoặc "backend"' }));
+          return;
+        }
+      } else if (mode === 'module') {
+        const moduleId = params.moduleId;
+        const mod = findTestModule(moduleId);
+        if (!mod) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: `Không tìm thấy module: ${moduleId}` }));
+          return;
+        }
+        args.push(...buildPlaywrightArgsForModule(moduleId));
+      } else if (mode !== 'all') {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Mode không hợp lệ. Phải là "all", "type", hoặc "module"' }));
+        return;
+      }
+
+      // Luôn chạy tuần tự --workers=1 ở local để tránh quá tải
+      args.push('--workers=1');
+
       const resultsPath = path.resolve(__dirname, '../reports/results.json');
-      const results = parsePlaywrightResults(resultsPath);
+      fs.rmSync(resultsPath, { force: true });
 
-      // Thêm log stdout/stderr nếu cần debug
-      results.consoleOutput = stdout || stderr;
+      console.log(`Bắt đầu chạy câu lệnh kiểm thử: ${nodeBin} ${args.join(' ')}`);
 
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(results));
+      let consoleOutput = '';
+
+      activeTestProcess = spawn(nodeBin, args, {
+        cwd: path.resolve(__dirname, '..')
+      });
+
+      activeTestProcess.stdout.on('data', data => {
+        consoleOutput += data.toString();
+      });
+
+      activeTestProcess.stderr.on('data', data => {
+        consoleOutput += data.toString();
+      });
+
+      activeTestProcess.on('close', code => {
+        console.log(`Lệnh test hoàn tất với exit code: ${code}`);
+        activeTestProcess = null;
+
+        const results = parsePlaywrightResults(resultsPath);
+        results.consoleOutput = consoleOutput;
+        results.exitCode = code;
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(results));
+      });
+
+      activeTestProcess.on('error', err => {
+        console.error('Lỗi khi spawn tiến trình test:', err);
+        activeTestProcess = null;
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Không thể khởi chạy tiến trình test', details: err.message }));
+      });
     });
     return;
   }
 
-  // 3. API Đọc kết quả test hiện tại
-  if (pathname === '/api/results') {
+  // 4. API Đọc kết quả test hiện tại
+  if (pathname === '/api/results' && req.method === 'GET') {
     const resultsPath = path.resolve(__dirname, '../reports/results.json');
     const results = parsePlaywrightResults(resultsPath);
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -204,7 +290,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // 4. Phục vụ Playwright HTML Report tĩnh (tại route /report/)
+  // 5. Phục vụ Playwright HTML Report tĩnh (tại route /report/)
   if (pathname.startsWith('/report/') || pathname === '/report') {
     let relativePath = pathname.replace('/report', '');
     if (relativePath === '/' || relativePath === '') {
@@ -226,7 +312,6 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // 5. Mặc định 404
   res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
   res.end('Không tìm thấy API hoặc tệp tin tương ứng!');
 });

@@ -1,0 +1,10 @@
+{
+  "id": "auth",
+  "name": "Authentication",
+  "description": "Kiểm thử đăng nhập và kiểm soát truy cập.",
+  "type": ["ui"],
+  "specs": ["tests/auth/auth.spec.ts"],
+  "tags": ["@auth", "@ui"],
+  "requiresAuth": false,
+  "enabled": true
+}

@@ -43,10 +43,13 @@ Docs-only edits không sửa code symbol, nhưng vẫn nên chạy `detect_chang
 
 - `automation-test` là workspace kiểm thử độc lập. Không nhúng runner vào Dashboard production.
 - HTML tĩnh không được tự chạy shell. Nút bấm "Run tests" phải gọi Node runner local trong `automation-test/runner`.
+- Không mở `automation-test/runner/index.html` bằng `file://` để kiểm tra dashboard. Phải chạy `cd automation-test; npm run dashboard` rồi mở `http://localhost:<port>`, nếu không `/api/modules` và `/api/results` sẽ không tồn tại và UI có thể hiện `0 test case`.
+- Thêm module test theo kiểu registry: tạo `automation-test/tests/<module>/module.json` + spec tương ứng. Không hardcode module mới vào `runner/index.html` nếu registry đã đáp ứng.
 - Test chính chỉ đặt trong `automation-test/tests/`. Script khảo sát DOM/debug đặt trong `automation-test/explore/` và không được chạy bởi `npm test`.
 - Playwright reporter phải xuất HTML report và JSON result để dashboard local parse pass/fail.
 - Mọi test case phải có ID ở đầu title (`TC_ROLE_001`, `TC_LOGIN_001`, ...), và nên dùng tag như `@ui`, `@backend`, `@role` để dashboard/script chạy theo suite.
 - Credential test chính phải đọc từ env qua `ConfigReader`; không fallback sang email/password thật trong test suite chính.
+- Khi UI test fail vì `TEST_USER_EMAIL` bị redirect `/dash/home?error=unauthorized`, ưu tiên sửa quyền/test data hoặc đổi account test. Không sửa source dashboard production chỉ để automation xanh.
 - Không commit `playwright-report/`, `test-results/`, HTML dump, `.env`, hoặc thư mục cũ `evident_requirements/`.
 - Evidence chuẩn nằm ở `automation-test/evidence/requirements/`.
 - Không đánh dấu one-click automation runner là Done nếu chưa bấm dashboard chạy test thật và thấy summary pass/fail.

@@ -6,7 +6,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 export class ConfigReader {
   static get baseUrl(): string {
-    return process.env.BASE_URL || 'http://localhost:3000';
+    return process.env.BASE_URL || 'http://127.0.0.1:3000';
   }
 
   static get testUserEmail(): string {

@@ -23,7 +23,7 @@ SinoMedia hiện là hệ thống gồm 5 khối:
 | Crawler Pipeline | Partial | Worker TypeScript độc lập có queue loop, claim task qua Supabase RPC, platform factory, account/proxy pool. Bilibili crawler ổn định; Zhihu crawler cào tìm kiếm/chi tiết đầy đủ, hỗ trợ cào bài text-only (content-aware) và warm-up cookie. |
 | Supabase/Media | Partial | Supabase là control plane/data store. Đã hoàn thành khóa quyền truy cập thô của anon key, bật RLS cho toàn bộ bảng và thắt chặt RPC nhạy cảm. Đã nâng cấp schema `crawled_posts` sang kiến trúc content-aware (hỗ trợ `media_type = 'text'`, `media_status = 'not_applicable'`, và bổ sung `title`, `content_type`, `source_url`). |
 | Desktop App | Partial | Đã hoàn thành build script Scaffold & Full, tích hợp embedded Node.exe, launcher scripts, C# wrapper SinoMedia.exe và health check smoke test tự động. |
-| Automation Test Runner | Partial | `automation-test` đã có Playwright TS framework, Page Object nền, `ConfigReader`, Role Management spec, JSON/HTML reporter, và local runner dashboard (`automation-test/runner/server.js` + `index.html`). Chưa coi là Done vì chưa verify one-click end-to-end, coverage A-Z còn Planned, và vẫn cần dọn tracked artifact/report cũ. |
+| Automation Test Runner | Partial | `automation-test` đã có Playwright TS framework, module registry qua `tests/<module>/module.json`, Page Object nền, JSON/HTML reporter, CLI `test:module`, và local runner dashboard (`automation-test/runner/server.js` + `index.html`). Chưa coi là Done vì dashboard phải chạy qua `npm run dashboard` chứ không phải `file://`, role UI đang fail do test user bị unauthorized, coverage A-Z còn thiếu, và artifact/report runtime vẫn cần dọn khỏi commit. |
 
 ## Product direction hiện tại
 
@@ -33,7 +33,7 @@ SinoMedia hiện là hệ thống gồm 5 khối:
 - Tương lai: Chuyển từ Pake draft sang SinoMedia Desktop Runtime Package. Mục tiêu đóng gói độc lập toàn bộ Dashboard, Worker và embedded runtime, không yêu cầu cài môi trường.
 - Tương lai có video downloader service riêng để máy khác hoặc local desktop tải video, không nhét toàn bộ logic download vào UI.
 - Media cache/download không tạo task `cache_media`; task này đã bị deprecated trong worker. Với Bilibili, UI chỉ cần BVID/canonical URL để render iframe hoặc mở nguồn.
-- Automation test đi theo hướng `automation-test` độc lập: Playwright chạy test chính trong `automation-test/tests`, các script khảo sát DOM nằm ngoài suite chính ở `automation-test/explore`, và one-click dashboard chỉ là UI gọi Node runner local chứ không phải HTML tĩnh tự chạy shell.
+- Automation test đi theo hướng `automation-test` độc lập: Playwright chạy test chính trong `automation-test/tests`, mỗi module khai báo bằng `tests/<module>/module.json`, các script khảo sát DOM nằm ngoài suite chính ở `automation-test/explore`, và one-click dashboard chỉ là UI gọi Node runner local chứ không phải HTML tĩnh tự chạy shell.
 
 ## Dashboard page status
 
@@ -92,11 +92,12 @@ SinoMedia hiện là hệ thống gồm 5 khối:
 | Capability | Trạng thái | Ghi chú |
 |---|---|---|
 | Playwright TS framework | Partial | `automation-test/package.json`, `playwright.config.ts`, `tsconfig.json` đã có. `npm run typecheck` đã pass trong phiên review 2026-07-14. |
-| Page Object Model | Partial | Đã có `BasePage`, `LoginPage`, `MembersPage`, `ConfigReader`. Mới bao phủ Role Management; các module khác chưa có Page Object/test suite. |
-| Role Management regression | Partial | `tests/role_management.spec.ts` đã tách UI/backend bằng tag `@ui`, `@backend`, `@role`. Cần verify với dashboard/dev server thật trước khi đánh dấu Done. |
+| Module registry/factory | Partial | Có `src/utils/ModuleRegistry.js`, `ModuleRegistry.ts`, `runner/run-module.js` và `tests/<module>/module.json`. `GET /api/modules` trả 4 module: `auth`, `roles`, `settings`, `tasks`. |
+| Page Object Model | Partial | Đã có `BasePage`, `LoginPage`, `MembersPage`, `TasksPage`, `SettingsPage`, `ConfigReader`. Role UI hiện fail rõ khi test user bị redirect unauthorized thay vì timeout mù. |
+| Role Management regression | Partial | `tests/roles/role_management.spec.ts` tách UI/backend bằng tag `@ui`, `@backend`, `@role`. Backend role pass; UI role fail vì `TEST_USER_EMAIL` hiện bị redirect `/dash/home?error=unauthorized` khi vào `/dash/manage-account/members`. |
 | Explore/debug scripts | Optional | Các script khảo sát DOM nằm ở `automation-test/explore/`; không được để trong `automation-test/tests/` vì sẽ bị `npm test` chạy lẫn. |
-| One-click local dashboard | Partial | Có `automation-test/runner/server.js` và `runner/index.html`, command `npm run dashboard`. Cần kiểm chứng bấm nút chạy test, parse `reports/results.json`, và link report hoạt động ổn định. |
-| A-Z coverage by service/module | Planned | Chưa có đủ test case cho Auth, Tasks, Accounts, Proxies, Settings, Data, Creative Hub, Worker/API/service regression. |
+| One-click local dashboard | Partial | Có `automation-test/runner/server.js` và `runner/index.html`, command `npm run dashboard`. Không mở bằng `file://`; phải dùng `http://localhost:3005` để API `/api/modules`, `/api/results`, `/api/run` hoạt động. |
+| A-Z coverage by service/module | Partial | Đã có module `auth`, `roles`, `settings`, `tasks`; chưa có đủ test case cho Accounts, Proxies, Data, Creative Hub, Worker/API/service regression. |
 | Artifact hygiene | Partial | `.gitignore` đã có, nhưng các artifact cũ như `playwright-report`, `test-results`, HTML dump hoặc `evident_requirements` từng tracked phải được gỡ khỏi index trước khi commit. |
 
 ## Known gaps

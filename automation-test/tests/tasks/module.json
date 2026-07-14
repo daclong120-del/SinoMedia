@@ -1,0 +1,10 @@
+{
+  "id": "tasks",
+  "name": "Tasks Management",
+  "description": "Kiểm thử quản lý và trạng thái nhiệm vụ crawl.",
+  "type": ["ui"],
+  "specs": ["tests/tasks/tasks.spec.ts"],
+  "tags": ["@tasks", "@ui"],
+  "requiresAuth": true,
+  "enabled": true
+}

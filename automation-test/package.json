@@ -8,7 +8,7 @@
     "test:all": "playwright test",
     "test:ui": "playwright test --grep @ui",
     "test:backend": "playwright test --grep @backend",
-    "test:role": "playwright test --grep @role",
+    "test:module": "node runner/run-module.js",
     "dashboard": "node runner/server.js",
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",

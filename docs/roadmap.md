@@ -60,18 +60,21 @@ Trạng thái: In progress
 Mục tiêu:
 
 - `automation-test` là workspace kiểm thử độc lập, dùng Playwright TypeScript.
-- Một dashboard local cho phép bấm `Run All Tests`, `Run UI Tests`, `Run Backend Tests`, `Run Role Management Tests`.
+- Một dashboard local cho phép bấm `Run All Tests`, `Run UI Tests`, `Run Backend Tests`, hoặc chạy từng module lấy từ `tests/<module>/module.json`.
 - Dashboard không tự chạy shell từ HTML tĩnh; nó gọi Node runner server trong `automation-test/runner`.
+- Dashboard phải mở qua `npm run dashboard` và URL `http://localhost:<port>`; mở `runner/index.html` bằng `file://` sẽ không có API và dễ hiểu nhầm là `0 test case`.
 - Playwright xuất cả HTML report và JSON result để dashboard hiển thị pass/fail theo từng test case.
+- Module registry là hướng mở rộng: thêm module bằng thư mục `tests/<module>/`, file spec, và `module.json`; không hardcode module mới vào dashboard UI.
 - `automation-test/tests/` chỉ chứa test chính; `automation-test/explore/` chỉ dùng khảo sát DOM/debug và không chạy trong suite mặc định.
 - Artifact như `playwright-report`, `test-results`, HTML dump không được commit.
 
 Definition of done:
 
 - `npm run typecheck` pass trong `automation-test`.
-- `npm run test:role` chạy được.
+- `npm run test:module -- <moduleId> -- --list` chạy được cho từng module đã đăng ký.
 - `npm run dashboard` mở local runner.
-- Bấm `Run Role Management` chạy test thật và hiển thị total/passed/failed/skipped.
+- Bấm `Run All` hoặc `Run Module` chạy test thật và hiển thị total/passed/failed/skipped.
+- Test user trong `.env` có quyền phù hợp với route UI cần test; không còn fail vì `/dash/home?error=unauthorized`.
 - Có link mở Playwright HTML report.
 - Không còn reference `evident_requirements`; dùng `automation-test/evidence/requirements`.
 - Các artifact cũ đã được gỡ khỏi git index.

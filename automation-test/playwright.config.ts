@@ -24,7 +24,7 @@ export default defineConfig({
   /* Cấu hình dùng chung cho tất cả các dự án */
   use: {
     /* Base URL lấy từ biến môi trường */
-    baseURL: process.env.BASE_URL || 'http://localhost:3000',
+    baseURL: process.env.BASE_URL || 'http://127.0.0.1:3000',
     /* Thu thập trace khi test lỗi */
     trace: 'retain-on-failure',
     /* Chụp màn hình khi test lỗi */
@@ -37,9 +37,20 @@ export default defineConfig({
 
   /* Cấu hình các trình duyệt test */
   projects: [
+    // 1. Project chạy setup đăng nhập trước
+    {
+      name: 'setup',
+      testMatch: /.*\/_setup\/.*\.setup\.ts/,
+    },
+    // 2. Project chromium chạy test chính
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { 
+        ...devices['Desktop Chrome'],
+        // Nạp trạng thái đăng nhập chung
+        storageState: 'playwright/.auth/user.json',
+      },
+      dependencies: ['setup'],
     },
   ],
 });

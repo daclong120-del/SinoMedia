@@ -42,7 +42,7 @@ export async function proxy(request: NextRequest) {
           .select("role_id")
           .eq("user_id", user.id)
           .single();
-        isAdmin = member?.role_id === "admin" || user.email === "admin_test@sinomedia.vn";
+        isAdmin = member?.role_id === "admin";
       }
 
       if (!isAdmin) {

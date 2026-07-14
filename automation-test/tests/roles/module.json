@@ -1,0 +1,10 @@
+{
+  "id": "roles",
+  "name": "Role Management",
+  "description": "Kiểm thử quản lý vai trò và bảo vệ vai trò hệ thống.",
+  "type": ["ui", "backend"],
+  "specs": ["tests/roles/role_management.spec.ts"],
+  "tags": ["@role", "@ui", "@backend"],
+  "requiresAuth": true,
+  "enabled": true
+}
