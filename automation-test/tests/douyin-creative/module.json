@@ -4,8 +4,7 @@
   "description": "Kiểm thử crawl creative Douyin từ session, search, creator, detail, comments đến Creative Hub.",
   "type": ["backend"],
   "specs": [
-    "tests/douyin-creative/douyin-creative-contract.spec.ts",
-    "tests/douyin-creative/douyin-creative-live.spec.ts"
+    "tests/douyin-creative/douyin-creative-contract.spec.ts"
   ],
   "tags": ["@douyin", "@creative", "@crawler", "@backend"],
   "requiresAuth": false,

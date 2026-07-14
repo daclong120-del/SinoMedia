@@ -6,6 +6,14 @@ import * as path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 dotenv.config({ path: path.resolve(__dirname, '../dashboard/.env.local') });
 
+const baseURL = process.env.BASE_URL || 'http://127.0.0.1:3000';
+const parsedBaseURL = new URL(baseURL);
+const shouldStartDashboard =
+  process.env.PW_SKIP_DASHBOARD_SERVER !== '1' &&
+  parsedBaseURL.protocol === 'http:' &&
+  ['127.0.0.1', 'localhost'].includes(parsedBaseURL.hostname);
+const dashboardPort = parsedBaseURL.port || '3000';
+
 const realtimeReporter = process.env.PW_REALTIME_REPORTER === '1'
   ? [[path.resolve(__dirname, 'runner/realtime-reporter.cjs')]] as any[]
   : [];
@@ -26,10 +34,19 @@ export default defineConfig({
     ['json', { outputFile: 'reports/results.json' }],
     ...realtimeReporter
   ],
+  webServer: shouldStartDashboard
+    ? {
+        command: `npm run dev -- --hostname 127.0.0.1 --port ${dashboardPort}`,
+        cwd: path.resolve(__dirname, '../dashboard'),
+        url: baseURL,
+        reuseExistingServer: !process.env.CI,
+        timeout: 120 * 1000,
+      }
+    : undefined,
   /* Cấu hình dùng chung cho tất cả các dự án */
   use: {
     /* Base URL lấy từ biến môi trường */
-    baseURL: process.env.BASE_URL || 'http://127.0.0.1:3000',
+    baseURL,
     /* Thu thập trace khi test lỗi */
     trace: 'retain-on-failure',
     /* Chụp màn hình khi test lỗi */

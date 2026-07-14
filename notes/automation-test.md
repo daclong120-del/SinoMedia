@@ -218,7 +218,7 @@ One-click runner chi duoc coi la Done khi:
 - `npm run dashboard` mo duoc runner qua `http://localhost:<port>`.
 - `/api/modules` tra dung danh sach module.
 - Bam Run All/Run Module tren dashboard chay test that.
-- Dashboard hien total/passed/failed/skipped va chi tiet tung test case.
+- Dashboard hien total/passed/failed va chi tiet tung test case.
 - Dashboard append log/test event trong khi Playwright dang chay, khong doi chay xong moi do mot cuc log.
 - Client reconnect/connect tre van nhan du state qua replay event buffer hoac snapshot, khong mat `run-begin`, `test-begin`, `run-finished`.
 - Runner xoa `reports/results.json` truoc moi run de tranh stale result.

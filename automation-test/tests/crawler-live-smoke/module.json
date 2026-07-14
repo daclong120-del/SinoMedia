@@ -6,5 +6,7 @@
   "specs": ["tests/crawler-live-smoke/crawler-live-smoke.spec.ts"],
   "tags": ["@crawler", "@live-smoke", "@quarantine"],
   "requiresAuth": false,
-  "enabled": true
+  "enabled": true,
+  "requiresEnv": ["RUN_LIVE_CRAWLER_SMOKE"],
+  "defaultRun": false
 }

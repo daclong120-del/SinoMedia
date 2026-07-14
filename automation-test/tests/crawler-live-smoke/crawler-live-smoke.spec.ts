@@ -2,10 +2,8 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Crawler Live Smoke Tests @crawler @live-smoke @quarantine', () => {
 
-  test.beforeEach(({}, testInfo) => {
-    if (process.env.RUN_LIVE_CRAWLER_SMOKE !== '1') {
-      testInfo.skip(true, 'Bỏ qua live smoke tests khi không có biến môi trường RUN_LIVE_CRAWLER_SMOKE=1');
-    }
+  test.beforeEach(() => {
+    expect(process.env.RUN_LIVE_CRAWLER_SMOKE, 'RUN_LIVE_CRAWLER_SMOKE must be 1 to run live crawler smoke tests.').toBe('1');
   });
 
   test('TC_CREATIVE_006 - Lọc xếp hạng Creative theo mốc thời gian 7 ngày qua (Live)', async ({ request }) => {

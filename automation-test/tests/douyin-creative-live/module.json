@@ -1,0 +1,15 @@
+{
+  "id": "douyin-creative-live",
+  "name": "Douyin Creative Live Smoke",
+  "description": "Smoke test E2E chạy live cho Douyin creative crawler; tự động bỏ qua ở chế độ mặc định nếu thiếu env.",
+  "type": ["backend", "live-smoke"],
+  "specs": ["tests/douyin-creative/douyin-creative-live.spec.ts"],
+  "tags": ["@douyin", "@creative", "@crawler", "@backend", "@live-douyin"],
+  "requiresAuth": false,
+  "enabled": true,
+  "parallelSafe": false,
+  "recommendedWorkers": 1,
+  "maxWorkers": 1,
+  "requiresEnv": ["RUN_LIVE_DOUYIN_CREATIVE"],
+  "defaultRun": false
+}

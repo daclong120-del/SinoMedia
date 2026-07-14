@@ -27,3 +27,10 @@ trigger: always_on
 *   **Báo cáo lỗi bắt buộc có bằng chứng:** Khi test fail, AI phải nêu rõ test case nào fail, fail ở bước nào, log/error liên quan, file hoặc module nghi ngờ, ảnh/trace nếu có, và phỏng đoán nguyên nhân ở mức rõ ràng.
 *   **Chỉ chuyển sang Fix mode khi có lệnh rõ:** AI chỉ được sửa code khi người dùng nói rõ các từ như "sửa", "fix", "triển khai fix", "cho phép sửa source" hoặc yêu cầu tương đương. Nếu yêu cầu mơ hồ, AI phải hỏi lại trước khi sửa.
 *   **Fix mode vẫn phải tuân thủ GitNexus:** Khi đã được phép sửa function/class/method/symbol, AI phải chạy impact analysis theo quy định GitNexus trước khi sửa, cảnh báo nếu rủi ro HIGH/CRITICAL, và chạy lại test liên quan sau khi sửa.
+
+### 6. Quy tắc cấm sử dụng Skip Test (No-Skip Policy)
+*   **Cấm sử dụng `test.skip()` hoặc `testInfo.skip()`:** Không được sử dụng các câu lệnh bỏ qua test của Playwright để làm xanh kết quả chạy test. Kết quả của mỗi test case khi được chọn chạy bắt buộc phải kết thúc bằng `PASS` hoặc `FAIL`.
+*   **Môi trường thiếu cấu hình E2E (fail-closed):** Nếu thiếu các biến môi trường cấu hình (như `RUN_LIVE_DOUYIN_CREATIVE`, `RUN_LIVE_CRAWLER_SMOKE`...), kịch bản kiểm thử phải fail một cách rõ ràng (fail-closed) thông qua assertion chỉ rõ nguyên nhân (ví dụ: `expect(process.env.RUN_LIVE_DOUYIN_CREATIVE, 'Thiếu biến RUN_LIVE_DOUYIN_CREATIVE để chạy live').toBe('1')`), không được phép skip test.
+*   **Loại trừ các test live khỏi Default Run:** Các kịch bản live smoke test hoặc cần cấu hình môi trường phức tạp không được đưa vào nhóm chạy mặc định (`Run All` / `defaultRun !== false`). Chúng chỉ chạy khi người dùng chủ động chọn chạy trực tiếp module đó.
+*   **Không sửa source ứng dụng sản xuất để làm test xanh:** Nghiêm cấm mọi hành vi sửa đổi logic ứng dụng chỉ để đối phó làm test chạy thành công.
+

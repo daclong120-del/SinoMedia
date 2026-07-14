@@ -13,6 +13,197 @@ const nodeBin = process.execPath;
 const runs = new Map();
 let activeRunId = null;
 
+// Cấu hình lưu trữ Test Cases
+const testCasesFilePath = path.resolve(__dirname, '../runner/data/test-cases.json');
+const defaultTestCases = [
+  { id: 'TC_AUTH_001', module: 'Auth', type: 'UI', title: 'Đăng nhập với Turnstile Invisible Captcha', desc: 'Kiểm tra xác thực Turnstile ẩn chống bot hoạt động đúng trên trang đăng nhập.' },
+  { id: 'TC_AUTH_002', module: 'Auth', type: 'Backend', title: 'Từ chối đăng nhập khi sai thông tin', desc: 'Xác minh hệ thống trả về thông báo lỗi chính xác khi nhập sai Turnstile hoặc tài khoản.' },
+  { id: 'TC_ROLE_001', module: 'Roles', type: 'UI', title: 'Phân quyền truy cập quản lý thành viên', desc: 'Kiểm tra người dùng không có quyền admin bị chặn khi truy cập trang members.' },
+  { id: 'TC_SETTINGS_001', module: 'Settings', type: 'Backend', title: 'Mã hóa cấu hình 2Captcha API Key', desc: 'Kiểm tra các trường nhạy cảm như API key được mã hóa ở cơ sở dữ liệu và ẩn đi khi hiển thị.' },
+  { id: 'TC_TASK_001', module: 'Tasks', type: 'UI', title: 'Tạo chiến dịch cào mới Douyin Search', desc: 'Tạo task cào từ khóa trên Douyin và kiểm tra trạng thái chuyển sang pending.' },
+  { id: 'TC_PROXY_001', module: 'Proxies', type: 'API', title: 'Kiểm tra Proxy hoạt động trong pool', desc: 'Gửi request qua proxy xoay vòng để kiểm chứng độ trễ và IP thực tế.' },
+  { id: 'TC_MEMBER_001', module: 'Members', type: 'UI', title: 'Mời thành viên mới và gán vai trò', desc: 'Gửi thư mời thành viên qua email và gán role Viewer, kiểm tra trạng thái link mời.' }
+];
+
+function normalizeTestCaseId(value) {
+  return String(value || '').trim().toUpperCase();
+}
+
+function getDefaultTestCaseIds() {
+  return new Set(defaultTestCases.map(item => normalizeTestCaseId(item.id)));
+}
+
+function readStoredTestCases() {
+  try {
+    if (!fs.existsSync(testCasesFilePath)) {
+      fs.mkdirSync(path.dirname(testCasesFilePath), { recursive: true });
+      fs.writeFileSync(testCasesFilePath, JSON.stringify([], null, 2), 'utf8');
+      return [];
+    }
+    const content = fs.readFileSync(testCasesFilePath, 'utf8');
+    const parsed = JSON.parse(content.replace(/^\uFEFF/, ''));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    console.error('Lỗi khi đọc file test-cases.json:', err);
+    return [];
+  }
+}
+
+function writeStoredTestCases(data) {
+  try {
+    fs.mkdirSync(path.dirname(testCasesFilePath), { recursive: true });
+    fs.writeFileSync(testCasesFilePath, JSON.stringify(data, null, 2), 'utf8');
+    return true;
+  } catch (err) {
+    console.error('Lỗi khi ghi file test-cases.json:', err);
+    return false;
+  }
+}
+
+function titleToTestCaseId(title, moduleId, fallbackIndex) {
+  const explicitId = String(title || '').match(/\bTC_[A-Z0-9_]+\b/i);
+  if (explicitId) return explicitId[0].toUpperCase();
+
+  const modulePart = String(moduleId || 'case')
+    .replace(/[^a-zA-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .toUpperCase();
+  return `AUTO_${modulePart}_${String(fallbackIndex).padStart(3, '0')}`;
+}
+
+function cleanTestTitle(title) {
+  return String(title || '')
+    .replace(/^\s*TC_[A-Z0-9_]+\s*-\s*/i, '')
+    .replace(/\s+@[a-zA-Z0-9_-]+/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function inferTestCaseType(title, moduleConfig) {
+  const text = `${title || ''} ${(moduleConfig.tags || []).join(' ')}`.toLowerCase();
+  if (text.includes('@ui')) return 'UI';
+  if (text.includes('@api')) return 'API';
+  if (text.includes('@backend')) return 'Backend';
+  if (text.includes('@security')) return 'Security';
+  if (text.includes('@contract')) return 'Contract';
+  if (text.includes('@live') || text.includes('@live-smoke')) return 'Live';
+
+  const firstType = Array.isArray(moduleConfig.type) ? moduleConfig.type[0] : null;
+  return firstType ? firstType.charAt(0).toUpperCase() + firstType.slice(1) : 'General';
+}
+
+function extractTestCasesFromSpec(specPath, moduleConfig, startIndex) {
+  const absoluteSpecPath = path.resolve(__dirname, '..', specPath);
+  if (!fs.existsSync(absoluteSpecPath)) return [];
+
+  const source = fs.readFileSync(absoluteSpecPath, 'utf8');
+  const tests = [];
+  const testPattern = /\btest(?:\.(?:only|skip|fixme|slow))?\s*\(\s*(['"`])([\s\S]*?)\1\s*,/g;
+  let match;
+  let index = startIndex;
+
+  while ((match = testPattern.exec(source)) !== null) {
+    const rawTitle = match[2].replace(/\$\{[^}]*\}/g, '').trim();
+    if (!rawTitle) continue;
+
+    index += 1;
+    tests.push({
+      id: titleToTestCaseId(rawTitle, moduleConfig.id, index),
+      module: moduleConfig.name || moduleConfig.id,
+      moduleId: moduleConfig.id,
+      type: inferTestCaseType(rawTitle, moduleConfig),
+      title: cleanTestTitle(rawTitle),
+      desc: `Executable spec: ${specPath}`,
+      spec: specPath,
+      source: 'spec',
+      editable: false
+    });
+  }
+
+  return tests;
+}
+
+function discoverExecutableTestCases() {
+  const discovered = [];
+  for (const moduleConfig of loadTestModules()) {
+    let moduleIndex = 0;
+    for (const specPath of moduleConfig.specs) {
+      const specCases = extractTestCasesFromSpec(specPath, moduleConfig, moduleIndex);
+      moduleIndex += specCases.length;
+      discovered.push(...specCases);
+    }
+  }
+  return discovered;
+}
+
+function sanitizeStoredTestCase(tc) {
+  return {
+    id: normalizeTestCaseId(tc.id),
+    module: String(tc.module || 'Manual').trim(),
+    type: String(tc.type || 'Manual').trim(),
+    title: String(tc.title || '').trim(),
+    desc: String(tc.desc || '').trim(),
+    source: tc.source === 'override' ? 'override' : 'manual',
+    editable: true,
+    deleted: tc.deleted === true
+  };
+}
+
+function readTestCases() {
+  const executableCases = discoverExecutableTestCases();
+  const storedCases = readStoredTestCases();
+  const storedById = new Map();
+  const deletedIds = new Set();
+  const byId = new Map();
+
+  for (const storedCase of storedCases) {
+    const id = normalizeTestCaseId(storedCase.id);
+    if (!id) continue;
+    if (storedCase.deleted === true) {
+      deletedIds.add(id);
+      continue;
+    }
+    storedById.set(id, sanitizeStoredTestCase(storedCase));
+  }
+
+  for (const tc of executableCases) {
+    const id = normalizeTestCaseId(tc.id);
+    if (deletedIds.has(id)) continue;
+
+    const override = storedById.get(id);
+    if (override && override.title) {
+      byId.set(id, {
+        ...tc,
+        module: override.module || tc.module,
+        type: override.type || tc.type,
+        title: override.title,
+        desc: override.desc,
+        source: 'override',
+        editable: true
+      });
+      continue;
+    }
+
+    byId.set(id, { ...tc, editable: true });
+  }
+
+  const legacyDefaultIds = getDefaultTestCaseIds();
+  for (const storedCase of storedCases) {
+    const sanitized = sanitizeStoredTestCase(storedCase);
+    if (!sanitized.id || !sanitized.title) continue;
+    if (byId.has(sanitized.id)) continue;
+    if (deletedIds.has(sanitized.id)) continue;
+    if (legacyDefaultIds.has(sanitized.id) && storedCase.source !== 'manual') continue;
+    byId.set(sanitized.id, sanitized);
+  }
+
+  return Array.from(byId.values()).sort((a, b) => {
+    const moduleCompare = String(a.module || '').localeCompare(String(b.module || ''));
+    if (moduleCompare !== 0) return moduleCompare;
+    return String(a.id || '').localeCompare(String(b.id || ''));
+  });
+}
+
 function createRunId() {
   const dateStr = new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14);
   const rand = Math.random().toString(36).substring(2, 6);
@@ -143,6 +334,7 @@ function parsePlaywrightResults(filePath) {
                 }
               }
             } else {
+              status = 'skipped';
               summary.skipped++;
             }
 
@@ -261,10 +453,11 @@ function resolveWorkerCount(params, mode, mod) {
 const server = http.createServer((req, res) => {
   const parsedUrl = url.parse(req.url, true);
   const pathname = parsedUrl.pathname;
+  const query = parsedUrl.query || {};
 
   // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
@@ -293,6 +486,159 @@ const server = http.createServer((req, res) => {
     const modules = loadTestModules();
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(modules));
+    return;
+  }
+
+  // 2.5 API Quản lý Test Cases (CRUD)
+  if (pathname === '/api/testcases' && req.method === 'GET') {
+    const list = readTestCases();
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(list));
+    return;
+  }
+
+  if (pathname === '/api/testcases' && req.method === 'POST') {
+    let bodyData = '';
+    req.on('data', chunk => {
+      bodyData += chunk;
+    });
+    req.on('end', () => {
+      let tc = null;
+      try {
+        tc = JSON.parse(bodyData);
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'JSON payload không hợp lệ' }));
+        return;
+      }
+
+      if (!tc || !tc.id || !tc.title) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Thiếu ID hoặc Tiêu đề cho test case!' }));
+        return;
+      }
+
+      const manualCase = sanitizeStoredTestCase(tc);
+      const list = readStoredTestCases();
+      const exists = readTestCases().some(item => normalizeTestCaseId(item.id) === manualCase.id);
+      if (exists) {
+        res.writeHead(409, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: `Mã ID Test Case "${manualCase.id}" đã tồn tại trong hệ thống!` }));
+        return;
+      }
+
+      list.push(manualCase);
+      if (writeStoredTestCases(list)) {
+        res.writeHead(201, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(manualCase));
+      } else {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Không thể ghi file dữ liệu test case' }));
+      }
+    });
+    return;
+  }
+
+  if (pathname === '/api/testcases' && req.method === 'PUT') {
+    let bodyData = '';
+    req.on('data', chunk => {
+      bodyData += chunk;
+    });
+    req.on('end', () => {
+      let tc = null;
+      try {
+        tc = JSON.parse(bodyData);
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'JSON payload không hợp lệ' }));
+        return;
+      }
+
+      if (!tc || !tc.id || !tc.title) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Thiếu ID hoặc Tiêu đề cho test case!' }));
+        return;
+      }
+
+      const manualCase = sanitizeStoredTestCase(tc);
+      const executableCase = discoverExecutableTestCases().find(item => normalizeTestCaseId(item.id) === manualCase.id);
+      const list = readStoredTestCases();
+      const index = list.findIndex(item => normalizeTestCaseId(item.id) === manualCase.id);
+      if (executableCase) {
+        manualCase.source = 'override';
+        manualCase.deleted = false;
+        if (index === -1) {
+          list.push(manualCase);
+        } else {
+          list[index] = manualCase;
+        }
+      } else if (index === -1) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: `Không tìm thấy Test Case manual với ID "${manualCase.id}"!` }));
+        return;
+      } else {
+        list[index] = manualCase;
+      }
+
+      if (writeStoredTestCases(list)) {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(manualCase));
+      } else {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Không thể ghi file dữ liệu test case' }));
+      }
+    });
+    return;
+  }
+
+  if (pathname === '/api/testcases' && req.method === 'DELETE') {
+    const id = query.id;
+    if (!id) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Thiếu ID của test case cần xóa!' }));
+      return;
+    }
+
+    const normalizedId = normalizeTestCaseId(id);
+    const executableCase = discoverExecutableTestCases().find(item => normalizeTestCaseId(item.id) === normalizedId);
+    const list = readStoredTestCases();
+    const index = list.findIndex(item => normalizeTestCaseId(item.id) === normalizedId);
+    if (executableCase) {
+      const tombstone = {
+        id: normalizedId,
+        source: 'deleted',
+        deleted: true
+      };
+      if (index === -1) {
+        list.push(tombstone);
+      } else {
+        list[index] = tombstone;
+      }
+
+      if (writeStoredTestCases(list)) {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ...executableCase, deleted: true }));
+      } else {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Không thể ghi file dữ liệu test case' }));
+      }
+      return;
+    }
+
+    if (index === -1) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: `Không tìm thấy Test Case manual với ID "${normalizedId}"!` }));
+      return;
+    }
+
+    const deleted = list.splice(index, 1)[0];
+    if (writeStoredTestCases(list)) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(deleted));
+    } else {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Không thể ghi file dữ liệu test case' }));
+    }
     return;
   }
 
@@ -326,10 +672,24 @@ const server = http.createServer((req, res) => {
 
       if (mode === 'type') {
         const type = params.type;
-        if (type === 'ui') {
-          args.push('--grep', '@ui');
-        } else if (type === 'backend') {
-          args.push('--grep', '@backend');
+        if (type === 'ui' || type === 'backend') {
+          const allModules = loadTestModules();
+          const targetModules = allModules.filter(m => m.defaultRun !== false && m.type.includes(type));
+          const specs = [];
+          let requiresAuth = false;
+          for (const m of targetModules) {
+            specs.push(...m.specs);
+            if (type === 'ui' && m.requiresAuth) {
+              requiresAuth = true;
+            }
+          }
+          if (requiresAuth) {
+            args.push('tests/_setup/auth.setup.ts');
+          } else {
+            args.push('--no-deps');
+          }
+          args.push(...specs);
+          args.push('--grep', `@${type}`);
         } else {
           res.writeHead(400, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ error: 'Type không hợp lệ. Phải là "ui" hoặc "backend"' }));
@@ -345,9 +705,28 @@ const server = http.createServer((req, res) => {
         }
         if (mod.requiresAuth) {
           args.push('tests/_setup/auth.setup.ts');
+        } else {
+          args.push('--no-deps');
         }
         args.push(...mod.specs);
-      } else if (mode !== 'all') {
+      } else if (mode === 'all') {
+        const allModules = loadTestModules();
+        const defaultModules = allModules.filter(m => m.defaultRun !== false);
+        const specs = [];
+        let requiresAuth = false;
+        for (const m of defaultModules) {
+          specs.push(...m.specs);
+          if (m.requiresAuth) {
+            requiresAuth = true;
+          }
+        }
+        if (requiresAuth) {
+          args.push('tests/_setup/auth.setup.ts');
+        } else {
+          args.push('--no-deps');
+        }
+        args.push(...specs);
+      } else {
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Mode không hợp lệ. Phải là "all", "type", hoặc "module"' }));
         return;
@@ -441,9 +820,14 @@ const server = http.createServer((req, res) => {
                   } else if (eventData.type === 'test-end') {
                     const tc = run.testCases.find(t => t.pwTestId === eventData.pwTestId);
                     if (tc) {
-                      tc.status = eventData.status === 'passed' ? 'passed' : eventData.status === 'skipped' ? 'skipped' : 'failed';
+                      if (eventData.status === 'skipped') {
+                        tc.status = 'skipped';
+                        tc.errorMessage = eventData.errorMessage || '';
+                      } else {
+                        tc.status = eventData.status === 'passed' ? 'passed' : 'failed';
+                        tc.errorMessage = eventData.errorMessage;
+                      }
                       tc.duration = eventData.duration;
-                      tc.errorMessage = eventData.errorMessage;
                     }
 
                     // Tạm thời tự đếm counters trên server
@@ -454,9 +838,9 @@ const server = http.createServer((req, res) => {
                     emitRunEvent(run, 'test-end', {
                       pwTestId: eventData.pwTestId,
                       id: eventData.id,
-                      status: eventData.status,
+                      status: tc ? tc.status : eventData.status,
                       duration: eventData.duration,
-                      errorMessage: eventData.errorMessage,
+                      errorMessage: tc ? tc.errorMessage : eventData.errorMessage,
                       summary: run.summary
                     });
                   }

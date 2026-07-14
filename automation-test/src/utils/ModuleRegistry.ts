@@ -12,6 +12,8 @@ export interface TestModule {
   parallelSafe?: boolean;
   recommendedWorkers?: number | null;
   maxWorkers?: number | null;
+  requiresEnv?: string[];
+  defaultRun?: boolean;
 }
 
 export const loadTestModules = registry.loadTestModules as () => TestModule[];

@@ -21,7 +21,9 @@ function normalizeModuleConfig(config) {
     enabled: config.enabled !== false,
     parallelSafe: config.parallelSafe !== false,
     recommendedWorkers: typeof config.recommendedWorkers === 'number' ? config.recommendedWorkers : null,
-    maxWorkers: typeof config.maxWorkers === 'number' ? config.maxWorkers : null
+    maxWorkers: typeof config.maxWorkers === 'number' ? config.maxWorkers : null,
+    requiresEnv: asStringArray(config.requiresEnv),
+    defaultRun: config.defaultRun !== false
   };
 }
 
@@ -104,7 +106,11 @@ function findTestModule(id) {
 function buildPlaywrightArgsForModule(id) {
   const moduleConfig = findTestModule(id);
   if (!moduleConfig) return [];
-  return [...moduleConfig.specs];
+  const args = [...moduleConfig.specs];
+  if (!moduleConfig.requiresAuth) {
+    args.push('--no-deps');
+  }
+  return args;
 }
 
 module.exports = {

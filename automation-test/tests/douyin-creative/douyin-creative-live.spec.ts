@@ -2,15 +2,9 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Douyin Creative Crawl - Live Smoke Tests @live-douyin @crawler @creative @douyin', () => {
   
-  test.beforeEach(({}, testInfo) => {
-    // Skip test nếu không có env cho phép chạy live
-    if (process.env.RUN_LIVE_DOUYIN_CREATIVE !== '1') {
-      testInfo.annotations.push({
-        type: 'skip',
-        description: 'Bỏ qua vì RUN_LIVE_DOUYIN_CREATIVE khác 1'
-      });
-      test.skip();
-    }
+  test.beforeEach(() => {
+    // Fail test nếu không có env cho phép chạy live
+    expect(process.env.RUN_LIVE_DOUYIN_CREATIVE, 'RUN_LIVE_DOUYIN_CREATIVE must be 1 to run live Douyin smoke tests.').toBe('1');
   });
 
   test('TC_DY_DETAIL_008 - Live one aweme crawl @live-douyin', async () => {
