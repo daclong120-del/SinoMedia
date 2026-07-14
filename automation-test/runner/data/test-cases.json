@@ -1,51 +1,51 @@
-﻿[
+[
   {
     "id": "TC_AUTH_001",
     "module": "Auth",
     "type": "UI",
-    "title": "ÄÄƒng nháº­p vá»›i Turnstile Invisible Captcha",
-    "desc": "Kiá»ƒm tra xÃ¡c thá»±c Turnstile áº©n chá»‘ng bot hoáº¡t Ä‘á»™ng Ä‘Ãºng trÃªn trang Ä‘Äƒng nháº­p."
+    "title": "Đăng nhập với Turnstile Invisible Captcha",
+    "desc": "Kiểm tra xác thực Turnstile ẩn chống bot hoạt động đúng trên trang đăng nhập."
   },
   {
     "id": "TC_AUTH_002",
     "module": "Auth",
     "type": "Backend",
-    "title": "Tá»« chá»‘i Ä‘Äƒng nháº­p khi sai thÃ´ng tin",
-    "desc": "XÃ¡c minh há»‡ thá»‘ng tráº£ vá» thÃ´ng bÃ¡o lá»—i chÃ­nh xÃ¡c khi nháº­p sai Turnstile hoáº·c tÃ i khoáº£n."
+    "title": "Từ chối đăng nhập khi sai thông tin",
+    "desc": "Xác minh hệ thống trả về thông báo lỗi chính xác khi nhập sai Turnstile hoặc tài khoản."
   },
   {
     "id": "TC_ROLE_001",
     "module": "Roles",
     "type": "UI",
-    "title": "PhÃ¢n quyá»n truy cáº­p quáº£n lÃ½ thÃ nh viÃªn",
-    "desc": "Kiá»ƒm tra ngÆ°á»i dÃ¹ng khÃ´ng cÃ³ quyá»n admin bá»‹ cháº·n khi truy cáº­p trang members."
+    "title": "Phân quyền truy cập quản lý thành viên",
+    "desc": "Kiểm tra người dùng không có quyền admin bị chặn khi truy cập trang members."
   },
   {
     "id": "TC_SETTINGS_001",
     "module": "Settings",
     "type": "Backend",
-    "title": "MÃ£ hÃ³a cáº¥u hÃ¬nh 2Captcha API Key",
-    "desc": "Kiá»ƒm tra cÃ¡c trÆ°á»ng nháº¡y cáº£m nhÆ° API key Ä‘Æ°á»£c mÃ£ hÃ³a á»Ÿ cÆ¡ sá»Ÿ dá»¯ liá»‡u vÃ  áº©n Ä‘i khi hiá»ƒn thá»‹."
+    "title": "Mã hóa cấu hình 2Captcha API Key",
+    "desc": "Kiểm tra các trường nhạy cảm như API key được mã hóa ở cơ sở dữ liệu và ẩn đi khi hiển thị."
   },
   {
     "id": "TC_TASK_001",
     "module": "Tasks",
     "type": "UI",
-    "title": "Táº¡o chiáº¿n dá»‹ch cÃ o má»›i Douyin Search",
-    "desc": "Táº¡o task cÃ o tá»« khÃ³a trÃªn Douyin vÃ  kiá»ƒm tra tráº¡ng thÃ¡i chuyá»ƒn sang pending."
+    "title": "Tạo chiến dịch cào mới Douyin Search",
+    "desc": "Tạo task cào từ khóa trên Douyin và kiểm tra trạng thái chuyển sang pending."
   },
   {
     "id": "TC_PROXY_001",
     "module": "Proxies",
     "type": "API",
-    "title": "Kiá»ƒm tra Proxy hoáº¡t Ä‘á»™ng trong pool",
-    "desc": "Gá»­i request qua proxy xoay vÃ²ng Ä‘á»ƒ kiá»ƒm chá»©ng Ä‘á»™ trá»… vÃ  IP thá»±c táº¿."
+    "title": "Kiểm tra Proxy hoạt động trong pool",
+    "desc": "Gửi request qua proxy xoay vòng để kiểm chứng độ trễ và IP thực tế."
   },
   {
     "id": "TC_MEMBER_001",
     "module": "Members",
     "type": "UI",
-    "title": "Má»i thÃ nh viÃªn má»›i vÃ  gÃ¡n vai trÃ²",
-    "desc": "Gá»­i thÆ° má»i thÃ nh viÃªn qua email vÃ  gÃ¡n role Viewer, kiá»ƒm tra tráº¡ng thÃ¡i link má»i."
+    "title": "Mời thành viên mới và gán vai trò",
+    "desc": "Gửi thư mời thành viên qua email và gán role Viewer, kiểm tra trạng thái link mời."
   }
 ]
