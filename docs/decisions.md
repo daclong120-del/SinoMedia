@@ -144,7 +144,7 @@
   - Sửa đổi các RPC `claim_next_crawler_task` (chỉ cho phép `service_role` và thu hồi quyền `execute` đối với `public`/`anon`/`authenticated`) và `create_crawler_tasks` (chỉ cho phép `service_role`/`admin`).
   - Tích hợp bảo vệ SSRF cho Video Proxy: Validate HTTPS, CDN domains allowlist, phân giải DNS chặn IP private/local, giới hạn content-type & dung lượng tải (100MB), và dùng exact-origin CORS.
 - **Trade-off:** Đổi file Middleware bảo vệ Next.js từ `middleware.ts` sang `proxy.ts` để tương thích với deprecation convention của Next.js 16.2.10.
-- **Revisit trigger:** Khi Next.js thay đổi quy ước middleware hoặc khi phát sinh nhu cầu phân quyền logs chi tiết (permission-based) thay vì authenticated-wide.
+- **Revisit trigger:** Khi Next.js thay đổi quy ước middleware hoặc khi phát sinh nhu cầu phân quyền logs chi tiết (permission-based) thay vị authenticated-wide.
 
 ## 2026-07-09 — Log Redaction & Security Hygiene (Cookie, Từ nối tiếng Việt & CSRF Prod)
 - **Bối cảnh:** Lộ thông tin vận hành trong logs (cookie nhiều cặp bị hở đuôi sau `;`, msToken bị lộ khi đi kèm câu log tiếng Việt), dev scripts bypass logger thô, và nguy cơ host spoofing trong CSRF.
@@ -196,27 +196,27 @@
 ## 2026-07-09 — Hiện thực hóa Scaffold & Full Build cho Desktop Runtime Package
 - **Bối cảnh:** Cần triển khai các script build tự động để tạo ra Desktop Runtime Package hoàn chỉnh theo contract đã ký kết.
 - **Quyết định:**
-  1. Phát triển script build idempotent `build-runtime-package.ps1` hỗ trợ chế độ `Scaffold` và `Full`.
-  2. Phát triển script `health-check.ps1` hỗ trợ static checks và dynamic `Smoke Test` (`-Smoke`).
-  3. Các script launcher loại bỏ việc truy vấn env của PowerShell và không thực hiện clone env để tránh lỗi trùng lặp key `Path`/`PATH`.
-  4. Khởi chạy trực tiếp `$NodeExe` bằng `$Process.Start()` của .NET `System.Diagnostics.Process` để thu thập chính xác PID.
-  5. Sửa đổi smoke test để verify sự tồn tại của file PID trước khi kiểm tra port nhằm tránh false positive.
+  - 1. Phát triển script build idempotent `build-runtime-package.ps1` hỗ trợ chế độ `Scaffold` và `Full`.
+  - 2. Phát triển script `health-check.ps1` hỗ trợ static checks và dynamic `Smoke Test` (`-Smoke`).
+  - 3. Các script launcher loại bỏ việc truy vấn env của PowerShell và không thực hiện clone env để tránh lỗi trùng lặp key `Path`/`PATH`.
+  - 4. Khởi chạy trực tiếp `$NodeExe` bằng `$Process.Start()` của .NET `System.Diagnostics.Process` để thu thập chính xác PID.
+  - 5. Sửa đổi smoke test để verify sự tồn tại của file PID trước khi kiểm tra port nhằm tránh false positive.
 
 ## 2026-07-09 — Thắt chặt API Proxy & Kiểm thử Bảo mật nâng cao [initiative: Security Hardening]
 - **Bối cảnh:** Cần củng cố an toàn tuyệt đối cho API `GET crawler_accounts` (nơi chứa các cookie dữ liệu cào nhạy cảm) để tránh rò rỉ cookie ngoài ý muốn và đảm bảo có kiểm thử hồi quy vững vàng.
 - **Quyết định:**
-  1. Thiết lập hàm `validateCrawlerAccountGet(searchParams)` phân tách rõ rệt 2 Mode cho GET `crawler_accounts`.
-  2. Chặn các query phức tạp hoặc select cột sai phạm vi cho phép bằng `400 Bad Request`.
-  3. Cưỡng chế ghi đè các tham số URL query params trước khi forward tới Supabase REST.
-  4. Mở rộng script regression test lên 27/27 test cases (RLS + Proxy) và bắt buộc login tài khoản kiểm thử thành công (fail-closed thay vì skip).
+  - 1. Thiết lập hàm `validateCrawlerAccountGet(searchParams)` phân tách rõ rệt 2 Mode cho GET `crawler_accounts`.
+  - 2. Chặn các query phức tạp hoặc select cột sai phạm vi cho phép bằng `400 Bad Request`.
+  - 3. Cưỡng chế ghi đè các tham số URL query params trước khi forward tới Supabase REST.
+  - 4. Mở rộng script regression test lên 27/27 test cases (RLS + Proxy) và bắt buộc login tài khoản kiểm thử thành công (fail-closed thay vì skip).
 - **Hậu quả:** Bảo vệ tuyệt đối Cookie của tài khoản cào ở backend trước các yêu cầu query rộng.
 - **Kích hoạt xem xét lại:** Khi có cơ chế token mới hoặc cần mở rộng các fields của crawler_accounts cho worker.
 
 ## 2026-07-09 — Thống nhất Lộ trình Desktop App & Nguyên tắc Portable-First
 - **Bối cảnh:** Cần xác định rõ ranh giới và thứ tự ưu tiên cho việc phát triển Desktop App.
 - **Quyết định:**
-  1. **Nguyên tắc Portable-First**: Ưu tiên "chạy độc lập thật" (Po- **Evidence:** `tsc --noEmit` pass, `npm run build` pass, build output xác nhận không còn `/api/creative/*`.
-- **Revisit trigger:** Cần public API cho creative data, hoặc cần thêm HTTP methods cho worker API.
+  - 1. **Nguyên tắc Portable-First**: Ưu tiên "chạy độc lập thật" (Portable) trước khi đóng gói installer. Độc lập hóa Dashboard và Worker khỏi global node_modules.
+  - 2. **Kiểm thử đa thiết bị**: Mở rộng script health-check tự động để chạy trước trên CI/CD hoặc client machine.
 
 ## 2026-07-10 — Phòng chống Brute-force Đăng nhập bằng Turnstile Invisible & Hardening Rate Limit [initiative: Security Hardening]
 - **Context:** Đánh giá bảo mật phát hiện hệ thống không có rate limiting ở application layer, dẫn đến nguy cơ brute-force mật khẩu và lạm dụng API qua các auth server actions.
@@ -224,9 +224,9 @@
   - A: Triển khai rate limiting ở Next.js Middleware hoặc dùng thư viện bên ngoài (Upstash).
   - B: Tích hợp Cloudflare Turnstile Invisible Captcha và siết chặt cấu hình Supabase auth rate limit/password policy (Được chọn vì chi phí UX bằng 0 và tích hợp native với Supabase Auth).
 - **Decision:**
-  1. Siết cấu hình auth trong [config.toml](file:///d:/Python/SinoMedia/supabase/config.toml): tăng chiều dài mật khẩu tối thiểu lên 8 ký tự, bật yêu cầu có chữ và số (`letters_digits`), giảm giới hạn login/signup mỗi IP từ 30 xuống 10 lần trong 5 phút.
-  2. Tích hợp `@marsidev/react-turnstile` để kích hoạt Turnstile Invisible Captcha chạy ẩn ở background cho cả [login-form.tsx](file:///d:/Python/SinoMedia/dashboard/app/(auth)/login/login-form.tsx) và [sign-up-form.tsx](file:///d:/Python/SinoMedia/dashboard/app/(auth)/sign-up/sign-up-form.tsx).
-  3. Cập nhật `AuthService`, `loginAction` và `signUpAction` để truyền `captchaToken` vào Supabase options khi xác thực.
+  - 1. Siết cấu hình auth trong [config.toml](file:///d:/Python/SinoMedia/supabase/config.toml): tăng chiều dài mật khẩu tối thiểu lên 8 ký tự, bật yêu cầu có chữ và số (`letters_digits`), giảm giới hạn login/signup mỗi IP từ 30 xuống 10 lần trong 5 phút.
+  - 2. Tích hợp `@marsidev/react-turnstile` để kích hoạt Turnstile Invisible Captcha chạy ẩn ở background cho cả [login-form.tsx](file:///d:/Python/SinoMedia/dashboard/app/(auth)/login/login-form.tsx) và [sign-up-form.tsx](file:///d:/Python/SinoMedia/dashboard/app/(auth)/sign-up/sign-up-form.tsx).
+  - 3. Cập nhật `AuthService`, `loginAction` và `signUpAction` để truyền `captchaToken` vào Supabase options khi xác thực.
 - **Trade-off:** Cần cấu hình `NEXT_PUBLIC_TURNSTILE_SITE_KEY` và `[auth.captcha]` (Turnstile secret) cho Supabase ở môi trường dev nếu muốn kiểm thử captcha cục bộ.
 - **Revisit trigger:** Khi Cloudflare Turnstile thay đổi API hoặc Supabase thay đổi cách handle captcha verification.
 
@@ -238,9 +238,7 @@
 - **Decision:** Chọn B. Gỡ bỏ `cloakbrowser` khỏi `package.json`, xóa các file `login.ts` và `browser_sign.ts` liên quan đến login tương tác. Cập nhật `ensureLogin` của 6 platform để quăng lỗi báo hết hạn session/cookie thay vì khởi tạo trình duyệt.
 - **Trade-off:** Các platform chưa có HTTP-only parity (XHS, Weibo, Tieba, Kuaishou) sẽ không thể cào nếu không được nạp sẵn cookie hợp lệ từ trước.
 - **Evidence:** `npx tsc --noEmit` pass, dependencies sạch bóng `cloakbrowser`.
-- **Revisit trigger:** Khi có nhu cầu phát triển công cụ tự động hóa cấp credential mới từ dashboard.��n thông tin đã che dấu (sanitized props).
-  4. Server Action `saveSettingsAction` áp dụng đầy đủ guards và ghi log audit event không lưu thô.
-- **Hậu quả:** Bảo vệ tuyệt đối secrets ở cả REST API, database và audit logs.
+- **Revisit trigger:** Khi có nhu cầu phát triển công cụ tự động hóa cấp credential mới từ dashboard.
 
 ## 2026-07-09 — Security Hardening: Xóa Creative API Routes, Auth Guard Server Actions, Security Headers [initiative: security-audit]
 - **Context:** Đánh giá bảo mật phát hiện 7 creative API routes (`/api/creative/*`) hoàn toàn không có auth guard — middleware chỉ match `/dash/*` nên `/api/*` bị bypass. 3 server action files re-export trần từ service mà không kiểm tra auth. Dashboard thiếu security headers. Worker API export PUT/DELETE/OPTIONS không cần thiết.
@@ -252,16 +250,17 @@
 - **Evidence:** `tsc --noEmit` pass, `npm run build` pass, build output xác nhận không còn `/api/creative/*`.
 - **Revisit trigger:** Cần public API cho creative data, hoặc cần thêm HTTP methods cho worker API.
 
-## 2026-07-09 — Phòng chống Brute-force Đăng nhập bằng Turnstile Invisible & Hardening Rate Limit [initiative: Security Hardening]
-- **Context:** Đánh giá bảo mật phát hiện hệ thống không có rate limiting ở application layer, dẫn đến nguy cơ brute-force mật khẩu và lạm dụng API qua các auth server actions.
+## 2026-07-14 — Kiến trúc Quản lý Test Cases kết hợp Tự động và Thủ công [initiative: testcase-management]
+
+- **Context:** Hệ thống kiểm thử tự động của SinoMedia cần một giao diện tập trung để quản lý các Test Cases. Trước đây các test cases nằm rải rác trong mã nguồn kiểm thử Playwright (`.spec.ts`) và không có cơ chế quản lý hoặc hiển thị thân thiện, dẫn đến khó theo dõi phạm vi kiểm thử (test coverage) tổng quát.
 - **Options considered:**
-  - A: Triển khai rate limiting ở Next.js Middleware hoặc dùng thư viện bên ngoài (Upstash).
-  - B: Tích hợp Cloudflare Turnstile Invisible Captcha và siết chặt cấu hình Supabase auth rate limit/password policy (Được chọn vì chi phí UX bằng 0 và tích hợp native với Supabase Auth).
-- **Decision:**
-  1. Siết cấu hình auth trong [config.toml](file:///d:/Python/SinoMedia/supabase/config.toml): tăng chiều dài mật khẩu tối thiểu lên 8 ký tự, bật yêu cầu có chữ và số (`letters_digits`), giảm giới hạn login/signup mỗi IP từ 30 xuống 10 lần trong 5 phút.
-  2. Tích hợp `@marsidev/react-turnstile` để kích hoạt Turnstile Invisible Captcha chạy ẩn ở background cho cả [login-form.tsx](file:///d:/Python/SinoMedia/dashboard/app/(auth)/login/login-form.tsx) và [sign-up-form.tsx](file:///d:/Python/SinoMedia/dashboard/app/(auth)/sign-up/sign-up-form.tsx).
-  3. Cập nhật `AuthService`, `loginAction` và `signUpAction` để truyền `captchaToken` vào Supabase options khi xác thực.
-- **Trade-off:** Cần cấu hình `NEXT_PUBLIC_TURNSTILE_SITE_KEY` và `[auth.captcha]` (Turnstile secret) cho Supabase ở môi trường dev nếu muốn kiểm thử captcha cục bộ.
-- **Revisit trigger:** Khi Cloudflare Turnstile thay đổi API hoặc Supabase thay đổi cách handle captcha verification.
-
-
+  - A: Tạo cơ sở dữ liệu riêng trên Supabase để lưu trữ toàn bộ Test Cases và đồng bộ từ xa (Remote Sync).
+  - B: Xây dựng cơ chế quét tự động (Auto-Discover) từ code spec kết hợp tệp lưu trữ cục bộ (`test-cases.json`) ngay tại Backend của Test Runner Dashboard (Được chọn).
+- **Decision:** Chọn B.
+  - 1. **Spec-first Discovery**: Máy chủ dashboard tự động phân tích tĩnh (Static Analysis) các file `.spec.ts` của Playwright, trích xuất mã ID (`TC_*` hoặc tự sinh) và tiêu đề để nạp động lên UI với nhãn `AUTO` (không cho phép sửa/xóa trực tiếp).
+  - 2. **Manual & Override Store**: Xây dựng REST API (`GET`/`POST`/`PUT`/`DELETE` tại `/api/testcases`) tương tác với tệp lưu trữ [runner/data/test-cases.json](file:///d:/Python/SinoMedia/automation-test/runner/data/test-cases.json) lưu bằng UTF-8. 
+     - **Manual**: Test cases do người dùng tự thêm tay.
+     - **Override**: Khi người dùng chỉnh sửa một test case `AUTO`, thông tin sửa đổi (tiêu đề, phân hệ, loại) sẽ được lưu vào file JSON. Khi hiển thị, hệ thống tự động ghi đè thông tin này lên bản gốc và gắn nhãn `OVERRIDE`.
+  - 3. **Frontend Controls**: UI hỗ trợ chuyển đổi giao diện mượt mà qua Sidebar, bộ lọc động (Phân hệ/Loại) tự động cập nhật theo dữ liệu thực tế, và chức năng Sắp xếp (Sort) đa chiều ngay tại Client-side.
+- **Trade-off:** Việc chỉnh sửa các test case tự động (`AUTO`/`OVERRIDE`) bị giới hạn (chỉ sửa nội dung hiển thị hoặc tắt test bằng code), không thể xóa hẳn khỏi danh sách trừ khi xóa trực tiếp code kiểm thử trong spec file.
+- **Revisit trigger:** Khi quy mô dự án mở rộng sang kiểm thử đa nền tảng và cần đồng bộ trạng thái chạy (pass/fail) của từng test case lịch sử trực tiếp vào cơ sở dữ liệu Supabase tập trung.

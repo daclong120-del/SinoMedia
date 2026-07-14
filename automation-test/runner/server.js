@@ -1078,24 +1078,45 @@ const server = http.createServer((req, res) => {
     }
 
     const reportFile = path.resolve(__dirname, '../playwright-report', relativePath.substring(1));
-    fs.readFile(reportFile, (err, data) => {
-      if (err) {
+
+    // Sử dụng fs.stat để lấy thông tin kích thước file phục vụ Range requests và kiểm tra sự tồn tại
+    fs.stat(reportFile, (err, stats) => {
+      if (err || !stats.isFile()) {
         res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
         res.end('Không tìm thấy tệp tin Playwright Report! Vui lòng bấm chạy test trước để sinh báo cáo.');
         return;
       }
+
       const ext = path.extname(reportFile).toLowerCase();
       const contentType = mimeTypes[ext] || 'application/octet-stream';
-      res.writeHead(200, {
-        'Content-Type': contentType,
+      const fileSize = stats.size;
+      const range = req.headers.range;
+
+      // Thiết lập cache và CORS headers chung
+      const headers = {
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
         'Pragma': 'no-cache',
-        'Expires': '0'
-      });
+        'Expires': '0',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Range',
+        'Accept-Ranges': 'bytes'
+      };
 
       if (ext === '.html') {
-        let html = data.toString('utf8');
-        const inject = `
+        // Với file HTML, chúng ta vẫn đọc toàn bộ để inject script theme như cũ
+        fs.readFile(reportFile, (readErr, data) => {
+          if (readErr) {
+            res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+            res.end('Lỗi khi đọc file HTML.');
+            return;
+          }
+          res.writeHead(200, {
+            ...headers,
+            'Content-Type': contentType
+          });
+          let html = data.toString('utf8');
+          const inject = `
 <script>
   (function() {
     // Tự động đồng bộ theme hệ thống hoặc localStorage với Playwright HTML report
@@ -1166,10 +1187,58 @@ const server = http.createServer((req, res) => {
   }
 </style>
 `;
-        html = html.replace('</head>', inject + '</head>');
-        res.end(html);
+          html = html.replace('</head>', inject + '</head>');
+          res.end(html);
+        });
+      } else if (range) {
+        // Xử lý HTTP Range requests (cho file zip, video...)
+        const parts = range.replace(/bytes=/, "").split("-");
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
+        if (isNaN(start) || start < 0 || end >= fileSize || start > end) {
+          res.writeHead(416, {
+            ...headers,
+            'Content-Range': `bytes */${fileSize}`,
+            'Content-Type': 'text/plain'
+          });
+          res.end('Requested Range Not Satisfiable');
+          return;
+        }
+
+        const chunksize = (end - start) + 1;
+        res.writeHead(206, {
+          ...headers,
+          'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+          'Content-Length': chunksize,
+          'Content-Type': contentType
+        });
+
+        const fileStream = fs.createReadStream(reportFile, { start, end });
+        fileStream.on('error', (streamErr) => {
+          console.error('Error streaming range of file:', streamErr);
+          if (!res.headersSent) {
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end('Internal Server Error');
+          }
+        });
+        fileStream.pipe(res);
       } else {
-        res.end(data);
+        // Tải toàn bộ file (dùng Stream cho hiệu năng tốt hơn)
+        res.writeHead(200, {
+          ...headers,
+          'Content-Length': fileSize,
+          'Content-Type': contentType
+        });
+        const fileStream = fs.createReadStream(reportFile);
+        fileStream.on('error', (streamErr) => {
+          console.error('Error streaming full file:', streamErr);
+          if (!res.headersSent) {
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end('Internal Server Error');
+          }
+        });
+        fileStream.pipe(res);
       }
     });
     return;

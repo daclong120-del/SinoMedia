@@ -1,6 +1,6 @@
 # Project Status
 
-Cập nhật lần cuối: 2026-07-14
+Cập nhật lần cuối: 2026-07-14 17:25 (GMT+7)
 Mục đích: một trang sống để biết SinoMedia đã làm được gì, phần nào đang chạy, phần nào chỉ là phác thảo, và phần nào cần agent kiểm tra trước khi phát triển tiếp.
 
 ## Legend
@@ -100,6 +100,7 @@ SinoMedia hiện là hệ thống gồm 5 khối:
 | Realtime runner | Partial | Da co EventSource UI, SSE stream, va custom Playwright reporter `runner/realtime-reporter.cjs`. Check gan nhat: `node --check runner/server.js` PASS, `npm run typecheck` PASS, `npm run test:module -- roles -- --list` PASS, `/api/modules` PASS tren port tam. Chua Done vi can fix event replay/snapshot de khong mat `run-begin/test-begin/run-finished`, xoa `reports/results.json` truoc moi run de tranh stale result, loai `_setup` khoi live business counter, dung stable test key thay vi TC_ID/N/A, va khong hardcode live type la `UI`. |
 | A-Z coverage by service/module | Partial | Da co module `auth`, `roles`, `settings`, `tasks`, va them smoke UI module `accounts`, `api-tokens`, `members`, `navigation`, `proxies`. Chua co du Data, Creative Hub, Worker/API/service regression; nhieu module moi moi kiem tra page/table/modal hien thi, chua bao phu mutation/security P1 day du. |
 | Artifact hygiene | Partial | `.gitignore` da co, nhung worktree hien van co runtime artifact modified/deleted nhu `automation-test/reports/results.json`, `automation-test/playwright-report/index.html`, `automation-test/test-results/.last-run.json`. Khong commit cac artifact nay; go khoi index/diff dung pham vi truoc khi chot. |
+| Test Case Management (CRUD) | Done | Thiết kế giao diện Quản lý Test Case tích hợp trên Dashboard, hỗ trợ lọc Phân hệ/Loại động, tìm kiếm nhanh và Sắp xếp (Sort) đa chiều. REST API (`GET`/`POST`/`PUT`/`DELETE` tại `/api/testcases`) kết nối bền vững với tệp `runner/data/test-cases.json` lưu UTF-8, đồng bộ các test cases quét tự động từ spec files (`source: 'spec'`/`AUTO`), ghi đè tùy chỉnh của người dùng (`source: 'override'`/`OVERRIDE`), và quản lý test case thủ công (`source: 'manual'`). |
 
 ## Known gaps
 
