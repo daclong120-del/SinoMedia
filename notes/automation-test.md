@@ -1,48 +1,191 @@
+# Automation Test & One-Click Runner
 
-### Bước 1: Sắp xếp các tệp vào đúng thư mục dự án
-Để Google Antigravity tự động nhận diện được các quy trình, bạn bắt buộc phải đặt chúng vào đúng cấu trúc thư mục quy định:
-1. **Tạo cấu trúc thư mục:** Trong thư mục gốc dự án của bạn, hãy tạo thư mục `.agent`. Bên trong thư mục `.agent`, tiếp tục tạo thư mục con tên là `workflow`.
-2. **Di chuyển các tệp:** Di chuyển toàn bộ 6 tệp tin `.md` workflow bạn đang có vào đường dẫn: **`.agent/workflow/`**.
-3. **Đảm bảo thư mục Skill đã sẵn sàng:** Hãy chắc chắn các tệp kỹ năng (`skill.md` của `requirement_analy`, `test_design`, `locator_analy`,...) cũng đã được đặt đúng vị trí trong thư mục `.agent/skill/` tương ứng, vì các workflow này sẽ gọi đến các skill đó để thực thi.
+Cập nhật: 2026-07-14
+Mục tiêu: chuẩn hóa hướng triển khai automation test cho SinoMedia theo mô hình "nhấn một cái chạy hết A-Z", có dashboard local hiển thị pass/fail cho từng test case.
 
----
+## 1. Trạng thái hiện tại
 
-### Bước 2: Nạp dự án vào Google Antigravity
-1. Bật công cụ **Google Antigravity** trên máy tính của bạn.
-2. Vào **File** -> **Open Folder** (hoặc mở thư mục dự án trống ban đầu của bạn). Do Antigravity sử dụng mã nguồn mở của VS Code, giao diện quản lý thư mục sẽ hiển thị ở bảng bên trái.
-3. Lúc này, hệ thống AI Agent sẽ tự động quét và nạp toàn bộ cấu trúc `rule`, `skill`, và `workflow` của bạn. Bạn có thể kiểm tra danh sách này bằng cách click vào **dấu ba chấm ở khung chat** -> chọn **Customization** -> chuyển sang tab **Workflow** để thấy các quy trình đã hiển thị thành công.
+| Hạng mục | Trạng thái | Bằng chứng / ghi chú |
+|---|---|---|
+| Antigravity workflow | Partial | Workflow đã được chuyển sang `.agent/workflow/` với 6 workflow chính. |
+| Antigravity skill | Partial | Skill đã có ở `.agent/skill/`. Nếu `.agents/skills/tester` vẫn còn được repo khác dùng thì không xóa vội. |
+| Playwright framework | Partial | `automation-test/package.json`, `playwright.config.ts`, `src/pages/*`, `src/utils/ConfigReader.ts`, `tests/role_management.spec.ts`. |
+| Test suite chính | Partial | `automation-test/tests/` chỉ nên chứa test chính. File khảo sát DOM nằm ở `automation-test/explore/`. |
+| One-click dashboard | Partial | Đã có `automation-test/runner/server.js` và `automation-test/runner/index.html`; cần verify end-to-end bằng `npm run dashboard`. |
+| Report | Partial | Playwright HTML report và JSON report đã cấu hình, nhưng artifact phải được ignore và không commit. |
+| Coverage A-Z | Planned | Mới có Role Management. Chưa có đủ suite cho từng service/module. |
 
----
+## 2. Kiến trúc đúng
 
-### Bước 3: Cách gọi thực thi quy trình (One-Click / Slash Command)
-1. **Khởi động phiên chat:** Mở một cuộc hội thoại mới trên Antigravity.
-2. **Gọi quy trình:** Tại khung chat, hãy gõ dấu sạc **`/`**. Một danh sách các quy trình bạn đã cấu hình sẽ tự động hiện lên. 
-3. **Chọn quy trình mong muốn:** Chọn quy trình bạn muốn chạy phù hợp với mục tiêu kiểm thử của mình:
-   * Muốn tạo khung xương dự án tự động hóa ban đầu $\rightarrow$ chọn `/generate_automation_framework`.
-   * Muốn viết đặc tả yêu cầu (SRS) từ một trang web thực tế $\rightarrow$ chọn `/generate_requirement`.
-   * Muốn sinh kịch bản kiểm thử manual dựa trên rủi ro $\rightarrow$ chọn `/generate_manual_test`.
-   * Muốn viết mã kiểm thử tự động từ kịch bản manual $\rightarrow$ chọn `/generate_automation_test_script`.
-   * Muốn chạy kiểm thử liên thông (End-to-End) qua nhiều module $\rightarrow$ chọn `/generate_road_module`.
-   * Muốn điều tra và tự sửa lỗi kịch bản kiểm thử bị chập chờn $\rightarrow$ chọn `/analy_flaky_test`.
+HTML tĩnh không được tự chạy lệnh shell. Vì vậy one-click runner bắt buộc phải có Node server local đứng giữa:
 
----
+```text
+Browser dashboard
+  -> automation-test/runner/server.js
+    -> npm run test:all / test:ui / test:backend / test:role
+      -> Playwright
+        -> reports/results.json
+        -> playwright-report/index.html
+```
 
-### Bước 4: Nạp dữ liệu đầu vào và chạy kịch bản
-1. **Kéo thả tệp tin nghiệp vụ:** Ngay sau câu lệnh `/` của bạn, hãy kéo và thả tệp tài liệu nghiệp vụ (như file SRS, User Story dạng `.md` hoặc `.txt`) trực tiếp vào khung chat.
-2. **Cung cấp thông tin môi trường:** Điền thêm các thông tin bối cảnh cần thiết như URL trang web cần kiểm thử và tài khoản đăng nhập (email, password).
-   * *Ví dụ một câu lệnh hoàn chỉnh:* `/generate_manual_test URL: https://example.com/login Tài khoản: admin@example.com` (kèm tệp tài liệu được kéo thả vào).
-3. **Nhấn Enter:** AI Agent sẽ đọc các tài liệu này, tự động kích hoạt trình duyệt hoặc kết nối MCP Server tương ứng để rà quét và phân tích thực tế.
+Các thành phần:
 
----
+| Thành phần | Vai trò |
+|---|---|
+| `.agent/workflow/` | Workflow AI/Antigravity để sinh framework, requirement, manual test, automation script, road module, flaky analysis. |
+| `.agent/skill/` | Skill được workflow gọi trong quá trình phân tích/sinh test. |
+| `automation-test/tests/` | Chỉ chứa test case chính được chạy bởi `npm test`. |
+| `automation-test/explore/` | Script khảo sát DOM/debug, không chạy trong suite chính. |
+| `automation-test/src/pages/` | Page Object Model: locator/action của từng trang. |
+| `automation-test/src/utils/` | Config reader/helper dùng chung. |
+| `automation-test/runner/` | Local dashboard + Node server để bấm chạy test. |
+| `automation-test/reports/` | JSON result/summary đọc bởi dashboard. |
+| `automation-test/playwright-report/` | HTML report sinh bởi Playwright, không commit. |
 
-### Bước 5: Phối hợp tương tác với AI (Human-in-the-loop)
-Khi quy trình được khởi chạy, AI Agent sẽ đi tuần tự qua từng bước đã được lập trình sẵn trong tệp workflow của bạn:
-* **Tại các chốt chặn (🛑 STOP):** AI Agent sẽ dừng lại, in ra màn hình các nghi vấn logic (Q&A) hoặc các bản nháp kịch bản và chờ bạn phê duyệt.
-* **Phản hồi AI:** Bạn chỉ cần đọc, đưa ra câu trả lời giải đáp hoặc chat **"Tiếp tục"** / **"Xác nhận"** để ra lệnh cho AI Agent tự động chạy tiếp các bước sau (như thiết kế test case chi tiết hoặc sinh code).
+## 3. Commands chuẩn
 
----
+Chạy trong `automation-test/`:
 
-### Bước 6: Nhận kết quả nghiệm thu (Output)
-Khi quy trình kết thúc (Bước 6), AI Agent sẽ:
-1. **Xuất báo cáo thành phẩm:** Trả về bộ kết quả kiểm thử (dưới dạng bảng Markdown trực quan hoặc tệp Excel `.xlsx`/CSV cụ thể tùy theo quy định đầu ra của bạn).
-2. **Tự động dọn dẹp hệ thống:** Kích hoạt cơ chế dọn dẹp các tệp log tạm, tệp tin rác phát sinh trong phiên làm việc để giữ không gian mã nguồn luôn sạch sẽ.
+```powershell
+npm run typecheck
+npm run test:role
+npm run test:ui
+npm run test:backend
+npm run test:all
+npm run dashboard
+```
+
+Dashboard local hiện chạy qua:
+
+```powershell
+npm run dashboard
+```
+
+Mặc định mở:
+
+```text
+http://localhost:3005
+```
+
+Nếu đổi port, dùng:
+
+```powershell
+$env:DASHBOARD_PORT='9324'; npm run dashboard
+```
+
+## 4. Quy ước test case
+
+Mọi test case phải có ID ở đầu title:
+
+```ts
+test('TC_ROLE_001 - Chặn xóa vai trò mặc định "admin" trên UI', async ({ page }) => {
+  // ...
+});
+```
+
+Quy ước ID:
+
+| Prefix | Module |
+|---|---|
+| `TC_ROLE_*` | Role Management |
+| `TC_LOGIN_*` | Login/Auth |
+| `TC_MEMBER_*` | Member Management |
+| `TC_API_*` | API |
+| `TC_SERVICE_*` | Backend service |
+
+Quy ước tag:
+
+| Tag | Ý nghĩa |
+|---|---|
+| `@ui` | Test cần browser/UI. |
+| `@backend` | Test service/backend không cần browser. |
+| `@role` | Test thuộc Role Management. |
+
+Các script `test:ui`, `test:backend`, `test:role` phải grep theo tag hoặc chạy đúng file tương ứng.
+
+## 5. Environment
+
+Test chính không được hardcode credential. Bắt buộc đọc từ `automation-test/.env` hoặc environment của máy chạy:
+
+```env
+BASE_URL=http://localhost:3000
+PARALLEL_WORKERS=4
+HEADLESS=true
+TEST_USER_EMAIL=...
+TEST_USER_PASSWORD=...
+```
+
+`ConfigReader` phải fail rõ nếu thiếu `TEST_USER_EMAIL` hoặc `TEST_USER_PASSWORD`; không fallback sang tài khoản thật trong test chính.
+
+## 6. Artifact và git hygiene
+
+Các artifact không được commit:
+
+```text
+automation-test/playwright-report/
+automation-test/test-results/
+automation-test/tests/*.html
+automation-test/evident_requirements/
+```
+
+`automation-test/.gitignore` tối thiểu:
+
+```gitignore
+node_modules/
+playwright-report/
+test-results/
+.env
+tests/*.html
+evident_requirements/
+```
+
+Nếu artifact đã tracked từ trước, phải gỡ khỏi index bằng `git rm --cached <file>` hoặc `git rm --cached -r <folder>` đúng phạm vi. Không xóa nhầm source.
+
+## 7. Evidence path chuẩn
+
+Không dùng tên cũ `evident_requirements`.
+
+Đường dẫn chuẩn:
+
+```text
+automation-test/evidence/requirements/
+```
+
+Áp dụng cho workflow, script explore, và mọi tài liệu mới.
+
+## 8. Definition of Done cho one-click runner
+
+Chỉ coi one-click automation test runner là Done khi đủ các điều kiện:
+
+- `npm run typecheck` pass.
+- `npm run test:role` chạy được.
+- `npm run dashboard` mở dashboard local.
+- Bấm `Run Role Management` trên dashboard chạy test thật.
+- Dashboard hiển thị total/passed/failed/skipped và từng test case.
+- Có link mở Playwright HTML report.
+- `automation-test/explore/` không bị chạy trong `npm test`.
+- Không còn reference `evident_requirements` trong workflow chính.
+- `playwright-report`, `test-results`, HTML dump và evidence cũ không còn tracked trong git.
+
+## 9. Hướng mở rộng A-Z
+
+Sau khi runner ổn, mở rộng coverage theo thứ tự:
+
+1. Auth/Login.
+2. Role Management.
+3. Member Management.
+4. Tasks lifecycle.
+5. Accounts.
+6. Proxies.
+7. Settings.
+8. Data pages.
+9. Creative Hub.
+10. Worker/API/service regression.
+
+Mỗi module phải có:
+
+- manual test case hoặc requirement trace;
+- automation spec trong `automation-test/tests/`;
+- tag rõ ràng;
+- test data/env rõ ràng;
+- pass/fail hiển thị được trên runner dashboard.

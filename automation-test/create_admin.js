@@ -1,5 +1,10 @@
 const fs = require('fs');
 const path = require('path');
+const dotenv = require('dotenv');
+
+// Nạp file .env từ thư mục hiện tại
+dotenv.config({ path: path.resolve(__dirname, '.env') });
+
 
 // Đọc .env.local từ thư mục dashboard
 const envPath = path.resolve(__dirname, '../dashboard/.env.local');
@@ -33,8 +38,13 @@ console.log(`Kết nối tới Supabase: ${supabaseUrl}`);
 
 async function run() {
   const url = `${supabaseUrl}/auth/v1/admin/users`;
-  const email = 'admin_test@sinomedia.vn';
-  const password = 'testpassword123';
+  const email = process.env.TEST_USER_EMAIL;
+  const password = process.env.TEST_USER_PASSWORD;
+
+  if (!email || !password) {
+    console.error('Không tìm thấy TEST_USER_EMAIL hoặc TEST_USER_PASSWORD trong biến môi trường! Vui lòng kiểm tra file .env');
+    process.exit(1);
+  }
 
   console.log(`Đang đăng ký/cập nhật tài khoản admin: ${email}`);
 

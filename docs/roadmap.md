@@ -1,6 +1,6 @@
 # Roadmap
 
-Cập nhật lần cuối: 2026-07-13
+Cập nhật lần cuối: 2026-07-14
 Mục đích: ghi hướng đi hiện tại để người và AI agent không kéo dự án về các kiến trúc cũ.
 
 ## North star
@@ -52,6 +52,42 @@ Mục tiêu:
 - Proxies page: real health check hoặc ghi rõ fake/test mode.
 - Data management: bỏ số hard-code, nối metrics/cleanup/export thật hoặc hạ nhãn thành draft.
 - Creative growth: thêm bảng lịch sử metric nếu muốn tính growth thật.
+
+## Phase 1.5: One-click Automation Test Runner
+
+Trạng thái: In progress
+
+Mục tiêu:
+
+- `automation-test` là workspace kiểm thử độc lập, dùng Playwright TypeScript.
+- Một dashboard local cho phép bấm `Run All Tests`, `Run UI Tests`, `Run Backend Tests`, `Run Role Management Tests`.
+- Dashboard không tự chạy shell từ HTML tĩnh; nó gọi Node runner server trong `automation-test/runner`.
+- Playwright xuất cả HTML report và JSON result để dashboard hiển thị pass/fail theo từng test case.
+- `automation-test/tests/` chỉ chứa test chính; `automation-test/explore/` chỉ dùng khảo sát DOM/debug và không chạy trong suite mặc định.
+- Artifact như `playwright-report`, `test-results`, HTML dump không được commit.
+
+Definition of done:
+
+- `npm run typecheck` pass trong `automation-test`.
+- `npm run test:role` chạy được.
+- `npm run dashboard` mở local runner.
+- Bấm `Run Role Management` chạy test thật và hiển thị total/passed/failed/skipped.
+- Có link mở Playwright HTML report.
+- Không còn reference `evident_requirements`; dùng `automation-test/evidence/requirements`.
+- Các artifact cũ đã được gỡ khỏi git index.
+
+Backlog coverage A-Z:
+
+- Auth/Login.
+- Role Management.
+- Member Management.
+- Tasks lifecycle.
+- Accounts.
+- Proxies.
+- Settings.
+- Data pages.
+- Creative Hub.
+- Worker/API/service regression.
 
 ## Phase 2: Crawler Pipeline as Worker
 

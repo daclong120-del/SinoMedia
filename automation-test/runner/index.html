@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SinoMedia Test Runner Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-color: #3b82f6;
+      --accent-hover: #2563eb;
+      --success: #10b981;
+      --failure: #ef4444;
+      --warning: #f59e0b;
+      --gray-muted: #64748b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-color);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2.5rem;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 1.5rem;
+    }
+
+    .logo-section h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      background: linear-gradient(to right, #3b82f6, #10b981);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .logo-section p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    .actions-bar {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background-color: var(--accent-color);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background-color: var(--accent-hover);
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-secondary {
+      background-color: rgba(51, 65, 85, 0.5);
+      border-color: var(--card-border);
+      color: var(--text-main);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background-color: rgba(51, 65, 85, 0.8);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-success {
+      background-color: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.3);
+      color: #34d399;
+    }
+
+    .btn-success:hover:not(:disabled) {
+      background-color: rgba(16, 185, 129, 0.25);
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 4px;
+      background: transparent;
+    }
+
+    .stat-card.total::after { background: var(--accent-color); }
+    .stat-card.passed::after { background: var(--success); }
+    .stat-card.failed::after { background: var(--failure); }
+    .stat-card.skipped::after { background: var(--warning); }
+
+    .stat-title {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-value {
+      font-size: 2.25rem;
+      font-weight: 700;
+      margin-top: 0.5rem;
+      font-feature-settings: "tnum";
+    }
+
+    .stat-duration {
+      font-size: 1.5rem;
+    }
+
+    /* Runner Loader Status */
+    .loader-card {
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px dashed var(--card-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .loader-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(59, 130, 246, 0.2);
+      border-top-color: var(--accent-color);
+      border-radius: 50%;
+      animation: spin 1s infinite linear;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loader-text {
+      font-weight: 500;
+    }
+
+    /* Table Styling */
+    .table-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .table-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .table-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(15, 23, 42, 0.3);
+      padding: 1rem 1.5rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    td {
+      padding: 1rem 1.5rem;
+      font-size: 0.875rem;
+      border-bottom: 1px solid var(--card-border);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-passed {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+    }
+
+    .badge-failed {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+    }
+
+    .badge-skipped {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+    }
+
+    .badge-type {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+    }
+
+    .tc-id {
+      font-family: monospace;
+      font-weight: 600;
+      color: var(--accent-color);
+    }
+
+    .error-log {
+      font-family: monospace;
+      background: rgba(239, 68, 68, 0.05);
+      border: 1px solid rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      padding: 0.5rem;
+      border-radius: 6px;
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    /* Terminal Console Output Debug */
+    .console-container {
+      background: #090d16;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      font-family: monospace;
+      font-size: 0.8125rem;
+      color: #34d399;
+      max-height: 300px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    .console-header {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      font-size: 0.75rem;
+      font-family: inherit;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="logo-section">
+        <h1>SinoMedia Test Runner Dashboard</h1>
+        <p>Hệ thống tự động chạy kiểm thử tích hợp Google Antigravity & Playwright</p>
+      </div>
+      <div class="actions-bar">
+        <button class="btn btn-secondary" id="btn-report" onclick="openReport()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          Mở HTML Report
+        </button>
+      </div>
+    </header>
+
+    <!-- Control Buttons -->
+    <div class="actions-bar" style="margin-bottom: 2rem; background: var(--card-bg); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--card-border);">
+      <button class="btn btn-primary" onclick="runTest('all')">Run All Tests</button>
+      <button class="btn btn-secondary" onclick="runTest('ui')">Run UI Tests</button>
+      <button class="btn btn-secondary" onclick="runTest('backend')">Run Backend Tests</button>
+      <button class="btn btn-secondary" onclick="runTest('role')">Run Role Management Tests</button>
+    </div>
+
+    <!-- Runner Loader -->
+    <div class="loader-card" id="runner-loader">
+      <div class="loader-info">
+        <div class="spinner"></div>
+        <div class="loader-text" id="loader-status">Đang khởi động tiến trình kiểm thử Playwright...</div>
+      </div>
+      <div class="loader-text" id="loader-timer" style="color: var(--text-muted); font-feature-settings: 'tnum';">0s</div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card total">
+        <div class="stat-title">Tổng số Test Case</div>
+        <div class="stat-value" id="stat-total">0</div>
+      </div>
+      <div class="stat-card passed">
+        <div class="stat-title">Thành công (Pass)</div>
+        <div class="stat-value" id="stat-passed" style="color: #34d399;">0</div>
+      </div>
+      <div class="stat-card failed">
+        <div class="stat-title">Thất bại (Fail)</div>
+        <div class="stat-value" id="stat-failed" style="color: #f87171;">0</div>
+      </div>
+      <div class="stat-card skipped">
+        <div class="stat-title">Bị bỏ qua (Skip)</div>
+        <div class="stat-value" id="stat-skipped" style="color: #fbbf24;">0</div>
+      </div>
+      <div class="stat-card duration">
+        <div class="stat-title">Thời gian chạy</div>
+        <div class="stat-value stat-duration" id="stat-duration" style="font-feature-settings: 'tnum';">0.0s</div>
+      </div>
+    </div>
+
+    <!-- Test cases table -->
+    <div class="table-container">
+      <div class="table-header">
+        <div class="table-title">Danh sách chi tiết kết quả chạy</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Phân hệ (Module)</th>
+            <th>Loại (Type)</th>
+            <th>Mô tả kiểm thử (Title)</th>
+            <th>Trạng thái</th>
+            <th>Thời gian</th>
+          </tr>
+        </thead>
+        <tbody id="test-cases-body">
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 3rem;">
+              Chưa có dữ liệu kết quả. Bấm một trong các nút ở trên để chạy kiểm thử.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Debug Console logs output -->
+    <div class="table-container" style="padding: 1.25rem;">
+      <div class="console-header">
+        <span style="font-weight: 600; font-size: 0.875rem;">Terminal Logs Output</span>
+        <span id="log-status">Ready</span>
+      </div>
+      <div class="console-container" id="console-output">Tiến trình chạy test chưa được kích hoạt.</div>
+    </div>
+  </div>
+
+  <script>
+    let timerInterval = null;
+    let startTime = 0;
+
+    // Tự động load kết quả chạy gần nhất khi mở trang
+    window.onload = function() {
+      fetch('/api/results')
+        .then(response => response.json())
+        .then(data => {
+          if (data && data.testCases && data.testCases.length > 0) {
+            updateDashboard(data);
+            document.getElementById('console-output').innerText = "Đã nạp kết quả chạy kiểm thử gần đây từ tệp tin results.json.";
+          }
+        })
+        .catch(err => console.error('Không tìm thấy kết quả cũ:', err));
+    };
+
+    function startTimer() {
+      startTime = Date.now();
+      const timerEl = document.getElementById('loader-timer');
+      timerEl.innerText = '0s';
+      timerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        timerEl.innerText = `${elapsed}s`;
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+    }
+
+    function runTest(type) {
+      // 1. Vô hiệu hóa các nút bấm chạy test
+      const buttons = document.querySelectorAll('.btn');
+      buttons.forEach(btn => btn.disabled = true);
+
+      // 2. Hiển thị loader
+      const loader = document.getElementById('runner-loader');
+      const loaderStatus = document.getElementById('loader-status');
+      loader.style.display = 'flex';
+      
+      const typeLabels = {
+        all: 'tất cả kiểm thử E2E',
+        ui: 'kiểm thử giao diện (UI)',
+        backend: 'kiểm thử API backend',
+        role: 'kiểm thử quản lý vai trò'
+      };
+      loaderStatus.innerText = `Đang chạy các kịch bản ${typeLabels[type] || 'kiểm thử'}...`;
+      
+      document.getElementById('console-output').innerText = `[INFO] Kích hoạt Playwright Runner...\nLệnh: npm run test:${type}\nVui lòng đợi cho đến khi hoàn tất.`;
+      document.getElementById('log-status').innerText = "RUNNING";
+
+      startTimer();
+
+      // 3. Gọi API kích hoạt chạy test
+      fetch(`/api/run-test?type=${type}`)
+        .then(res => res.json())
+        .then(data => {
+          stopTimer();
+          loader.style.display = 'none';
+          buttons.forEach(btn => btn.disabled = false);
+          document.getElementById('log-status').innerText = "COMPLETED";
+
+          // Cập nhật giao diện
+          updateDashboard(data);
+
+          if (data.consoleOutput) {
+            document.getElementById('console-output').innerText = data.consoleOutput;
+          }
+        })
+        .catch(err => {
+          stopTimer();
+          loader.style.display = 'none';
+          buttons.forEach(btn => btn.disabled = false);
+          document.getElementById('log-status').innerText = "ERROR";
+          document.getElementById('console-output').innerText = `Lỗi hệ thống: ${err.message}`;
+          alert('Không thể kết nối với Runner Server!');
+        });
+    }
+
+    function updateDashboard(data) {
+      // Cập nhật thẻ Stats
+      document.getElementById('stat-total').innerText = data.summary.total;
+      document.getElementById('stat-passed').innerText = data.summary.passed;
+      document.getElementById('stat-failed').innerText = data.summary.failed;
+      document.getElementById('stat-skipped').innerText = data.summary.skipped;
+      
+      const durationSec = (data.summary.duration / 1000).toFixed(1);
+      document.getElementById('stat-duration').innerText = `${durationSec}s`;
+
+      // Cập nhật bảng chi tiết
+      const tbody = document.getElementById('test-cases-body');
+      tbody.innerHTML = '';
+
+      if (!data.testCases || data.testCases.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 3rem;">Không tìm thấy test case nào.</td></tr>`;
+        return;
+      }
+
+      data.testCases.forEach(tc => {
+        const tr = document.createElement('tr');
+        
+        let statusBadge = '';
+        if (tc.status === 'passed') {
+          statusBadge = '<span class="badge badge-passed">PASS</span>';
+        } else if (tc.status === 'failed') {
+          statusBadge = '<span class="badge badge-failed">FAIL</span>';
+        } else {
+          statusBadge = '<span class="badge badge-skipped">SKIP</span>';
+        }
+
+        const durationSec = (tc.duration / 1000).toFixed(2);
+        
+        let titleHtml = `<div>${tc.title}</div>`;
+        if (tc.errorMessage) {
+          titleHtml += `<div class="error-log">${tc.errorMessage}</div>`;
+        }
+
+        tr.innerHTML = `
+          <td class="tc-id">${tc.testCaseId}</td>
+          <td>${tc.module}</td>
+          <td><span class="badge badge-type">${tc.type}</span></td>
+          <td>${titleHtml}</td>
+          <td>${statusBadge}</td>
+          <td style="font-feature-settings: 'tnum';">${durationSec}s</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openReport() {
+      window.open('/report/index.html', '_blank');
+    }
+  </script>
+</body>
+</html>

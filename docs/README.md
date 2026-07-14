@@ -28,6 +28,10 @@ Trang này là cửa vào cho tài liệu hiện hành của SinoMedia. Nếu c�
 - [Crawler order -> R2 workflow](workflows/kien-truc-crawl-order-r2.svg)
 - [Dashboard -> Supabase workflow](workflows/kien-truc-moi-dashboard-supabase.svg)
 
+## Operational notes
+
+- [Automation Test & One-Click Runner](../notes/automation-test.md)
+
 ## Maintenance rule
 
 Khi một PR/phiên làm việc thay đổi hành vi dự án, cập nhật ít nhất một trong các file sau:

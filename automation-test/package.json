@@ -5,9 +5,15 @@
   "main": "index.js",
   "scripts": {
     "test": "playwright test",
+    "test:all": "playwright test",
+    "test:ui": "playwright test --grep @ui",
+    "test:backend": "playwright test --grep @backend",
+    "test:role": "playwright test --grep @role",
+    "dashboard": "node runner/server.js",
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",
-    "report": "playwright show-report"
+    "report": "playwright show-report",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [
     "playwright",
@@ -20,6 +26,7 @@
   "devDependencies": {
     "@playwright/test": "^1.45.0",
     "@types/node": "^20.11.0",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "typescript": "^5.4.5"
   }
 }

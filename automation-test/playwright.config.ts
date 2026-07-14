@@ -16,8 +16,11 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   /* Số lượng luồng thực thi song song mặc định */
   workers: process.env.PARALLEL_WORKERS ? parseInt(process.env.PARALLEL_WORKERS) : 4,
-  /* Báo cáo xuất ra dưới dạng html */
-  reporter: [['html', { open: 'never' }]],
+  /* Báo cáo xuất ra dưới dạng html và json */
+  reporter: [
+    ['html', { open: 'never' }],
+    ['json', { outputFile: 'reports/results.json' }]
+  ],
   /* Cấu hình dùng chung cho tất cả các dự án */
   use: {
     /* Base URL lấy từ biến môi trường */

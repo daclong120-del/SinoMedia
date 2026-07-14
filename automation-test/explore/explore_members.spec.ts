@@ -1,16 +1,17 @@
 import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+import { ConfigReader } from '../src/utils/ConfigReader';
 
 test('Explore SinoMedia Members Page and Role Panel', async ({ page }) => {
-  const evidenceDir = path.resolve(__dirname, '../evident_requirements');
+  const evidenceDir = path.resolve(__dirname, '../evidence/requirements');
   if (!fs.existsSync(evidenceDir)) {
     fs.mkdirSync(evidenceDir, { recursive: true });
   }
 
-  const systemUrl = process.env.BASE_URL || 'http://localhost:3000';
-  const email = 'admin_test@sinomedia.vn';
-  const password = 'testpassword123';
+  const systemUrl = ConfigReader.baseUrl;
+  const email = ConfigReader.testUserEmail;
+  const password = ConfigReader.testUserPassword;
 
   console.log(`Đang truy cập: ${systemUrl}/login`);
   await page.goto(`${systemUrl}/login`);
@@ -67,7 +68,7 @@ test('Explore SinoMedia Members Page and Role Panel', async ({ page }) => {
   });
   console.log('Các phần tử liên quan đến Admin/User:', rolesList);
 
-  // Ghi DOM dump của tab vai trò
+  // Ghi DOM dump của tab vai trò vào thư mục evidence/requirements
   const content = await page.content();
-  fs.writeFileSync(path.join(__dirname, 'members_page.html'), content, 'utf-8');
+  fs.writeFileSync(path.join(evidenceDir, 'members_page.html'), content, 'utf-8');
 });

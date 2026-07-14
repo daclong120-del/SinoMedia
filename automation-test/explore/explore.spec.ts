@@ -1,16 +1,17 @@
 import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+import { ConfigReader } from '../src/utils/ConfigReader';
 
 test('Explore SinoMedia Dashboard and Generate Requirement Spec', async ({ page }) => {
-  const evidenceDir = path.resolve(__dirname, '../evident_requirements');
+  const evidenceDir = path.resolve(__dirname, '../evidence/requirements');
   if (!fs.existsSync(evidenceDir)) {
     fs.mkdirSync(evidenceDir, { recursive: true });
   }
 
-  const systemUrl = process.env.BASE_URL || 'http://localhost:3000';
-  const email = 'admin_test@sinomedia.vn';
-  const password = 'testpassword123';
+  const systemUrl = ConfigReader.baseUrl;
+  const email = ConfigReader.testUserEmail;
+  const password = ConfigReader.testUserPassword;
 
   console.log(`Đang truy cập: ${systemUrl}/login`);
   await page.goto(`${systemUrl}/login`);
@@ -81,7 +82,7 @@ test('Explore SinoMedia Dashboard and Generate Requirement Spec', async ({ page 
   });
 
   // Ghi kết quả quét DOM ra file json
-  const domDumpPath = path.resolve(__dirname, '../evident_requirements/dom_dump.json');
+  const domDumpPath = path.resolve(__dirname, '../evidence/requirements/dom_dump.json');
   fs.writeFileSync(domDumpPath, JSON.stringify(elements, null, 2), 'utf-8');
   console.log(`Đã lưu kết quả quét DOM vào ${domDumpPath}`);
 });

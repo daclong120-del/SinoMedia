@@ -19,3 +19,11 @@ trigger: always_on
 *   **Ngôn ngữ:** Bắt buộc AI luôn luôn giao tiếp, diễn giải ngắn gọn và viết tài liệu bằng **tiếng Việt**.
 *   **Tránh suy đoán:** AI không được tự ý suy diễn logic nghiệp vụ mà bắt buộc phải bám sát vào tài liệu yêu cầu (SRS, User Story).
 *   **Bảo vệ tài nguyên hệ thống:** Cấm AI tự ý thực hiện các hành động can thiệp sâu như tự động xóa file/thư mục trong quá trình làm việc nếu không được con người cho phép.
+
+### 5. Quy tắc Test-only mode: kiểm thử không được tự ý sửa mã nguồn
+*   **Tách bạch kiểm thử và sửa lỗi:** Khi nhiệm vụ là kiểm thử, chạy automation test, review kết quả test, xác minh bug, tạo báo cáo pass/fail, thu thập log, screenshot, trace hoặc Playwright report, AI chỉ được quan sát, chạy lệnh kiểm thử và báo cáo bằng chứng. AI **không được tự ý sửa mã nguồn ứng dụng**.
+*   **Cấm "fix cho pass" khi chưa được phép:** AI không được tự ý chỉnh business logic, service, repository, UI component, database schema, config runtime hoặc test expectation chỉ để làm test pass. Nếu phát hiện lỗi, phải báo cáo lỗi và đề xuất hướng sửa thay vì tự sửa.
+*   **Phạm vi được phép trong Test-only mode:** AI được đọc source code, chạy các lệnh như `npm test`, `npm run test:*`, `npm run typecheck`, đọc log/report/trace/screenshot và tạo báo cáo kiểm thử nếu được yêu cầu. AI được phép đề xuất patch bằng lời, nhưng không được apply patch.
+*   **Báo cáo lỗi bắt buộc có bằng chứng:** Khi test fail, AI phải nêu rõ test case nào fail, fail ở bước nào, log/error liên quan, file hoặc module nghi ngờ, ảnh/trace nếu có, và phỏng đoán nguyên nhân ở mức rõ ràng.
+*   **Chỉ chuyển sang Fix mode khi có lệnh rõ:** AI chỉ được sửa code khi người dùng nói rõ các từ như "sửa", "fix", "triển khai fix", "cho phép sửa source" hoặc yêu cầu tương đương. Nếu yêu cầu mơ hồ, AI phải hỏi lại trước khi sửa.
+*   **Fix mode vẫn phải tuân thủ GitNexus:** Khi đã được phép sửa function/class/method/symbol, AI phải chạy impact analysis theo quy định GitNexus trước khi sửa, cảnh báo nếu rủi ro HIGH/CRITICAL, và chạy lại test liên quan sau khi sửa.
