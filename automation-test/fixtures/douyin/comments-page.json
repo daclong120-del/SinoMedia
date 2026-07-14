@@ -1,0 +1,28 @@
+{
+  "comments": [
+    {
+      "cid": "223344556677",
+      "text": "Video rất hay và ý nghĩa!",
+      "create_time": 1672531300,
+      "digg_count": 45,
+      "user": {
+        "uid": "9988776655",
+        "nickname": "User bình luận 1"
+      },
+      "reply_comment_total": 0
+    },
+    {
+      "cid": "223344556678",
+      "text": "Có link mua sản phẩm không ad?",
+      "create_time": 1672531400,
+      "digg_count": 12,
+      "user": {
+        "uid": "9988776656",
+        "nickname": "User bình luận 2"
+      },
+      "reply_comment_total": 2
+    }
+  ],
+  "has_more": 0,
+  "cursor": 0
+}

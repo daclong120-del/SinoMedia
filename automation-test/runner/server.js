@@ -94,7 +94,7 @@ function parsePlaywrightResults(filePath) {
             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
             .join(' ');
         } else {
-          currentModule = suite.title.replace(/@\w+/g, '').trim();
+          currentModule = suite.title.replace(/@[\w-]+/g, '').trim();
         }
       }
 
@@ -110,7 +110,7 @@ function parsePlaywrightResults(filePath) {
             if (idMatch) {
               title = title.replace(idMatch[0], '').replace(/^\s*-\s*/, '').trim();
             }
-            title = title.replace(/@\w+/g, '').trim();
+            title = title.replace(/@[\w-]+/g, '').trim();
 
             let type = 'UI';
             if (spec.title.toLowerCase().includes('backend') || spec.title.toLowerCase().includes('service')) {
@@ -176,6 +176,85 @@ function parsePlaywrightResults(filePath) {
       testCases: []
     };
   }
+}
+
+function mergePlaywrightResults(file1, file2, targetFile) {
+  let json1 = { suites: [], errors: [], stats: { duration: 0, expected: 0, skipped: 0, unexpected: 0, flaky: 0 } };
+  let json2 = { suites: [], errors: [], stats: { duration: 0, expected: 0, skipped: 0, unexpected: 0, flaky: 0 } };
+
+  try {
+    if (fs.existsSync(file1)) {
+      json1 = JSON.parse(fs.readFileSync(file1, 'utf8'));
+    }
+  } catch (e) {
+    console.error('Lỗi đọc file kết quả 1:', e);
+  }
+
+  try {
+    if (fs.existsSync(file2)) {
+      json2 = JSON.parse(fs.readFileSync(file2, 'utf8'));
+    }
+  } catch (e) {
+    console.error('Lỗi đọc file kết quả 2:', e);
+  }
+
+  const merged = {
+    config: json1.config || json2.config,
+    suites: [...(json1.suites || []), ...(json2.suites || [])],
+    errors: [...(json1.errors || []), ...(json2.errors || [])],
+    stats: {
+      startTime: json1.stats ? json1.stats.startTime : (json2.stats ? json2.stats.startTime : new Date().toISOString()),
+      duration: (json1.stats ? json1.stats.duration || 0 : 0) + (json2.stats ? json2.stats.duration || 0 : 0),
+      expected: (json1.stats ? json1.stats.expected || 0 : 0) + (json2.stats ? json2.stats.expected || 0 : 0),
+      skipped: (json1.stats ? json1.stats.skipped || 0 : 0) + (json2.stats ? json2.stats.skipped || 0 : 0),
+      unexpected: (json1.stats ? json1.stats.unexpected || 0 : 0) + (json2.stats ? json2.stats.unexpected || 0 : 0),
+      flaky: (json1.stats ? json1.stats.flaky || 0 : 0) + (json2.stats ? json2.stats.flaky || 0 : 0)
+    }
+  };
+
+  try {
+    fs.writeFileSync(targetFile, JSON.stringify(merged, null, 2), 'utf8');
+  } catch (e) {
+    console.error('Lỗi ghi file kết quả merged:', e);
+  }
+}
+
+function resolveWorkerCount(params, mode, mod) {
+  const maxWorkersEnv = process.env.MAX_TEST_WORKERS ? parseInt(process.env.MAX_TEST_WORKERS) : 8;
+  let maxWorkers = Math.min(Math.max(maxWorkersEnv, 1), 32);
+
+  // Áp dụng giới hạn từ cấu hình module (nếu có)
+  if (mode === 'module' && mod) {
+    if (mod.parallelSafe === false) {
+      return 1; // Tuyệt đối không chạy song song
+    }
+    if (typeof mod.maxWorkers === 'number' && mod.maxWorkers >= 1) {
+      maxWorkers = Math.min(maxWorkers, mod.maxWorkers);
+    }
+  }
+
+  if (params && typeof params.workers === 'number') {
+    const w = parseInt(params.workers);
+    if (w >= 1) {
+      return Math.min(w, maxWorkers);
+    }
+  }
+
+  // Nếu không chỉ định, quyết định dựa trên mode/type/module
+  if (mode === 'module' && mod) {
+    if (typeof mod.recommendedWorkers === 'number' && mod.recommendedWorkers >= 1) {
+      return Math.min(mod.recommendedWorkers, maxWorkers);
+    }
+  }
+
+  if (mode === 'type') {
+    if (params && params.type === 'backend') {
+      const def = process.env.PARALLEL_WORKERS ? parseInt(process.env.PARALLEL_WORKERS) : 4;
+      return Math.min(def, maxWorkers);
+    }
+  }
+
+  return 1; // Mặc định an toàn là 1 worker
 }
 
 // Khởi tạo Server
@@ -274,8 +353,9 @@ const server = http.createServer((req, res) => {
         return;
       }
 
-      // Luôn chạy tuần tự --workers=1 ở local để tránh quá tải
-      args.push('--workers=1');
+      const mod = mode === 'module' ? findTestModule(params.moduleId) : null;
+      const workers = resolveWorkerCount(params, mode, mod);
+      args.push(`--workers=${workers}`);
 
       const resultsPath = path.resolve(__dirname, '../reports/results.json');
       if (fs.existsSync(resultsPath)) {
@@ -294,6 +374,8 @@ const server = http.createServer((req, res) => {
         startedAt: new Date().toISOString(),
         endedAt: null,
         command: `npx ${args.join(' ')}`,
+        workers,
+        parallelMode: params.parallelMode || 'safe',
         clients: new Set(),
         events: [],
         logs: [],
@@ -306,109 +388,119 @@ const server = http.createServer((req, res) => {
       activeRunId = runId;
       cleanupOldRuns();
 
-      console.log(`Khởi chạy runId: ${runId} - Lệnh: ${run.command}`);
+      console.log(`Khởi chạy runId: ${runId} - Lệnh: ${run.command} (Workers: ${workers}, Mode: ${run.parallelMode})`);
 
-      const testProcess = spawn('npx', args, {
-        cwd: path.resolve(__dirname, '..'),
-        shell: true,
-        env: {
-          ...process.env,
-          PW_REALTIME_REPORTER: '1'
-        }
-      });
+      const runBatch = (batchArgs, isSecondBatch, callback) => {
+        console.log(`Khởi chạy batch: npx ${batchArgs.join(' ')}`);
 
-      run.process = testProcess;
+        const testProcess = spawn('npx', batchArgs, {
+          cwd: path.resolve(__dirname, '..'),
+          shell: true,
+          env: {
+            ...process.env,
+            PW_REALTIME_REPORTER: '1',
+            PARALLEL_WORKERS: isSecondBatch ? '1' : workers.toString()
+          }
+        });
 
-      emitRunEvent(run, 'run-started', {
-        runId,
-        command: run.command,
-        startedAt: run.startedAt
-      });
+        run.process = testProcess;
 
-      let stdoutBuffer = '';
-      let stderrBuffer = '';
+        let stdoutBuffer = '';
+        let stderrBuffer = '';
 
-      const handleOutput = (streamType, chunk) => {
-        if (streamType === 'stdout') {
-          stdoutBuffer += chunk.toString();
-          let lines = stdoutBuffer.split('\n');
-          stdoutBuffer = lines.pop(); // giữ lại dòng chưa hoàn chỉnh
-          for (const line of lines) {
-            const cleanLine = line.trim();
-            if (cleanLine.startsWith('__PW_EVENT__')) {
-              try {
-                const eventData = JSON.parse(cleanLine.substring(12));
-                if (eventData.type === 'run-begin') {
-                  run.summary.total = eventData.total;
-                  emitRunEvent(run, 'run-begin', { total: eventData.total });
-                } else if (eventData.type === 'test-begin') {
-                  const tc = {
-                    pwTestId: eventData.pwTestId,
-                    testCaseId: eventData.id,
-                    title: eventData.title.replace(/@\w+/g, '').trim(),
-                    module: eventData.module,
-                    type: eventData.testType || 'UI',
-                    status: 'running',
-                    duration: 0,
-                    errorMessage: ''
-                  };
-                  run.testCases.push(tc);
-                  emitRunEvent(run, 'test-begin', tc);
-                } else if (eventData.type === 'test-end') {
-                  const tc = run.testCases.find(t => t.pwTestId === eventData.pwTestId);
-                  if (tc) {
-                    tc.status = eventData.status === 'passed' ? 'passed' : eventData.status === 'skipped' ? 'skipped' : 'failed';
-                    tc.duration = eventData.duration;
-                    tc.errorMessage = eventData.errorMessage;
+        const handleOutput = (streamType, chunk) => {
+          if (streamType === 'stdout') {
+            stdoutBuffer += chunk.toString();
+            let lines = stdoutBuffer.split('\n');
+            stdoutBuffer = lines.pop(); // giữ lại dòng chưa hoàn chỉnh
+            for (const line of lines) {
+              const cleanLine = line.trim();
+              if (cleanLine.startsWith('__PW_EVENT__')) {
+                try {
+                  const eventData = JSON.parse(cleanLine.substring(12));
+                  if (eventData.type === 'run-begin') {
+                    if (!isSecondBatch) {
+                      run.summary.total = eventData.total;
+                      emitRunEvent(run, 'run-begin', { total: eventData.total });
+                    } else {
+                      run.summary.total += eventData.total;
+                    }
+                  } else if (eventData.type === 'test-begin') {
+                    const tc = {
+                      pwTestId: eventData.pwTestId,
+                      testCaseId: eventData.id,
+                      title: eventData.title.replace(/@[\w-]+/g, '').trim(),
+                      module: eventData.module,
+                      type: eventData.testType || 'UI',
+                      status: 'running',
+                      duration: 0,
+                      errorMessage: ''
+                    };
+                    run.testCases.push(tc);
+                    emitRunEvent(run, 'test-begin', tc);
+                  } else if (eventData.type === 'test-end') {
+                    const tc = run.testCases.find(t => t.pwTestId === eventData.pwTestId);
+                    if (tc) {
+                      tc.status = eventData.status === 'passed' ? 'passed' : eventData.status === 'skipped' ? 'skipped' : 'failed';
+                      tc.duration = eventData.duration;
+                      tc.errorMessage = eventData.errorMessage;
+                    }
+
+                    // Tạm thời tự đếm counters trên server
+                    run.summary.passed = run.testCases.filter(t => t.status === 'passed').length;
+                    run.summary.skipped = run.testCases.filter(t => t.status === 'skipped').length;
+                    run.summary.failed = run.testCases.filter(t => t.status === 'failed' || t.status === 'timedOut').length;
+
+                    emitRunEvent(run, 'test-end', {
+                      pwTestId: eventData.pwTestId,
+                      id: eventData.id,
+                      status: eventData.status,
+                      duration: eventData.duration,
+                      errorMessage: eventData.errorMessage,
+                      summary: run.summary
+                    });
                   }
-
-                  // Tạm thời tự đếm counters trên server
-                  run.summary.passed = run.testCases.filter(t => t.status === 'passed').length;
-                  run.summary.skipped = run.testCases.filter(t => t.status === 'skipped').length;
-                  run.summary.failed = run.testCases.filter(t => t.status === 'failed' || t.status === 'timedOut').length;
-
-                  emitRunEvent(run, 'test-end', {
-                    pwTestId: eventData.pwTestId,
-                    id: eventData.id,
-                    status: eventData.status,
-                    duration: eventData.duration,
-                    errorMessage: eventData.errorMessage,
-                    summary: run.summary
-                  });
+                } catch (e) {
+                  console.error('Lỗi khi parse event JSON:', e);
                 }
-              } catch (e) {
-                console.error('Lỗi khi parse event JSON:', e);
+              } else {
+                run.logs.push(line);
+                if (run.logs.length > 2000) run.logs.shift();
+                emitRunEvent(run, 'log', { stream: 'stdout', line });
               }
-            } else {
+            }
+          } else {
+            stderrBuffer += chunk.toString();
+            let lines = stderrBuffer.split('\n');
+            stderrBuffer = lines.pop();
+            for (const line of lines) {
               run.logs.push(line);
               if (run.logs.length > 2000) run.logs.shift();
-              emitRunEvent(run, 'log', { stream: 'stdout', line });
+              emitRunEvent(run, 'log', { stream: 'stderr', line });
             }
           }
-        } else {
-          stderrBuffer += chunk.toString();
-          let lines = stderrBuffer.split('\n');
-          stderrBuffer = lines.pop();
-          for (const line of lines) {
-            run.logs.push(line);
-            if (run.logs.length > 2000) run.logs.shift();
-            emitRunEvent(run, 'log', { stream: 'stderr', line });
+        };
+
+        testProcess.stdout.on('data', chunk => handleOutput('stdout', chunk));
+        testProcess.stderr.on('data', chunk => handleOutput('stderr', chunk));
+
+        testProcess.on('close', code => {
+          if (stdoutBuffer.trim()) {
+            emitRunEvent(run, 'log', { stream: 'stdout', line: stdoutBuffer });
           }
-        }
+          if (stderrBuffer.trim()) {
+            emitRunEvent(run, 'log', { stream: 'stderr', line: stderrBuffer });
+          }
+          callback(code);
+        });
+
+        testProcess.on('error', err => {
+          console.error('Lỗi khi spawn tiến trình test batch:', err);
+          callback(-1, err);
+        });
       };
 
-      testProcess.stdout.on('data', chunk => handleOutput('stdout', chunk));
-      testProcess.stderr.on('data', chunk => handleOutput('stderr', chunk));
-
-      testProcess.on('close', code => {
-        // Xử lý nốt buffer dở dang
-        if (stdoutBuffer.trim()) {
-          emitRunEvent(run, 'log', { stream: 'stdout', line: stdoutBuffer });
-        }
-        if (stderrBuffer.trim()) {
-          emitRunEvent(run, 'log', { stream: 'stderr', line: stderrBuffer });
-        }
-
+      const finishRun = (code) => {
         console.log(`Lượt chạy ${runId} hoàn tất với exit code: ${code}`);
         run.status = code === 0 ? 'completed' : 'failed';
         run.endedAt = new Date().toISOString();
@@ -438,20 +530,76 @@ const server = http.createServer((req, res) => {
           client.end();
         });
         run.clients.clear();
+      };
+
+      const parallelResultsPath = path.resolve(__dirname, '../reports/results_parallel.json');
+      // Keep a single Playwright process for now so the HTML report is not overwritten by an empty @serial batch.
+      const shouldSplitBatch = false;
+
+      emitRunEvent(run, 'run-started', {
+        runId,
+        command: run.command,
+        startedAt: run.startedAt,
+        workers: run.workers,
+        parallelMode: run.parallelMode
       });
 
-      testProcess.on('error', err => {
-        console.error('Lỗi khi spawn tiến trình test:', err);
-        activeRunId = null;
-        run.status = 'error';
-        run.endedAt = new Date().toISOString();
-        emitRunEvent(run, 'run-error', { message: err.message });
+      emitRunEvent(run, 'log', {
+        stream: 'stdout',
+        line: `[INFO] Running with ${run.workers} workers (Parallel Mode: ${run.parallelMode})`
+      });
 
-        run.clients.forEach(client => {
-          client.end();
+      if (shouldSplitBatch) {
+        // Lọc bỏ tham số --workers hiện tại vì chúng ta sẽ ghi đè
+        const cleanArgs = args.filter(a => !a.startsWith('--workers='));
+
+        // Batch 1: Chạy song song các test KHÔNG có tag @serial
+        const args1 = [...cleanArgs, '--grep-invert', '@serial', `--workers=${workers}`];
+        emitRunEvent(run, 'log', {
+          stream: 'stdout',
+          line: `[INFO] Starting Batch 1 (Parallel-Safe tests) with ${workers} workers...`
         });
-        run.clients.clear();
-      });
+
+        runBatch(args1, false, (code1) => {
+          console.log(`Batch 1 hoàn tất với exit code: ${code1}`);
+
+          // Lưu kết quả Batch 1
+          if (fs.existsSync(resultsPath)) {
+            try {
+              if (fs.existsSync(parallelResultsPath)) fs.unlinkSync(parallelResultsPath);
+              fs.renameSync(resultsPath, parallelResultsPath);
+            } catch (e) {
+              console.error('Không thể lưu kết quả Batch 1:', e);
+            }
+          }
+
+          // Batch 2: Chạy tuần tự các test có tag @serial
+          const args2 = [...cleanArgs, '--grep', '@serial', '--workers=1'];
+          emitRunEvent(run, 'log', {
+            stream: 'stdout',
+            line: `[INFO] Starting Batch 2 (Serial/Mutation tests) with 1 worker...`
+          });
+
+          runBatch(args2, true, (code2) => {
+            console.log(`Batch 2 hoàn tất với exit code: ${code2}`);
+
+            // Merge kết quả
+            mergePlaywrightResults(parallelResultsPath, resultsPath, resultsPath);
+
+            // Xóa file kết quả tạm
+            if (fs.existsSync(parallelResultsPath)) {
+              try { fs.unlinkSync(parallelResultsPath); } catch (e) {}
+            }
+
+            const finalCode = (code1 === 0 && code2 === 0) ? 0 : 1;
+            finishRun(finalCode);
+          });
+        });
+      } else {
+        runBatch(args, false, (code) => {
+          finishRun(code);
+        });
+      }
 
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({
@@ -521,6 +669,8 @@ const server = http.createServer((req, res) => {
       mode: run.mode,
       startedAt: run.startedAt,
       endedAt: run.endedAt,
+      workers: run.workers,
+      parallelMode: run.parallelMode,
       summary: run.summary,
       testCases: run.testCases
     }));
@@ -552,8 +702,91 @@ const server = http.createServer((req, res) => {
       }
       const ext = path.extname(reportFile).toLowerCase();
       const contentType = mimeTypes[ext] || 'application/octet-stream';
-      res.writeHead(200, { 'Content-Type': contentType });
-      res.end(data);
+      res.writeHead(200, {
+        'Content-Type': contentType,
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+
+      if (ext === '.html') {
+        let html = data.toString('utf8');
+        const inject = `
+<script>
+  (function() {
+    // Tự động đồng bộ theme hệ thống hoặc localStorage với Playwright HTML report
+    const isDark = localStorage.getItem('theme') === 'dark' ||
+                   (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    if (isDark) {
+      document.documentElement.classList.add('dark-mode');
+      document.documentElement.classList.remove('light-mode');
+    } else {
+      document.documentElement.classList.add('light-mode');
+      document.documentElement.classList.remove('dark-mode');
+    }
+  })();
+</script>
+<style>
+  /* CSS overrides to ensure readable text under all circumstances */
+  :root.dark-mode {
+    --color-fg-default: #e6edf3 !important;
+    --color-fg-muted: #8b949e !important;
+    --color-canvas-default: #0d1117 !important;
+    --color-canvas-subtle: #161b22 !important;
+    --color-border-default: #30363d !important;
+  }
+  :root.dark-mode .test-file-header {
+    background-color: #161b22 !important;
+    color: #e6edf3 !important;
+    border-bottom: 1px solid #30363d !important;
+  }
+  :root.dark-mode .test-case-title {
+    color: #e6edf3 !important;
+  }
+  :root.dark-mode .test-case-path {
+    color: #8b949e !important;
+  }
+  :root.dark-mode .test-result {
+    color: #e6edf3 !important;
+  }
+  :root.dark-mode .step-title-text {
+    color: #e6edf3 !important;
+  }
+
+  /* Force dark colors globally when prefers-color-scheme is dark */
+  @media (prefers-color-scheme: dark) {
+    :root, :root.light-mode, :root.dark-mode {
+      color-scheme: dark !important;
+      --color-canvas-default-transparent: rgba(13,17,23,0) !important;
+      --color-fg-default: #c9d1d9 !important;
+      --color-fg-muted: #8b949e !important;
+      --color-fg-subtle: #484f58 !important;
+      --color-canvas-default: #0d1117 !important;
+      --color-canvas-overlay: #161b22 !important;
+      --color-canvas-inset: #010409 !important;
+      --color-canvas-subtle: #161b22 !important;
+      --color-border-default: #30363d !important;
+      --color-border-muted: #21262d !important;
+    }
+    .test-file-header, [data-testid="test-file-header"] {
+      background-color: #161b22 !important;
+      color: #c9d1d9 !important;
+      border-bottom: 1px solid #30363d !important;
+    }
+    .test-case-title, .test-title, .test-case-title-text, .test-result, .step-title-text, .test-case-path {
+      color: #c9d1d9 !important;
+    }
+    .test-case-location {
+      color: #8b949e !important;
+    }
+  }
+</style>
+`;
+        html = html.replace('</head>', inject + '</head>');
+        res.end(html);
+      } else {
+        res.end(data);
+      }
     });
     return;
   }

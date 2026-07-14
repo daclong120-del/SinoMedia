@@ -1,0 +1,10 @@
+{
+  "id": "crawler-live-smoke",
+  "name": "Crawler Live Smoke",
+  "description": "Smoke test opt-in cho crawler live site; tự động bỏ qua nếu không kích hoạt RUN_LIVE_CRAWLER_SMOKE=1.",
+  "type": ["backend", "live-smoke"],
+  "specs": ["tests/crawler-live-smoke/crawler-live-smoke.spec.ts"],
+  "tags": ["@crawler", "@live-smoke", "@quarantine"],
+  "requiresAuth": false,
+  "enabled": true
+}

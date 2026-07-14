@@ -1,0 +1,26 @@
+{
+  "aweme_id": "7123456789012345678",
+  "desc": "Đây là video clip test #AI #sino",
+  "create_time": 1672531199,
+  "author": {
+    "uid": "1122334455",
+    "sec_uid": "MS4wLjABAAAA_sec_user_id_test_123",
+    "nickname": "Kênh Douyin Test",
+    "avatar_thumb": {
+      "url_list": ["https://p3.douyinpic.com/img/avatar.jpeg"]
+    }
+  },
+  "video": {
+    "play_addr": {
+      "url_list": ["https://aweme.snssdk.com/aweme/v1/play/video.mp4"]
+    },
+    "duration": 15000,
+    "ratio": "720p"
+  },
+  "statistics": {
+    "play_count": 100000,
+    "digg_count": 5000,
+    "comment_count": 250,
+    "share_count": 80
+  }
+}

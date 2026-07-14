@@ -18,7 +18,10 @@ function normalizeModuleConfig(config) {
     specs: asStringArray(config.specs),
     tags: asStringArray(config.tags),
     requiresAuth: config.requiresAuth === true,
-    enabled: config.enabled !== false
+    enabled: config.enabled !== false,
+    parallelSafe: config.parallelSafe !== false,
+    recommendedWorkers: typeof config.recommendedWorkers === 'number' ? config.recommendedWorkers : null,
+    maxWorkers: typeof config.maxWorkers === 'number' ? config.maxWorkers : null
   };
 }
 

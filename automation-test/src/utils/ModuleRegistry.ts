@@ -9,6 +9,9 @@ export interface TestModule {
   tags: string[];
   requiresAuth: boolean;
   enabled: boolean;
+  parallelSafe?: boolean;
+  recommendedWorkers?: number | null;
+  maxWorkers?: number | null;
 }
 
 export const loadTestModules = registry.loadTestModules as () => TestModule[];

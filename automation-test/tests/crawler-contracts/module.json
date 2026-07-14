@@ -1,0 +1,10 @@
+{
+  "id": "crawler-contracts",
+  "name": "Crawler Contracts",
+  "description": "Kiểm thử contract ổn định cho cookie normalization, zhihu signature, Bilibili player iframe và crawler helpers.",
+  "type": ["backend", "contract"],
+  "specs": ["tests/crawler-contracts/crawler-contracts.spec.ts"],
+  "tags": ["@crawler", "@contract", "@cookie"],
+  "requiresAuth": false,
+  "enabled": true
+}

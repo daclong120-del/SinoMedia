@@ -26,6 +26,10 @@
 | debug-creative-media-findings | debug | ✅ xong | - |
 | feat-crawl-test-data | feature | 🔄 đang làm | 0/4 phase |
 | feat-creative-media-cache | feature | ✅ xong | 3/3 phase |
+| refactor-test-runner-ui | refactor | ✅ xong | 1/1 phase |
+| automation-test-parallel-runner | feature | ✅ xong | 6/6 phase |
+| douyin-creative-crawl-test-cases | feature | ✅ xong | 4/4 phase |
+| automation-crawler-test-cases | test | ⏳ chưa | 0/6 phase |
 
 
 > Marker: ⏳ chưa · 🔄 đang làm · ✅ xong · ⛔ chặn

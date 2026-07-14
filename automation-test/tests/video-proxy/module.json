@@ -1,0 +1,10 @@
+{
+  "id": "video-proxy",
+  "name": "Video Proxy Security",
+  "description": "Kiểm thử bảo mật hồi quy cho API video proxy chống SSRF, chặn IP Private, giới hạn size và domain allowlist.",
+  "type": ["backend", "security"],
+  "specs": ["tests/video-proxy/video-proxy.spec.ts"],
+  "tags": ["@crawler", "@security"],
+  "requiresAuth": true,
+  "enabled": true
+}

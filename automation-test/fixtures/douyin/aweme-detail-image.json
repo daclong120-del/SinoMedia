@@ -1,0 +1,27 @@
+{
+  "aweme_id": "7123456789012345679",
+  "desc": "Đây là album ảnh test #creative",
+  "create_time": 1672531200,
+  "author": {
+    "uid": "1122334455",
+    "sec_uid": "MS4wLjABAAAA_sec_user_id_test_123",
+    "nickname": "Kênh Douyin Test",
+    "avatar_thumb": {
+      "url_list": ["https://p3.douyinpic.com/img/avatar.jpeg"]
+    }
+  },
+  "images": [
+    {
+      "url_list": ["https://p3.douyinpic.com/img/image1.jpeg"]
+    },
+    {
+      "url_list": ["https://p3.douyinpic.com/img/image2.jpeg"]
+    }
+  ],
+  "statistics": {
+    "play_count": 0,
+    "digg_count": 1200,
+    "comment_count": 45,
+    "share_count": 12
+  }
+}

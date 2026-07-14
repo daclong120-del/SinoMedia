@@ -1,0 +1,13 @@
+{
+  "user": {
+    "uid": "1122334455",
+    "sec_uid": "MS4wLjABAAAA_sec_user_id_test_123",
+    "nickname": "Kênh Douyin Test",
+    "avatar_thumb": {
+      "url_list": ["https://p3.douyinpic.com/img/avatar.jpeg"]
+    },
+    "signature": "Tôi chuyên review công nghệ và AI.",
+    "follower_count": 500000,
+    "total_favorited": 12000000
+  }
+}

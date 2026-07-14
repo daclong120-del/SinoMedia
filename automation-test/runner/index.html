@@ -4,20 +4,75 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SinoMedia Test Runner Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-color: #0f172a;
-      --card-bg: rgba(30, 41, 59, 0.7);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --accent-color: #3b82f6;
-      --accent-hover: #2563eb;
-      --success: #10b981;
-      --failure: #ef4444;
-      --warning: #f59e0b;
-      --gray-muted: #64748b;
+      /* Light Theme (Mặc định) */
+      --bg-color: oklch(0.9875 0 0); /* Xám sáng phẳng */
+      --fg-color: rgb(49, 49, 49); /* Chữ tối */
+      --card-bg: #ffffff; /* Thẻ trắng */
+      --card-border: oklch(0.145 0 0 / 0.1); /* Viền hairline mờ */
+
+      --primary-blue: rgb(0, 81, 195); /* Xanh tương tác */
+      --primary-blue-hover: rgb(0, 60, 150);
+      --primary-blue-light: rgba(0, 81, 195, 0.08);
+      --brand-orange: rgb(246, 130, 31); /* Cam thương hiệu */
+
+      --muted-bg: oklch(0.97 0 0);
+      --muted-fg: oklch(0.556 0 0);
+
+      --success-bg: rgba(16, 185, 129, 0.08);
+      --success-fg: #059669;
+      --success-border: rgba(16, 185, 129, 0.2);
+
+      --failure-bg: rgba(239, 68, 68, 0.08);
+      --failure-fg: #dc2626;
+      --failure-border: rgba(239, 68, 68, 0.2);
+
+      --warning-bg: rgba(245, 158, 11, 0.08);
+      --warning-fg: #d97706;
+      --warning-border: rgba(245, 158, 11, 0.2);
+
+      --running-bg: rgba(59, 130, 246, 0.08);
+      --running-fg: #2563eb;
+      --running-border: rgba(59, 130, 246, 0.2);
+
+      --scrollbar-thumb: rgba(0, 0, 0, 0.15);
+      --scrollbar-track: transparent;
+    }
+
+    html.dark {
+      /* Dark Theme */
+      --bg-color: oklch(0.145 0 0); /* Nền tối phẳng */
+      --fg-color: oklch(0.985 0 0); /* Chữ sáng */
+      --card-bg: oklch(0.205 0 0); /* Thẻ tối */
+      --card-border: oklch(1 0 0 / 10%); /* Viền hairline sáng */
+
+      --primary-blue: oklch(0.488 0.243 264.376); /* Xanh sáng */
+      --primary-blue-hover: oklch(0.55 0.22 264.376);
+      --primary-blue-light: rgba(59, 130, 246, 0.15);
+
+      --muted-bg: oklch(0.269 0 0);
+      --muted-fg: oklch(0.708 0 0);
+
+      --success-bg: rgba(16, 185, 129, 0.12);
+      --success-fg: #34d399;
+      --success-border: rgba(16, 185, 129, 0.3);
+
+      --failure-bg: rgba(239, 68, 68, 0.12);
+      --failure-fg: #f87171;
+      --failure-border: rgba(239, 68, 68, 0.3);
+
+      --warning-bg: rgba(245, 158, 11, 0.12);
+      --warning-fg: #fbbf24;
+      --warning-border: rgba(245, 158, 11, 0.3);
+
+      --running-bg: rgba(59, 130, 246, 0.15);
+      --running-fg: #60a5fa;
+      --running-border: rgba(59, 130, 246, 0.3);
+
+      --scrollbar-thumb: rgba(255, 255, 255, 0.15);
+      --scrollbar-track: transparent;
     }
 
     * {
@@ -29,102 +84,162 @@
     body {
       font-family: 'Inter', sans-serif;
       background-color: var(--bg-color);
-      background-image:
-        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
-      background-attachment: fixed;
-      color: var(--text-main);
+      color: var(--fg-color);
       min-height: 100vh;
-      padding: 2rem;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    header {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2.5rem;
+      overflow: hidden;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    /* Bố cục Shell */
+    .sidebar {
+      width: 270px;
+      background-color: var(--card-bg);
+      border-right: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      z-index: 50;
+      transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.3s ease;
+    }
+
+    .main-content {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      height: 100vh;
+      position: relative;
+    }
+
+    /* Sidebar Content */
+    .sidebar-header {
+      padding: 1.25rem 1.5rem;
       border-bottom: 1px solid var(--card-border);
-      padding-bottom: 1.5rem;
-    }
-
-    .logo-section h1 {
-      font-size: 1.75rem;
-      font-weight: 700;
-      letter-spacing: -0.025em;
-      background: linear-gradient(to right, #3b82f6, #10b981);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .logo-section p {
-      font-size: 0.875rem;
-      color: var(--text-muted);
-      margin-top: 0.25rem;
-    }
-
-    .actions-bar {
       display: flex;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      font-family: inherit;
-      font-size: 0.875rem;
-      font-weight: 600;
-      padding: 0.75rem 1.25rem;
-      border-radius: 8px;
-      border: 1px solid transparent;
-      cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      display: inline-flex;
       align-items: center;
-      justify-content: center;
       gap: 0.5rem;
     }
 
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+    }
+
+    .logo-text {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--brand-orange);
+      letter-spacing: -0.02em;
+    }
+
+    .logo-sub {
+      color: var(--fg-color);
+    }
+
+    .logo-badge {
+      font-size: 0.675rem;
+      font-weight: 600;
+      background-color: var(--primary-blue-light);
+      color: var(--primary-blue);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      margin-left: 0.25rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .sidebar-scroll {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .sidebar-section-title {
+      font-size: 0.675rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted-fg);
+      margin-bottom: 0.75rem;
+    }
+
+    .sidebar-btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    /* Buttons */
+    .btn {
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 500;
+      height: 2rem; /* h-8 equivalent */
+      padding: 0 0.75rem;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+
     .btn-primary {
-      background-color: var(--accent-color);
+      background-color: var(--primary-blue);
       color: white;
     }
 
     .btn-primary:hover:not(:disabled) {
-      background-color: var(--accent-hover);
-      box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+      background-color: var(--primary-blue-hover);
     }
 
     .btn-secondary {
-      background-color: rgba(51, 65, 85, 0.5);
+      background-color: var(--muted-bg);
+      color: var(--fg-color);
       border-color: var(--card-border);
-      color: var(--text-main);
     }
 
     .btn-secondary:hover:not(:disabled) {
-      background-color: rgba(51, 65, 85, 0.8);
-      border-color: rgba(255, 255, 255, 0.15);
+      background-color: var(--card-border);
+      border-color: var(--muted-fg);
     }
 
-    .btn-success {
-      background-color: rgba(16, 185, 129, 0.15);
-      border-color: rgba(16, 185, 129, 0.3);
-      color: #34d399;
+    .btn-outline {
+      background-color: transparent;
+      color: var(--fg-color);
+      border-color: var(--card-border);
     }
 
-    .btn-success:hover:not(:disabled) {
-      background-color: rgba(16, 185, 129, 0.25);
-      box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+    .btn-outline:hover:not(:disabled) {
+      background-color: var(--muted-bg);
+      border-color: var(--muted-fg);
     }
 
     .btn-sm {
-      padding: 0.5rem 0.875rem;
+      height: 1.75rem; /* h-7 */
       font-size: 0.75rem;
-      border-radius: 6px;
+      padding: 0 0.5rem;
+    }
+
+    .btn-lg {
+      height: 2.25rem; /* h-9 */
+      padding: 0 1rem;
+      font-size: 0.875rem;
+    }
+
+    .btn-block {
       width: 100%;
+      justify-content: flex-start;
     }
 
     .btn:disabled {
@@ -132,144 +247,128 @@
       cursor: not-allowed;
     }
 
-    /* Module Grid Section */
-    .module-section {
-      margin-bottom: 2rem;
-    }
-
-    .module-section-title {
-      font-size: 1.125rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-      color: var(--text-main);
-    }
-
-    .module-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 1.25rem;
-    }
-
-    .module-card {
-      background: var(--card-bg);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+    /* Quick Stats in Sidebar */
+    .sidebar-stats {
+      background-color: var(--muted-bg);
+      border-radius: 8px;
+      padding: 0.75rem;
       border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 1.25rem;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      gap: 0.6rem;
     }
 
-    .module-card:hover {
-      border-color: rgba(59, 130, 246, 0.3);
-      background: rgba(30, 41, 59, 0.8);
-      transform: translateY(-2px);
-    }
-
-    .module-card h3 {
-      font-size: 0.95rem;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      color: var(--text-main);
-    }
-
-    .module-card p {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      margin-bottom: 1rem;
-      line-height: 1.4;
-      flex-grow: 1;
-    }
-
-    .module-card .badge-list {
+    .sidebar-stat-item {
       display: flex;
-      gap: 0.25rem;
-      flex-wrap: wrap;
-      margin-bottom: 1rem;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
     }
 
-    /* Stats Grid */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1.25rem;
-      margin-bottom: 2rem;
+    .sidebar-stat-label {
+      color: var(--muted-fg);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
     }
 
-    .stat-card {
-      background: var(--card-bg);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 1.5rem;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .stat-card::after {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      height: 100%;
-      width: 4px;
-      background: transparent;
-    }
-
-    .stat-card.total::after { background: var(--accent-color); }
-    .stat-card.passed::after { background: var(--success); }
-    .stat-card.failed::after { background: var(--failure); }
-    .stat-card.skipped::after { background: var(--warning); }
-
-    .stat-title {
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .stat-value {
-      font-size: 2.25rem;
-      font-weight: 700;
-      margin-top: 0.5rem;
+    .sidebar-stat-value {
+      font-weight: 600;
       font-feature-settings: "tnum";
     }
 
-    .stat-duration {
-      font-size: 1.5rem;
+    .stat-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      display: inline-block;
     }
 
-    /* Runner Loader Status */
-    .loader-card {
-      background: rgba(30, 41, 59, 0.4);
-      border: 1px dashed var(--card-border);
-      border-radius: 12px;
+    .stat-dot.total { background-color: var(--primary-blue); }
+    .stat-dot.passed { background-color: var(--success-fg); }
+    .stat-dot.failed { background-color: var(--failure-fg); }
+    .stat-dot.skipped { background-color: var(--warning-fg); }
+
+    /* Header */
+    .header {
+      height: 56px;
+      border-bottom: 1px solid var(--card-border);
+      background-color: var(--card-bg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      flex-shrink: 0;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .breadcrumbs {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      color: var(--muted-fg);
+    }
+
+    .breadcrumb-item.active {
+      color: var(--fg-color);
+      font-weight: 500;
+    }
+
+    .breadcrumb-sep {
+      color: var(--card-border);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Content Body */
+    .content-body {
+      flex-grow: 1;
+      overflow-y: auto;
       padding: 1.5rem;
-      margin-bottom: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      max-width: 1300px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* Loader Card */
+    .loader-card {
+      background-color: var(--running-bg);
+      border: 1px dashed var(--running-border);
+      border-radius: 8px;
+      padding: 0.875rem 1.25rem;
       display: none;
       align-items: center;
       justify-content: space-between;
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.9; }
+      50% { opacity: 0.75; }
+      100% { opacity: 0.9; }
     }
 
     .loader-info {
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: 0.75rem;
     }
 
     .spinner {
-      width: 24px;
-      height: 24px;
-      border: 3px solid rgba(59, 130, 246, 0.2);
-      border-top-color: var(--accent-color);
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(59, 130, 246, 0.2);
+      border-top-color: var(--primary-blue);
       border-radius: 50%;
-      animation: spin 1s infinite linear;
+      animation: spin 0.8s infinite linear;
     }
 
     @keyframes spin {
@@ -278,32 +377,148 @@
     }
 
     .loader-text {
-      font-weight: 500;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--fg-color);
     }
 
-    /* Table Styling */
-    .table-container {
-      background: var(--card-bg);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+    .loader-subtext {
+      font-size: 0.7rem;
+      color: var(--muted-fg);
+      margin-top: 0.1rem;
+    }
+
+    .loader-timer {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--primary-blue);
+      font-feature-settings: 'tnum';
+    }
+
+    /* Panel Card */
+    .panel {
+      background-color: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 12px;
-      overflow: hidden;
-      margin-bottom: 2rem;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
     }
 
-    .table-header {
-      padding: 1.25rem 1.5rem;
+    .panel-header {
+      padding: 0.875rem 1.25rem;
       border-bottom: 1px solid var(--card-border);
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
     }
 
-    .table-title {
-      font-size: 1.125rem;
+    .panel-title {
+      font-size: 0.875rem;
       font-weight: 600;
+    }
+
+    .panel-body {
+      padding: 1.25rem;
+    }
+
+    /* Module Registry Section */
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+
+    .module-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 0.875rem;
+      transition: border-color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .module-card:hover {
+      border-color: var(--primary-blue);
+    }
+
+    .module-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .module-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--fg-color);
+    }
+
+    .module-desc {
+      font-size: 0.725rem;
+      color: var(--muted-fg);
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .module-badges {
+      display: flex;
+      gap: 0.25rem;
+      flex-wrap: wrap;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.15rem 0.35rem;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-type {
+      background-color: var(--muted-bg);
+      color: var(--muted-fg);
+      border: 1px solid var(--card-border);
+    }
+
+    .badge-passed {
+      background-color: var(--success-bg);
+      color: var(--success-fg);
+      border: 1px solid var(--success-border);
+    }
+
+    .badge-failed {
+      background-color: var(--failure-bg);
+      color: var(--failure-fg);
+      border: 1px solid var(--failure-border);
+    }
+
+    .badge-skipped {
+      background-color: var(--warning-bg);
+      color: var(--warning-fg);
+      border: 1px solid var(--warning-border);
+    }
+
+    .badge-running {
+      background-color: var(--running-bg);
+      color: var(--running-fg);
+      border: 1px solid var(--running-border);
+    }
+
+    /* Table Component */
+    .table-responsive {
+      overflow-x: auto;
     }
 
     table {
@@ -313,19 +528,19 @@
     }
 
     th {
-      background: rgba(15, 23, 42, 0.3);
-      padding: 1rem 1.5rem;
-      font-size: 0.75rem;
+      background-color: var(--muted-bg);
+      padding: 0.6rem 1rem;
+      font-size: 0.7rem;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: var(--text-muted);
+      color: var(--muted-fg);
       border-bottom: 1px solid var(--card-border);
     }
 
     td {
-      padding: 1rem 1.5rem;
-      font-size: 0.875rem;
+      padding: 0.6rem 1rem;
+      font-size: 0.75rem;
       border-bottom: 1px solid var(--card-border);
       vertical-align: middle;
     }
@@ -335,209 +550,592 @@
     }
 
     tr:hover td {
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.02em;
-    }
-
-    .badge-passed {
-      background: rgba(16, 185, 129, 0.15);
-      color: #34d399;
-    }
-
-    .badge-failed {
-      background: rgba(239, 68, 68, 0.15);
-      color: #f87171;
-    }
-
-    .badge-skipped {
-      background: rgba(245, 158, 11, 0.15);
-      color: #fbbf24;
-    }
-
-    .badge-running {
-      background: rgba(59, 130, 246, 0.15);
-      color: #60a5fa;
-    }
-
-    .badge-type {
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text-main);
-      border: 1px solid var(--card-border);
+      background-color: var(--muted-bg);
     }
 
     .tc-id {
-      font-family: monospace;
+      font-family: 'JetBrains Mono', monospace;
       font-weight: 600;
-      color: var(--accent-color);
+      color: var(--primary-blue);
+    }
+
+    .test-title-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .test-title {
+      font-weight: 500;
     }
 
     .error-log {
-      font-family: monospace;
-      background: rgba(239, 68, 68, 0.05);
-      border: 1px solid rgba(239, 68, 68, 0.15);
-      color: #f87171;
-      padding: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      background-color: var(--failure-bg);
+      border: 1px solid var(--failure-border);
+      color: var(--failure-fg);
+      padding: 0.5rem 0.75rem;
       border-radius: 6px;
-      margin-top: 0.5rem;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       white-space: pre-wrap;
       word-break: break-all;
-      max-height: 150px;
+      max-height: 120px;
       overflow-y: auto;
+      margin-top: 0.35rem;
     }
 
-    /* Terminal Console Output Debug */
-    .console-container {
-      background: #090d16;
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 1.25rem;
-      font-family: monospace;
-      font-size: 0.8125rem;
+    /* Console Terminal style */
+    .console-viewport {
+      background-color: #07090e;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
       color: #34d399;
-      max-height: 300px;
+      height: 250px;
       overflow-y: auto;
       white-space: pre-wrap;
-      box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
     }
 
-    .console-header {
+    .console-controls {
       display: flex;
-      justify-content: space-between;
-      color: var(--text-muted);
-      margin-bottom: 0.75rem;
+      align-items: center;
+      gap: 1rem;
       font-size: 0.75rem;
-      font-family: inherit;
+      color: var(--muted-fg);
+    }
+
+    .console-control-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* Custom Checkbox Toggle */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 28px;
+      height: 16px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--card-border);
+      transition: .2s;
+      border-radius: 16px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 12px;
+      width: 12px;
+      left: 2px;
+      bottom: 2px;
+      background-color: #ffffff;
+      transition: .2s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--primary-blue);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(12px);
+    }
+
+    /* Icon Buttons */
+    .icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted-fg);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.25rem;
+      border-radius: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .icon-btn:hover {
+      color: var(--fg-color);
+      background-color: var(--muted-bg);
+    }
+
+    .console-status-badge {
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      background-color: var(--muted-bg);
+      color: var(--muted-fg);
+    }
+
+    .console-status-badge.active {
+      background-color: var(--running-bg);
+      color: var(--running-fg);
+    }
+
+    /* Mobile hamburger menu toggle */
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--fg-color);
+      cursor: pointer;
+      padding: 0.25rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      body {
+        position: relative;
+      }
+      .sidebar {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .menu-toggle {
+        display: block;
+      }
+      .sidebar-backdrop {
+        display: none;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: rgba(0, 0, 0, 0.4);
+        z-index: 40;
+      }
+      .sidebar-backdrop.open {
+        display: block;
+      }
+    }
+
+    /* Scrollbars Customization */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--scrollbar-track);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--scrollbar-thumb);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--muted-fg);
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <header>
-      <div class="logo-section">
-        <h1>SinoMedia Test Runner Dashboard</h1>
-        <p>Hệ thống tự động chạy kiểm thử tích hợp Google Antigravity & Playwright</p>
+  <!-- Sidebar Mobile Backdrop -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a href="#" class="logo-container">
+        <!-- SVG Sparkles + SinoMedia logo -->
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgb(246, 130, 31)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+        </svg>
+        <span class="logo-text">Auto<span class="logo-sub">Test</span></span>
+      </a>
+      <span class="logo-badge">Runner</span>
+    </div>
+
+    <div class="sidebar-scroll">
+      <div>
+        <div class="sidebar-section-title">Cấu hình song song (Parallel)</div>
+        <div style="margin-bottom: 0.75rem;">
+          <div style="font-size: 0.725rem; color: var(--muted-fg); margin-bottom: 0.35rem; display: flex; justify-content: space-between; align-items: center;">
+            <span>Workers (Luồng chạy):</span>
+            <span id="workers-count-label" style="font-weight: 700; color: var(--primary-blue); font-feature-settings: 'tnum';">1</span>
+          </div>
+          <div style="display: flex; gap: 0.25rem;">
+            <button class="btn btn-secondary btn-sm workers-btn" onclick="selectWorkers(1)" data-workers="1" style="flex: 1; padding: 0; min-width: 0;">1</button>
+            <button class="btn btn-secondary btn-sm workers-btn" onclick="selectWorkers(2)" data-workers="2" style="flex: 1; padding: 0; min-width: 0;">2</button>
+            <button class="btn btn-secondary btn-sm workers-btn" onclick="selectWorkers(4)" data-workers="4" style="flex: 1; padding: 0; min-width: 0;">4</button>
+            <button class="btn btn-secondary btn-sm workers-btn" onclick="selectWorkers(5)" data-workers="5" style="flex: 1; padding: 0; min-width: 0;">5</button>
+            <button class="btn btn-secondary btn-sm workers-btn" onclick="selectWorkers(8)" data-workers="8" style="flex: 1; padding: 0; min-width: 0;">8</button>
+          </div>
+        </div>
+        <div style="margin-bottom: 0.75rem;">
+          <div style="font-size: 0.725rem; color: var(--muted-fg); margin-bottom: 0.35rem; display: flex; justify-content: space-between; align-items: center;">
+            <span>Chế độ (Preset):</span>
+            <span id="preset-label" style="font-weight: 700; color: var(--primary-blue);">Safe</span>
+          </div>
+          <div style="display: flex; gap: 0.25rem;">
+            <button class="btn btn-secondary btn-sm preset-btn" onclick="selectPreset('safe')" data-preset="safe" style="flex: 1; padding: 0; min-width: 0; font-size: 0.7rem;">Safe</button>
+            <button class="btn btn-secondary btn-sm preset-btn" onclick="selectPreset('fast')" data-preset="fast" style="flex: 1; padding: 0; min-width: 0; font-size: 0.7rem;">Fast</button>
+            <button class="btn btn-secondary btn-sm preset-btn" onclick="selectPreset('turbo')" data-preset="turbo" style="flex: 1; padding: 0; min-width: 0; font-size: 0.7rem;">Turbo</button>
+          </div>
+        </div>
+        <div id="parallel-warning" style="display: none; background-color: var(--warning-bg); border: 1px solid var(--warning-border); border-radius: 6px; padding: 0.5rem; font-size: 0.65rem; color: var(--warning-fg); line-height: 1.3;">
+          ⚠️ <strong>Chú ý:</strong> Chạy song song UI có thể gây xung đột dữ liệu dùng chung.
+        </div>
       </div>
-      <div class="actions-bar">
-        <button class="btn btn-secondary" id="btn-report" onclick="openReport()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+
+      <div>
+        <div class="sidebar-section-title">Điều khiển chạy test</div>
+        <div class="sidebar-btn-group">
+          <button class="btn btn-primary btn-block" onclick="runTest('all')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            Chạy toàn bộ (Run All)
+          </button>
+          <button class="btn btn-outline btn-block" onclick="runTest('type', 'ui')">Chạy UI Tests</button>
+          <button class="btn btn-outline btn-block" onclick="runTest('type', 'backend')">Chạy Backend Tests</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="sidebar-section-title">Thống kê kết quả</div>
+        <div class="sidebar-stats">
+          <div class="sidebar-stat-item">
+            <span class="sidebar-stat-label">
+              <span class="stat-dot total"></span> Tổng số case
+            </span>
+            <span class="sidebar-stat-value" id="stat-total">0</span>
+          </div>
+          <div class="sidebar-stat-item">
+            <span class="sidebar-stat-label">
+              <span class="stat-dot passed"></span> Thành công
+            </span>
+            <span class="sidebar-stat-value" id="stat-passed" style="color: var(--success-fg);">0</span>
+          </div>
+          <div class="sidebar-stat-item">
+            <span class="sidebar-stat-label">
+              <span class="stat-dot failed"></span> Thất bại
+            </span>
+            <span class="sidebar-stat-value" id="stat-failed" style="color: var(--failure-fg);">0</span>
+          </div>
+          <div class="sidebar-stat-item">
+            <span class="sidebar-stat-label">
+              <span class="stat-dot skipped"></span> Bỏ qua
+            </span>
+            <span class="sidebar-stat-value" id="stat-skipped" style="color: var(--warning-fg);">0</span>
+          </div>
+          <div class="sidebar-stat-item" style="border-top: 1px solid var(--card-border); padding-top: 0.5rem; margin-top: 0.2rem;">
+            <span class="sidebar-stat-label">
+              Thời gian chạy
+            </span>
+            <span class="sidebar-stat-value" id="stat-duration">0.0s</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="main-content">
+    <header class="header">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <button class="menu-toggle" onclick="toggleSidebar()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <div class="breadcrumbs">
+          <span class="breadcrumb-item">SinoMedia</span>
+          <span class="breadcrumb-sep">/</span>
+          <span class="breadcrumb-item">Crawler Controller</span>
+          <span class="breadcrumb-sep">/</span>
+          <span class="breadcrumb-item active">Test Runner</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Theme Toggle Button -->
+        <button class="icon-btn" onclick="toggleTheme()" title="Chuyển chế độ Sáng/Tối">
+          <!-- Sun Icon -->
+          <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+            <circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+          </svg>
+          <!-- Moon Icon -->
+          <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+          </svg>
+        </button>
+
+        <button class="btn btn-outline" id="btn-report" onclick="openReport()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
           Mở HTML Report
         </button>
       </div>
     </header>
 
-    <!-- Global Control Buttons -->
-    <div class="actions-bar" style="margin-bottom: 2rem; background: var(--card-bg); padding: 1.25rem; border-radius: 12px; border: 1px solid var(--card-border);">
-      <button class="btn btn-primary" onclick="runTest('all')">Chạy Toàn Bộ (Run All)</button>
-      <button class="btn btn-secondary" onclick="runTest('type', 'ui')">Chạy UI Tests</button>
-      <button class="btn btn-secondary" onclick="runTest('type', 'backend')">Chạy Backend Tests</button>
-    </div>
+    <div class="content-body">
+      <!-- Playwright Active Runner Loader -->
+      <div class="loader-card" id="runner-loader">
+        <div class="loader-info">
+          <div class="spinner"></div>
+          <div>
+            <div class="loader-text" id="loader-status">Đang khởi động kiểm thử Playwright...</div>
+            <div class="loader-subtext">Trạng thái chạy được kết nối trực tiếp qua Server-Sent Events (SSE).</div>
+          </div>
+        </div>
+        <div class="loader-timer" id="loader-timer">0s</div>
+      </div>
 
-    <!-- Dynamic Modules Section -->
-    <div class="module-section">
-      <div class="module-section-title">Chạy theo phân hệ (Module Registry)</div>
-      <div class="module-grid" id="module-grid-container">
-        <!-- Render động modules tại đây -->
-        <div style="grid-column: 1/-1; color: var(--text-muted); font-size: 0.875rem;">Đang tải danh sách module...</div>
+      <!-- Module Registry Section -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Phân hệ kiểm thử (Module Registry)</span>
+        </div>
+        <div class="panel-body">
+          <div class="module-grid" id="module-grid-container">
+            <div style="grid-column: 1/-1; color: var(--muted-fg); font-size: 0.75rem;">Đang tải danh sách module...</div>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <!-- Runner Loader -->
-    <div class="loader-card" id="runner-loader">
-      <div class="loader-info">
-        <div class="spinner"></div>
-        <div class="loader-text" id="loader-status">Đang khởi động tiến trình kiểm thử Playwright...</div>
+      <!-- Detail results table -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Chi tiết kết quả chạy</span>
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 100px;">ID</th>
+                <th style="width: 150px;">Phân hệ (Module)</th>
+                <th style="width: 80px;">Loại</th>
+                <th>Mô tả kiểm thử (Title)</th>
+                <th style="width: 110px;">Trạng thái</th>
+                <th style="width: 100px;">Thời gian</th>
+              </tr>
+            </thead>
+            <tbody id="test-cases-body">
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--muted-fg); padding: 2rem;">
+                  Chưa có dữ liệu kết quả. Bấm các nút chạy test để bắt đầu kiểm thử.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-      <div class="loader-text" id="loader-timer" style="color: var(--text-muted); font-feature-settings: 'tnum';">0s</div>
-    </div>
 
-    <!-- Stats Grid -->
-    <div class="stats-grid">
-      <div class="stat-card total">
-        <div class="stat-title">Tổng số Test Case</div>
-        <div class="stat-value" id="stat-total">0</div>
-      </div>
-      <div class="stat-card passed">
-        <div class="stat-title">Thành công (Pass)</div>
-        <div class="stat-value" id="stat-passed" style="color: #34d399;">0</div>
-      </div>
-      <div class="stat-card failed">
-        <div class="stat-title">Thất bại (Fail)</div>
-        <div class="stat-value" id="stat-failed" style="color: #f87171;">0</div>
-      </div>
-      <div class="stat-card skipped">
-        <div class="stat-title">Bị bỏ qua (Skip)</div>
-        <div class="stat-value" id="stat-skipped" style="color: #fbbf24;">0</div>
-      </div>
-      <div class="stat-card duration">
-        <div class="stat-title">Thời gian chạy</div>
-        <div class="stat-value stat-duration" id="stat-duration" style="font-feature-settings: 'tnum';">0.0s</div>
-      </div>
-    </div>
+      <!-- Monospace Console Logs Output -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Terminal Logs Output</span>
+          <div class="console-controls">
+            <!-- Auto Scroll Toggle -->
+            <label class="console-control-item" title="Tự động cuộn xuống cuối khi có log mới">
+              <span class="toggle-switch">
+                <input type="checkbox" id="auto-scroll-toggle" checked>
+                <span class="slider"></span>
+              </span>
+              Auto-scroll
+            </label>
 
-    <!-- Test cases table -->
-    <div class="table-container">
-      <div class="table-header">
-        <div class="table-title">Danh sách chi tiết kết quả chạy</div>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Phân hệ (Module)</th>
-            <th>Loại (Type)</th>
-            <th>Mô tả kiểm thử (Title)</th>
-            <th>Trạng thái</th>
-            <th>Thời gian</th>
-          </tr>
-        </thead>
-        <tbody id="test-cases-body">
-          <tr>
-            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 3rem;">
-              Chưa có dữ liệu kết quả. Bấm một trong các nút ở trên để chạy kiểm thử.
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+            <!-- Clear Log Button -->
+            <button class="icon-btn" onclick="clearConsole()" title="Xóa màn hình log">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+            </button>
 
-    <!-- Debug Console logs output -->
-    <div class="table-container" style="padding: 1.25rem;">
-      <div class="console-header">
-        <span style="font-weight: 600; font-size: 0.875rem;">Terminal Logs Output</span>
-        <span id="log-status">Ready</span>
+            <!-- Download Log Button -->
+            <button class="icon-btn" onclick="downloadConsoleLogs()" title="Tải file log (.txt)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            </button>
+
+            <!-- Status Indicator -->
+            <span class="console-status-badge" id="log-status">READY</span>
+          </div>
+        </div>
+        <div class="panel-body" style="padding-top: 0;">
+          <div class="console-viewport" id="console-output">Tiến trình chạy test chưa được kích hoạt.</div>
+        </div>
       </div>
-      <div class="console-container" id="console-output">Tiến trình chạy test chưa được kích hoạt.</div>
     </div>
   </div>
 
   <script>
     let timerInterval = null;
     let startTime = 0;
+    let eventSource = null;
+    let activeStreamRunId = null;
+    let streamCompleted = false;
+    let lastStreamErrorAt = 0;
+    let runPollInterval = null;
+    let liveDurationInterval = null;
+    const LONG_RUNNING_WARNING_MS = 15000;
 
-    // Tự động load kết quả chạy gần nhất và list modules khi mở trang
+    // Parallel Workers Config
+    let selectedWorkers = 1;
+    let selectedParallelMode = 'safe';
+    let loadedModules = [];
+
+    function selectWorkers(count) {
+      selectedWorkers = count;
+      document.getElementById('workers-count-label').innerText = count;
+
+      const buttons = document.querySelectorAll('.workers-btn');
+      buttons.forEach(btn => {
+        if (parseInt(btn.dataset.workers) === count) {
+          btn.classList.add('btn-primary');
+          btn.classList.remove('btn-secondary');
+        } else {
+          btn.classList.add('btn-secondary');
+          btn.classList.remove('btn-primary');
+        }
+      });
+
+      const warningEl = document.getElementById('parallel-warning');
+      if (count > 1) {
+        warningEl.style.display = 'block';
+      } else {
+        warningEl.style.display = 'none';
+      }
+
+      let preset = 'custom';
+      if (count === 1) preset = 'safe';
+      else if (count === 4) preset = 'fast';
+      else if (count === 8) preset = 'turbo';
+
+      selectedParallelMode = preset;
+      document.getElementById('preset-label').innerText = preset.charAt(0).toUpperCase() + preset.slice(1);
+
+      const presetButtons = document.querySelectorAll('.preset-btn');
+      presetButtons.forEach(btn => {
+        if (btn.dataset.preset === preset) {
+          btn.classList.add('btn-primary');
+          btn.classList.remove('btn-secondary');
+        } else {
+          btn.classList.add('btn-secondary');
+          btn.classList.remove('btn-primary');
+        }
+      });
+    }
+
+    function selectPreset(preset) {
+      selectedParallelMode = preset;
+      document.getElementById('preset-label').innerText = preset.charAt(0).toUpperCase() + preset.slice(1);
+
+      const presetButtons = document.querySelectorAll('.preset-btn');
+      presetButtons.forEach(btn => {
+        if (btn.dataset.preset === preset) {
+          btn.classList.add('btn-primary');
+          btn.classList.remove('btn-secondary');
+        } else {
+          btn.classList.add('btn-secondary');
+          btn.classList.remove('btn-primary');
+        }
+      });
+
+      let workers = selectedWorkers;
+      if (preset === 'safe') workers = 1;
+      else if (preset === 'fast') workers = 4;
+      else if (preset === 'turbo') workers = 8;
+
+      selectedWorkers = workers;
+      document.getElementById('workers-count-label').innerText = workers;
+
+      const workersButtons = document.querySelectorAll('.workers-btn');
+      workersButtons.forEach(btn => {
+        if (parseInt(btn.dataset.workers) === workers) {
+          btn.classList.add('btn-primary');
+          btn.classList.remove('btn-secondary');
+        } else {
+          btn.classList.add('btn-secondary');
+          btn.classList.remove('btn-primary');
+        }
+      });
+
+      const warningEl = document.getElementById('parallel-warning');
+      if (workers > 1) {
+        warningEl.style.display = 'block';
+      } else {
+        warningEl.style.display = 'none';
+      }
+    }
+
+    // Theme Management
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.classList.contains('dark');
+      if (isDark) {
+        html.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      } else {
+        html.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      }
+      updateThemeIcons();
+    }
+
+    function updateThemeIcons() {
+      const isDark = document.documentElement.classList.contains('dark');
+      const sunIcon = document.querySelector('.sun-icon');
+      const moonIcon = document.querySelector('.moon-icon');
+      if (isDark) {
+        sunIcon.style.display = 'block';
+        moonIcon.style.display = 'none';
+      } else {
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
+      }
+    }
+
+    // Initialize Theme
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    updateThemeIcons();
+
+    // Responsive Sidebar Toggle
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const backdrop = document.getElementById('sidebar-backdrop');
+      sidebar.classList.toggle('open');
+      backdrop.classList.toggle('open');
+    }
+
+    // Load initial data
     window.onload = function() {
+      selectWorkers(1);
       // 1. Tải danh sách modules
       fetch('/api/modules')
         .then(res => res.json())
         .then(modules => {
+          loadedModules = modules;
           renderModules(modules);
         })
         .catch(err => {
           console.error('Không thể load modules:', err);
           document.getElementById('module-grid-container').innerHTML =
-            `<div style="grid-column: 1/-1; color: var(--failure); font-size: 0.875rem;">Lỗi tải danh sách module từ server.</div>`;
+            `<div style="grid-column: 1/-1; color: var(--failure-fg); font-size: 0.75rem;">Lỗi tải danh sách module từ server.</div>`;
         });
 
       // 2. Tải kết quả gần nhất
@@ -557,7 +1155,7 @@
       container.innerHTML = '';
 
       if (!modules || modules.length === 0) {
-        container.innerHTML = `<div style="grid-column: 1/-1; color: var(--text-muted); font-size: 0.875rem;">Không tìm thấy module kiểm thử nào.</div>`;
+        container.innerHTML = `<div style="grid-column: 1/-1; color: var(--muted-fg); font-size: 0.75rem;">Không tìm thấy module kiểm thử nào.</div>`;
         return;
       }
 
@@ -571,14 +1169,14 @@
         });
 
         card.innerHTML = `
-          <div>
-            <h3>${mod.name}</h3>
-            <p>${mod.description}</p>
-            <div class="badge-list">
+          <div class="module-info">
+            <span class="module-name">${mod.name}</span>
+            <span class="module-desc">${mod.description}</span>
+            <div class="module-badges">
               ${badgeListHtml}
             </div>
           </div>
-          <button class="btn btn-secondary btn-sm" onclick="runTest('module', '${mod.id}')">Chạy Module</button>
+          <button class="btn btn-outline btn-block btn-sm" style="margin-top:0.25rem" onclick="runTest('module', '${mod.id}')">Chạy Module</button>
         `;
         container.appendChild(card);
       });
@@ -591,17 +1189,13 @@
       timerInterval = setInterval(() => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         timerEl.innerText = `${elapsed}s`;
+        document.getElementById('stat-duration').innerText = `${elapsed}.0s`;
       }, 1000);
     }
 
     function stopTimer() {
       clearInterval(timerInterval);
     }
-
-    let eventSource = null;
-    let activeStreamRunId = null;
-    let streamCompleted = false;
-    let lastStreamErrorAt = 0;
 
     function escapeHtml(value) {
       return String(value ?? '')
@@ -617,7 +1211,7 @@
     }
 
     function cleanTestTitle(tc) {
-      const rawTitle = String(tc?.title || '').replace(/@\w+/g, '').trim();
+      const rawTitle = String(tc?.title || '').replace(/@[\w-]+/g, '').trim();
       const id = tc?.testCaseId || tc?.id;
       if (!id) {
         return rawTitle.replace(/^TC_[A-Z0-9_]+\s*-\s*/i, '').trim();
@@ -668,11 +1262,103 @@
       return `${id} - ${title}`.trim();
     }
 
+    function startLiveDurationTicker() {
+      stopLiveDurationTicker();
+      liveDurationInterval = setInterval(() => {
+        const runningRows = document.querySelectorAll('#test-cases-body tr[data-test-status="running"]');
+        runningRows.forEach(row => {
+          const startedAt = Number(row.dataset.startedAt || Date.now());
+          const elapsedMs = Math.max(Date.now() - startedAt, 0);
+          const durationCell = row.cells[5];
+          if (durationCell) {
+            durationCell.innerText = durationText(elapsedMs);
+          }
+
+          if (elapsedMs >= LONG_RUNNING_WARNING_MS && row.dataset.longRunningWarned !== '1') {
+            row.dataset.longRunningWarned = '1';
+            const testId = row.cells[0]?.innerText || 'N/A';
+            appendConsoleLine(`[WAITING] ${testId} vẫn đang RUNNING sau ${Math.floor(elapsedMs / 1000)}s. Đang chờ Playwright trả PASS/FAIL hoặc timeout...`, 'stderr');
+          }
+        });
+      }, 500);
+    }
+
+    function stopLiveDurationTicker() {
+      if (liveDurationInterval) {
+        clearInterval(liveDurationInterval);
+        liveDurationInterval = null;
+      }
+    }
+
+    function stopRunSnapshotPolling() {
+      if (runPollInterval) {
+        clearInterval(runPollInterval);
+        runPollInterval = null;
+      }
+    }
+
+    function startRunSnapshotPolling(runId) {
+      stopRunSnapshotPolling();
+      runPollInterval = setInterval(() => {
+        refreshRunSnapshot(runId);
+      }, 2000);
+    }
+
+    function refreshRunSnapshot(runId) {
+      if (!runId || streamCompleted || activeStreamRunId !== runId) {
+        return Promise.resolve();
+      }
+
+      return fetch(`/api/runs/${runId}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(snapshot => {
+          if (snapshot) {
+            applyRunSnapshot(snapshot);
+          }
+        })
+        .catch(() => {});
+    }
+
+    function applyRunSnapshot(snapshot) {
+      if (!snapshot || activeStreamRunId !== snapshot.runId) {
+        return;
+      }
+
+      if (snapshot.status === 'completed' || snapshot.status === 'failed' || snapshot.status === 'error') {
+        streamCompleted = true;
+        updateDashboard(snapshot);
+        cleanupRunConnection(snapshot.status !== 'completed', snapshot.status === 'completed' ? "COMPLETED" : "FAILED");
+        return;
+      }
+
+      if (snapshot.summary) {
+        document.getElementById('stat-total').innerText = snapshot.summary.total ?? 0;
+        document.getElementById('stat-passed').innerText = snapshot.summary.passed ?? 0;
+        document.getElementById('stat-failed').innerText = snapshot.summary.failed ?? 0;
+        document.getElementById('stat-skipped').innerText = snapshot.summary.skipped ?? 0;
+      }
+
+      if (Array.isArray(snapshot.testCases)) {
+        snapshot.testCases.forEach(tc => {
+          if (normalizeStatus(tc.status) === 'running') {
+            updateLiveTestCase(tc);
+          } else {
+            if (!document.getElementById(testRowId(tc))) {
+              updateLiveTestCase(tc);
+            }
+            updateLiveTestCaseEnd(tc);
+          }
+        });
+      }
+    }
+
     function runTest(mode, target = null) {
       if (eventSource) {
         eventSource.close();
         eventSource = null;
       }
+      stopRunSnapshotPolling();
+      stopLiveDurationTicker();
       activeStreamRunId = null;
       streamCompleted = false;
       lastStreamErrorAt = 0;
@@ -686,17 +1372,35 @@
       const loaderStatus = document.getElementById('loader-status');
       loader.style.display = 'flex';
 
-      let payload = { mode };
+      let payload = {
+        mode,
+        workers: selectedWorkers,
+        parallelMode: selectedParallelMode
+      };
+
+      // Tự động điều chỉnh số lượng worker theo giới hạn an toàn của module
+      if (mode === 'module') {
+        const mod = loadedModules.find(m => m.id === target);
+        if (mod) {
+          if (mod.parallelSafe === false && selectedWorkers > 1) {
+            payload.workers = 1;
+            payload.parallelMode = 'safe';
+          } else if (mod.maxWorkers && selectedWorkers > mod.maxWorkers) {
+            payload.workers = mod.maxWorkers;
+          }
+        }
+      }
+
       let runLabel = 'tất cả kiểm thử';
 
       if (mode === 'all') {
-        runLabel = 'tất cả kiểm thử E2E';
+        runLabel = `tất cả kiểm thử E2E (${payload.workers} workers)`;
       } else if (mode === 'type') {
         payload.type = target;
-        runLabel = `các kiểm thử thuộc nhóm [${target.toUpperCase()}]`;
+        runLabel = `các kiểm thử thuộc nhóm [${target.toUpperCase()}] (${payload.workers} workers)`;
       } else if (mode === 'module') {
         payload.moduleId = target;
-        runLabel = `phân hệ [${target}]`;
+        runLabel = `phân hệ [${target}] (${payload.workers} workers)`;
       }
 
       loaderStatus.innerText = `Đang chạy ${runLabel}...`;
@@ -704,7 +1408,9 @@
       // Clear console và table
       const consoleEl = document.getElementById('console-output');
       consoleEl.innerHTML = '';
-      document.getElementById('log-status').innerText = "RUNNING";
+      const statusBadgeEl = document.getElementById('log-status');
+      statusBadgeEl.innerText = "RUNNING";
+      statusBadgeEl.classList.add('active');
 
       // Reset stats
       document.getElementById('stat-total').innerText = '0';
@@ -715,9 +1421,10 @@
 
       // Clear table
       const tbody = document.getElementById('test-cases-body');
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 3rem;">Đang chuẩn bị kiểm thử...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--muted-fg); padding: 3rem;">Đang chuẩn bị kiểm thử...</td></tr>`;
 
       startTimer();
+      startLiveDurationTicker();
 
       // Gọi API khởi tạo run
       fetch('/api/runs', {
@@ -738,6 +1445,7 @@
           const runId = data.runId;
           activeStreamRunId = runId;
           appendConsoleLine(`[INFO] Đã khởi tạo lượt chạy ${runId}. Đang thiết lập kết nối streaming...`, 'stdout');
+          startRunSnapshotPolling(runId);
 
           // Kết nối SSE
           eventSource = new EventSource(`/api/runs/${runId}/events`);
@@ -798,30 +1506,23 @@
             const now = Date.now();
             if (now - lastStreamErrorAt > 3000) {
               lastStreamErrorAt = now;
-              appendConsoleLine(`[WARNING] Mất kết nối tới server. Đang kiểm tra snapshot run...`, 'stderr');
+              appendConsoleLine(`[WARNING] Mất kết nối tới server. Đang kiểm tra trạng thái lượt chạy...`, 'stderr');
             }
-            document.getElementById('log-status').innerText = "RECONNECTING";
+            statusBadgeEl.innerText = "RECONNECTING";
 
             if (activeStreamRunId) {
-              fetch(`/api/runs/${activeStreamRunId}`)
-                .then(res => res.ok ? res.json() : null)
-                .then(snapshot => {
-                  if (!snapshot) return;
-                  if (snapshot.status === 'completed' || snapshot.status === 'failed' || snapshot.status === 'error') {
-                    streamCompleted = true;
-                    updateDashboard(snapshot);
-                    cleanupRunConnection(snapshot.status !== 'completed', snapshot.status === 'completed' ? "COMPLETED" : "FAILED");
-                  }
-                })
-                .catch(() => {});
+              refreshRunSnapshot(activeStreamRunId);
             }
           };
         })
         .catch(err => {
+          stopRunSnapshotPolling();
+          stopLiveDurationTicker();
           stopTimer();
           loader.style.display = 'none';
           buttons.forEach(btn => btn.disabled = false);
-          document.getElementById('log-status').innerText = "ERROR";
+          statusBadgeEl.innerText = "ERROR";
+          statusBadgeEl.classList.remove('active');
           consoleEl.innerText = `Lỗi hệ thống: ${err.message}`;
           alert(`Yêu cầu thất bại: ${err.message}`);
         });
@@ -832,22 +1533,53 @@
         eventSource.close();
         eventSource = null;
       }
+      stopRunSnapshotPolling();
+      stopLiveDurationTicker();
       activeStreamRunId = null;
       stopTimer();
       document.getElementById('runner-loader').style.display = 'none';
       const buttons = document.querySelectorAll('.btn');
       buttons.forEach(btn => btn.disabled = false);
-      document.getElementById('log-status').innerText = statusText || (isError ? "ERROR" : "COMPLETED");
+
+      const statusBadgeEl = document.getElementById('log-status');
+      statusBadgeEl.innerText = statusText || (isError ? "ERROR" : "COMPLETED");
+      statusBadgeEl.classList.remove('active');
+
+      // Dọn dẹp bất kỳ hàng test case nào bị kẹt ở trạng thái RUNNING
+      const runningRows = document.querySelectorAll('#test-cases-body tr[data-test-status="running"]');
+      if (runningRows.length > 0) {
+        let failedInc = 0;
+        runningRows.forEach(row => {
+          row.dataset.testStatus = 'failed';
+
+          const statusCell = row.cells[4];
+          if (statusCell) {
+            statusCell.innerHTML = '<span class="badge badge-failed">FAIL</span>';
+          }
+
+          const titleContainer = row.cells[3]?.querySelector('.test-title-container');
+          if (titleContainer) {
+            const titleText = titleContainer.querySelector('.test-title')?.innerText || '';
+            titleContainer.innerHTML = `<div class="test-title">${escapeHtml(titleText)}</div><div class="error-log">Tiến trình kiểm thử bị ngắt đột ngột hoặc mất kết nối.</div>`;
+          }
+
+          failedInc++;
+        });
+
+        const failedEl = document.getElementById('stat-failed');
+        if (failedEl) {
+          failedEl.innerText = parseInt(failedEl.innerText || '0') + failedInc;
+        }
+      }
     }
 
     function appendConsoleLine(line, stream) {
       const consoleEl = document.getElementById('console-output');
       const div = document.createElement('div');
-      div.style.color = stream === 'stderr' ? '#f87171' : '#34d399';
+      div.style.color = stream === 'stderr' ? '#f87171' : (document.documentElement.classList.contains('dark') ? '#34d399' : '#10b981');
       div.innerText = line;
       consoleEl.appendChild(div);
 
-      // Giới hạn số dòng DOM để tránh lag
       if (consoleEl.children.length > 1000) {
         consoleEl.removeChild(consoleEl.firstChild);
       }
@@ -857,13 +1589,33 @@
 
     function autoScrollConsole() {
       const consoleEl = document.getElementById('console-output');
-      consoleEl.scrollTop = consoleEl.scrollHeight;
+      const autoScrollCheck = document.getElementById('auto-scroll-toggle');
+      if (autoScrollCheck && autoScrollCheck.checked) {
+        consoleEl.scrollTop = consoleEl.scrollHeight;
+      }
+    }
+
+    function clearConsole() {
+      document.getElementById('console-output').innerHTML = 'Console cleared.';
+    }
+
+    function downloadConsoleLogs() {
+      const consoleEl = document.getElementById('console-output');
+      const text = consoleEl.innerText;
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `playwright-test-run-${activeStreamRunId || 'log'}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
 
     function updateLiveTestCase(tc) {
       const tbody = document.getElementById('test-cases-body');
 
-      // Xóa dòng thông báo "Chưa có dữ liệu" hoặc "Đang chuẩn bị"
       if (tbody.rows.length === 1 && tbody.rows[0].cells.length === 1) {
         tbody.innerHTML = '';
       }
@@ -873,21 +1625,23 @@
       if (!row) {
         row = document.createElement('tr');
         row.id = rowId;
+        row.dataset.startedAt = String(Date.now());
+        row.dataset.longRunningWarned = '0';
         tbody.appendChild(row);
       }
+      row.dataset.testStatus = 'running';
 
       row.innerHTML = `
         <td class="tc-id">${escapeHtml(tc.testCaseId || tc.id || 'N/A')}</td>
         <td>${escapeHtml(tc.module || 'General')}</td>
         <td><span class="badge badge-type">${escapeHtml(tc.type || 'UI')}</span></td>
-        <td><div>${escapeHtml(cleanTestTitle(tc))}</div></td>
+        <td><div class="test-title-container"><div class="test-title">${escapeHtml(cleanTestTitle(tc))}</div></div></td>
         <td>${statusBadge('running')}</td>
-        <td style="font-feature-settings: 'tnum';">0.00s</td>
+        <td style="font-feature-settings: 'tnum';">${durationText(Date.now() - Number(row.dataset.startedAt || Date.now()))}</td>
       `;
     }
 
     function updateLiveTestCaseEnd(data) {
-      // Cập nhật bộ đếm
       if (data.summary) {
         document.getElementById('stat-passed').innerText = data.summary.passed;
         document.getElementById('stat-failed').innerText = data.summary.failed;
@@ -897,21 +1651,21 @@
       const rowId = testRowId(data);
       const row = document.getElementById(rowId);
       if (row) {
-        const titleCell = row.cells[3];
-        const titleText = titleCell.querySelector('div').innerText;
-        let titleHtml = `<div>${escapeHtml(titleText)}</div>`;
+        row.dataset.testStatus = normalizeStatus(data.status);
+        const titleContainer = row.cells[3].querySelector('.test-title-container');
+        const titleText = titleContainer.querySelector('.test-title').innerText;
+        let titleHtml = `<div class="test-title">${escapeHtml(titleText)}</div>`;
         if (data.errorMessage) {
           titleHtml += `<div class="error-log">${escapeHtml(data.errorMessage)}</div>`;
         }
 
-        row.cells[3].innerHTML = titleHtml;
+        titleContainer.innerHTML = titleHtml;
         row.cells[4].innerHTML = statusBadge(data.status);
         row.cells[5].innerText = durationText(data.duration);
       }
     }
 
     function updateDashboard(data) {
-      // Cập nhật thẻ Stats
       document.getElementById('stat-total').innerText = data.summary.total;
       document.getElementById('stat-passed').innerText = data.summary.passed;
       document.getElementById('stat-failed').innerText = data.summary.failed;
@@ -920,20 +1674,20 @@
       const durationSec = (data.summary.duration / 1000).toFixed(1);
       document.getElementById('stat-duration').innerText = `${durationSec}s`;
 
-      // Cập nhật bảng chi tiết
       const tbody = document.getElementById('test-cases-body');
       tbody.innerHTML = '';
 
       if (!data.testCases || data.testCases.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 3rem;">Không tìm thấy test case nào.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--muted-fg); padding: 2rem;">Không tìm thấy test case nào.</td></tr>`;
         return;
       }
 
       data.testCases.forEach(tc => {
         const tr = document.createElement('tr');
         tr.id = testRowId(tc);
+        tr.dataset.testStatus = normalizeStatus(tc.status);
 
-        let titleHtml = `<div>${escapeHtml(cleanTestTitle(tc))}</div>`;
+        let titleHtml = `<div class="test-title">${escapeHtml(cleanTestTitle(tc))}</div>`;
         if (tc.errorMessage) {
           titleHtml += `<div class="error-log">${escapeHtml(tc.errorMessage)}</div>`;
         }
@@ -942,7 +1696,7 @@
           <td class="tc-id">${escapeHtml(tc.testCaseId || tc.id || 'N/A')}</td>
           <td>${escapeHtml(tc.module || 'General')}</td>
           <td><span class="badge badge-type">${escapeHtml(tc.type || 'UI')}</span></td>
-          <td>${titleHtml}</td>
+          <td><div class="test-title-container">${titleHtml}</div></td>
           <td>${statusBadge(tc.status)}</td>
           <td style="font-feature-settings: 'tnum';">${durationText(tc.duration)}</td>
         `;

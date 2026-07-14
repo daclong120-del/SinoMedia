@@ -6,5 +6,8 @@
   "specs": ["tests/api-tokens/api-tokens.spec.ts"],
   "tags": ["@api-tokens", "@ui"],
   "requiresAuth": true,
-  "enabled": true
+  "enabled": true,
+  "parallelSafe": false,
+  "recommendedWorkers": 1,
+  "maxWorkers": 1
 }

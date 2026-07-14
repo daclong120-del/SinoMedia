@@ -1,0 +1,42 @@
+{
+  "data": [
+    {
+      "type": 1,
+      "aweme_info": {
+        "aweme_id": "7123456789012345678",
+        "desc": "Đây là video clip test #AI #sino",
+        "create_time": 1672531199,
+        "author": {
+          "uid": "1122334455",
+          "sec_uid": "MS4wLjABAAAA_sec_user_id_test_123",
+          "nickname": "Kênh Douyin Test"
+        },
+        "statistics": {
+          "play_count": 100000,
+          "digg_count": 5000,
+          "comment_count": 250
+        }
+      }
+    },
+    {
+      "type": 1,
+      "aweme_info": {
+        "aweme_id": "7123456789012345679",
+        "desc": "Đây là album ảnh test #creative",
+        "create_time": 1672531200,
+        "author": {
+          "uid": "1122334455",
+          "sec_uid": "MS4wLjABAAAA_sec_user_id_test_123",
+          "nickname": "Kênh Douyin Test"
+        },
+        "statistics": {
+          "play_count": 0,
+          "digg_count": 1200,
+          "comment_count": 45
+        }
+      }
+    }
+  ],
+  "has_more": 1,
+  "cursor": 10
+}

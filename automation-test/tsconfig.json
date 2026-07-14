@@ -11,8 +11,9 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["../dashboard/*"]
+      "@/*": ["../dashboard/*"],
+      "@@/*": ["../crawler-pipeline/*"]
     }
   },
-  "include": ["src/**/*", "tests/**/*", "playwright.config.ts"]
+  "include": ["src/**/*", "tests/**/*", "playwright.config.ts", "../crawler-pipeline/src/**/*"]
 }

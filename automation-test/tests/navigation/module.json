@@ -6,5 +6,8 @@
   "specs": ["tests/navigation/navigation.spec.ts"],
   "tags": ["@navigation", "@ui"],
   "requiresAuth": true,
-  "enabled": true
+  "enabled": true,
+  "parallelSafe": true,
+  "recommendedWorkers": 4,
+  "maxWorkers": 8
 }
