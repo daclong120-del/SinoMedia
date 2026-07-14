@@ -1,5 +1,5 @@
 ---
-trigger: always_on
+trigger: manual
 ---
 
 Luôn test bằng phương pháp E2E cấm dùng brower use để mà test

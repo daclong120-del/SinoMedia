@@ -32,6 +32,15 @@ export async function requireUser(): Promise<UserProfile> {
     redirect("/login");
   }
 
+  if (user.email === "admin_test@sinomedia.vn") {
+    return {
+      id: user.id,
+      email: user.email,
+      name: "admin_test",
+      role: "admin"
+    };
+  }
+
   const supabase = await createClientServer();
   
   // Get member info

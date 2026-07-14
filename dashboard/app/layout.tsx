@@ -30,30 +30,6 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col font-sans bg-background text-foreground" suppressHydrationWarning>
-        <Script
-          id="theme-detector"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                const stored = localStorage.getItem('sinomedia-ui-preferences');
-                if (stored) {
-                  const parsed = JSON.parse(stored);
-                  const theme = parsed?.state?.theme;
-                  if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                    document.documentElement.classList.add('dark');
-                  } else {
-                    document.documentElement.classList.remove('dark');
-                  }
-                } else {
-                  if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                    document.documentElement.classList.add('dark');
-                  }
-                }
-              } catch (_) {}
-            `,
-          }}
-        />
         {children}
       </body>
     </html>

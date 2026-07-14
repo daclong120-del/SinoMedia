@@ -1,0 +1,128 @@
+[
+  {
+    "type": "button",
+    "text": "",
+    "id": "",
+    "className": "flex h-8 w-8 items-center justify-center rounded-lg hover:bg-muted lg:hidden text-muted-foreground",
+    "disabled": false
+  },
+  {
+    "type": "button",
+    "text": "BXH Creative",
+    "id": "",
+    "className": "group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-colors text-left cursor-pointer text-sidebar-foreground hover:bg-muted hover:text-foreground",
+    "disabled": false
+  },
+  {
+    "type": "button",
+    "text": "",
+    "id": "",
+    "className": "flex h-8 w-full items-center justify-center rounded-lg text-zinc-500 dark:text-zinc-400 hover:bg-muted hover:text-zinc-950 dark:hover:text-zinc-50 transition-all duration-150",
+    "disabled": false
+  },
+  {
+    "type": "button",
+    "text": "",
+    "id": "",
+    "className": "flex h-8 w-8 items-center justify-center rounded-lg hover:bg-muted lg:hidden text-muted-foreground",
+    "disabled": false
+  },
+  {
+    "type": "button",
+    "text": "",
+    "id": "",
+    "className": "flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors",
+    "disabled": false
+  },
+  {
+    "type": "button",
+    "text": "admin_test",
+    "id": "",
+    "className": "flex h-8 items-center gap-1.5 px-2 rounded-lg text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors focus:outline-none cursor-pointer",
+    "disabled": false
+  },
+  {
+    "type": "button",
+    "text": "Tạo nhiệm vụ mới",
+    "id": "",
+    "className": "h-8 px-3 text-xs font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer",
+    "disabled": false
+  },
+  {
+    "type": "button",
+    "text": "Thử kết nối lại",
+    "id": "",
+    "className": "self-start sm:self-center px-3 h-7 text-xs font-semibold rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors cursor-pointer shrink-0",
+    "disabled": false
+  },
+  {
+    "type": "button",
+    "text": "Tất cả",
+    "id": "",
+    "className": "h-7 px-3 text-[11px] font-medium rounded-lg border transition-colors cursor-pointer bg-primary text-primary-foreground border-primary",
+    "disabled": false
+  },
+  {
+    "type": "button",
+    "text": "Running",
+    "id": "",
+    "className": "h-7 px-3 text-[11px] font-medium rounded-lg border transition-colors cursor-pointer bg-card text-muted-foreground border-border hover:bg-muted",
+    "disabled": false
+  },
+  {
+    "type": "button",
+    "text": "Pending",
+    "id": "",
+    "className": "h-7 px-3 text-[11px] font-medium rounded-lg border transition-colors cursor-pointer bg-card text-muted-foreground border-border hover:bg-muted",
+    "disabled": false
+  },
+  {
+    "type": "button",
+    "text": "Scheduled",
+    "id": "",
+    "className": "h-7 px-3 text-[11px] font-medium rounded-lg border transition-colors cursor-pointer bg-card text-muted-foreground border-border hover:bg-muted",
+    "disabled": false
+  },
+  {
+    "type": "button",
+    "text": "Completed",
+    "id": "",
+    "className": "h-7 px-3 text-[11px] font-medium rounded-lg border transition-colors cursor-pointer bg-card text-muted-foreground border-border hover:bg-muted",
+    "disabled": false
+  },
+  {
+    "type": "button",
+    "text": "Failed",
+    "id": "",
+    "className": "h-7 px-3 text-[11px] font-medium rounded-lg border transition-colors cursor-pointer bg-card text-muted-foreground border-border hover:bg-muted",
+    "disabled": false
+  },
+  {
+    "type": "button",
+    "text": "Cancelled",
+    "id": "",
+    "className": "h-7 px-3 text-[11px] font-medium rounded-lg border transition-colors cursor-pointer bg-card text-muted-foreground border-border hover:bg-muted",
+    "disabled": false
+  },
+  {
+    "type": "input",
+    "name": "",
+    "id": "",
+    "placeholder": "Tìm kiếm...",
+    "value": ""
+  },
+  {
+    "type": "table",
+    "headers": [
+      "Nền tảng",
+      "Loại",
+      "Target",
+      "Cấu hình & Nhãn",
+      "Ưu tiên",
+      "Trạng thái",
+      "Tạo lúc",
+      "Thao tác"
+    ],
+    "rowsCount": 1
+  }
+]
