@@ -15,7 +15,7 @@
 ## Quy trình
 
 ### 1. Hiểu bối cảnh hiện tại
-- **Đọc kho tài liệu nếu đã có:** `<dự-án>/.agents/docs/` (overview, architecture, decisions), `<dự-án>/.agents/plans/INDEX.md` (các initiative đã có; initiative 🔄 = đang active → mở `roadmap.md` của nó) — bám tài liệu cũ, đừng làm lại từ đầu (xem `skills/workspace.md`).
+- **Đọc kho tài liệu nếu đã có:** `<dự-án>/docs/` (overview, architecture, decisions), `<dự-án>/.agents/plans/INDEX.md` (các initiative đã có; initiative 🔄 = đang active → mở `roadmap.md` của nó) — bám tài liệu cũ, đừng làm lại từ đầu (xem `skills/workspace.md`).
 - Xem trạng thái dự án (file, tài liệu, kế hoạch, quyết định trước). Dùng `tools/project-inspector/` để xem cấu trúc thật nếu là dự án lạ.
 - Phân biệt cái đã có sẵn vs cái đang đề xuất.
 - Ghi nhận ràng buộc ngầm chưa xác nhận.
@@ -48,8 +48,8 @@ Chia vấn đề lớn thành các phase rõ ràng. Mỗi phase nêu ngắn gọ
 - **GHI ra file thật** theo `skills/workspace.md` (KHÔNG chỉ nói trong chat) — roadmap nằm TRONG thư mục initiative `<loại>-<slug>/` (đặt tên ở bước ⓪), KHÔNG dồn vào một roadmap chung:
   - `<dự-án>/.agents/plans/<loại>-<slug>/roadmap.md` — danh sách phase của initiative này (tất cả ⏳), kèm mục `📍 Đang làm` ghi "chưa bắt đầu phase nào".
   - `<dự-án>/.agents/plans/INDEX.md` — thêm/đăng ký dòng cho initiative này (loại, trạng thái 🔄/⏳); đây là cổng vào toàn cục.
-  - `<dự-án>/.agents/docs/overview.md` — dự án là gì, mục tiêu, phạm vi, non-goals.
-  - `<dự-án>/.agents/docs/architecture.md` — nếu đã rõ kiến trúc/luồng tổng thể.
+  - `<dự-án>/docs/overview.md` — dự án là gì, mục tiêu, phạm vi, non-goals.
+  - `<dự-án>/docs/architecture.md` — nếu đã rõ kiến trúc/luồng tổng thể.
 - Trình bày danh sách, rồi hỏi:
   > "Đây là các phase tôi đề xuất. Bắt đầu với phase nào?
   > A. Phase 1 — ... *(khuyến nghị, vì...)*

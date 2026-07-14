@@ -7,7 +7,7 @@ export class TasksPage extends BasePage {
 
   constructor(page: Page) {
     super(page);
-    this.titleHeading = page.locator('h1:has-text("Chiến dịch & Nhiệm vụ cào")');
+    this.titleHeading = page.locator('h1:has-text("Chiến dịch & Nhiệm vụ")');
     this.tasksTable = page.locator('table');
   }
 

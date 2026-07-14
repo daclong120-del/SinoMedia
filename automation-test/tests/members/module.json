@@ -1,0 +1,10 @@
+{
+  "id": "members",
+  "name": "Member Management",
+  "description": "Kiểm thử danh sách thành viên hệ thống và chức năng mời thành viên mới.",
+  "type": ["ui"],
+  "specs": ["tests/members/members.spec.ts"],
+  "tags": ["@members", "@ui"],
+  "requiresAuth": true,
+  "enabled": true
+}

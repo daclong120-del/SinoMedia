@@ -43,7 +43,7 @@ Docs-only edits không sửa code symbol, nhưng vẫn nên chạy `detect_chang
 
 - `automation-test` là workspace kiểm thử độc lập. Không nhúng runner vào Dashboard production.
 - HTML tĩnh không được tự chạy shell. Nút bấm "Run tests" phải gọi Node runner local trong `automation-test/runner`.
-- Không mở `automation-test/runner/index.html` bằng `file://` để kiểm tra dashboard. Phải chạy `cd automation-test; npm run dashboard` rồi mở `http://localhost:<port>`, nếu không `/api/modules` và `/api/results` sẽ không tồn tại và UI có thể hiện `0 test case`.
+- Không mở `automation-test/runner/index.html` bằng `file://` để kiểm tra dashboard. Phải chạy `cd automation-test; npm run dashboard` rồi mở `http://localhost:<port>`, nếu không `/api/modules`, `/api/results`, `/api/runs`, `/api/runs/:runId/events` sẽ không tồn tại và UI có thể hiện `0 test case` hoặc không stream realtime log.
 - Thêm module test theo kiểu registry: tạo `automation-test/tests/<module>/module.json` + spec tương ứng. Không hardcode module mới vào `runner/index.html` nếu registry đã đáp ứng.
 - Test chính chỉ đặt trong `automation-test/tests/`. Script khảo sát DOM/debug đặt trong `automation-test/explore/` và không được chạy bởi `npm test`.
 - Playwright reporter phải xuất HTML report và JSON result để dashboard local parse pass/fail.
@@ -53,6 +53,14 @@ Docs-only edits không sửa code symbol, nhưng vẫn nên chạy `detect_chang
 - Không commit `playwright-report/`, `test-results/`, HTML dump, `.env`, hoặc thư mục cũ `evident_requirements/`.
 - Evidence chuẩn nằm ở `automation-test/evidence/requirements/`.
 - Không đánh dấu one-click automation runner là Done nếu chưa bấm dashboard chạy test thật và thấy summary pass/fail.
+
+Realtime automation runner traps:
+
+- Neu runner dashboard chay realtime, dung Node runner + SSE/EventSource (`POST /api/runs`, `GET /api/runs/:runId/events`) va custom reporter neu can. Khong quay lai model fetch dai doi Playwright xong roi moi tra mot cuc log/result.
+- Realtime runner phai xoa `automation-test/reports/results.json` truoc moi run de tranh doc stale result khi process fail som.
+- SSE runner phai replay event buffer hoac expose snapshot khi browser connect/reconnect; khong chi emit `run-started`, `run-begin`, `test-begin`, `run-finished` truoc khi client kip ket noi roi mat event.
+- Live test table phai loai `_setup` khoi business counter, dung stable key cho test/retry thay vi chi dung `TC_ID`/`N/A`, va khong hardcode type la `UI` cho backend/API case.
+- Khong commit `automation-test/reports/results.json`, `automation-test/playwright-report/`, `automation-test/test-results/`, screenshot/video/trace runtime, hoac whitespace-only churn trong runner files.
 
 ## Worker direction
 

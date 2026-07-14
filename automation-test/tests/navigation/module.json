@@ -1,0 +1,10 @@
+{
+  "id": "navigation",
+  "name": "Navigation & Sidebar",
+  "description": "Kiểm thử hệ thống menu điều hướng và phân quyền truy cập route.",
+  "type": ["ui"],
+  "specs": ["tests/navigation/navigation.spec.ts"],
+  "tags": ["@navigation", "@ui"],
+  "requiresAuth": true,
+  "enabled": true
+}

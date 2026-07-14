@@ -11,10 +11,11 @@ Huong di dung la:
 ```text
 1 dashboard local
   -> bam Run All / Run UI / Run Backend / Run Module
-    -> Node runner server goi Playwright
-      -> Playwright chay test theo module/spec/tag
-        -> sinh reports/results.json va playwright-report/
-          -> dashboard doc ket qua va hien pass/fail tung test case
+    -> Node runner server tao runId qua POST /api/runs
+      -> dashboard doc log/event realtime qua GET /api/runs/:runId/events
+        -> Playwright chay test theo module/spec/tag
+          -> sinh reports/results.json va playwright-report/
+            -> dashboard reconcile ket qua cuoi va hien pass/fail tung test case
 ```
 
 HTML tinh khong duoc tu chay shell. `automation-test/runner/index.html` chi la UI va phai duoc serve boi `automation-test/runner/server.js`.
@@ -25,19 +26,20 @@ Neu mo truc tiep:
 file:///D:/Python/SinoMedia/automation-test/runner/index.html
 ```
 
-thi cac API `/api/modules`, `/api/results`, `/api/run` khong ton tai. Dashboard se giu gia tri mac dinh `0 test case`. Day la loi cach mo dashboard, khong phai loi test registry.
+thi cac API `/api/modules`, `/api/results`, `/api/runs`, `/api/runs/:runId/events` khong ton tai. Dashboard se giu gia tri mac dinh `0 test case` hoac khong stream duoc log. Day la loi cach mo dashboard, khong phai loi test registry.
 
 ## Trang Thai Hien Tai
 
 | Hang muc | Trang thai | Bang chung / ghi chu |
 |---|---|---|
 | Playwright TS framework | Partial | `package.json`, `playwright.config.ts`, `tsconfig.json`; `npm run typecheck` pass ngay 2026-07-14. |
-| Module registry/factory | Partial | `tests/<module>/module.json`, `src/utils/ModuleRegistry.js`, `ModuleRegistry.ts`, `runner/run-module.js`. Dashboard doc `/api/modules` de render module dong. |
-| Runner dashboard | Partial | `runner/server.js` + `runner/index.html`; phai chay bang `npm run dashboard`, khong mo file HTML truc tiep. |
-| Module hien co | Partial | `auth`, `roles`, `settings`, `tasks`. Moi module co spec va `module.json`. |
+| Module registry/factory | Partial | `tests/<module>/module.json`, `src/utils/ModuleRegistry.js`, `ModuleRegistry.ts`, `runner/run-module.js`. Dashboard doc `/api/modules` de render module dong; review 2026-07-14 dang thay 9 module registry. |
+| Runner dashboard | Partial | `runner/server.js` + `runner/index.html`; phai chay bang `npm run dashboard`, khong mo file HTML truc tiep. Da co skeleton realtime runner qua `POST /api/runs` va SSE `GET /api/runs/:runId/events`. |
+| Realtime runner | Partial | Da co EventSource UI, SSE endpoint va `runner/realtime-reporter.cjs`. Chua Done vi can fix replay/snapshot de khong mat event, xoa stale `reports/results.json` truoc moi run, loai `_setup` khoi live counter, dung stable test key, va khong hardcode live type la `UI`. |
+| Module hien co | Partial | 9 module: `accounts`, `api-tokens`, `auth`, `members`, `navigation`, `proxies`, `roles`, `settings`, `tasks`. Moi module co spec va `module.json`. |
 | Role Management regression | Partial | Backend case pass; UI case dang fail do `TEST_USER_EMAIL=admin_test@sinomedia.vn` bi redirect `/dash/home?error=unauthorized` khi vao `/dash/manage-account/members`. Can fix quyen/test data, khong sua dashboard source trong test-only mode. |
-| A-Z coverage | Planned | Chua co du suite cho Accounts, Proxies, Data, Creative Hub, worker/API regression. |
-| Artifact hygiene | Partial | `.gitignore` da co, nhung artifact runtime nhu `reports/results.json`, `test-results`, `playwright-report` co the van dang nam trong worktree/tracked tu truoc. |
+| A-Z coverage | Partial | Da mo rong them smoke UI module cho accounts/api-tokens/members/navigation/proxies, nhung chua co du suite P1 cho Data, Creative Hub, worker/API/service regression, mutation va security. |
+| Artifact hygiene | Partial | `.gitignore` da co, nhung artifact runtime nhu `reports/results.json`, `test-results`, `playwright-report` co the van dang nam trong worktree/tracked tu truoc. Khong commit artifact runtime khi chot automation-test. |
 
 ## Kien Truc Thu Muc
 
@@ -73,6 +75,8 @@ Quy tac:
 - `explore/` chi dung khao sat DOM/debug, khong de test chinh o day.
 - `runner/` la dashboard local va server Node de goi Playwright.
 - `evidence/requirements/` la noi luu bang chung requirement; khong dung ten cu `evident_requirements`.
+
+Module registry hien tai co 9 module: `accounts`, `api-tokens`, `auth`, `members`, `navigation`, `proxies`, `roles`, `settings`, `tasks`.
 
 ## Module Registry Contract
 
@@ -138,6 +142,19 @@ $env:DASHBOARD_PORT='9324'
 npm run dashboard
 ```
 
+Runner dashboard APIs hien tai:
+
+```text
+GET  /api/modules
+POST /api/runs
+GET  /api/runs/:runId/events
+GET  /api/runs/:runId
+GET  /api/results
+GET  /report/*
+```
+
+`/api/results` chi la final/recent JSON report. Log va event dang chay realtime phai di qua SSE endpoint `/api/runs/:runId/events`.
+
 ## Cach Them Test Case
 
 Them case vao module co san:
@@ -202,6 +219,10 @@ One-click runner chi duoc coi la Done khi:
 - `/api/modules` tra dung danh sach module.
 - Bam Run All/Run Module tren dashboard chay test that.
 - Dashboard hien total/passed/failed/skipped va chi tiet tung test case.
+- Dashboard append log/test event trong khi Playwright dang chay, khong doi chay xong moi do mot cuc log.
+- Client reconnect/connect tre van nhan du state qua replay event buffer hoac snapshot, khong mat `run-begin`, `test-begin`, `run-finished`.
+- Runner xoa `reports/results.json` truoc moi run de tranh stale result.
+- Live counter loai `_setup`, dung stable test key thay vi chi dua vao `TC_ID`/`N/A`.
 - Link Playwright HTML report hoat dong.
 - Test user co quyen phu hop va cac UI regression khong fail vi unauthorized.
 - Artifact runtime khong nam trong commit.

@@ -9,7 +9,41 @@ const PORT = process.env.DASHBOARD_PORT || 3005;
 const playwrightCli = require.resolve('@playwright/test/cli');
 const nodeBin = process.execPath;
 
-let activeTestProcess = null; // Quản lý tiến trình đang chạy
+// Quản lý các lượt chạy kiểm thử thời gian thực
+const runs = new Map();
+let activeRunId = null;
+
+function createRunId() {
+  const dateStr = new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 14);
+  const rand = Math.random().toString(36).substring(2, 6);
+  return `run_${dateStr}_${rand}`;
+}
+
+function emitRunEvent(run, type, payload) {
+  const event = { type, data: payload, timestamp: new Date().toISOString() };
+  run.events.push(event);
+
+  if (run.events.length > 2000) {
+    run.events.shift();
+  }
+
+  run.clients.forEach(client => {
+    writeSse(client, type, payload);
+  });
+}
+
+function writeSse(res, type, payload) {
+  res.write(`event: ${type}\n`);
+  res.write(`data: ${JSON.stringify(payload)}\n\n`);
+}
+
+function cleanupOldRuns() {
+  if (runs.size > 5) {
+    const keys = Array.from(runs.keys());
+    const oldestKey = keys[0];
+    runs.delete(oldestKey);
+  }
+}
 
 const mimeTypes = {
   '.html': 'text/html; charset=utf-8',
@@ -183,11 +217,11 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // 3. API Chạy Test
-  if (pathname === '/api/run' && req.method === 'POST') {
-    if (activeTestProcess) {
+  // 3. API Khởi tạo lượt chạy kiểm thử (Bất đồng bộ)
+  if (pathname === '/api/runs' && req.method === 'POST') {
+    if (activeRunId) {
       res.writeHead(409, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Đang có một tiến trình kiểm thử đang chạy!', running: true }));
+      res.end(JSON.stringify({ error: 'Đang có một tiến trình kiểm thử khác đang chạy!', running: true }));
       return;
     }
 
@@ -209,7 +243,7 @@ const server = http.createServer((req, res) => {
       }
 
       const mode = params.mode || 'all';
-      let args = [playwrightCli, 'test'];
+      let args = ['playwright', 'test'];
 
       if (mode === 'type') {
         const type = params.type;
@@ -230,7 +264,10 @@ const server = http.createServer((req, res) => {
           res.end(JSON.stringify({ error: `Không tìm thấy module: ${moduleId}` }));
           return;
         }
-        args.push(...buildPlaywrightArgsForModule(moduleId));
+        if (mod.requiresAuth) {
+          args.push('tests/_setup/auth.setup.ts');
+        }
+        args.push(...mod.specs);
       } else if (mode !== 'all') {
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Mode không hợp lệ. Phải là "all", "type", hoặc "module"' }));
@@ -241,43 +278,252 @@ const server = http.createServer((req, res) => {
       args.push('--workers=1');
 
       const resultsPath = path.resolve(__dirname, '../reports/results.json');
-      fs.rmSync(resultsPath, { force: true });
+      if (fs.existsSync(resultsPath)) {
+        try {
+          fs.unlinkSync(resultsPath);
+        } catch (e) {
+          console.warn('Không thể xóa reports/results.json cũ:', e);
+        }
+      }
 
-      console.log(`Bắt đầu chạy câu lệnh kiểm thử: ${nodeBin} ${args.join(' ')}`);
+      const runId = createRunId();
+      const run = {
+        id: runId,
+        status: 'running',
+        mode,
+        startedAt: new Date().toISOString(),
+        endedAt: null,
+        command: `npx ${args.join(' ')}`,
+        clients: new Set(),
+        events: [],
+        logs: [],
+        summary: { total: 0, passed: 0, failed: 0, skipped: 0, duration: 0 },
+        testCases: [],
+        exitCode: null
+      };
 
-      let consoleOutput = '';
+      runs.set(runId, run);
+      activeRunId = runId;
+      cleanupOldRuns();
 
-      activeTestProcess = spawn(nodeBin, args, {
-        cwd: path.resolve(__dirname, '..')
+      console.log(`Khởi chạy runId: ${runId} - Lệnh: ${run.command}`);
+
+      const testProcess = spawn('npx', args, {
+        cwd: path.resolve(__dirname, '..'),
+        shell: true,
+        env: {
+          ...process.env,
+          PW_REALTIME_REPORTER: '1'
+        }
       });
 
-      activeTestProcess.stdout.on('data', data => {
-        consoleOutput += data.toString();
+      run.process = testProcess;
+
+      emitRunEvent(run, 'run-started', {
+        runId,
+        command: run.command,
+        startedAt: run.startedAt
       });
 
-      activeTestProcess.stderr.on('data', data => {
-        consoleOutput += data.toString();
-      });
+      let stdoutBuffer = '';
+      let stderrBuffer = '';
 
-      activeTestProcess.on('close', code => {
-        console.log(`Lệnh test hoàn tất với exit code: ${code}`);
-        activeTestProcess = null;
+      const handleOutput = (streamType, chunk) => {
+        if (streamType === 'stdout') {
+          stdoutBuffer += chunk.toString();
+          let lines = stdoutBuffer.split('\n');
+          stdoutBuffer = lines.pop(); // giữ lại dòng chưa hoàn chỉnh
+          for (const line of lines) {
+            const cleanLine = line.trim();
+            if (cleanLine.startsWith('__PW_EVENT__')) {
+              try {
+                const eventData = JSON.parse(cleanLine.substring(12));
+                if (eventData.type === 'run-begin') {
+                  run.summary.total = eventData.total;
+                  emitRunEvent(run, 'run-begin', { total: eventData.total });
+                } else if (eventData.type === 'test-begin') {
+                  const tc = {
+                    pwTestId: eventData.pwTestId,
+                    testCaseId: eventData.id,
+                    title: eventData.title.replace(/@\w+/g, '').trim(),
+                    module: eventData.module,
+                    type: eventData.testType || 'UI',
+                    status: 'running',
+                    duration: 0,
+                    errorMessage: ''
+                  };
+                  run.testCases.push(tc);
+                  emitRunEvent(run, 'test-begin', tc);
+                } else if (eventData.type === 'test-end') {
+                  const tc = run.testCases.find(t => t.pwTestId === eventData.pwTestId);
+                  if (tc) {
+                    tc.status = eventData.status === 'passed' ? 'passed' : eventData.status === 'skipped' ? 'skipped' : 'failed';
+                    tc.duration = eventData.duration;
+                    tc.errorMessage = eventData.errorMessage;
+                  }
+
+                  // Tạm thời tự đếm counters trên server
+                  run.summary.passed = run.testCases.filter(t => t.status === 'passed').length;
+                  run.summary.skipped = run.testCases.filter(t => t.status === 'skipped').length;
+                  run.summary.failed = run.testCases.filter(t => t.status === 'failed' || t.status === 'timedOut').length;
+
+                  emitRunEvent(run, 'test-end', {
+                    pwTestId: eventData.pwTestId,
+                    id: eventData.id,
+                    status: eventData.status,
+                    duration: eventData.duration,
+                    errorMessage: eventData.errorMessage,
+                    summary: run.summary
+                  });
+                }
+              } catch (e) {
+                console.error('Lỗi khi parse event JSON:', e);
+              }
+            } else {
+              run.logs.push(line);
+              if (run.logs.length > 2000) run.logs.shift();
+              emitRunEvent(run, 'log', { stream: 'stdout', line });
+            }
+          }
+        } else {
+          stderrBuffer += chunk.toString();
+          let lines = stderrBuffer.split('\n');
+          stderrBuffer = lines.pop();
+          for (const line of lines) {
+            run.logs.push(line);
+            if (run.logs.length > 2000) run.logs.shift();
+            emitRunEvent(run, 'log', { stream: 'stderr', line });
+          }
+        }
+      };
+
+      testProcess.stdout.on('data', chunk => handleOutput('stdout', chunk));
+      testProcess.stderr.on('data', chunk => handleOutput('stderr', chunk));
+
+      testProcess.on('close', code => {
+        // Xử lý nốt buffer dở dang
+        if (stdoutBuffer.trim()) {
+          emitRunEvent(run, 'log', { stream: 'stdout', line: stdoutBuffer });
+        }
+        if (stderrBuffer.trim()) {
+          emitRunEvent(run, 'log', { stream: 'stderr', line: stderrBuffer });
+        }
+
+        console.log(`Lượt chạy ${runId} hoàn tất với exit code: ${code}`);
+        run.status = code === 0 ? 'completed' : 'failed';
+        run.endedAt = new Date().toISOString();
+        run.exitCode = code;
+        activeRunId = null;
 
         const results = parsePlaywrightResults(resultsPath);
-        results.consoleOutput = consoleOutput;
-        results.exitCode = code;
 
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(results));
+        // Reconcile kết quả cuối cùng từ file reports/results.json của Playwright
+        if (results && results.testCases && results.testCases.length > 0) {
+          run.summary = results.summary;
+          run.testCases = results.testCases;
+        }
+
+        emitRunEvent(run, 'result-final', {
+          summary: run.summary,
+          testCases: run.testCases
+        });
+
+        emitRunEvent(run, 'run-finished', {
+          exitCode: code,
+          summary: run.summary
+        });
+
+        // Kết thúc kết nối với tất cả các client
+        run.clients.forEach(client => {
+          client.end();
+        });
+        run.clients.clear();
       });
 
-      activeTestProcess.on('error', err => {
+      testProcess.on('error', err => {
         console.error('Lỗi khi spawn tiến trình test:', err);
-        activeTestProcess = null;
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Không thể khởi chạy tiến trình test', details: err.message }));
+        activeRunId = null;
+        run.status = 'error';
+        run.endedAt = new Date().toISOString();
+        emitRunEvent(run, 'run-error', { message: err.message });
+
+        run.clients.forEach(client => {
+          client.end();
+        });
+        run.clients.clear();
       });
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        runId,
+        status: run.status,
+        mode: run.mode,
+        startedAt: run.startedAt
+      }));
     });
+    return;
+  }
+
+  // 3.1 API Stream kết quả chạy kiểm thử (SSE)
+  if (pathname.startsWith('/api/runs/') && pathname.endsWith('/events') && req.method === 'GET') {
+    const parts = pathname.split('/');
+    const runId = parts[3];
+    const run = runs.get(runId);
+
+    if (!run) {
+      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Không tìm thấy runId tương ứng!');
+      return;
+    }
+
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive'
+    });
+
+    const keepAliveInterval = setInterval(() => {
+      res.write(': keepalive\n\n');
+    }, 15000);
+
+    run.clients.add(res);
+
+    // Gửi lại lịch sử toàn bộ các sự kiện cũ bao gồm logs/test status theo đúng thứ tự
+    if (run.events.length > 0) {
+      run.events.forEach(evt => {
+        writeSse(res, evt.type, evt.data);
+      });
+    }
+
+    req.on('close', () => {
+      clearInterval(keepAliveInterval);
+      run.clients.delete(res);
+    });
+    return;
+  }
+
+  // 3.2 API Lấy chi tiết snapshot lượt chạy
+  if (pathname.startsWith('/api/runs/') && !pathname.endsWith('/events') && req.method === 'GET') {
+    const parts = pathname.split('/');
+    const runId = parts[3];
+    const run = runs.get(runId);
+
+    if (!run) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Không tìm thấy runId tương ứng!' }));
+      return;
+    }
+
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      runId: run.id,
+      status: run.status,
+      mode: run.mode,
+      startedAt: run.startedAt,
+      endedAt: run.endedAt,
+      summary: run.summary,
+      testCases: run.testCases
+    }));
     return;
   }
 

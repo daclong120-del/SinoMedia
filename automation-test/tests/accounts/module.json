@@ -1,0 +1,10 @@
+{
+  "id": "accounts",
+  "name": "Crawler Accounts",
+  "description": "Kiểm thử danh sách tài khoản crawl (nền tảng, cookie, import và kiểm tra sức khỏe).",
+  "type": ["ui"],
+  "specs": ["tests/accounts/accounts.spec.ts"],
+  "tags": ["@accounts", "@ui"],
+  "requiresAuth": true,
+  "enabled": true
+}

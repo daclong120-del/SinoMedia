@@ -92,6 +92,13 @@ Backlog coverage A-Z:
 - Creative Hub.
 - Worker/API/service regression.
 
+Realtime runner direction:
+
+- Local runner dashboard di theo huong `POST /api/runs` tao `runId` ngay, sau do `GET /api/runs/:runId/events` stream log/event bang SSE/EventSource. Khong quay lai model `POST /api/run` doi Playwright chay xong moi tra mot cuc JSON.
+- `reports/results.json` van la final source of truth de reconcile ket qua cuoi run, nhung runner phai xoa file result cu truoc moi run de tranh hien pass/fail stale khi Playwright chet som.
+- SSE client phai nhan du event ngay ca khi connect tre: can replay event buffer hoac lay snapshot tu `GET /api/runs/:runId`, khong chi replay raw log lines.
+- Live table/counter phai loai `_setup` khoi business test case, dung stable test key thay vi TC_ID/N/A don le, va khong hardcode tat ca live case la `UI`.
+
 ## Phase 2: Crawler Pipeline as Worker
 
 Trạng thái: In progress

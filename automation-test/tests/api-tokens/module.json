@@ -1,0 +1,10 @@
+{
+  "id": "api-tokens",
+  "name": "API Token Management",
+  "description": "Kiểm thử khóa truy cập API (hiển thị danh sách, thêm và thu hồi token).",
+  "type": ["ui"],
+  "specs": ["tests/api-tokens/api-tokens.spec.ts"],
+  "tags": ["@api-tokens", "@ui"],
+  "requiresAuth": true,
+  "enabled": true
+}

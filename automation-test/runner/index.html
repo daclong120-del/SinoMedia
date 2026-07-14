@@ -29,7 +29,7 @@
     body {
       font-family: 'Inter', sans-serif;
       background-color: var(--bg-color);
-      background-image: 
+      background-image:
         radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
         radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
       background-attachment: fixed;
@@ -364,6 +364,11 @@
       color: #fbbf24;
     }
 
+    .badge-running {
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+    }
+
     .badge-type {
       background: rgba(255, 255, 255, 0.08);
       color: var(--text-main);
@@ -593,7 +598,85 @@
       clearInterval(timerInterval);
     }
 
+    let eventSource = null;
+    let activeStreamRunId = null;
+    let streamCompleted = false;
+    let lastStreamErrorAt = 0;
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function escapeRegExp(value) {
+      return String(value ?? '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function cleanTestTitle(tc) {
+      const rawTitle = String(tc?.title || '').replace(/@\w+/g, '').trim();
+      const id = tc?.testCaseId || tc?.id;
+      if (!id) {
+        return rawTitle.replace(/^TC_[A-Z0-9_]+\s*-\s*/i, '').trim();
+      }
+      return rawTitle.replace(new RegExp(`^\\s*${escapeRegExp(id)}\\s*-\\s*`, 'i'), '').trim();
+    }
+
+    function testKey(tc) {
+      const fallback = [tc?.testCaseId || tc?.id, tc?.module, tc?.title]
+        .filter(Boolean)
+        .join('|');
+      return String(tc?.pwTestId || tc?.testKey || fallback || 'unknown-test');
+    }
+
+    function testRowId(tc) {
+      return `tc-row-${testKey(tc).replace(/[^a-zA-Z0-9_-]/g, '_')}`;
+    }
+
+    function normalizeStatus(status) {
+      if (status === 'passed') return 'passed';
+      if (status === 'skipped') return 'skipped';
+      if (status === 'running') return 'running';
+      return 'failed';
+    }
+
+    function statusBadge(status) {
+      const normalized = normalizeStatus(status);
+      if (normalized === 'passed') {
+        return '<span class="badge badge-passed">PASS</span>';
+      }
+      if (normalized === 'skipped') {
+        return '<span class="badge badge-skipped">SKIP</span>';
+      }
+      if (normalized === 'running') {
+        return '<span class="badge badge-running">RUNNING</span>';
+      }
+      return '<span class="badge badge-failed">FAIL</span>';
+    }
+
+    function durationText(duration) {
+      const ms = Number(duration) || 0;
+      return `${(ms / 1000).toFixed(2)}s`;
+    }
+
+    function testLabel(tc) {
+      const id = tc?.testCaseId || tc?.id || 'N/A';
+      const title = cleanTestTitle(tc);
+      return `${id} - ${title}`.trim();
+    }
+
     function runTest(mode, target = null) {
+      if (eventSource) {
+        eventSource.close();
+        eventSource = null;
+      }
+      activeStreamRunId = null;
+      streamCompleted = false;
+      lastStreamErrorAt = 0;
+
       // 1. Vô hiệu hóa các nút bấm chạy test
       const buttons = document.querySelectorAll('.btn');
       buttons.forEach(btn => btn.disabled = true);
@@ -602,7 +685,7 @@
       const loader = document.getElementById('runner-loader');
       const loaderStatus = document.getElementById('loader-status');
       loader.style.display = 'flex';
-      
+
       let payload = { mode };
       let runLabel = 'tất cả kiểm thử';
 
@@ -617,14 +700,27 @@
       }
 
       loaderStatus.innerText = `Đang chạy ${runLabel}...`;
-      
-      document.getElementById('console-output').innerText = `[INFO] Gửi yêu cầu chạy kiểm thử...\nPayload: ${JSON.stringify(payload)}\nVui lòng đợi cho đến khi hoàn tất.`;
+
+      // Clear console và table
+      const consoleEl = document.getElementById('console-output');
+      consoleEl.innerHTML = '';
       document.getElementById('log-status').innerText = "RUNNING";
+
+      // Reset stats
+      document.getElementById('stat-total').innerText = '0';
+      document.getElementById('stat-passed').innerText = '0';
+      document.getElementById('stat-failed').innerText = '0';
+      document.getElementById('stat-skipped').innerText = '0';
+      document.getElementById('stat-duration').innerText = '0.0s';
+
+      // Clear table
+      const tbody = document.getElementById('test-cases-body');
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 3rem;">Đang chuẩn bị kiểm thử...</td></tr>`;
 
       startTimer();
 
-      // 3. Gọi API kích hoạt chạy test
-      fetch('/api/run', {
+      // Gọi API khởi tạo run
+      fetch('/api/runs', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -634,31 +730,184 @@
         .then(async res => {
           const data = await res.json();
           if (!res.ok) {
-            throw new Error(data.error || `Request failed with status ${res.status}`);
+            throw new Error(data.error || `Yêu cầu thất bại với status ${res.status}`);
           }
           return data;
         })
         .then(data => {
-          stopTimer();
-          loader.style.display = 'none';
-          buttons.forEach(btn => btn.disabled = false);
-          document.getElementById('log-status').innerText = "COMPLETED";
+          const runId = data.runId;
+          activeStreamRunId = runId;
+          appendConsoleLine(`[INFO] Đã khởi tạo lượt chạy ${runId}. Đang thiết lập kết nối streaming...`, 'stdout');
 
-          // Cập nhật giao diện
-          updateDashboard(data);
+          // Kết nối SSE
+          eventSource = new EventSource(`/api/runs/${runId}/events`);
 
-          if (data.consoleOutput) {
-            document.getElementById('console-output').innerText = data.consoleOutput;
-          }
+          eventSource.addEventListener('run-started', e => {
+            appendConsoleLine(`[INFO] Bắt đầu chạy lệnh: ${JSON.parse(e.data).command}`, 'stdout');
+          });
+
+          eventSource.addEventListener('run-begin', e => {
+            const beginData = JSON.parse(e.data);
+            document.getElementById('stat-total').innerText = beginData.total;
+            tbody.innerHTML = ''; // Clear dòng đang chuẩn bị
+            appendConsoleLine(`[INFO] Playwright started. Business test cases: ${beginData.total}`, 'stdout');
+          });
+
+          eventSource.addEventListener('log', e => {
+            const logData = JSON.parse(e.data);
+            appendConsoleLine(logData.line, logData.stream);
+          });
+
+          eventSource.addEventListener('test-begin', e => {
+            const tc = JSON.parse(e.data);
+            updateLiveTestCase(tc);
+            appendConsoleLine(`[RUNNING] ${testLabel(tc)}`, 'stdout');
+          });
+
+          eventSource.addEventListener('test-end', e => {
+            const eventData = JSON.parse(e.data);
+            updateLiveTestCaseEnd(eventData);
+            const stream = normalizeStatus(eventData.status) === 'failed' ? 'stderr' : 'stdout';
+            appendConsoleLine(`[${normalizeStatus(eventData.status).toUpperCase()}] ${eventData.id || eventData.testCaseId || 'N/A'} (${durationText(eventData.duration)})`, stream);
+          });
+
+          eventSource.addEventListener('result-final', e => {
+            const finalData = JSON.parse(e.data);
+            updateDashboard(finalData);
+            appendConsoleLine(`[INFO] Kết quả cuối cùng đã được cập nhật đối soát từ reports/results.json.`, 'stdout');
+          });
+
+          eventSource.addEventListener('run-finished', e => {
+            const finishedData = JSON.parse(e.data);
+            streamCompleted = true;
+            appendConsoleLine(`[INFO] Lượt chạy kết thúc với exit code: ${finishedData.exitCode}`, 'stdout');
+            cleanupRunConnection(finishedData.exitCode !== 0, finishedData.exitCode === 0 ? "COMPLETED" : "FAILED");
+          });
+
+          eventSource.addEventListener('run-error', e => {
+            const errData = JSON.parse(e.data);
+            appendConsoleLine(`[ERROR] Lỗi tiến trình: ${errData.message}`, 'stderr');
+            cleanupRunConnection(true);
+          });
+
+          eventSource.onerror = () => {
+            if (streamCompleted) {
+              return;
+            }
+
+            const now = Date.now();
+            if (now - lastStreamErrorAt > 3000) {
+              lastStreamErrorAt = now;
+              appendConsoleLine(`[WARNING] Mất kết nối tới server. Đang kiểm tra snapshot run...`, 'stderr');
+            }
+            document.getElementById('log-status').innerText = "RECONNECTING";
+
+            if (activeStreamRunId) {
+              fetch(`/api/runs/${activeStreamRunId}`)
+                .then(res => res.ok ? res.json() : null)
+                .then(snapshot => {
+                  if (!snapshot) return;
+                  if (snapshot.status === 'completed' || snapshot.status === 'failed' || snapshot.status === 'error') {
+                    streamCompleted = true;
+                    updateDashboard(snapshot);
+                    cleanupRunConnection(snapshot.status !== 'completed', snapshot.status === 'completed' ? "COMPLETED" : "FAILED");
+                  }
+                })
+                .catch(() => {});
+            }
+          };
         })
         .catch(err => {
           stopTimer();
           loader.style.display = 'none';
           buttons.forEach(btn => btn.disabled = false);
           document.getElementById('log-status').innerText = "ERROR";
-          document.getElementById('console-output').innerText = `Lỗi hệ thống: ${err.message}`;
+          consoleEl.innerText = `Lỗi hệ thống: ${err.message}`;
           alert(`Yêu cầu thất bại: ${err.message}`);
         });
+    }
+
+    function cleanupRunConnection(isError = false, statusText = null) {
+      if (eventSource) {
+        eventSource.close();
+        eventSource = null;
+      }
+      activeStreamRunId = null;
+      stopTimer();
+      document.getElementById('runner-loader').style.display = 'none';
+      const buttons = document.querySelectorAll('.btn');
+      buttons.forEach(btn => btn.disabled = false);
+      document.getElementById('log-status').innerText = statusText || (isError ? "ERROR" : "COMPLETED");
+    }
+
+    function appendConsoleLine(line, stream) {
+      const consoleEl = document.getElementById('console-output');
+      const div = document.createElement('div');
+      div.style.color = stream === 'stderr' ? '#f87171' : '#34d399';
+      div.innerText = line;
+      consoleEl.appendChild(div);
+
+      // Giới hạn số dòng DOM để tránh lag
+      if (consoleEl.children.length > 1000) {
+        consoleEl.removeChild(consoleEl.firstChild);
+      }
+
+      autoScrollConsole();
+    }
+
+    function autoScrollConsole() {
+      const consoleEl = document.getElementById('console-output');
+      consoleEl.scrollTop = consoleEl.scrollHeight;
+    }
+
+    function updateLiveTestCase(tc) {
+      const tbody = document.getElementById('test-cases-body');
+
+      // Xóa dòng thông báo "Chưa có dữ liệu" hoặc "Đang chuẩn bị"
+      if (tbody.rows.length === 1 && tbody.rows[0].cells.length === 1) {
+        tbody.innerHTML = '';
+      }
+
+      const rowId = testRowId(tc);
+      let row = document.getElementById(rowId);
+      if (!row) {
+        row = document.createElement('tr');
+        row.id = rowId;
+        tbody.appendChild(row);
+      }
+
+      row.innerHTML = `
+        <td class="tc-id">${escapeHtml(tc.testCaseId || tc.id || 'N/A')}</td>
+        <td>${escapeHtml(tc.module || 'General')}</td>
+        <td><span class="badge badge-type">${escapeHtml(tc.type || 'UI')}</span></td>
+        <td><div>${escapeHtml(cleanTestTitle(tc))}</div></td>
+        <td>${statusBadge('running')}</td>
+        <td style="font-feature-settings: 'tnum';">0.00s</td>
+      `;
+    }
+
+    function updateLiveTestCaseEnd(data) {
+      // Cập nhật bộ đếm
+      if (data.summary) {
+        document.getElementById('stat-passed').innerText = data.summary.passed;
+        document.getElementById('stat-failed').innerText = data.summary.failed;
+        document.getElementById('stat-skipped').innerText = data.summary.skipped;
+      }
+
+      const rowId = testRowId(data);
+      const row = document.getElementById(rowId);
+      if (row) {
+        const titleCell = row.cells[3];
+        const titleText = titleCell.querySelector('div').innerText;
+        let titleHtml = `<div>${escapeHtml(titleText)}</div>`;
+        if (data.errorMessage) {
+          titleHtml += `<div class="error-log">${escapeHtml(data.errorMessage)}</div>`;
+        }
+
+        row.cells[3].innerHTML = titleHtml;
+        row.cells[4].innerHTML = statusBadge(data.status);
+        row.cells[5].innerText = durationText(data.duration);
+      }
     }
 
     function updateDashboard(data) {
@@ -667,7 +916,7 @@
       document.getElementById('stat-passed').innerText = data.summary.passed;
       document.getElementById('stat-failed').innerText = data.summary.failed;
       document.getElementById('stat-skipped').innerText = data.summary.skipped;
-      
+
       const durationSec = (data.summary.duration / 1000).toFixed(1);
       document.getElementById('stat-duration').innerText = `${durationSec}s`;
 
@@ -682,30 +931,20 @@
 
       data.testCases.forEach(tc => {
         const tr = document.createElement('tr');
-        
-        let statusBadge = '';
-        if (tc.status === 'passed') {
-          statusBadge = '<span class="badge badge-passed">PASS</span>';
-        } else if (tc.status === 'failed') {
-          statusBadge = '<span class="badge badge-failed">FAIL</span>';
-        } else {
-          statusBadge = '<span class="badge badge-skipped">SKIP</span>';
-        }
+        tr.id = testRowId(tc);
 
-        const durationSec = (tc.duration / 1000).toFixed(2);
-        
-        let titleHtml = `<div>${tc.title}</div>`;
+        let titleHtml = `<div>${escapeHtml(cleanTestTitle(tc))}</div>`;
         if (tc.errorMessage) {
-          titleHtml += `<div class="error-log">${tc.errorMessage}</div>`;
+          titleHtml += `<div class="error-log">${escapeHtml(tc.errorMessage)}</div>`;
         }
 
         tr.innerHTML = `
-          <td class="tc-id">${tc.testCaseId}</td>
-          <td>${tc.module}</td>
-          <td><span class="badge badge-type">${tc.type}</span></td>
+          <td class="tc-id">${escapeHtml(tc.testCaseId || tc.id || 'N/A')}</td>
+          <td>${escapeHtml(tc.module || 'General')}</td>
+          <td><span class="badge badge-type">${escapeHtml(tc.type || 'UI')}</span></td>
           <td>${titleHtml}</td>
-          <td>${statusBadge}</td>
-          <td style="font-feature-settings: 'tnum';">${durationSec}s</td>
+          <td>${statusBadge(tc.status)}</td>
+          <td style="font-feature-settings: 'tnum';">${durationText(tc.duration)}</td>
         `;
         tbody.appendChild(tr);
       });

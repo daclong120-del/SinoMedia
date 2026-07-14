@@ -13,7 +13,7 @@ Khong mo truc tiep file nay:
 automation-test/runner/index.html
 ```
 
-Neu mo bang `file:///.../runner/index.html`, browser khong goi duoc API `/api/modules` va `/api/results`, nen man hinh se hien `0 test case`.
+Neu mo bang `file:///.../runner/index.html`, browser khong goi duoc API `/api/modules`, `/api/results`, `/api/runs`, `/api/runs/:runId/events`, nen man hinh se hien `0 test case` hoac khong stream duoc log realtime.
 
 Phai chay Node runner server:
 
@@ -74,6 +74,8 @@ automation-test/
 └─ playwright-report/           # HTML report sinh boi Playwright, khong commit
 ```
 
+Ghi chu trang thai hien tai: `runner/realtime-reporter.cjs` da duoc them de stream event realtime, va `tests/` hien co 9 module registry: `accounts`, `api-tokens`, `auth`, `members`, `navigation`, `proxies`, `roles`, `settings`, `tasks`.
+
 ## Module Registry
 
 Moi module test la mot thu muc trong `tests/<module>/` va co file `module.json`.
@@ -94,6 +96,21 @@ Vi du:
 ```
 
 Runner doc tat ca `module.json` bang `src/utils/ModuleRegistry.js`. Dashboard goi `/api/modules` de render nut chay module, nen them module moi khong can sua `runner/index.html`.
+
+## Realtime Runner
+
+Dashboard hien tai di theo huong realtime:
+
+```text
+POST /api/runs
+GET  /api/runs/:runId/events
+GET  /api/runs/:runId
+GET  /api/results
+```
+
+`POST /api/runs` tao run va tra `runId` som. Browser dung `EventSource` de doc `/api/runs/:runId/events`, nhan log/test event trong khi Playwright dang chay. `/api/results` van chi la final/recent JSON report de reconcile ket qua cuoi.
+
+Trang thai realtime runner van la Partial. Truoc khi coi la Done can fix cac diem: replay/snapshot de client connect tre khong mat event, xoa `reports/results.json` truoc moi run de tranh stale result, loai `_setup` khoi live business counter, dung stable test key thay vi chi dua vao `TC_ID`/`N/A`, va khong hardcode live type la `UI`.
 
 ## Commands
 
@@ -179,11 +196,13 @@ Bang chung trong phien review 2026-07-14:
 | Hang muc | Ket qua |
 |---|---|
 | `npm run typecheck` | Pass |
-| `npx.cmd playwright test --list` | Pass, list du 9 muc gom setup |
+| `npx.cmd playwright test --list` | Pass trong review; dung de kiem tra Playwright nhan suite hien co |
 | `npm run test:ui -- --list` | Pass |
 | `npm run test:backend -- --list` | Pass |
 | `npm run test:module -- roles -- --list` | Pass |
-| `GET /api/modules` qua `npm run dashboard` | Tra 4 module: `auth`, `roles`, `settings`, `tasks` |
+| `node --check runner/server.js` | Pass |
+| `GET /api/modules` qua `npm run dashboard` | Pass tren runner port tam, tra 9 module: `accounts`, `api-tokens`, `auth`, `members`, `navigation`, `proxies`, `roles`, `settings`, `tasks` |
+| Realtime runner | Partial: co SSE/EventSource va `runner/realtime-reporter.cjs`, nhung con can fix replay/snapshot, stale result, `_setup` counter, stable key va live type |
 | `npm run test:module -- roles` | Partial: backend role pass, 2 UI role fail vi test user bi redirect unauthorized |
 
 ## Artifact Hygiene

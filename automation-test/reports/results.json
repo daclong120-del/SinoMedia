@@ -4,6 +4,8 @@
       "C:\\Program Files\\nodejs\\node.exe",
       "D:\\Python\\SinoMedia\\automation-test\\node_modules\\@playwright\\test\\cli.js",
       "test",
+      "--grep",
+      "@backend",
       "--workers=1"
     ],
     "configFile": "D:\\Python\\SinoMedia\\automation-test\\playwright.config.ts",
@@ -68,6 +70,10 @@
         {
           "outputFile": "reports/results.json"
         }
+      ],
+      [
+        "D:\\Python\\SinoMedia\\automation-test\\runner\\realtime-reporter.cjs",
+        null
       ]
     ],
     "reportSlowTests": {
@@ -105,7 +111,7 @@
                   "workerIndex": 0,
                   "parallelIndex": 0,
                   "status": "passed",
-                  "duration": 2138,
+                  "duration": 1905,
                   "errors": [],
                   "stdout": [
                     {
@@ -117,7 +123,7 @@
                   ],
                   "stderr": [],
                   "retry": 0,
-                  "startTime": "2026-07-14T05:00:30.672Z",
+                  "startTime": "2026-07-14T07:19:01.506Z",
                   "annotations": [],
                   "attachments": []
                 }
@@ -133,295 +139,12 @@
       ]
     },
     {
-      "title": "auth\\auth.spec.ts",
-      "file": "auth/auth.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "Authentication and Access Control @ui @auth",
-          "file": "auth/auth.spec.ts",
-          "line": 8,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC_AUTH_001 - Đăng nhập thành công với tài khoản kiểm thử hợp lệ @auth @ui",
-              "ok": true,
-              "tags": [
-                "ui",
-                "auth",
-                "auth",
-                "ui"
-              ],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 1686,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "TC_AUTH_001: Đăng nhập với tài khoản: admin_test@sinomedia.vn\n"
-                        },
-                        {
-                          "text": "TC_AUTH_001: Đăng nhập và chuyển hướng dashboard thành công (PASS)\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-14T05:00:33.311Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "11ab049aabb515b3eeb7-658ae1aa9af6c18c8f81",
-              "file": "auth/auth.spec.ts",
-              "line": 13,
-              "column": 7
-            },
-            {
-              "title": "TC_AUTH_002 - Chặn truy cập trái phép và redirect về login khi chưa xác thực @auth @ui",
-              "ok": true,
-              "tags": [
-                "ui",
-                "auth",
-                "auth",
-                "ui"
-              ],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 890,
-                      "errors": [],
-                      "stdout": [
-                        {
-                          "text": "TC_AUTH_002: Thử truy cập trực tiếp /dash/tasks khi chưa đăng nhập\n"
-                        },
-                        {
-                          "text": "TC_AUTH_002: Chặn truy cập trái phép và redirect về login thành công (PASS)\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-14T05:00:35.102Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "11ab049aabb515b3eeb7-d1ba3d621dec5779617c",
-              "file": "auth/auth.spec.ts",
-              "line": 24,
-              "column": 7
-            }
-          ]
-        }
-      ]
-    },
-    {
       "title": "roles\\role_management.spec.ts",
       "file": "roles/role_management.spec.ts",
       "column": 0,
       "line": 0,
       "specs": [],
       "suites": [
-        {
-          "title": "Role Management UI - Deletion Protection @ui @role",
-          "file": "roles/role_management.spec.ts",
-          "line": 8,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC_ROLE_001 - Chặn xóa vai trò mặc định \"admin\" trên UI @role @ui",
-              "ok": false,
-              "tags": [
-                "ui",
-                "role",
-                "role",
-                "ui"
-              ],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 1,
-                      "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 19996,
-                      "error": {
-                        "message": "Error: Members page did not render after navigation. Current URL: http://127.0.0.1:3000/dash/home?error=unauthorized. Check TEST_USER_EMAIL permissions for /dash/manage-account/members.",
-                        "stack": "Error: Members page did not render after navigation. Current URL: http://127.0.0.1:3000/dash/home?error=unauthorized. Check TEST_USER_EMAIL permissions for /dash/manage-account/members.\n    at MembersPage.goto (D:\\Python\\SinoMedia\\automation-test\\src\\pages\\MembersPage.ts:33:13)\n    at D:\\Python\\SinoMedia\\automation-test\\tests\\roles\\role_management.spec.ts:18:5",
-                        "location": {
-                          "file": "D:\\Python\\SinoMedia\\automation-test\\src\\pages\\MembersPage.ts",
-                          "column": 13,
-                          "line": 33
-                        },
-                        "snippet": "\u001b[90m   at \u001b[39m..\\src\\pages\\MembersPage.ts:33\n\n\u001b[0m \u001b[90m 31 |\u001b[39m\n \u001b[90m 32 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39m(\u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39misMembersPageVisible(\u001b[35m10000\u001b[39m))) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 33 |\u001b[39m       \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m`Members page did not render after navigation. Current URL: ${this.page.url()}. Check TEST_USER_EMAIL permissions for /dash/manage-account/members.`\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 34 |\u001b[39m     }\n \u001b[90m 35 |\u001b[39m   }\n \u001b[90m 36 |\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "D:\\Python\\SinoMedia\\automation-test\\src\\pages\\MembersPage.ts",
-                            "column": 13,
-                            "line": 33
-                          },
-                          "message": "Error: Members page did not render after navigation. Current URL: http://127.0.0.1:3000/dash/home?error=unauthorized. Check TEST_USER_EMAIL permissions for /dash/manage-account/members.\n\n   at ..\\src\\pages\\MembersPage.ts:33\n\n  31 |\n  32 |     if (!(await this.isMembersPageVisible(10000))) {\n> 33 |       throw new Error(`Members page did not render after navigation. Current URL: ${this.page.url()}. Check TEST_USER_EMAIL permissions for /dash/manage-account/members.`);\n     |             ^\n  34 |     }\n  35 |   }\n  36 |\n    at MembersPage.goto (D:\\Python\\SinoMedia\\automation-test\\src\\pages\\MembersPage.ts:33:13)\n    at D:\\Python\\SinoMedia\\automation-test\\tests\\roles\\role_management.spec.ts:18:5"
-                        }
-                      ],
-                      "stdout": [
-                        {
-                          "text": "TC_ROLE_001: Điều hướng tới trang quản lý thành viên /dash/manage-account/members\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-14T05:00:36.102Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "D:\\Python\\SinoMedia\\automation-test\\test-results\\roles-role_management-Role-d0bbe--định-admin-trên-UI-role-ui-chromium\\test-failed-1.png"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "D:\\Python\\SinoMedia\\automation-test\\test-results\\roles-role_management-Role-d0bbe--định-admin-trên-UI-role-ui-chromium\\error-context.md"
-                        },
-                        {
-                          "name": "trace",
-                          "contentType": "application/zip",
-                          "path": "D:\\Python\\SinoMedia\\automation-test\\test-results\\roles-role_management-Role-d0bbe--định-admin-trên-UI-role-ui-chromium\\trace.zip"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "D:\\Python\\SinoMedia\\automation-test\\src\\pages\\MembersPage.ts",
-                        "column": 13,
-                        "line": 33
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "2554cd4bf868832b666f-488d3e2e5b59ec4deb14",
-              "file": "roles/role_management.spec.ts",
-              "line": 15,
-              "column": 7
-            },
-            {
-              "title": "TC_ROLE_002 - Chặn xóa vai trò mặc định \"user\" trên UI @role @ui",
-              "ok": false,
-              "tags": [
-                "ui",
-                "role",
-                "role",
-                "ui"
-              ],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 21740,
-                      "error": {
-                        "message": "Error: Members page did not render after navigation. Current URL: http://127.0.0.1:3000/dash/home?error=unauthorized. Check TEST_USER_EMAIL permissions for /dash/manage-account/members.",
-                        "stack": "Error: Members page did not render after navigation. Current URL: http://127.0.0.1:3000/dash/home?error=unauthorized. Check TEST_USER_EMAIL permissions for /dash/manage-account/members.\n    at MembersPage.goto (D:\\Python\\SinoMedia\\automation-test\\src\\pages\\MembersPage.ts:33:13)\n    at D:\\Python\\SinoMedia\\automation-test\\tests\\roles\\role_management.spec.ts:36:5",
-                        "location": {
-                          "file": "D:\\Python\\SinoMedia\\automation-test\\src\\pages\\MembersPage.ts",
-                          "column": 13,
-                          "line": 33
-                        },
-                        "snippet": "\u001b[90m   at \u001b[39m..\\src\\pages\\MembersPage.ts:33\n\n\u001b[0m \u001b[90m 31 |\u001b[39m\n \u001b[90m 32 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33m!\u001b[39m(\u001b[36mawait\u001b[39m \u001b[36mthis\u001b[39m\u001b[33m.\u001b[39misMembersPageVisible(\u001b[35m10000\u001b[39m))) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 33 |\u001b[39m       \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m`Members page did not render after navigation. Current URL: ${this.page.url()}. Check TEST_USER_EMAIL permissions for /dash/manage-account/members.`\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 34 |\u001b[39m     }\n \u001b[90m 35 |\u001b[39m   }\n \u001b[90m 36 |\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "D:\\Python\\SinoMedia\\automation-test\\src\\pages\\MembersPage.ts",
-                            "column": 13,
-                            "line": 33
-                          },
-                          "message": "Error: Members page did not render after navigation. Current URL: http://127.0.0.1:3000/dash/home?error=unauthorized. Check TEST_USER_EMAIL permissions for /dash/manage-account/members.\n\n   at ..\\src\\pages\\MembersPage.ts:33\n\n  31 |\n  32 |     if (!(await this.isMembersPageVisible(10000))) {\n> 33 |       throw new Error(`Members page did not render after navigation. Current URL: ${this.page.url()}. Check TEST_USER_EMAIL permissions for /dash/manage-account/members.`);\n     |             ^\n  34 |     }\n  35 |   }\n  36 |\n    at MembersPage.goto (D:\\Python\\SinoMedia\\automation-test\\src\\pages\\MembersPage.ts:33:13)\n    at D:\\Python\\SinoMedia\\automation-test\\tests\\roles\\role_management.spec.ts:36:5"
-                        }
-                      ],
-                      "stdout": [
-                        {
-                          "text": "TC_ROLE_002: Điều hướng tới trang quản lý thành viên /dash/manage-account/members\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-14T05:00:56.694Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "D:\\Python\\SinoMedia\\automation-test\\test-results\\roles-role_management-Role-e5686-c-định-user-trên-UI-role-ui-chromium\\test-failed-1.png"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "D:\\Python\\SinoMedia\\automation-test\\test-results\\roles-role_management-Role-e5686-c-định-user-trên-UI-role-ui-chromium\\error-context.md"
-                        },
-                        {
-                          "name": "trace",
-                          "contentType": "application/zip",
-                          "path": "D:\\Python\\SinoMedia\\automation-test\\test-results\\roles-role_management-Role-e5686-c-định-user-trên-UI-role-ui-chromium\\trace.zip"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "D:\\Python\\SinoMedia\\automation-test\\src\\pages\\MembersPage.ts",
-                        "column": 13,
-                        "line": 33
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "2554cd4bf868832b666f-fcf416db263c07b78949",
-              "file": "roles/role_management.spec.ts",
-              "line": 33,
-              "column": 7
-            }
-          ]
-        },
         {
           "title": "Role Management Backend - Deletion Protection @backend @role",
           "file": "roles/role_management.spec.ts",
@@ -446,10 +169,10 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 3,
+                      "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 6,
+                      "duration": 7,
                       "errors": [],
                       "stdout": [
                         {
@@ -461,7 +184,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-14T05:01:19.145Z",
+                      "startTime": "2026-07-14T07:19:04.050Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -492,7 +215,7 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 3,
+                      "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
                       "duration": 1,
@@ -507,7 +230,7 @@
                       ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-07-14T05:01:19.178Z",
+                      "startTime": "2026-07-14T07:19:04.087Z",
                       "annotations": [],
                       "attachments": []
                     }
@@ -523,215 +246,15 @@
           ]
         }
       ]
-    },
-    {
-      "title": "settings\\settings.spec.ts",
-      "file": "settings/settings.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "Settings and Configurations Security @ui @settings",
-          "file": "settings/settings.spec.ts",
-          "line": 8,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC_SET_001 - Bảo mật thông tin cấu hình nhạy cảm (API Key được masking) @settings @ui",
-              "ok": false,
-              "tags": [
-                "ui",
-                "settings",
-                "settings",
-                "ui"
-              ],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 21127,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at D:\\Python\\SinoMedia\\automation-test\\tests\\settings\\settings.spec.ts:22:22",
-                        "location": {
-                          "file": "D:\\Python\\SinoMedia\\automation-test\\tests\\settings\\settings.spec.ts",
-                          "column": 22,
-                          "line": 22
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 20 |\u001b[39m     \u001b[90m// Xác nhận trường API Key đã được masking bảo mật\u001b[39m\n \u001b[90m 21 |\u001b[39m     \u001b[36mconst\u001b[39m isMasked \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m settingsPage\u001b[33m.\u001b[39misApiKeyMasked()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 22 |\u001b[39m     expect(isMasked)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                      \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 23 |\u001b[39m\n \u001b[90m 24 |\u001b[39m     console\u001b[33m.\u001b[39mlog(\u001b[32m'TC_SET_001: Khóa API được bảo mật thành công (PASS)'\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 25 |\u001b[39m   })\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "D:\\Python\\SinoMedia\\automation-test\\tests\\settings\\settings.spec.ts",
-                            "column": 22,
-                            "line": 22
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  20 |     // Xác nhận trường API Key đã được masking bảo mật\n  21 |     const isMasked = await settingsPage.isApiKeyMasked();\n> 22 |     expect(isMasked).toBe(true);\n     |                      ^\n  23 |\n  24 |     console.log('TC_SET_001: Khóa API được bảo mật thành công (PASS)');\n  25 |   });\n    at D:\\Python\\SinoMedia\\automation-test\\tests\\settings\\settings.spec.ts:22:22"
-                        }
-                      ],
-                      "stdout": [
-                        {
-                          "text": "TC_SET_001: Điều hướng tới trang settings /dash/settings\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-14T05:01:19.189Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "D:\\Python\\SinoMedia\\automation-test\\test-results\\settings-settings-Settings-2919c-ey-được-masking-settings-ui-chromium\\test-failed-1.png"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "D:\\Python\\SinoMedia\\automation-test\\test-results\\settings-settings-Settings-2919c-ey-được-masking-settings-ui-chromium\\error-context.md"
-                        },
-                        {
-                          "name": "trace",
-                          "contentType": "application/zip",
-                          "path": "D:\\Python\\SinoMedia\\automation-test\\test-results\\settings-settings-Settings-2919c-ey-được-masking-settings-ui-chromium\\trace.zip"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "D:\\Python\\SinoMedia\\automation-test\\tests\\settings\\settings.spec.ts",
-                        "column": 22,
-                        "line": 22
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "8dc1399178ccec251116-4c659b869b433058eb1c",
-              "file": "settings/settings.spec.ts",
-              "line": 15,
-              "column": 7
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "tasks\\tasks.spec.ts",
-      "file": "tasks/tasks.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "Tasks Management Dashboard @ui @tasks",
-          "file": "tasks/tasks.spec.ts",
-          "line": 8,
-          "column": 6,
-          "specs": [
-            {
-              "title": "TC_TASK_001 - Hiển thị tiêu đề và danh sách nhiệm vụ crawl @tasks @ui",
-              "ok": false,
-              "tags": [
-                "ui",
-                "tasks",
-                "tasks",
-                "ui"
-              ],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 0,
-                      "status": "failed",
-                      "duration": 21003,
-                      "error": {
-                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m",
-                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n    at D:\\Python\\SinoMedia\\automation-test\\tests\\tasks\\tasks.spec.ts:22:28",
-                        "location": {
-                          "file": "D:\\Python\\SinoMedia\\automation-test\\tests\\tasks\\tasks.spec.ts",
-                          "column": 28,
-                          "line": 22
-                        },
-                        "snippet": "\u001b[0m \u001b[90m 20 |\u001b[39m     \u001b[90m// Xác nhận tiêu đề trang hiển thị\u001b[39m\n \u001b[90m 21 |\u001b[39m     \u001b[36mconst\u001b[39m isTitleVisible \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m tasksPage\u001b[33m.\u001b[39misTitleVisible()\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 22 |\u001b[39m     expect(isTitleVisible)\u001b[33m.\u001b[39mtoBe(\u001b[36mtrue\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                            \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 23 |\u001b[39m\n \u001b[90m 24 |\u001b[39m     \u001b[90m// Xác nhận bảng danh sách nhiệm vụ hiển thị\u001b[39m\n \u001b[90m 25 |\u001b[39m     \u001b[36mconst\u001b[39m isTableVisible \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m tasksPage\u001b[33m.\u001b[39misTableVisible()\u001b[33m;\u001b[39m\u001b[0m"
-                      },
-                      "errors": [
-                        {
-                          "location": {
-                            "file": "D:\\Python\\SinoMedia\\automation-test\\tests\\tasks\\tasks.spec.ts",
-                            "column": 28,
-                            "line": 22
-                          },
-                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  20 |     // Xác nhận tiêu đề trang hiển thị\n  21 |     const isTitleVisible = await tasksPage.isTitleVisible();\n> 22 |     expect(isTitleVisible).toBe(true);\n     |                            ^\n  23 |\n  24 |     // Xác nhận bảng danh sách nhiệm vụ hiển thị\n  25 |     const isTableVisible = await tasksPage.isTableVisible();\n    at D:\\Python\\SinoMedia\\automation-test\\tests\\tasks\\tasks.spec.ts:22:28"
-                        }
-                      ],
-                      "stdout": [
-                        {
-                          "text": "TC_TASK_001: Điều hướng tới trang nhiệm vụ /dash/tasks\n"
-                        }
-                      ],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2026-07-14T05:01:40.883Z",
-                      "annotations": [],
-                      "attachments": [
-                        {
-                          "name": "screenshot",
-                          "contentType": "image/png",
-                          "path": "D:\\Python\\SinoMedia\\automation-test\\test-results\\tasks-tasks-Tasks-Manageme-4ce1c-ách-nhiệm-vụ-crawl-tasks-ui-chromium\\test-failed-1.png"
-                        },
-                        {
-                          "name": "error-context",
-                          "contentType": "text/markdown",
-                          "path": "D:\\Python\\SinoMedia\\automation-test\\test-results\\tasks-tasks-Tasks-Manageme-4ce1c-ách-nhiệm-vụ-crawl-tasks-ui-chromium\\error-context.md"
-                        },
-                        {
-                          "name": "trace",
-                          "contentType": "application/zip",
-                          "path": "D:\\Python\\SinoMedia\\automation-test\\test-results\\tasks-tasks-Tasks-Manageme-4ce1c-ách-nhiệm-vụ-crawl-tasks-ui-chromium\\trace.zip"
-                        }
-                      ],
-                      "errorLocation": {
-                        "file": "D:\\Python\\SinoMedia\\automation-test\\tests\\tasks\\tasks.spec.ts",
-                        "column": 28,
-                        "line": 22
-                      }
-                    }
-                  ],
-                  "status": "unexpected"
-                }
-              ],
-              "id": "6642ecd3619e3a9309b3-92e50f8f172b29c3e729",
-              "file": "tasks/tasks.spec.ts",
-              "line": 15,
-              "column": 7
-            }
-          ]
-        }
-      ]
     }
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-07-14T05:00:30.197Z",
-    "duration": 91902.732,
-    "expected": 5,
+    "startTime": "2026-07-14T07:19:00.971Z",
+    "duration": 3145.518,
+    "expected": 3,
     "skipped": 0,
-    "unexpected": 4,
+    "unexpected": 0,
     "flaky": 0
   }
 }

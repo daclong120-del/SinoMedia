@@ -1,0 +1,10 @@
+{
+  "id": "proxies",
+  "name": "Proxy Pool Management",
+  "description": "Kiểm thử danh sách proxy pool và trạng thái sức khỏe của proxy.",
+  "type": ["ui"],
+  "specs": ["tests/proxies/proxies.spec.ts"],
+  "tags": ["@proxies", "@ui"],
+  "requiresAuth": true,
+  "enabled": true
+}

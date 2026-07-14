@@ -23,7 +23,7 @@ SinoMedia hiện là hệ thống gồm 5 khối:
 | Crawler Pipeline | Partial | Worker TypeScript độc lập có queue loop, claim task qua Supabase RPC, platform factory, account/proxy pool. Bilibili crawler ổn định; Zhihu crawler cào tìm kiếm/chi tiết đầy đủ, hỗ trợ cào bài text-only (content-aware) và warm-up cookie. |
 | Supabase/Media | Partial | Supabase là control plane/data store. Đã hoàn thành khóa quyền truy cập thô của anon key, bật RLS cho toàn bộ bảng và thắt chặt RPC nhạy cảm. Đã nâng cấp schema `crawled_posts` sang kiến trúc content-aware (hỗ trợ `media_type = 'text'`, `media_status = 'not_applicable'`, và bổ sung `title`, `content_type`, `source_url`). |
 | Desktop App | Partial | Đã hoàn thành build script Scaffold & Full, tích hợp embedded Node.exe, launcher scripts, C# wrapper SinoMedia.exe và health check smoke test tự động. |
-| Automation Test Runner | Partial | `automation-test` đã có Playwright TS framework, module registry qua `tests/<module>/module.json`, Page Object nền, JSON/HTML reporter, CLI `test:module`, và local runner dashboard (`automation-test/runner/server.js` + `index.html`). Chưa coi là Done vì dashboard phải chạy qua `npm run dashboard` chứ không phải `file://`, role UI đang fail do test user bị unauthorized, coverage A-Z còn thiếu, và artifact/report runtime vẫn cần dọn khỏi commit. |
+| Automation Test Runner | Partial | `automation-test` da co Playwright TS framework, module registry qua `tests/<module>/module.json`, CLI `test:module`, local runner dashboard, va skeleton realtime runner bang SSE/EventSource + `runner/realtime-reporter.cjs`. Chua coi la Done vi realtime runner con rui ro mat event/stale `reports/results.json`, coverage moi mo rong den smoke UI, test data/admin quyen chua sach, va artifact/report runtime van dang can don khoi commit. |
 
 ## Product direction hiện tại
 
@@ -92,13 +92,14 @@ SinoMedia hiện là hệ thống gồm 5 khối:
 | Capability | Trạng thái | Ghi chú |
 |---|---|---|
 | Playwright TS framework | Partial | `automation-test/package.json`, `playwright.config.ts`, `tsconfig.json` đã có. `npm run typecheck` đã pass trong phiên review 2026-07-14. |
-| Module registry/factory | Partial | Có `src/utils/ModuleRegistry.js`, `ModuleRegistry.ts`, `runner/run-module.js` và `tests/<module>/module.json`. `GET /api/modules` trả 4 module: `auth`, `roles`, `settings`, `tasks`. |
+| Module registry/factory | Partial | Co `src/utils/ModuleRegistry.js`, `ModuleRegistry.ts`, `runner/run-module.js` va `tests/<module>/module.json`. Review 2026-07-14: `GET /api/modules` qua runner port tam tra 9 module: `accounts`, `api-tokens`, `auth`, `members`, `navigation`, `proxies`, `roles`, `settings`, `tasks`. |
 | Page Object Model | Partial | Đã có `BasePage`, `LoginPage`, `MembersPage`, `TasksPage`, `SettingsPage`, `ConfigReader`. Role UI hiện fail rõ khi test user bị redirect unauthorized thay vì timeout mù. |
 | Role Management regression | Partial | `tests/roles/role_management.spec.ts` tách UI/backend bằng tag `@ui`, `@backend`, `@role`. Backend role pass; UI role fail vì `TEST_USER_EMAIL` hiện bị redirect `/dash/home?error=unauthorized` khi vào `/dash/manage-account/members`. |
 | Explore/debug scripts | Optional | Các script khảo sát DOM nằm ở `automation-test/explore/`; không được để trong `automation-test/tests/` vì sẽ bị `npm test` chạy lẫn. |
-| One-click local dashboard | Partial | Có `automation-test/runner/server.js` và `runner/index.html`, command `npm run dashboard`. Không mở bằng `file://`; phải dùng `http://localhost:3005` để API `/api/modules`, `/api/results`, `/api/run` hoạt động. |
-| A-Z coverage by service/module | Partial | Đã có module `auth`, `roles`, `settings`, `tasks`; chưa có đủ test case cho Accounts, Proxies, Data, Creative Hub, Worker/API/service regression. |
-| Artifact hygiene | Partial | `.gitignore` đã có, nhưng các artifact cũ như `playwright-report`, `test-results`, HTML dump hoặc `evident_requirements` từng tracked phải được gỡ khỏi index trước khi commit. |
+| One-click local dashboard | Partial | Co `automation-test/runner/server.js` va `runner/index.html`, command `npm run dashboard`. Runner da chuyen huong sang `POST /api/runs`, `GET /api/runs/:runId/events` SSE, va `GET /api/runs/:runId`; `/api/results` van la final/recent JSON read. Khong mo bang `file://`. |
+| Realtime runner | Partial | Da co EventSource UI, SSE stream, va custom Playwright reporter `runner/realtime-reporter.cjs`. Check gan nhat: `node --check runner/server.js` PASS, `npm run typecheck` PASS, `npm run test:module -- roles -- --list` PASS, `/api/modules` PASS tren port tam. Chua Done vi can fix event replay/snapshot de khong mat `run-begin/test-begin/run-finished`, xoa `reports/results.json` truoc moi run de tranh stale result, loai `_setup` khoi live business counter, dung stable test key thay vi TC_ID/N/A, va khong hardcode live type la `UI`. |
+| A-Z coverage by service/module | Partial | Da co module `auth`, `roles`, `settings`, `tasks`, va them smoke UI module `accounts`, `api-tokens`, `members`, `navigation`, `proxies`. Chua co du Data, Creative Hub, Worker/API/service regression; nhieu module moi moi kiem tra page/table/modal hien thi, chua bao phu mutation/security P1 day du. |
+| Artifact hygiene | Partial | `.gitignore` da co, nhung worktree hien van co runtime artifact modified/deleted nhu `automation-test/reports/results.json`, `automation-test/playwright-report/index.html`, `automation-test/test-results/.last-run.json`. Khong commit cac artifact nay; go khoi index/diff dung pham vi truoc khi chot. |
 
 ## Known gaps
 

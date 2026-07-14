@@ -6,6 +6,10 @@ import * as path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 dotenv.config({ path: path.resolve(__dirname, '../dashboard/.env.local') });
 
+const realtimeReporter = process.env.PW_REALTIME_REPORTER === '1'
+  ? [[path.resolve(__dirname, 'runner/realtime-reporter.cjs')]] as any[]
+  : [];
+
 export default defineConfig({
   testDir: './tests',
   /* Chạy các test song song */
@@ -19,7 +23,8 @@ export default defineConfig({
   /* Báo cáo xuất ra dưới dạng html và json */
   reporter: [
     ['html', { open: 'never' }],
-    ['json', { outputFile: 'reports/results.json' }]
+    ['json', { outputFile: 'reports/results.json' }],
+    ...realtimeReporter
   ],
   /* Cấu hình dùng chung cho tất cả các dự án */
   use: {
@@ -45,7 +50,7 @@ export default defineConfig({
     // 2. Project chromium chạy test chính
     {
       name: 'chromium',
-      use: { 
+      use: {
         ...devices['Desktop Chrome'],
         // Nạp trạng thái đăng nhập chung
         storageState: 'playwright/.auth/user.json',
