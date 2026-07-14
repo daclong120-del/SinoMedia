@@ -55,3 +55,4 @@ artifact/
 # desktop-app release builds
 desktop-app/release/
 output/
+scratch/
