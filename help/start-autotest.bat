@@ -1,9 +1,10 @@
 @echo off
 setlocal
 
-set "AUTOTEST_DIR=%~dp0"
-for %%I in ("%AUTOTEST_DIR%..") do set "ROOT_DIR=%%~fI"
+set "HELP_DIR=%~dp0"
+for %%I in ("%HELP_DIR%..") do set "ROOT_DIR=%%~fI"
 set "DASHBOARD_DIR=%ROOT_DIR%\dashboard"
+set "AUTOTEST_DIR=%ROOT_DIR%\automation-test"
 set "BASE_URL=http://127.0.0.1:3000"
 set "RUNNER_PORT=3005"
 set "RUNNER_URL=http://localhost:%RUNNER_PORT%"
@@ -36,7 +37,7 @@ if not exist "%DASHBOARD_DIR%\node_modules" (
   exit /b 1
 )
 
-if not exist "%AUTOTEST_DIR%node_modules" (
+if not exist "%AUTOTEST_DIR%\node_modules" (
   echo [ERROR] automation-test chua co node_modules.
   echo Chay lenh sau roi mo lai file nay:
   echo   cd /d "%AUTOTEST_DIR%"

@@ -116,7 +116,7 @@ start "Crawler Worker - Queue Consumer" cmd /k "title Crawler Worker - Queue Con
 
 :: 3. Khoi dong Next.js Dashboard (LAN)
 echo [3/3] Dang khoi dong Dashboard Next.js (0.0.0.0:%DASHBOARD_PORT%)...
-start "SinoMedia Dashboard LAN - Port %DASHBOARD_PORT%" cmd /k "title SinoMedia Dashboard LAN - Port %DASHBOARD_PORT% && cd /d ""%ROOT%\dashboard"" && echo [DASHBOARD] Local: http://localhost:%DASHBOARD_PORT% && echo [DASHBOARD] LAN  : %LAN_DASHBOARD_URL% && echo [DASHBOARD] NEXT_PUBLIC_SUPABASE_URL=%LAN_SUPABASE_URL% && set HOSTNAME=0.0.0.0&& set PORT=%DASHBOARD_PORT%&& set NEXT_PUBLIC_SITE_URL=%LAN_DASHBOARD_URL%&& set NEXT_PUBLIC_SUPABASE_URL=%LAN_SUPABASE_URL%&& npm.cmd run dev -- -H 0.0.0.0 -p %DASHBOARD_PORT%"
+start "SinoMedia Dashboard LAN - Port %DASHBOARD_PORT%" cmd /k "title SinoMedia Dashboard LAN - Port %DASHBOARD_PORT% && cd /d ""%ROOT%\dashboard"" && echo [DASHBOARD] Local: http://localhost:%DASHBOARD_PORT% && echo [DASHBOARD] LAN  : %LAN_DASHBOARD_URL% && echo [DASHBOARD] NEXT_PUBLIC_SUPABASE_URL=%LAN_SUPABASE_URL% && set HOSTNAME=0.0.0.0&& set PORT=%DASHBOARD_PORT%&& set NEXT_PUBLIC_SITE_URL=%LAN_DASHBOARD_URL%&& set NEXT_PUBLIC_SUPABASE_URL=%LAN_SUPABASE_URL%&& npm.cmd run dev -- --hostname 0.0.0.0 --port %DASHBOARD_PORT%"
 
 echo.
 echo ============================================================
