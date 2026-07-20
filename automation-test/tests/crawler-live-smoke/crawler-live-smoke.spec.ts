@@ -3,7 +3,10 @@ import { test, expect } from '@playwright/test';
 test.describe('Crawler Live Smoke Tests @crawler @live-smoke @quarantine', () => {
 
   test.beforeEach(() => {
-    expect(process.env.RUN_LIVE_CRAWLER_SMOKE, 'RUN_LIVE_CRAWLER_SMOKE must be 1 to run live crawler smoke tests.').toBe('1');
+    test.skip(
+      process.env.RUN_LIVE_CRAWLER_SMOKE !== '1',
+      'RUN_LIVE_CRAWLER_SMOKE must be 1 to run live crawler smoke tests.'
+    );
   });
 
   test('TC_CREATIVE_006 - Lọc xếp hạng Creative theo mốc thời gian 7 ngày qua (Live)', async ({ request }) => {

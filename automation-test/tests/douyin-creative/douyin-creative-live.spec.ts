@@ -3,8 +3,10 @@ import { test, expect } from '@playwright/test';
 test.describe('Douyin Creative Crawl - Live Smoke Tests @live-douyin @crawler @creative @douyin', () => {
   
   test.beforeEach(() => {
-    // Fail test nếu không có env cho phép chạy live
-    expect(process.env.RUN_LIVE_DOUYIN_CREATIVE, 'RUN_LIVE_DOUYIN_CREATIVE must be 1 to run live Douyin smoke tests.').toBe('1');
+    test.skip(
+      process.env.RUN_LIVE_DOUYIN_CREATIVE !== '1',
+      'RUN_LIVE_DOUYIN_CREATIVE must be 1 to run live Douyin smoke tests.'
+    );
   });
 
   test('TC_DY_DETAIL_008 - Live one aweme crawl @live-douyin', async () => {
