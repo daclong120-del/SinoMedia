@@ -43,6 +43,12 @@ app-example
 
 # API credentials
 api.txt
+auto-gen-image/cookie.json
+auto-gen-image/*.har
+auto-gen-image/responses/
+auto-gen-image/browser-profile/
+auto-gen-image/captures/
+external/open-responses/
 
 # crawler-pipeline
 crawler-pipeline/node_modules/

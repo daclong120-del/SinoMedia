@@ -28,7 +28,6 @@ Tài liệu này lưu trữ danh sách và ma trận test cases cho tính năng 
 | TC_DY_SESSION_005 | P1 | contract | Yes | Diagnostic captcha/soft block | Error được classify là captcha/soft-block, không báo completed rỗng. |
 | TC_DY_SESSION_006 | P1 | contract | Yes | Hết account pool thì fallback local session | Nếu local session OK thì run tiếp; nếu không có thì fail-fast có message rõ. |
 | TC_DY_SESSION_007 | P1 | security | Yes | Log redaction cookie/session | Log không in `cookie_data`, token, raw cookie. |
-| TC_DY_SESSION_008 | P2 | live-smoke | No | Browser bootstrap hydrates raw cookie | Khi opt-in, Playwright persistent context hydrate session và diagnostic pass. |
 
 ## 3. Search creative test cases
 
@@ -41,7 +40,6 @@ Tài liệu này lưu trữ danh sách và ma trận test cases cho tính năng 
 | TC_DY_SEARCH_005 | P1 | contract | Yes | Search item invalid bị skip | Item thiếu aweme id không crash cả task. |
 | TC_DY_SEARCH_006 | P1 | contract | Yes | Detail fail từng item vẫn tiếp tục | Lỗi 1 aweme không làm mất các aweme còn lại. |
 | TC_DY_SEARCH_007 | P1 | contract | Yes | Batch upsert sau mỗi page | Page có posts thì gọi upsertPosts theo batch, không upsert từng item quá nhiều. |
-| TC_DY_SEARCH_008 | P2 | live-smoke | No | Live keyword crawl nhỏ | `DOUYIN_TEST_KEYWORD`, `maxCount<=3`, kết quả full/partial/empty được classify rõ. |
 
 ## 4. Creator creative test cases
 
@@ -54,7 +52,6 @@ Tài liệu này lưu trữ danh sách và ma trận test cases cho tính năng 
 | TC_DY_CREATOR_005 | P1 | contract | Yes | Creator pagination has_more/max_cursor | Chạy qua nhiều page đến khi hết hoặc đủ limit. |
 | TC_DY_CREATOR_006 | P1 | contract | Yes | Creator post thiếu media re-fetch detail | Detail refetch khi item thiếu `video.play_addr` và images. |
 | TC_DY_CREATOR_007 | P1 | contract | Yes | Creator page empty stop sạch | Không throw nếu hết page sau khi đã có data. |
-| TC_DY_CREATOR_008 | P2 | live-smoke | No | Live creator crawl nhỏ | `DOUYIN_TEST_CREATOR_SEC_UID`, max 3, persist/partial/empty được classify rõ. |
 
 ## 5. Single creative/detail test cases
 
@@ -67,7 +64,6 @@ Tài liệu này lưu trữ danh sách và ma trận test cases cho tính năng 
 | TC_DY_DETAIL_005 | P0 | contract | Yes | Detail persist one post | `crawlVideo` gọi detail, validate, upsert post. |
 | TC_DY_DETAIL_006 | P1 | contract | Yes | Detail author missing fallback | Missing author nickname/avatar vẫn persist được với fallback safe. |
 | TC_DY_DETAIL_007 | P1 | contract | Yes | Detail media unavailable | Missing media được classify, không crash dashboard detail. |
-| TC_DY_DETAIL_008 | P2 | live-smoke | No | Live one aweme crawl | Env aweme id/url, persist 1 row hoặc auth/captcha error rõ. |
 
 ## 6. Comments test cases
 
@@ -79,7 +75,6 @@ Tài liệu này lưu trữ danh sách và ma trận test cases cho tính năng 
 | TC_DY_COMMENT_004 | P1 | contract | Yes | With replies off | `crawl_sub_comments=false` không gọi reply endpoint. |
 | TC_DY_COMMENT_005 | P1 | contract | Yes | With replies on | Comment có `reply_comment_total>0` gọi reply endpoint và map parent id. |
 | TC_DY_COMMENT_006 | P1 | contract | Yes | Post uuid missing | Nếu aweme chưa có post uuid, error/classification rõ. |
-| TC_DY_COMMENT_007 | P2 | live-smoke | No | Live comments nhỏ | `DOUYIN_TEST_AWEME_ID`, max 5, classify empty/partial/full. |
 
 ## 7. Queue/task lifecycle test cases
 
@@ -119,4 +114,3 @@ Tài liệu này lưu trữ danh sách và ma trận test cases cho tính năng 
 | TC_DY_FAULT_005 | P1 | contract | Yes | Rate limit response | Retry/backoff hoặc fail classified; không loop vô hạn. |
 | TC_DY_FAULT_006 | P1 | contract | Yes | Duplicate task same target | Upsert idempotent, task không tạo duplicate post. |
 | TC_DY_FAULT_007 | P1 | contract | Yes | Malformed DB row rejected | Storage layer không insert row thiếu platform/platform_id. |
-| TC_DY_FAULT_008 | P2 | live-smoke | No | Live soft-block smoke | Khi Douyin chặn, runner hiện error rõ thay vì empty xanh giả. |
