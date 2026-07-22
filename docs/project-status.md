@@ -1,6 +1,6 @@
 # Project Status
 
-Cập nhật lần cuối: 2026-07-14 17:25 (GMT+7)
+Cập nhật lần cuối: 2026-07-22 08:40 (GMT+7)
 Mục đích: một trang sống để biết SinoMedia đã làm được gì, phần nào đang chạy, phần nào chỉ là phác thảo, và phần nào cần agent kiểm tra trước khi phát triển tiếp.
 
 ## Legend
@@ -73,6 +73,9 @@ SinoMedia hiện là hệ thống gồm 5 khối:
 | R2 upload | Optional | Có uploader/dedup, nhưng không còn là đường phát mặc định cho Bilibili. Dùng khi cần archive/cache/report/offline. |
 | Cache media task | Deprecated | Worker đã throw nếu command là `cache_media`. Không thêm UI tạo task này nữa. |
 | Metric Refresh | Done | CLI refresh `npm run refresh` hoạt động tốt. Đã tích hợp cơ chế **Guard Snapshot** ở cấp độ `supabase_writer.ts` (kiểm tra stats gốc trước khi lưu snapshot) chống ghi nhận dữ liệu 0 giả lập do normalization fallback. |
+| Challenge & 2Captcha Subsystem | Done | Subsystem độc lập tại `crawler-pipeline/src/challenge/` (`index.ts`, `solver.ts`, `types.ts`, `providers/two_captcha.ts`). Cung cấp `ChallengeSolverFactory` giải Slider, Click và Turnstile Captcha qua 2Captcha API cho luồng session recovery. |
+| Scratch & Test Workspace | Done | Chuẩn hóa duy nhất 1 thư mục `scratch/` ở gốc dự án cho thử nghiệm (`scratch/scripts/`) và tài liệu test case (`scratch/test-case/`). Xóa toàn bộ các thư mục scratch/tests lẻ ở các subpackage. |
+| Video Downloader Service | Done | Subsystem độc lập tại `crawler-pipeline/src/downloader/` (`StreamDownloader`, `MediaValidator`, `ConcurrencyPool`, `LocalDestination`, `R2Destination`). Hỗ trợ tải video số lượng lớn dạng HTTP stream trực tiếp vào đĩa/R2, kiểm soát OOM, rate limit và magic bytes verification. |
 
 ## Desktop App status
 

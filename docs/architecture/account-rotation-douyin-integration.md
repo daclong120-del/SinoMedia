@@ -46,7 +46,7 @@ Tài liệu này mô tả chi tiết giải pháp tích hợp xoay vòng tài kh
 - Cú pháp: `npm run add-account <platform> <username> <cookie_or_json_file_path>`
 - Hỗ trợ cả file JSON cookie Chrome và chuỗi cookie thô.
 
-### 5. `crawler-pipeline/tests/douyin-test-cases.md`
+### 5. `scratch/test-case/douyin-test-cases.md`
 - Tài liệu mô tả 9 kịch bản kiểm thử (4 Functional, 1 Edge Case, 4 Rotation).
 
 ---

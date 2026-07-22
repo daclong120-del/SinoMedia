@@ -144,16 +144,21 @@ SinoMedia/
 ├─ crawler-pipeline/
 │  ├─ src/
 │  │  ├─ base/                         # crawler/client/store/login contracts
+│  │  ├─ cache/                        # in-memory cache & TTL helpers
+│  │  ├─ challenge/                    # anti-bot challenge solver subsystem (2Captcha, etc.)
 │  │  ├─ cli/                          # command parser
 │  │  ├─ config/                       # base + per-platform configs
 │  │  ├─ crawl/                        # platform implementations
+│  │  ├─ downloader/                   # high-capacity video downloader subsystem (stream, pool, validator)
 │  │  ├─ model/                        # platform + storage types
 │  │  ├─ proxy/                        # proxy pool
 │  │  ├─ sign/                         # signing/session/browser helpers
 │  │  ├─ store/                        # Supabase + R2 writers
 │  │  ├─ queue_worker.ts               # task claim/run/log loop
 │  │  └─ index.ts                      # crawler entry
-│  └─ tests/                           # platform test cases
+├─ scratch/                            # single directory for test & scratch scripts
+│  ├─ scripts/                         # exploratory & test scripts
+│  └─ test-case/                       # markdown test cases
 ├─ supabase/
 │  ├─ migrations/                      # schema/RPC/realtime/indexes
 │  └─ config.toml

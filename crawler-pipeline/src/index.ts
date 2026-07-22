@@ -133,7 +133,33 @@ async function main() {
       return;
     }
 
-    throw new Error("Lệnh không hợp lệ. Các lệnh hỗ trợ: crawl <url_or_id>, creator <url_or_uid>, search <keyword> [max_count], comments <id> [max_count], add-account <platform> <username> <cookie_or_json_file_path>, refresh");
+    if (command === "download") {
+      const mediaUrl = args[1];
+      if (!mediaUrl) {
+        throw new Error("Vui lòng cung cấp URL video cần tải: npx tsx src/index.ts download <media_url> [-p platform]");
+      }
+      const platform = platformArg || "douyin";
+      const { DownloaderService } = await import("./downloader/index.js");
+      const service = new DownloaderService();
+      console.log(`🚀 Bắt đầu tải video từ URL (${platform}): ${mediaUrl}`);
+      const res = await service.download({
+        id: `cli_${Date.now()}`,
+        url: mediaUrl,
+        platform,
+        destination: "local",
+      }, (p) => {
+        console.log(`[Downloader] Tiến độ: ${p.percent}% (${(p.downloadedBytes / 1024 / 1024).toFixed(2)} MB) - Tốc độ: ${(p.speedBytesPerSec / 1024 / 1024).toFixed(2)} MB/s`);
+      });
+      if (res.success) {
+        console.log(`✅ Tải video thành công! Đường dẫn file: ${res.filePath}`);
+      } else {
+        console.error(`❌ Tải video thất bại: ${res.error}`);
+        process.exit(1);
+      }
+      return;
+    }
+
+    throw new Error("Lệnh không hợp lệ. Các lệnh hỗ trợ: crawl <url_or_id>, creator <url_or_uid>, search <keyword> [max_count], comments <id> [max_count], add-account <platform> <username> <cookie_or_json_file_path>, refresh, download <media_url>");
   } finally {
     // Không còn browser context để dọn dẹp
   }
