@@ -240,9 +240,9 @@ export function normalizeCookie(cookieStr: string): string {
       const arr = JSON.parse(trimmed);
       if (Array.isArray(arr)) {
         return arr
-          .map((c: any) => {
-            const name = c.name || c.key || "";
-            const value = c.value !== undefined ? c.value : "";
+          .map((c: Record<string, unknown>) => {
+            const name = (c.name || c.key || "") as string;
+            const value = c.value !== undefined ? String(c.value) : "";
             return name ? `${name}=${value}` : "";
           })
           .filter(Boolean)
@@ -314,8 +314,8 @@ export function isValidCookie(cookieStr: string): boolean {
         if (Array.isArray(obj.cookies)) {
           return (
             obj.cookies.length > 0 &&
-            obj.cookies.every((c: any) => c && typeof c === "object" && !Array.isArray(c)) &&
-            obj.cookies.some((c: any) => c.name || c.key)
+            obj.cookies.every((c: Record<string, unknown>) => c && typeof c === "object" && !Array.isArray(c)) &&
+            obj.cookies.some((c: Record<string, unknown>) => Boolean(c.name || c.key))
           );
         }
 

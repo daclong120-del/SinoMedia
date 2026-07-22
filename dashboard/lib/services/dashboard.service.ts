@@ -23,7 +23,7 @@ const PLATFORM_COLORS: Record<string, string> = {
 };
 
 const TRACKED_PLATFORMS: Platform[] = [
-  "douyin", "xhs", "bilibili", "weibo", "kuaishou", "tiktok",
+  "douyin", "xhs", "bilibili", "weibo", "kuaishou", "zhihu", "tieba", "tiktok",
 ];
 
 // ─── Types ───────────────────────────────────────────────────

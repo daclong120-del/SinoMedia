@@ -11,8 +11,8 @@
     "comments": "tsx src/index.ts comments",
     "add-account": "tsx src/index.ts add-account",
     "refresh": "tsx src/index.ts refresh",
-    "douyin:bootstrap": "tsx scratch/bootstrap-douyin-session.ts",
-    "douyin:diagnostic": "tsx scratch/douyin-diagnostic.ts"
+    "douyin:bootstrap": "tsx scripts/bootstrap-douyin-session.ts",
+    "douyin:diagnostic": "tsx scripts/douyin-diagnostic.ts"
   },
   "engines": {
     "node": ">=18"

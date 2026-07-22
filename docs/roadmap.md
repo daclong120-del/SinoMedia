@@ -203,3 +203,21 @@ Xem lại roadmap khi có một trong các dấu hiệu:
 - Desktop cần quyền native vượt quá khả năng của Runtime Package hiện tại.
 - Download media cần resume/chunk/checksum/local library management.
 - Multi-tenant/team permission trở thành yêu cầu thật.
+
+## 2026-07-21 Addendum - Phase 2 Douyin session recovery
+
+Douyin Phase 2 co them backlog con sau:
+
+- Tao subsystem `crawler-pipeline/src/challenge/` de dong goi challenge provider nhu 2Captcha, timeout, polling, retry budget, va redaction.
+- Tao Douyin-specific recovery trong `crawler-pipeline/src/crawl/douyin/session_recovery.ts` hoac module tuong duong. Recovery chi chay khi diagnostic tra `challenge_required`.
+- Nang `runSessionDiagnostic` tu boolean sang structured result de worker biet ly do fail va khong goi moi loi la session expired.
+- Sau recovery, bat buoc chay diagnostic lai; chi HTTP crawl search/detail/comment khi diagnostic pass.
+- Cap nhat task metadata/log phases: `session_diagnostic`, `challenge_solving`, `session_recovered`, `collecting_posts`, `failed`.
+- Them gioi han attempt/cooldown de khong dot 2Captcha balance trong loop account checkout.
+- Ket noi cau hinh 2Captcha theo hai pha: env worker cho smoke test nhanh, sau do endpoint worker settings hep co scope `crawler:read_settings`.
+
+Khong lam:
+
+- Khong dua 2Captcha solver vao Dashboard UI runtime.
+- Khong nhet solver vao moi request HTTP trong `http_client.ts`.
+- Khong bien Playwright thanh crawler runtime mac dinh cho Douyin.

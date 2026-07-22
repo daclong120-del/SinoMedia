@@ -150,8 +150,8 @@ async function main(): Promise<void> {
       await page.waitForTimeout(6000);
     }
 
-    // Wait a brief moment to ensure all chunks are rendered
-    await page.waitForTimeout(1000);
+    // Wait a brief moment to ensure all image assets and DOM chunks are fully rendered
+    await page.waitForTimeout(3000);
 
     // 7. Extract the response (text and images)
     let text = "";
@@ -190,10 +190,9 @@ async function main(): Promise<void> {
         const url = imageUrls[i];
         try {
           console.log(`Downloading generated image ${i + 1} from browser context...`);
-          const base64Data = await page.evaluate(async (imgUrl) => {
-            const img = document.querySelector(`img[src="${imgUrl}"]`) as HTMLImageElement;
-            if (!img) {
-              // Fallback to fetch if element is not in DOM
+          let buffer: Buffer;
+          if (url.startsWith("blob:")) {
+            const base64Data = await page.evaluate(async (imgUrl) => {
               const res = await fetch(imgUrl);
               const blob = await res.blob();
               return new Promise<string>((resolve, reject) => {
@@ -202,31 +201,16 @@ async function main(): Promise<void> {
                 reader.onerror = reject;
                 reader.readAsDataURL(blob);
               });
-            }
-
-            if (!img.complete) {
-              await new Promise((resolve) => {
-                img.onload = resolve;
-                img.onerror = resolve;
-              });
-            }
-
-            const canvas = document.createElement("canvas");
-            canvas.width = img.naturalWidth || img.width || 1024;
-            canvas.height = img.naturalHeight || img.height || 1024;
-            const ctx = canvas.getContext("2d");
-            if (!ctx) throw new Error("Could not get 2D context");
-            ctx.drawImage(img, 0, 0);
-            return canvas.toDataURL("image/png");
-          }, url);
-
-          const base64Content = base64Data.split(",")[1];
-          if (base64Content) {
-            const buffer = Buffer.from(base64Content, "base64");
-            const imagePath = path.join("responses", `generated-image-${Date.now()}-${i + 1}.png`);
-            await writeFile(imagePath, buffer);
-            console.log(`Successfully saved generated image to: ${imagePath}`);
+            }, url);
+            buffer = Buffer.from(base64Data.split(",")[1], "base64");
+          } else {
+            const imgResponse = await context.request.get(url);
+            buffer = await imgResponse.body();
           }
+
+          const imagePath = path.join("responses", `generated-image-${Date.now()}-${i + 1}.png`);
+          await writeFile(imagePath, buffer);
+          console.log(`Successfully saved generated image to: ${imagePath}`);
         } catch (downloadErr) {
           console.warn(`Failed to download image ${i + 1}:`, (downloadErr as Error).message);
         }
@@ -265,7 +249,7 @@ function parseOptions(args: string[]): CliOptions {
     message: "hello",
     cookiesFile: "cookie.json",
     headed: false,
-    timeoutMs: 60000,
+    timeoutMs: 120000,
     continueLatest: false,
   };
 

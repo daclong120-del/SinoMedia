@@ -164,3 +164,13 @@ Khi thay đổi hành vi:
 - Cập nhật file architecture deep dive nếu thay đổi boundary kỹ thuật.
 
 Docs là nguồn sự thật duy nhất cho agent sau. Nếu code và docs lệch nhau, phải ghi rõ phần nào là hiện trạng code và phần nào là mục tiêu.
+
+## 2026-07-21 Agent note - Douyin `verify_check`
+
+- Khi Douyin diagnostic pass profile/self endpoint nhung search tra `search_nil_info.search_nil_type = "verify_check"` hoac `result_status = 5`, ket luan dung la `challenge_required`, khong phai frontend pending, queue worker loi, parser rong, hay cookie-only expired chung chung.
+- Huong fix dung la session recovery: Playwright persistent context -> challenge strategy (`manual`, `2captcha`, hoac `manual_then_2captcha`) -> export lai `DouyinSession` -> diagnostic lai -> moi crawl HTTP API.
+- Dat provider 2Captcha trong `crawler-pipeline/src/challenge/`; dat Douyin-specific logic trong `crawler-pipeline/src/crawl/douyin/session_recovery.ts` hoac module tuong duong. `core.ts` chi orchestration, `http_client.ts` chi classify response.
+- Dashboard `/dash/settings` chi la control/config surface. Khong viet code giai challenge trong Client Component hoac Server Action cua Settings.
+- Worker hien chua co allowlist doc `system_settings`; neu muon dung key tu DB thay vi env, phai them endpoint/scope hep, vi du `GET /api/worker/settings/captcha` voi `crawler:read_settings`.
+- Khong log raw cookie, `msToken`, 2Captcha API key, challenge payload, hoac solver token. Chi log provider, status, attempt count, va reason da redacted.
+- Khong mark Douyin challenge recovery la Done neu chua co smoke task Douyin search that luu du so luong yeu cau sau khi gap `verify_check`.

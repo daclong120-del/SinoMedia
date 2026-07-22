@@ -1,6 +1,7 @@
 import { join } from "node:path";
 import { chromium } from "playwright";
-import { DouyinSession } from "./session.js";
+import { DouyinSession, isValidDouyinWebId } from "./session.js";
+import { getWebId } from "./http_client.js";
 
 export interface BootstrapOptions {
   profileDir?: string;
@@ -17,7 +18,7 @@ export interface BootstrapOptions {
  */
 export async function bootstrapDouyinSession(options: BootstrapOptions = {}): Promise<DouyinSession> {
   const profileDir = options.profileDir || join(process.cwd(), "output", "browser-profiles", "douyin-default");
-  const headless = options.headless !== false;
+  const headless = options.headless === true;
   const timeoutMs = options.timeoutMs || 30000;
 
   console.log(`[Bootstrap] Launching Chromium Persistent Context at: ${profileDir} (headless: ${headless})`);
@@ -28,7 +29,9 @@ export async function bootstrapDouyinSession(options: BootstrapOptions = {}): Pr
     args: [
       "--disable-blink-features=AutomationControlled",
       "--no-sandbox",
-      "--disable-setuid-sandbox"
+      "--disable-setuid-sandbox",
+      "--disable-gpu",
+      "--disable-dev-shm-usage"
     ]
   });
 
@@ -82,19 +85,44 @@ export async function bootstrapDouyinSession(options: BootstrapOptions = {}): Pr
       await context.addCookies(formattedCookies);
     }
 
+    // 1. Điều hướng đến Douyin
     console.log("[Bootstrap] Navigating to https://www.douyin.com ...");
-    await page.goto("https://www.douyin.com", { waitUntil: "domcontentloaded" });
+    await page.goto("https://www.douyin.com", { waitUntil: "domcontentloaded", timeout: options.timeoutMs || 45000 });
+    await page.waitForTimeout(2000);
 
-    console.log("[Bootstrap] Waiting for page hydration and requests to settle...");
-    // Wait for ttwid or main cookies to settle
+    let title = await page.title();
+    if (title.includes("验证") || title.includes("Captcha")) {
+      console.log("\n==========================================================================");
+      console.log("⚠️ DOUYIN YÊU CẦU GIẢI CAPTCHA / XÁC MINH (验证码中间页)!");
+      console.log("👉 Vui lòng thao tác kéo slider captcha trên cửa sổ trình duyệt đang mở để vượt qua verification.");
+      console.log("==========================================================\n");
+
+      let retries = 0;
+      while ((title.includes("验证") || title.includes("Captcha")) && retries < 30) {
+        await page.waitForTimeout(2000);
+        title = await page.title();
+        retries++;
+      }
+
+      if (title.includes("验证") || title.includes("Captcha")) {
+        console.warn("⚠️ Hết thời gian chờ giải captcha. Tiếp tục thử trích xuất token...");
+      } else {
+        console.log("✅ Giải Captcha thành công! Trình duyệt đã hết bị khóa.");
+      }
+    }
+
+    console.log("[Bootstrap] Navigating to search page to hydrate search stream tokens...");
+    try {
+      await page.goto("https://www.douyin.com/search/girl?type=general", { waitUntil: "domcontentloaded", timeout: 15000 });
+      await page.waitForTimeout(3000);
+    } catch {
+      console.log("[Bootstrap] Search navigation completed or timed out, continuing...");
+    }
     await page.waitForTimeout(5000);
 
     // 2. Trích xuất thông tin
     console.log("[Bootstrap] Extracting session details from browser context...");
-    const cookies = await context.cookies([
-      "https://www.douyin.com",
-      "https://douyin.com"
-    ]);
+    const cookies = await context.cookies();
 
     const localStorage: Record<string, string> = await page.evaluate(() => {
       const store: Record<string, string> = {};
@@ -119,12 +147,28 @@ export async function bootstrapDouyinSession(options: BootstrapOptions = {}): Pr
       }
     }
 
-    const webid = cookieMap.get("__ac_webid") || cookieMap.get("dy_did") || options.rawWebId || "";
+    console.log("[Bootstrap Debug] Cookies count:", cookies.length);
+    console.log("[Bootstrap Debug] Cookie names:", Array.from(cookieMap.keys()).join(", "));
+    console.log("[Bootstrap Debug] MONITOR_WEB_ID:", cookieMap.get("MONITOR_WEB_ID"));
+    console.log("[Bootstrap Debug] __ac_webid:", cookieMap.get("__ac_webid"));
+    console.log("[Bootstrap Debug] dy_did:", cookieMap.get("dy_did"));
+
+    const webidCandidates = [
+      cookieMap.get("webid"),
+      cookieMap.get("__ac_webid"),
+      cookieMap.get("dy_did"),
+      cookieMap.get("MONITOR_WEB_ID"),
+      options.rawWebId,
+    ];
+    const webid = webidCandidates.find(v => typeof v === "string" && isValidDouyinWebId(v)) || "";
+    if (!webid) {
+      throw new Error("Bootstrap failed: Missing valid numeric webid (16-22 digits) from browser context.");
+    }
     const msToken = capturedMsToken || localStorage.xmst || cookieMap.get("msToken") || options.rawMsToken || "";
     const xmst = localStorage.xmst || cookieMap.get("xmst") || "";
     const verifyFp = cookieMap.get("s_v_web_id") || options.rawVerifyFp || "";
     const fp = verifyFp;
-    const uifid = cookieMap.get("uifid") || "";
+    const uifid = cookieMap.get("UIFID") || cookieMap.get("UIFID_TEMP") || cookieMap.get("uifid") || "";
 
     // Parse Chrome version
     let browserVersion = "120.0.0.0";

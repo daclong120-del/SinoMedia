@@ -119,3 +119,14 @@ Khi hoàn thành một tính năng:
 2. Nếu thay đổi hướng kiến trúc, cập nhật `docs/roadmap.md` hoặc `docs/decisions.md`.
 3. Nếu phát hiện bẫy cho agent, cập nhật `docs/agent-handbook.md`.
 4. Nếu sửa code symbol, tuân thủ GitNexus impact analysis trước khi sửa và `detect_changes()` trước khi commit.
+
+## 2026-07-21 Addendum - Douyin challenge recovery status
+
+| Capability | Status | Ghi chu |
+|---|---|---|
+| Douyin diagnostic challenge classification | Partial | Code da nhan dien duoc dau hieu `verify_check` / `result_status = 5`, nhung diagnostic hien van can duoc nang tu boolean sang structured result de phan biet `challenge_required`, `auth_expired`, `missing_identity`, `empty_search`, va `network_error`. |
+| Douyin Playwright session bootstrap | Partial | `session_bootstrap.ts` da co Playwright persistent context va manual wait khi gap captcha/challenge, nhung chua co provider adapter 2Captcha va chua duoc coi la session recovery tu dong. |
+| Douyin 2Captcha runtime solver | Planned | Huong thiet ke: dat provider generic trong `crawler-pipeline/src/challenge/`, Douyin-specific recovery trong `crawler-pipeline/src/crawl/douyin/session_recovery.ts`; Dashboard Settings chi luu cau hinh/key, khong chay solver. |
+| Dashboard Settings 2Captcha | Partial | UI/service/migration da co luu key ma hoa va lay balance 2Captcha, nhung worker chua co duong doc cau hinh nay qua Token Guard. Trien khai dau tien co the dung env worker; production nen them endpoint hep `GET /api/worker/settings/captcha` voi scope `crawler:read_settings`. |
+
+Evidence moi nhat: Douyin task search co the fail sau diagnostic voi `No valid browser-authenticated session available for Douyin crawler. Diagnostic check failed`; debug search cho thay profile checkpoint pass nhung search checkpoint tra `verify_check` va 0 item. Chua danh dau Done cho den khi mot task Douyin search that luu du `10/10` hoac `50/50` sau recovery.

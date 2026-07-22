@@ -127,6 +127,42 @@ function getSearchId(): string {
   return base36encode(timestamp + rand);
 }
 
+async function loadLocalXhsCookie(): Promise<string> {
+  if (process.env.XHS_COOKIE) {
+    return process.env.XHS_COOKIE;
+  }
+
+  try {
+    const sessionPath = join(process.cwd(), "output", "xhs_session.json");
+    const content = await readFile(sessionPath, "utf8");
+    const data = JSON.parse(content);
+    if (typeof data.cookie === "string") {
+      return data.cookie;
+    }
+    if (typeof data.cookieString === "string") {
+      return data.cookieString;
+    }
+    if (Array.isArray(data.cookies)) {
+      return data.cookies
+        .map((cookie: any) => `${cookie.name || cookie.key}=${cookie.value || ""}`)
+        .filter((part: string) => !part.startsWith("="))
+        .join("; ");
+    }
+    if (data && typeof data === "object") {
+      return Object.entries(data)
+        .filter(([, value]) => value === null || ["string", "number", "boolean"].includes(typeof value))
+        .map(([key, value]) => `${key}=${value ?? ""}`)
+        .join("; ");
+    }
+  } catch {}
+
+  return "";
+}
+
+function hasXhsSessionCookie(cookies: Record<string, string>): boolean {
+  return Boolean(cookies.a1 && cookies.web_session);
+}
+
 async function downloadXhsMedia(url: string): Promise<Buffer> {
   const resp = await fetch(url, {
     headers: {
@@ -196,7 +232,58 @@ export class XhsCrawler implements ICrawler {
   }
 
   async ensureLogin(): Promise<void> {
-    throw new Error("browser mode removed, provide valid cookie/session");
+    if (this.currentAccountId) {
+      return;
+    }
+
+    const seenAccountIds = new Set<string>();
+    const maxAttempts = 5;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const account = await checkoutAccount("xhs");
+      if (!account || seenAccountIds.has(account.id)) {
+        break;
+      }
+
+      console.log(`Checking XHS account from pool: ${account.username} (ID: ${account.id})...`);
+      seenAccountIds.add(account.id);
+      this.currentAccountId = account.id;
+
+      const accountCookies = parseCookieString(account.cookie_data);
+      if (!hasXhsSessionCookie(accountCookies)) {
+        console.warn(`XHS account ${account.username} is missing a1/web_session. Marking failure and trying the next account.`);
+        await checkinAccount(account.id, false);
+        this.currentAccountId = null;
+        continue;
+      }
+
+      await this.client.updateCookies(accountCookies);
+      if (await this.client.pong()) {
+        console.log(`XHS account ${account.username} passed diagnostic.`);
+        return;
+      }
+
+      console.warn(`XHS account ${account.username} failed diagnostic. Marking failure and trying the next account.`);
+      await checkinAccount(account.id, false);
+      this.currentAccountId = null;
+    }
+
+    const localCookie = await loadLocalXhsCookie();
+    if (localCookie) {
+      console.log("No valid XHS account from pool. Trying XHS_COOKIE/output local session...");
+      const localCookies = parseCookieString(localCookie);
+      if (!hasXhsSessionCookie(localCookies)) {
+        throw new Error("XHS local session is missing a1/web_session. Re-export cookies after logging in.");
+      }
+      await this.client.updateCookies(localCookies);
+      if (await this.client.pong()) {
+        console.log("XHS local session passed diagnostic.");
+        return;
+      }
+    }
+
+    await this.client.updateCookies([]);
+    throw new Error("No valid XHS session. Update an active crawler_accounts cookie or XHS_COOKIE.");
   }
 
   async releaseAccount(isSuccessful: boolean): Promise<void> {

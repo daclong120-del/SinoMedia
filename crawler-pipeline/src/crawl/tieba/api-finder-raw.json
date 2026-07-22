@@ -1,0 +1,1742 @@
+{
+  "catalogVersion": 1,
+  "format": "api-finder-endpoint-catalog",
+  "exportedAt": "2026-07-21T01:48:50.003Z",
+  "reconNotes": "securitySignals are passive heuristics (path, query names, status mix, Content-Type, channel). Not a verdict; validate manually. For Postman or Swagger, use the OpenAPI or Postman export buttons.",
+  "endpoints": [
+    {
+      "contentTypes": {
+        "text/plain": 65
+      },
+      "count": 65,
+      "firstSeen": 1784598353992,
+      "host": "otheve.beacon.qq.com",
+      "lastSeen": 1784598473355,
+      "method": "POST",
+      "pathname": "/analytics/v2_upload",
+      "queryParamNames": [
+        "appkey"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 65
+      },
+      "sampleUrls": [
+        "https://otheve.beacon.qq.com/analytics/v2_upload?appkey=JS05KY1G393HQI"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-headers": "x-requested-with,content-type",
+        "access-control-allow-methods": "POST",
+        "access-control-allow-origin": "*"
+      },
+      "statusCodes": {
+        "200": 65
+      },
+      "templatedPath": "/{b64id}/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1784598469955,
+      "host": "localhost:3000",
+      "lastSeen": 1784598469964,
+      "method": "POST",
+      "pathname": "/__nextjs_original-stack-frames",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "http://localhost:3000/__nextjs_original-stack-frames"
+      ],
+      "scheme": "http",
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/x-component": 5
+      },
+      "count": 5,
+      "firstSeen": 1784598468741,
+      "host": "localhost:3000",
+      "lastSeen": 1784598469837,
+      "method": "POST",
+      "pathname": "/dash/home",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 5
+      },
+      "sampleUrls": [
+        "http://localhost:3000/dash/home"
+      ],
+      "scheme": "http",
+      "securityHeaders": {
+        "permissions-policy": "camera=(), microphone=(), geolocation=(), browsing-topics=()",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 5
+      },
+      "templatedPath": "/dash/home",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 60
+      },
+      "count": 60,
+      "firstSeen": 1784598353945,
+      "host": "gatherer.m.qq.com",
+      "lastSeen": 1784598465968,
+      "method": "POST",
+      "pathname": "/event/report",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 60
+      },
+      "sampleUrls": [
+        "https://gatherer.m.qq.com/event/report"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,access_token,biz,content-type,d-ua,fcgi-sign,origincstime,requestid,utype,traceparent,tracestate",
+        "access-control-allow-methods": "POST, OPTIONS",
+        "access-control-allow-origin": "https://tieba.baidu.com",
+        "x-content-type-options": "nosniff"
+      },
+      "statusCodes": {
+        "200": 60
+      },
+      "templatedPath": "/event/report",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "count": 24,
+      "firstSeen": 1784598353888,
+      "host": "gatherer.m.qq.com",
+      "lastSeen": 1784598465906,
+      "method": "OPTIONS",
+      "pathname": "/event/report",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 24
+      },
+      "sampleUrls": [
+        "https://gatherer.m.qq.com/event/report"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,access_token,biz,content-type,d-ua,fcgi-sign,origincstime,requestid,utype,traceparent,tracestate",
+        "access-control-allow-methods": "POST, OPTIONS",
+        "access-control-allow-origin": "https://tieba.baidu.com",
+        "server": "stgw"
+      },
+      "statusCodes": {
+        "204": 24
+      },
+      "templatedPath": "/event/report",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/x-javascript": 5
+      },
+      "count": 5,
+      "firstSeen": 1784598354575,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598465649,
+      "method": "GET",
+      "pathname": "/c/f/excellent/personalized_pc",
+      "queryParamNames": [
+        "_client_type",
+        "load_type",
+        "sign",
+        "subapp_type"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 5
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/c/f/excellent/personalized_pc?load_type=1&subapp_type=pc&_client_type=20&sign=f18de526d03f672d241a42556a133a9e",
+        "https://tieba.baidu.com/c/f/excellent/personalized_pc?load_type=2&subapp_type=pc&_client_type=20&sign=94b202d1596feb03844463b8f30e695c"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 5
+      },
+      "templatedPath": "/c/f/{b64id}/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/x-javascript": 14
+      },
+      "count": 14,
+      "firstSeen": 1784598354115,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598459398,
+      "method": "GET",
+      "pathname": "/c/f/pc/homeSidebarRight",
+      "queryParamNames": [
+        "_client_type",
+        "forum_id",
+        "forum_name",
+        "sign",
+        "subapp_type",
+        "tid"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 14
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/c/f/pc/homeSidebarRight?subapp_type=pc&_client_type=20&sign=e9b101df871c39eedcf9a232c2d26ec8",
+        "https://tieba.baidu.com/c/f/pc/homeSidebarLeft?subapp_type=pc&_client_type=20&sign=e9b101df871c39eedcf9a232c2d26ec8",
+        "https://tieba.baidu.com/c/f/pc/pbSidebarRight?tid=10879690678&subapp_type=pc&_client_type=20&sign=4031f975585c91673408ecb4e7e910db",
+        "https://tieba.baidu.com/c/f/pc/frsSidebarRight?forum_name=%E5%8F%8D%E6%BF%80%E5%A5%B3&subapp_type=pc&_client_type=20&sign=1cc0930c4e8cd68c22b0eaa7a80924f8",
+        "https://tieba.baidu.com/c/f/pc/forumCard?forum_id=28083130&subapp_type=pc&_client_type=20&sign=5c810d0232042422b8ca87ebbd439855"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 14
+      },
+      "templatedPath": "/c/f/pc/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/html": 3
+      },
+      "count": 3,
+      "firstSeen": 1784598453282,
+      "host": "em.602.com",
+      "lastSeen": 1784598458816,
+      "method": "GET",
+      "pathname": "/pageDisplay/cf6446a997474a8a83f826a401919b66",
+      "queryParamNames": [
+        "landingpage_id",
+        "material_id",
+        "noredirect",
+        "pageStatus",
+        "qz_gdt",
+        "suid",
+        "uid"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://em.602.com/pageDisplay/cf6446a997474a8a83f826a401919b66?noredirect=true&uid=gdtQJ-66&suid=02&qz_gdt=udvbkjft6wces01&material_id=202788567074775040&landingpage_id=40489&pageStatus=pageInite",
+        "https://em.602.com/pageDisplay/cf6446a997474a8a83f826a401919b66?noredirect=true&uid=gdtQJ-66&suid=02&qz_gdt=udvbkjft6wces01&material_id=202788567074775040&landingpage_id=40489&pageStatus=pageLoaded",
+        "https://em.602.com/pageDisplay/cf6446a997474a8a83f826a401919b66?noredirect=true&uid=gdtQJ-66&suid=02&qz_gdt=udvbkjft6wces01&material_id=202788567074775040&landingpage_id=40489&pageStatus=video_3s"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-origin": "*",
+        "server": "volc-dcdn",
+        "x-powered-by": "PHP/7.2.18"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/{b64id}/{hash}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784598452905,
+      "host": "rumt-zh.com",
+      "lastSeen": 1784598452905,
+      "method": "GET",
+      "pathname": "/collect/whitelist",
+      "queryParamNames": [
+        "aid",
+        "env",
+        "from",
+        "id",
+        "netType",
+        "platform",
+        "referer",
+        "sessionId",
+        "sr",
+        "uin",
+        "version",
+        "vp"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://rumt-zh.com/collect/whitelist?id=ZEe4qtvQrdOrqK9oe7&uin=&version=1.43.59&aid=d67b8f41-4a28-4db1-9295-c32f27dd6437&env=production&platform=3&netType=4&vp=1220%20*%20937&sr=1920%20*%201080&sessionId=a92d2cac23b1468e9498ddb9fce82396&from=https%3A%2F%2Fwy.668wan.com%2Fsbqj%2FV0qHq4%2Findex.html%3Fuid%3DgdtQJ-66%26suid%3D02%26qz_gdt%3Dudvbkjft6wces01&referer=https%3A%2F%2Ftieba.baidu.com%2F"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-origin": "*"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/collect/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784598452896,
+      "host": "rumt-zh.com",
+      "lastSeen": 1784598452896,
+      "method": "GET",
+      "pathname": "/rateConfig",
+      "queryParamNames": [
+        "aid",
+        "env",
+        "from",
+        "id",
+        "netType",
+        "platform",
+        "referer",
+        "sessionId",
+        "sr",
+        "uin",
+        "version",
+        "vp"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://rumt-zh.com/rateConfig?id=ZEe4qtvQrdOrqK9oe7&uin=&version=1.43.59&aid=d67b8f41-4a28-4db1-9295-c32f27dd6437&env=production&platform=3&netType=4&vp=1220%20*%20937&sr=1920%20*%201080&sessionId=a92d2cac23b1468e9498ddb9fce82396&from=https%3A%2F%2Fwy.668wan.com%2Fsbqj%2FV0qHq4%2Findex.html%3Fuid%3DgdtQJ-66%26suid%3D02%26qz_gdt%3Dudvbkjft6wces01&referer=https%3A%2F%2Ftieba.baidu.com%2F"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-origin": "*"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/plain": 1
+      },
+      "count": 1,
+      "firstSeen": 1784598452430,
+      "host": "wy.668wan.com",
+      "lastSeen": 1784598452430,
+      "method": "HEAD",
+      "pathname": "/1.txt",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://wy.668wan.com/1.txt"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Byte-nginx"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/1.txt",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784598443001,
+      "host": "sofire.baidu.com",
+      "lastSeen": 1784598443001,
+      "method": "POST",
+      "pathname": "/abot/api/v1/tpl/commit",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://sofire.baidu.com/abot/api/v1/tpl/commit"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "Content-Type,AccessToken,X-CSRF-Token,X-Bdh5-Pf,X-XSRF-TOKEN, Authorization",
+        "access-control-allow-methods": "POST, GET, OPTIONS",
+        "access-control-allow-origin": "https://tieba.baidu.com"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/abot/api/v1/tpl/commit",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 6
+      },
+      "count": 6,
+      "firstSeen": 1784598405544,
+      "host": "xlab.baidu.com",
+      "lastSeen": 1784598442129,
+      "method": "POST",
+      "pathname": "/jnmq",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 6
+      },
+      "sampleUrls": [
+        "https://xlab.baidu.com/jnmq"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://tieba.baidu.com",
+        "x-powered-by": "Express"
+      },
+      "statusCodes": {
+        "200": 6
+      },
+      "templatedPath": "/jnmq",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 7
+      },
+      "count": 7,
+      "firstSeen": 1784598404439,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598439440,
+      "method": "GET",
+      "pathname": "/im/pcmsg/query/getAllUnread",
+      "queryParamNames": [
+        "_"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 7
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/im/pcmsg/query/getAllUnread?_=1784598404335",
+        "https://tieba.baidu.com/im/pcmsg/query/getAllUnread?_=1784598404333",
+        "https://tieba.baidu.com/im/pcmsg/query/getAllUnread?_=1784598405559",
+        "https://tieba.baidu.com/im/pcmsg/query/getAllUnread?_=1784598406367",
+        "https://tieba.baidu.com/im/pcmsg/query/getAllUnread?_=1784598427386"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 7
+      },
+      "templatedPath": "/im/pcmsg/query/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/html": 7
+      },
+      "count": 7,
+      "firstSeen": 1784598405128,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598439291,
+      "method": "GET",
+      "pathname": "/f/user/json_userinfo",
+      "queryParamNames": [
+        "_"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 7
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/f/user/json_userinfo?_=1784598404996",
+        "https://tieba.baidu.com/f/user/json_userinfo?_=1784598405020",
+        "https://tieba.baidu.com/f/user/json_userinfo?_=1784598406362",
+        "https://tieba.baidu.com/f/user/json_userinfo?_=1784598407276",
+        "https://tieba.baidu.com/f/user/json_userinfo?_=1784598425347"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 7
+      },
+      "templatedPath": "/f/user/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "user-data"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 4
+      },
+      "count": 4,
+      "firstSeen": 1784598403201,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598439277,
+      "method": "GET",
+      "pathname": "/hottopic/browse/getTopicRelateThread",
+      "queryParamNames": [
+        "last_id",
+        "page_no",
+        "sort_type",
+        "topic_id",
+        "topic_name"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 4
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/hottopic/browse/getTopicRelateThread?topic_name=%E7%8E%A9%E6%A2%97%E9%81%AD%E5%8F%8D%E5%99%AC%2C%E5%B0%8F%E4%BC%99cos%E9%9B%AA%E5%B3%B0%E4%B8%AD%E6%9A%91%E6%99%95%E5%80%92&page_no=2&last_id=10771675454&topic_id=28356355&sort_type=1",
+        "https://tieba.baidu.com/hottopic/browse/getTopicRelateThread?topic_name=%E8%8F%B2%E6%96%B9%E5%86%B2%E6%92%9E%E4%B8%AD%E6%96%B9%E6%B5%B7%E8%AD%A6%2C%E5%8F%8D%E8%A3%85%E5%8F%97%E5%AE%B3%E8%80%85&page_no=2&last_id=10875208002&topic_id=28356354&sort_type=1",
+        "https://tieba.baidu.com/hottopic/browse/getTopicRelateThread?topic_name=C%E7%BD%97%E7%82%B9%E8%B5%9EFIFA%E5%81%8F%E8%A2%92%E9%98%BF%E6%A0%B9%E5%BB%B7&page_no=2&last_id=0&topic_id=28356358&sort_type=1",
+        "https://tieba.baidu.com/hottopic/browse/getTopicRelateThread?topic_name=%E8%89%BE%E7%B1%B3%E9%9B%80%E9%AA%A8&page_no=2&last_id=null&topic_id=undefined&sort_type=1"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 4
+      },
+      "templatedPath": "/{b64id}/browse/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 9
+      },
+      "count": 9,
+      "firstSeen": 1784598404884,
+      "host": "sfp.safe.baidu.com",
+      "lastSeen": 1784598438420,
+      "method": "POST",
+      "pathname": "/sfp/v1/rd",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 9
+      },
+      "sampleUrls": [
+        "https://sfp.safe.baidu.com/sfp/v1/rd"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://tieba.baidu.com",
+        "server": "nginx/1.14.2"
+      },
+      "statusCodes": {
+        "200": 9
+      },
+      "templatedPath": "/sfp/v1/rd",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1784598402483,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598437778,
+      "method": "GET",
+      "pathname": "/sysmsg/query/userunread",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/sysmsg/query/userunread"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/sysmsg/query/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 5
+      },
+      "count": 5,
+      "firstSeen": 1784598402907,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598437707,
+      "method": "GET",
+      "pathname": "/f/commit/commonapi/antiGetCaptchaNew",
+      "queryParamNames": [
+        "t"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 5
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/f/commit/commonapi/antiGetCaptchaNew?t=1784598402808",
+        "https://tieba.baidu.com/f/commit/commonapi/antiGetCaptchaNew?t=1784598403032",
+        "https://tieba.baidu.com/f/commit/commonapi/antiGetCaptchaNew?t=1784598404125",
+        "https://tieba.baidu.com/f/commit/commonapi/antiGetCaptchaNew?t=1784598425240",
+        "https://tieba.baidu.com/f/commit/commonapi/antiGetCaptchaNew?t=1784598437609"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 5
+      },
+      "templatedPath": "/f/commit/{b64id}/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 11
+      },
+      "count": 11,
+      "firstSeen": 1784598402316,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598437688,
+      "method": "GET",
+      "pathname": "/dc/common/imgtbs",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 11
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/dc/common/imgtbs"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 11
+      },
+      "templatedPath": "/dc/common/imgtbs",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 12
+      },
+      "count": 12,
+      "firstSeen": 1784598401349,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598437629,
+      "method": "GET",
+      "pathname": "/mo/q/sync",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 12
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/mo/q/sync"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 12
+      },
+      "templatedPath": "/mo/q/sync",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/x-component": 4
+      },
+      "count": 4,
+      "firstSeen": 1784598394471,
+      "host": "localhost:3000",
+      "lastSeen": 1784598435951,
+      "method": "GET",
+      "pathname": "/dash/home",
+      "queryParamNames": [
+        "_rsc"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 4
+      },
+      "sampleUrls": [
+        "http://localhost:3000/dash/home?_rsc=cGD-5B93E4jdDBXq"
+      ],
+      "scheme": "http",
+      "securityHeaders": {
+        "permissions-policy": "camera=(), microphone=(), geolocation=(), browsing-topics=()",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 4
+      },
+      "templatedPath": "/dash/home",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784598432575,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598432575,
+      "method": "GET",
+      "pathname": "/present/show/getGiftList",
+      "queryParamNames": [
+        "scene_from",
+        "yy_is_convert",
+        "yy_pay_open"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/present/show/getGiftList?scene_from=pc_pb&yy_pay_open=1&yy_is_convert=1"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/present/show/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1784598429063,
+      "host": "miao.baidu.com",
+      "lastSeen": 1784598432244,
+      "method": "POST",
+      "pathname": "/abdr",
+      "queryParamNames": [
+        "_o"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://miao.baidu.com/abdr?_o=https%3A%2F%2Ftieba.baidu.com"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "Origin, Host, Content-Type, x-requested-with, X-Custom-Header",
+        "access-control-allow-methods": "POST, GET, OPTIONS, DELETE",
+        "access-control-allow-origin": "https://tieba.baidu.com"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/abdr",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784598431846,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598431846,
+      "method": "GET",
+      "pathname": "/tbmall/getUserTd",
+      "queryParamNames": [
+        "Tue Jul 21 2026 08:47:11 GMT 0700 (Indochina Time)",
+        "_"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/tbmall/getUserTd?Tue%20Jul%2021%202026%2008:47:11%20GMT+0700%20(Indochina%20Time)&_=1784598431638"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/tbmall/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784598431762,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598431762,
+      "method": "GET",
+      "pathname": "/sysmsg/userpost/queryStoreUpdateNum",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/sysmsg/userpost/queryStoreUpdateNum"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/sysmsg/{b64id}/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 4
+      },
+      "count": 4,
+      "firstSeen": 1784598357500,
+      "host": "sdk.e.qq.com",
+      "lastSeen": 1784598429917,
+      "method": "POST",
+      "pathname": "/launch",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 4
+      },
+      "sampleUrls": [
+        "https://sdk.e.qq.com/launch"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-methods": "POST",
+        "access-control-allow-origin": "*"
+      },
+      "statusCodes": {
+        "200": 4
+      },
+      "templatedPath": "/launch",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784598427575,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598427575,
+      "method": "GET",
+      "pathname": "/managerapply/data/frs",
+      "queryParamNames": [
+        "fid",
+        "ie",
+        "is_mgr",
+        "kw",
+        "mgr_num",
+        "t"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/managerapply/data/frs?kw=%E5%8F%8D%E6%BF%80%E5%A5%B3&fid=28083130&is_mgr=0&mgr_num=1&t=1ju15ltgh&ie=utf-8"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/{b64id}/data/frs",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 7
+      },
+      "count": 7,
+      "firstSeen": 1784598402401,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598427007,
+      "method": "GET",
+      "pathname": "/p/getLikeForum",
+      "queryParamNames": [
+        "fid",
+        "pn",
+        "see_lz",
+        "t",
+        "tid",
+        "uid"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 7
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/p/getLikeForum?uid=7089405087",
+        "https://tieba.baidu.com/p/totalComment?t=1784598402374&tid=8256460806&fid=572638&pn=1&see_lz=0",
+        "https://tieba.baidu.com/p/totalComment?t=1784598405171&tid=7310120937&fid=154782&pn=1&see_lz=0",
+        "https://tieba.baidu.com/p/totalComment?t=1784598426192&tid=10880880992&fid=28024592&pn=1&see_lz=0"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 7
+      },
+      "templatedPath": "/p/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/html": 6
+      },
+      "count": 6,
+      "firstSeen": 1784598402479,
+      "host": "gsp0.baidu.com",
+      "lastSeen": 1784598426996,
+      "method": "OPTIONS",
+      "pathname": "/5aAHeD3nKhI2p27j8IqW0jdnxx1xbK/tb/error.html",
+      "queryParamNames": [
+        "tc"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 6
+      },
+      "sampleUrls": [
+        "https://gsp0.baidu.com/5aAHeD3nKhI2p27j8IqW0jdnxx1xbK/tb/error.html?tc=28017124051600574474072109",
+        "https://gsp0.baidu.com/5aAHeD3nKhI2p27j8IqW0jdnxx1xbK/tb/error.html?tc=28018798174016428042072109",
+        "https://gsp0.baidu.com/5aAHeD3nKhI2p27j8IqW0jdnxx1xbK/tb/error.html?tc=28021284731902564362072109",
+        "https://gsp0.baidu.com/5aAHeD3nKhI2p27j8IqW0jdnxx1xbK/tb/error.html?tc=28046632971466356746072109",
+        "https://gsp0.baidu.com/5aAHeD3nKhI2p27j8IqW0jdnxx1xbK/tb/error.html?tc=28256784912469778442072109"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache"
+      },
+      "statusCodes": {
+        "405": 6
+      },
+      "templatedPath": "/{b64id}/tb/error.html",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784598425488,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598425488,
+      "method": "GET",
+      "pathname": "/present/getForumRank",
+      "queryParamNames": [
+        "forum_id",
+        "pn",
+        "ps",
+        "type",
+        "user_id"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/present/getForumRank?user_id=7089405087&forum_id=28083130&pn=0&ps=4&type=1"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/present/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 4
+      },
+      "count": 4,
+      "firstSeen": 1784598353829,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598425395,
+      "method": "GET",
+      "pathname": "/mo/q/getConfigData",
+      "queryParamNames": [
+        "_client_type",
+        "amis_key",
+        "sign",
+        "subapp_type"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 4
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/mo/q/getConfigData?amis_key=6e49499d1b4d0ce92d5ad4398c5de91f12&subapp_type=pc&_client_type=20&sign=93bb3e8f5547b56c220f210a8cd23f82",
+        "https://tieba.baidu.com/mo/q/getTiebaplusPowerList"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 4
+      },
+      "templatedPath": "/mo/q/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 3
+      },
+      "count": 3,
+      "firstSeen": 1784598361549,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598413229,
+      "method": "GET",
+      "pathname": "/mo/q/recommendpb/recomSiteTids",
+      "queryParamNames": [
+        "_client_type",
+        "fr",
+        "pageFr",
+        "sign",
+        "subapp_type",
+        "thread_id"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/mo/q/recommendpb/recomSiteTids?fr=pc&pageFr=personalize_page&thread_id=10879690678&subapp_type=pc&_client_type=20&sign=e96b05a95737cd7d0a980e48d5484647",
+        "https://tieba.baidu.com/mo/q/recommendpb/recomSiteTids?fr=pc&pageFr=personalize_page&thread_id=10881520378&subapp_type=pc&_client_type=20&sign=c7f5503168f3166a9db206075b7aeae3"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/mo/q/{b64id}/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/x-javascript": 5
+      },
+      "count": 5,
+      "firstSeen": 1784598361404,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598413017,
+      "method": "POST",
+      "pathname": "/c/f/pb/page_pc",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 5
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/c/f/pb/page_pc"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 5
+      },
+      "templatedPath": "/c/f/pb/page_pc",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/x-javascript": 6
+      },
+      "count": 6,
+      "firstSeen": 1784598354054,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598412823,
+      "method": "GET",
+      "pathname": "/c/s/pc/sync",
+      "queryParamNames": [
+        "_client_type",
+        "sign",
+        "subapp_type"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 6
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/c/s/pc/sync?subapp_type=pc&_client_type=20&sign=e9b101df871c39eedcf9a232c2d26ec8"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 6
+      },
+      "templatedPath": "/c/s/pc/sync",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784598404579,
+      "host": "baidu.govwza.cn",
+      "lastSeen": 1784598404579,
+      "method": "GET",
+      "pathname": "/api/services/Accessibility/Configuration/checkLoadData",
+      "queryParamNames": [
+        "appid",
+        "domain",
+        "mainversion",
+        "referer",
+        "timestamp"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://baidu.govwza.cn/api/services/Accessibility/Configuration/checkLoadData?appid=c890648bf4dd00d05eb9751dd0548c30&timestamp=1784598403012&domain=tieba.baidu.com&referer=https%3A%2F%2Ftieba.baidu.com%2Ff%3Fkw%3D%25E5%258F%258D%25E6%25BF%2580%25E5%25A5%25B3%26fr%3Dpb&mainversion=4"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "Origin, X-Requested-With, Content-Type, Accept, requestcheckkey, appid, token, X-Authorization-Tool",
+        "access-control-allow-methods": "GET,POST,OPTIONS",
+        "access-control-allow-origin": "https://tieba.baidu.com",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/{b64id}/{b64id}/{b64id}/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1784598404048,
+      "host": "baidu.govwza.cn",
+      "lastSeen": 1784598404048,
+      "method": "OPTIONS",
+      "pathname": "/api/services/Accessibility/Configuration/checkLoadData",
+      "queryParamNames": [
+        "appid",
+        "domain",
+        "mainversion",
+        "referer",
+        "timestamp"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://baidu.govwza.cn/api/services/Accessibility/Configuration/checkLoadData?appid=c890648bf4dd00d05eb9751dd0548c30&timestamp=1784598403012&domain=tieba.baidu.com&referer=https%3A%2F%2Ftieba.baidu.com%2Ff%3Fkw%3D%25E5%258F%258D%25E6%25BF%2580%25E5%25A5%25B3%26fr%3Dpb&mainversion=4"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "Origin, X-Requested-With, Content-Type, Accept, requestcheckkey, appid, token, X-Authorization-Tool",
+        "access-control-allow-methods": "GET,POST,OPTIONS",
+        "access-control-allow-origin": "https://tieba.baidu.com",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN"
+      },
+      "statusCodes": {
+        "204": 1
+      },
+      "templatedPath": "/api/{b64id}/{b64id}/{b64id}/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784598403012,
+      "host": "tb5.bdstatic.com",
+      "lastSeen": 1784598403012,
+      "method": "GET",
+      "pathname": "/api/wza/config.json",
+      "queryParamNames": [
+        "domain"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://tb5.bdstatic.com/api/wza/config.json?domain=tieba.baidu.com"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-methods": "GET, HEAD, POST, PUT",
+        "access-control-allow-origin": "https://tieba.baidu.com",
+        "server": "JSP3/2.0.14"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/wza/config.json",
+      "securitySignals": {
+        "tags": [
+          "config-leak"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/x-javascript": 2
+      },
+      "count": 2,
+      "firstSeen": 1784598395782,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598396208,
+      "method": "GET",
+      "pathname": "/c/c/agree/opAgree_pc",
+      "queryParamNames": [
+        "_client_type",
+        "agree_type",
+        "forum_id",
+        "jt",
+        "obj_source",
+        "obj_type",
+        "op_type",
+        "post_id",
+        "sign",
+        "subapp_type",
+        "tbs",
+        "thread_id"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/c/c/agree/opAgree_pc?thread_id=10879690678&post_id=10879690678&op_type=0&obj_type=3&forum_id=28083130&agree_type=2&obj_source=a005&tbs=ee0802bd19272a881784598353&jt=31%24eyJrIj4iNiI0Iix5IkciQEdJRkhNTUlQTEtTUSJJIkFqIjwiNTw%2BOz1CQj5FQUBIRiI%2BIjYzIlEiSlFTUFJXVzM3MzY5OCIzIit5IkYiQz9AQSI%2FIjkiUSJLSExOS09NMSIuIm4iQCI6KUtXKmEzYypCRFY0MSpuUD5fMTM%2BOkBTa0gqZXBzLFcxc1dwc3c%2BNUJlSWNiY0hQO21lb21WN3FILXNJKkc5dHBQLXFcYzcpOEtoWyxGPUlSOWUyQ3ZzNUd1SFxscT5LalBBXFkwZXFdMTksb2cyeixpbHVsZzdvR1Y8RXp4Oyl6eE9YQV5ZXXZfZlhjWEg%2FSis%2Band2T2R2ck5IcGtua1VeL3JFdV5kN2NgRFx6NXBNYTc0MUZHWkIpdy9xUTYrXzowQ1FgRWZed2lkRjhjbWQrZjZ2ckV0YzIzdTQuLi11Pjt2Ky5VMHhoaixrXTM5Tjt1U183MHkzU1tGeTw3Pi5SWm9gKlVqXFR4P2NmUGJyTF1sU3BmUkxkS2ZHc3VcdmFYNzh6SHpYVllLejhdaWhfNkJxQT40RlxWXmwxSGxOZHhfKVVmQno6LSloQTNyTDVePUxNLldwaW9zdWhtTGI8dlEqXTJnKnczMDJnYWRpOnUrVmQ9bFY4WFJ5SlQweV16Xz9iaWg0VHdlbmhjYVxoP0tuW1x8SCpdTVkqKUF1QSpdYD9ELmA3Qkc3S3hqMGg2ZkFQamNtRjRpcGtacU4pQ0l8Pz98Q0RFR0xJK1BRUVNPUy9TZjo3OTs%2Baz1tPEI9QEM%2BP0UifQ%3D%3D&subapp_type=pc&_client_type=20&sign=9f3a9b2a8722427e071c7f35c98806a4",
+        "https://tieba.baidu.com/c/c/agree/opAgree_pc?thread_id=10879690678&post_id=10879690678&op_type=1&obj_type=3&forum_id=28083130&agree_type=2&obj_source=a005&tbs=ee0802bd19272a881784598353&jt=31%24eyJrIj4iNiI0Iix5IkciQEdJRkhNTUlQTU1KTCJJIkFqIjwiNTw%2BOz1CQj5FQkI%2FQSI%2BIjYzIlEiSlFTUFJXVzM3MzY5OCIzIit5IkYiQz9AQSI%2FIjkiUSJLSExOS09NMSIuIm4iQCJsanZzKnAqeWRqODhgMmNIXzNFOVUvaTF5bXdUcEhfbyp3YldlelwwVXY4Z19uaU1KK1wwZDNDa284NXorbkdzKmpRd2BnLEJydiwvaGVKKWgyRWAuYFA2ZmUqeT14bSxvXXRVKmc0dURnU154XUkpQE9yb180ZXlYRTt2ZU43Xj9xLT5Tc0VnNHktSmJMYDhmTltGKyxiQElyZm1oLWp4dW9Wel9DZzFoXF80Q1dbN2QySWY6czZjaDI6SmtqZ1RLbiosYyt5RkZlWXZ4bzNfS0pAbTtoRmVMM1lIbDxwcndLLS9RVURDNzZzKy9NQXAuZzBuZF5ga00pZFRpdFdpP3AvZWVkcjJXRzVGMkltM0g5KTlDU3J3M2I1djdOKSopSixhXkVoZjJpXEwzRjlYZy1tPDxIUHJlSkVIeXpZblBjbl55dDlfU1t2XmtGNWJncTlSZ2k9YnYycVI6SlVyUj9VY1teLlV4eTQ1aStFX0NtTHRUNWguOHhVLng1K2pKME4uW1VUUEI3X1dmYjlHY0k1cXFuW1x8Vjl2eCs3YGBMeXdXLVAuR2BrZFt5V2wqTmddPUBDdVUzT1ZyU2hvUjtWTEl8Pz98dHhJeUhJSilLTkxPUVNXMzQyZDtqaGxsO25wPW5CR0QifQ%3D%3D&subapp_type=pc&_client_type=20&sign=5305d681ca038cd95444dadc6af77175"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/c/c/agree/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/x-javascript": 2
+      },
+      "count": 2,
+      "firstSeen": 1784598392930,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598395600,
+      "method": "POST",
+      "pathname": "/c/c/post/addstore_pc",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/c/c/post/addstore_pc",
+        "https://tieba.baidu.com/c/c/post/rmstore_pc"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/c/c/post/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 7
+      },
+      "count": 7,
+      "firstSeen": 1784598354798,
+      "host": "banti.baidu.com",
+      "lastSeen": 1784598395431,
+      "method": "POST",
+      "pathname": "/dr",
+      "queryParamNames": [
+        "_o"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 7
+      },
+      "sampleUrls": [
+        "https://banti.baidu.com/dr?&_o=https%3A%2F%2Ftieba.baidu.com"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "Origin, Host, Content-Type, x-requested-with, X-Custom-Header",
+        "access-control-allow-methods": "POST, GET, OPTIONS, DELETE",
+        "access-control-allow-origin": "https://tieba.baidu.com"
+      },
+      "statusCodes": {
+        "200": 7
+      },
+      "templatedPath": "/dr",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/x-javascript": 3
+      },
+      "count": 3,
+      "firstSeen": 1784598373349,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598389267,
+      "method": "GET",
+      "pathname": "/c/u/pc/userCard",
+      "queryParamNames": [
+        "_client_type",
+        "forum_id",
+        "portrait",
+        "sign",
+        "subapp_type"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/c/u/pc/userCard?portrait=tb.1.1fe4aa59.8n2z1jxsVQRcs74XB2bFTw%3Ft%3D1784598363&forum_id=28083130&subapp_type=pc&_client_type=20&sign=6114e51ffce3488aaf920ef5da6230d7",
+        "https://tieba.baidu.com/c/u/pc/userCard?portrait=tb.1.5948d4f8.12C5w-hAtrqB62hXKgshFA%3Ft%3D1784598378&forum_id=28083130&subapp_type=pc&_client_type=20&sign=53f6fca1a33d8b037dcc0c150accbcc5",
+        "https://tieba.baidu.com/c/u/pc/userCard?portrait=tb.1.4354dbc6.kDfGAQYDzBC5CCX4w-_zqQ%3Ft%3D1784598361&forum_id=28083130&subapp_type=pc&_client_type=20&sign=a8645167967e8492d59ef70cf796d430"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/c/u/pc/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/x-javascript": 2
+      },
+      "count": 2,
+      "firstSeen": 1784598369494,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598369891,
+      "method": "GET",
+      "pathname": "/c/s/pc/updateSwitch",
+      "queryParamNames": [
+        "_client_type",
+        "sign",
+        "status",
+        "subapp_type"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/c/s/pc/updateSwitch?status=0&_client_type=20&subapp_type=pc&sign=dd1f9991acae9a4c0a39bccd142bb8ea"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/c/s/pc/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 3
+      },
+      "count": 3,
+      "firstSeen": 1784598357676,
+      "host": "banti.baidu.com",
+      "lastSeen": 1784598369757,
+      "method": "POST",
+      "pathname": "/cdr",
+      "queryParamNames": [
+        "_o"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://banti.baidu.com/cdr?_o=https%3A%2F%2Ftieba.baidu.com"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "Origin, Host, Content-Type, x-requested-with, X-Custom-Header",
+        "access-control-allow-methods": "POST, GET, OPTIONS, DELETE",
+        "access-control-allow-origin": "https://tieba.baidu.com"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/cdr",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/x-javascript": 1
+      },
+      "count": 1,
+      "firstSeen": 1784598369008,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598369008,
+      "method": "POST",
+      "pathname": "/c/f/frs/page_pc",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/c/f/frs/page_pc"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/c/f/frs/page_pc",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/x-javascript": 1
+      },
+      "count": 1,
+      "firstSeen": 1784598368360,
+      "host": "tieba.baidu.com",
+      "lastSeen": 1784598368360,
+      "method": "POST",
+      "pathname": "/c/f/frs/frsBottom_pc",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://tieba.baidu.com/c/f/frs/frsBottom_pc"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "Apache",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/c/f/frs/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    }
+  ]
+}

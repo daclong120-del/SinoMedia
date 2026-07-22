@@ -7,25 +7,32 @@ import type { IApiClient, RequestOptions, CookieData } from "../../base/base_cli
 // playwright Page import removed
 import { CONFIG } from "../../config.js";
 import { ProxyAgent } from "undici";
-import { mrc, b64Encode, encodeUtf8, getB3TraceId } from "./sign.js";
 import { XhsExtractor } from "./extractor.js";
+import { signXhsRequest } from "./signer.js";
 
 let dispatcher: ProxyAgent | undefined;
 if (CONFIG.proxy) {
   dispatcher = new ProxyAgent(CONFIG.proxy);
 }
 
+type XhsCookieInput = CookieData[] | Record<string, string> | string;
+
 export class XhsClient implements IApiClient {
   private cookies: CookieData[] = [];
   private headers: Record<string, string> = {};
-  private _host: string = "https://edith.xiaohongshu.com";
+  private _host: string = process.env.XHS_API_HOST || "https://webapi.rednote.com";
 
   constructor(options?: { proxy?: string; headers?: Record<string, string> }) {
     this.headers = {
+      "Accept": "application/json, text/plain, */*",
+      "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
       "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
       "Referer": "https://www.xiaohongshu.com/",
       "Origin": "https://www.xiaohongshu.com",
       "Content-Type": "application/json;charset=UTF-8",
+      "Sec-Fetch-Dest": "empty",
+      "Sec-Fetch-Mode": "cors",
+      "Sec-Fetch-Site": "same-site",
       ...options?.headers,
     };
   }
@@ -40,34 +47,17 @@ export class XhsClient implements IApiClient {
     method: string,
     data?: any
   ): Promise<{ "X-S": string; "X-T": string; "x-S-Common": string; "X-B3-Traceid": string }> {
-    throw new Error("browser mode removed, provide valid cookie/session");
+    return signXhsRequest({
+      method,
+      uri,
+      data,
+      cookie: this.getCookieString(),
+    });
   }
 
   /**
    * # Sinh chuỗi x-s-common
    */
-  private generateXSCommon(a1: string, b1: string, xS: string, xT: string): string {
-    const common = {
-      s0: 3,
-      s1: "",
-      x0: "1",
-      x1: "4.2.2",
-      x2: "Mac OS",
-      x3: "xhs-pc-web",
-      x4: "4.74.0",
-      x5: a1,
-      x6: xT,
-      x7: xS,
-      x8: b1,
-      x9: mrc(xT + xS + b1),
-      x10: 154,
-      x11: "normal",
-    };
-    const jsonStr = JSON.stringify(common);
-    const bytes = encodeUtf8(jsonStr);
-    return b64Encode(bytes);
-  }
-
   /**
    * # Gửi request đến XHS API (cần chữ ký X-s, X-t)
    */
@@ -82,33 +72,29 @@ export class XhsClient implements IApiClient {
 
     let sigHeaders: Record<string, string> = {};
     if (options?.sign !== false) {
-      try {
-        let signData: any = undefined;
-        if (method.toUpperCase() === "POST") {
-          signData = options?.body;
-        } else {
-          const paramsObj: Record<string, string | string[]> = {};
-          parsedUrl.searchParams.forEach((value, key) => {
-            if (paramsObj[key]) {
-              if (Array.isArray(paramsObj[key])) {
-                (paramsObj[key] as string[]).push(value);
-              } else {
-                paramsObj[key] = [paramsObj[key] as string, value];
-              }
+      let signData: any = undefined;
+      if (method.toUpperCase() === "POST") {
+        signData = options?.body;
+      } else {
+        const paramsObj: Record<string, string | string[]> = {};
+        parsedUrl.searchParams.forEach((value, key) => {
+          if (paramsObj[key]) {
+            if (Array.isArray(paramsObj[key])) {
+              (paramsObj[key] as string[]).push(value);
             } else {
-              paramsObj[key] = value;
+              paramsObj[key] = [paramsObj[key] as string, value];
             }
-          });
-          signData = paramsObj;
-        }
-
-        sigHeaders = await this.sign(uri, method, signData);
-      } catch (err) {
-        console.warn("[XhsClient.request] Không thể sinh chữ ký:", (err as Error).message);
+          } else {
+            paramsObj[key] = value;
+          }
+        });
+        signData = paramsObj;
       }
+
+      sigHeaders = await this.sign(uri, method, signData);
     }
 
-    const cookieStr = this.cookies.map((c) => `${c.name}=${c.value}`).join("; ");
+    const cookieStr = this.getCookieString();
     const requestHeaders = {
       ...this.headers,
       ...sigHeaders,
@@ -163,7 +149,7 @@ export class XhsClient implements IApiClient {
   async pong(): Promise<boolean> {
     try {
       const selfInfo = await this.request("GET", "/api/sns/web/v1/user/selfinfo");
-      return !!selfInfo;
+      return Boolean(selfInfo?.result?.success ?? selfInfo);
     } catch (e) {
       console.warn("[XhsClient.pong] Gặp lỗi kiểm tra ping:", (e as Error).message);
       return false;
@@ -173,9 +159,9 @@ export class XhsClient implements IApiClient {
   /**
    * # Cập nhật cookies từ browser context
    */
-  async updateCookies(cookies: CookieData[]): Promise<void> {
-    this.cookies = cookies;
-    const cookieStr = cookies.map((c) => `${c.name}=${c.value}`).join("; ");
+  async updateCookies(cookies: XhsCookieInput): Promise<void> {
+    this.cookies = this.normalizeCookies(cookies);
+    const cookieStr = this.getCookieString();
     this.headers["Cookie"] = cookieStr;
   }
 
@@ -184,6 +170,46 @@ export class XhsClient implements IApiClient {
    */
   getActiveCookies(): CookieData[] {
     return this.cookies;
+  }
+
+  private normalizeCookies(cookies: XhsCookieInput): CookieData[] {
+    if (Array.isArray(cookies)) {
+      return cookies
+        .filter((cookie) => cookie?.name)
+        .map((cookie) => ({
+          ...cookie,
+          value: String(cookie.value ?? ""),
+        }));
+    }
+
+    if (typeof cookies === "string") {
+      const cookieMap: Record<string, string> = {};
+      for (const part of cookies.split(";")) {
+        const trimmed = part.trim();
+        if (!trimmed) continue;
+        const eqIndex = trimmed.indexOf("=");
+        if (eqIndex === -1) continue;
+        const name = trimmed.slice(0, eqIndex).trim();
+        const value = trimmed.slice(eqIndex + 1).trim();
+        if (name) {
+          cookieMap[name] = value;
+        }
+      }
+      return this.normalizeCookies(cookieMap);
+    }
+
+    return Object.entries(cookies)
+      .filter(([name]) => Boolean(name))
+      .map(([name, value]) => ({
+        name,
+        value: String(value ?? ""),
+        domain: ".xiaohongshu.com",
+        path: "/",
+      }));
+  }
+
+  private getCookieString(): string {
+    return this.cookies.map((c) => `${c.name}=${c.value}`).join("; ");
   }
 
   /**
@@ -226,7 +252,7 @@ export class XhsClient implements IApiClient {
     page?: number;
     pageSize?: number;
     sort?: string;
-    noteType?: string;
+    noteType?: string | number;
   }): Promise<any> {
     const uri = "/api/sns/web/v1/search/notes";
     const data = {
@@ -235,7 +261,7 @@ export class XhsClient implements IApiClient {
       page_size: options.pageSize || 20,
       search_id: options.searchId || "0",
       sort: options.sort || "general",
-      note_type: options.noteType || "all",
+      note_type: options.noteType ?? 0,
     };
     return this.post(uri, data);
   }
@@ -290,6 +316,7 @@ export class XhsClient implements IApiClient {
       top_comment_id: "",
       image_formats: "jpg,webp,avif",
       xsec_token: xsecToken,
+      need_translation: "1",
     };
     return this.get(uri, params);
   }
@@ -313,6 +340,7 @@ export class XhsClient implements IApiClient {
       image_formats: "jpg,webp,avif",
       top_comment_id: "",
       xsec_token: xsecToken,
+      need_translation: "1",
     };
     return this.get(uri, params);
   }
@@ -504,4 +532,3 @@ export class XhsClient implements IApiClient {
     return result;
   }
 }
-

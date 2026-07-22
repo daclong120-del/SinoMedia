@@ -71,6 +71,20 @@ export class TaskRepository {
     const updates: Partial<TableRow<"crawler_tasks">> = { status };
     if (status === "pending") {
       updates.error_message = null;
+      const existing = await this.findById(id);
+      if (existing && existing.metadata && typeof existing.metadata === "object") {
+        const meta = { ...(existing.metadata as Record<string, unknown>) };
+        meta.phase = "pending";
+        delete meta.result_state;
+        delete meta.stop_reason;
+        if (meta.progress && typeof meta.progress === "object") {
+          meta.progress = {
+            ...(meta.progress as Record<string, unknown>),
+            current: 0,
+          };
+        }
+        updates.metadata = meta as JsonValue;
+      }
     }
     const { error } = await this.db
       .from("crawler_tasks")

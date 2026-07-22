@@ -8,6 +8,8 @@ import { CONFIG } from "../../config.js";
 import { ProxyAgent } from "undici";
 import { GRAPHQL_QUERIES } from "./graphql.js";
 
+type KuaishouCookieInput = CookieData[] | Record<string, string> | string;
+
 let dispatcher: ProxyAgent | undefined;
 if (CONFIG.proxy) {
   dispatcher = new ProxyAgent(CONFIG.proxy);
@@ -22,14 +24,45 @@ export class KuaishouClient implements IApiClient {
   constructor(options?: { proxy?: string; headers?: Record<string, string> }) {
     this.headers = {
       "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      "Accept": "application/json, text/plain, */*",
+      "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
       "Referer": "https://www.kuaishou.com/",
       "Origin": "https://www.kuaishou.com",
       "Content-Type": "application/json;charset=UTF-8",
+      "Sec-Fetch-Dest": "empty",
+      "Sec-Fetch-Mode": "cors",
+      "Sec-Fetch-Site": "same-origin",
       ...options?.headers,
     };
   }
 
   // setPage method removed
+
+  private _normalizeCookies(cookies: KuaishouCookieInput): string {
+    if (!cookies) {
+      return "";
+    }
+    if (typeof cookies === "string") {
+      return cookies.trim();
+    }
+    if (Array.isArray(cookies)) {
+      return cookies
+        .filter(cookie => cookie.name && cookie.value)
+        .map(cookie => `${cookie.name}=${cookie.value}`)
+        .join("; ");
+    }
+    return Object.entries(cookies)
+      .filter(([name, value]) => name && value !== undefined && value !== null)
+      .map(([name, value]) => `${name}=${value}`)
+      .join("; ");
+  }
+
+  private _buildCookieHeader(): string {
+    if (this.headers.Cookie) {
+      return this.headers.Cookie;
+    }
+    return this._normalizeCookies(this.cookies);
+  }
 
   /**
    * # Kiểm tra trạng thái đăng nhập Kuaishou qua visionProfileUserList
@@ -74,7 +107,7 @@ export class KuaishouClient implements IApiClient {
       }
     }
 
-    const cookieStr = this.cookies.map(c => `${c.name}=${c.value}`).join("; ");
+    const cookieStr = this._buildCookieHeader();
     const requestHeaders = {
       ...this.headers,
       ...options?.headers,
@@ -88,22 +121,38 @@ export class KuaishouClient implements IApiClient {
     // 2. Fallback sang gọi HTTP thuần qua Node (undici/fetch)
     if (!responseText) {
       try {
-        const fetchOpts: any = {
-          method,
-          headers: requestHeaders,
-        };
-        if (options?.body) {
-          fetchOpts.body = typeof options.body === "string" ? options.body : JSON.stringify(options.body);
-        }
-        if (dispatcher) {
-          fetchOpts.dispatcher = dispatcher;
+        let lastError: Error | undefined;
+        for (let attempt = 1; attempt <= 2; attempt++) {
+          try {
+            const fetchOpts: any = {
+              method,
+              headers: requestHeaders,
+              signal: AbortSignal.timeout(30000),
+            };
+            if (options?.body) {
+              fetchOpts.body = typeof options.body === "string" ? options.body : JSON.stringify(options.body);
+            }
+            if (dispatcher) {
+              fetchOpts.dispatcher = dispatcher;
+            }
+
+            const response = await fetch(finalUrl, fetchOpts);
+            responseText = await response.text();
+
+            if (response.status !== 200) {
+              throw new Error(`HTTP Status ${response.status}: ${responseText.slice(0, 200)}`);
+            }
+            break;
+          } catch (err) {
+            lastError = err as Error;
+            if (attempt < 2) {
+              await new Promise(resolve => setTimeout(resolve, attempt * 1000));
+            }
+          }
         }
 
-        const response = await fetch(finalUrl, fetchOpts);
-        responseText = await response.text();
-
-        if (response.status !== 200) {
-          throw new Error(`HTTP Status ${response.status}`);
+        if (!responseText && lastError) {
+          throw lastError;
         }
       } catch (err) {
         throw new Error(`Yêu cầu HTTP thất bại: ${(err as Error).message}`);
@@ -128,10 +177,14 @@ export class KuaishouClient implements IApiClient {
   /**
    * # Cập nhật danh sách Cookie
    */
-  async updateCookies(cookies: CookieData[]): Promise<void> {
-    this.cookies = cookies;
-    const cookieStr = cookies.map(c => `${c.name}=${c.value}`).join("; ");
-    this.headers["Cookie"] = cookieStr;
+  async updateCookies(cookies: KuaishouCookieInput): Promise<void> {
+    this.cookies = Array.isArray(cookies) ? cookies : [];
+    const cookieStr = this._normalizeCookies(cookies);
+    if (cookieStr) {
+      this.headers.Cookie = cookieStr;
+    } else {
+      delete this.headers.Cookie;
+    }
   }
 
   /**
@@ -152,6 +205,7 @@ export class KuaishouClient implements IApiClient {
         pcursor,
         page: "search",
         searchSessionId,
+        webPageArea: "search",
       },
       query: GRAPHQL_QUERIES.search_query,
     };
@@ -277,7 +331,7 @@ export class KuaishouClient implements IApiClient {
 
         await new Promise(r => setTimeout(r, crawlInterval * 1000));
 
-        if (process.env.CRAWLER_ENABLE_SUB_COMMENTS !== "false") {
+        if (process.env.ENABLE_GET_SUB_COMMENTS !== "false" && process.env.CRAWLER_ENABLE_SUB_COMMENTS !== "false") {
           const subComments = await this.getCommentsAllSubComments(
             comments,
             photoId,
@@ -343,12 +397,13 @@ export class KuaishouClient implements IApiClient {
   async getAllVideosByCreator(
     userId: string,
     crawlInterval: number = 1.0,
-    callback?: (videos: any[]) => Promise<void>
+    callback?: (videos: any[]) => Promise<void>,
+    maxCount: number = 0
   ): Promise<any[]> {
     const result: any[] = [];
     let pcursor = "";
 
-    while (pcursor !== "no_more") {
+    while (pcursor !== "no_more" && (maxCount === 0 || result.length < maxCount)) {
       try {
         const videosRes = await this.getVideoByCreator(userId, pcursor);
         if (!videosRes) {
@@ -358,7 +413,10 @@ export class KuaishouClient implements IApiClient {
 
         const listObj = videosRes.visionProfilePhotoList || {};
         pcursor = listObj.pcursor || "no_more";
-        const feeds = listObj.feeds || [];
+        let feeds = listObj.feeds || [];
+        if (maxCount > 0 && result.length + feeds.length > maxCount) {
+          feeds = feeds.slice(0, maxCount - result.length);
+        }
 
         console.log(`[KuaishouClient.getAllVideosByCreator] Đã cào được ${feeds.length} video từ creator ${userId}`);
 

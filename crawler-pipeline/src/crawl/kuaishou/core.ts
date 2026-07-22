@@ -11,6 +11,7 @@ import {
   getPostUuid,
   checkoutAccount,
   checkinAccount,
+  updateTaskProgress,
 } from "../../store/index.js";
 import type { ICrawler } from "../../base/base_crawler.js";
 import { CONFIG } from "../../config.js";
@@ -27,7 +28,8 @@ async function persistPost(videoItem: any, authorUuid?: string): Promise<string>
   const postRow = KuaishouExtractor.extractPost(videoItem, authorUuid);
 
   // 1. Xác định media type và original URLs
-  const isVideo = !!KuaishouExtractor.extractVideoPlayUrl(videoItem);
+  const photo = videoItem.photo || videoItem;
+  const isVideo = !!KuaishouExtractor.extractVideoPlayUrl(photo);
   const mediaType = isVideo ? "video" : (postRow.media_urls && postRow.media_urls.length > 1 ? "carousel" : "image");
   
   const originalMediaUrls = [...(postRow.media_urls || [])];
@@ -91,6 +93,45 @@ function parseUserId(target: string): string {
   throw new Error(`Không thể phân tích ID user từ URL Kuaishou: ${target}`);
 }
 
+async function loadLocalKuaishouCookie(): Promise<string> {
+  if (process.env.KUAISHOU_COOKIE) {
+    return process.env.KUAISHOU_COOKIE;
+  }
+
+  try {
+    const sessionPath = join(process.cwd(), "output", "kuaishou_session.json");
+    const content = await readFile(sessionPath, "utf8");
+    const data = JSON.parse(content);
+    if (typeof data.cookie === "string") {
+      return data.cookie;
+    }
+    if (Array.isArray(data.cookies)) {
+      return data.cookies
+        .map((cookie: any) => `${cookie.name || cookie.key}=${cookie.value || ""}`)
+        .filter((part: string) => !part.startsWith("="))
+        .join("; ");
+    }
+  } catch {}
+
+  return "";
+}
+
+function getPhotoId(feed: any): string {
+  return String(feed?.photo?.id || feed?.id || feed?.photoId || "");
+}
+
+function resolveNextSearchCursor(searchPhoto: any, currentPage: number, currentCursor: string): string {
+  const nextCursor = searchPhoto?.pcursor ? String(searchPhoto.pcursor) : "";
+  if (nextCursor && nextCursor !== currentCursor && nextCursor !== "no_more") {
+    return nextCursor;
+  }
+  return String(currentPage + 1);
+}
+
+function hasKuaishouLoginCookie(cookies: Record<string, string>): boolean {
+  return Boolean(cookies.passToken);
+}
+
 export class KuaishouCrawler implements ICrawler {
   private client: KuaishouClient;
   private currentAccountId: string | null = null;
@@ -100,7 +141,59 @@ export class KuaishouCrawler implements ICrawler {
   }
 
   async ensureLogin(): Promise<void> {
-    throw new Error("browser mode removed, provide valid cookie/session");
+    if (this.currentAccountId) {
+      return;
+    }
+
+    let attempts = 0;
+    const maxAttempts = 5;
+
+    while (attempts < maxAttempts) {
+      const account = await checkoutAccount("kuaishou");
+      if (!account) {
+        break;
+      }
+
+      console.log(`Checking Kuaishou account from pool: ${account.username} (ID: ${account.id})...`);
+      this.currentAccountId = account.id;
+      const accountCookies = parseCookieString(account.cookie_data);
+      if (!hasKuaishouLoginCookie(accountCookies)) {
+        console.warn(`Kuaishou account ${account.username} is missing passToken. Marking failure and trying the next account.`);
+        await checkinAccount(account.id, false);
+        this.currentAccountId = null;
+        attempts++;
+        continue;
+      }
+
+      await this.client.updateCookies(accountCookies);
+
+      if (await this.client.pong()) {
+        console.log(`Kuaishou account ${account.username} passed diagnostic.`);
+        return;
+      }
+
+      console.warn(`Kuaishou account ${account.username} failed diagnostic. Marking failure and trying the next account.`);
+      await checkinAccount(account.id, false);
+      this.currentAccountId = null;
+      attempts++;
+    }
+
+    const localCookie = await loadLocalKuaishouCookie();
+    if (localCookie) {
+      console.log("No valid Kuaishou account from pool. Trying KUAISHOU_COOKIE/output local session...");
+      const localCookies = parseCookieString(localCookie);
+      if (!hasKuaishouLoginCookie(localCookies)) {
+        throw new Error("Kuaishou local session is missing passToken. Re-export cookies after logging in.");
+      }
+      await this.client.updateCookies(localCookies);
+      if (await this.client.pong()) {
+        console.log("Kuaishou local session passed diagnostic.");
+        return;
+      }
+    }
+
+    await this.client.updateCookies([]);
+    throw new Error("No valid Kuaishou session. Update an active crawler_accounts cookie or KUAISHOU_COOKIE.");
   }
 
   async releaseAccount(isSuccessful: boolean): Promise<void> {
@@ -153,10 +246,12 @@ export class KuaishouCrawler implements ICrawler {
   /**
    * # Thực hiện cào profile creator và video của họ trên Kuaishou
    */
-  async creator(target: string): Promise<void> {
+  async creator(target: string, maxCount?: number): Promise<void> {
     let success = false;
     try {
       const userId = parseUserId(target);
+      const limit = maxCount || (process.env.CREATOR_MAX_POSTS ? parseInt(process.env.CREATOR_MAX_POSTS, 10) : 20);
+      let savedCount = 0;
       await this.ensureLogin();
 
       // Lấy thông tin tác giả
@@ -168,12 +263,16 @@ export class KuaishouCrawler implements ICrawler {
       const authorUuid = await persistAuthor(creatorInfo);
 
       // Lấy danh sách video của creator
-      const allFeeds = await this.client.getAllVideosByCreator(
+      await this.client.getAllVideosByCreator(
         userId,
         2.0,
         async (feeds) => {
           for (const feed of feeds) {
-            const photoId = feed.photo?.id;
+            if (savedCount >= limit) {
+              break;
+            }
+
+            const photoId = getPhotoId(feed);
             if (!photoId) continue;
 
             let detailedItem = feed;
@@ -187,6 +286,8 @@ export class KuaishouCrawler implements ICrawler {
             }
 
             const postUuid = await persistPost(detailedItem, authorUuid);
+            savedCount++;
+            await updateTaskProgress(process.env.CURRENT_TASK_ID, savedCount, limit);
 
             // Cào bình luận cho từng video của creator
             if (process.env.ENABLE_GET_COMMENTS !== "false") {
@@ -201,10 +302,11 @@ export class KuaishouCrawler implements ICrawler {
               );
             }
           }
-        }
+        },
+        limit
       );
 
-      console.log(`Đã hoàn thành cào ${allFeeds.length} video của Creator: ${userId}`);
+      console.log(`Đã hoàn thành cào ${savedCount}/${limit} video của Creator: ${userId}`);
       success = true;
     } finally {
       await this.releaseAccount(success);
@@ -222,12 +324,16 @@ export class KuaishouCrawler implements ICrawler {
 
       let page = 1;
       let crawledCount = 0;
-      let hasMore = true;
       let searchSessionId = "";
+      let pcursor = "1";
+      let emptyPages = 0;
+      const pageSize = 20;
+      const maxPages = Math.max(10, Math.ceil(limit / pageSize) + 5);
+      const seenPhotoIds = new Set<string>();
 
-      while (hasMore && crawledCount < limit) {
+      while (crawledCount < limit && page <= maxPages) {
         console.log(`Đang tìm kiếm từ khóa "${keyword}" trên Kuaishou, trang ${page}...`);
-        const searchRes = await this.client.searchInfoByKeyword(keyword, String(page), searchSessionId);
+        const searchRes = await this.client.searchInfoByKeyword(keyword, pcursor, searchSessionId);
         const searchPhoto = searchRes?.visionSearchPhoto;
 
         if (!searchPhoto || searchPhoto.result !== 1) {
@@ -239,17 +345,30 @@ export class KuaishouCrawler implements ICrawler {
         const feeds = searchPhoto.feeds || [];
 
         if (feeds.length === 0) {
-          hasMore = false;
-          break;
+          emptyPages++;
+          if (emptyPages >= 2) {
+            break;
+          }
+          const nextCursor = resolveNextSearchCursor(searchPhoto, page, pcursor);
+          page++;
+          pcursor = nextCursor;
+          await new Promise(r => setTimeout(r, 2000));
+          continue;
         }
 
+        let newCandidatesOnPage = 0;
         for (const feed of feeds) {
           if (crawledCount >= limit) {
             break;
           }
 
-          const photoId = feed.photo?.id;
+          const photoId = getPhotoId(feed);
           if (!photoId) continue;
+          if (seenPhotoIds.has(photoId)) {
+            continue;
+          }
+          seenPhotoIds.add(photoId);
+          newCandidatesOnPage++;
 
           let authorUuid: string | undefined;
           if (feed.author) {
@@ -273,6 +392,8 @@ export class KuaishouCrawler implements ICrawler {
           }
 
           const postUuid = await persistPost(detailedItem, authorUuid);
+          crawledCount++;
+          await updateTaskProgress(process.env.CURRENT_TASK_ID, crawledCount, limit);
 
           // Cào bình luận
           if (process.env.ENABLE_GET_COMMENTS !== "false") {
@@ -286,12 +407,28 @@ export class KuaishouCrawler implements ICrawler {
               10
             );
           }
-
-          crawledCount++;
         }
 
+        if (newCandidatesOnPage === 0) {
+          emptyPages++;
+          if (emptyPages >= 2) {
+            break;
+          }
+        } else {
+          emptyPages = 0;
+        }
+
+        const nextCursor = resolveNextSearchCursor(searchPhoto, page, pcursor);
+        if (searchPhoto.pcursor === "no_more") {
+          break;
+        }
         page++;
+        pcursor = nextCursor;
         await new Promise(r => setTimeout(r, 2000));
+      }
+
+      if (crawledCount < limit) {
+        console.warn(`[KuaishouCrawler.search] Only saved ${crawledCount}/${limit} videos for keyword "${keyword}" after ${page} search pages.`);
       }
 
       console.log(`Đã hoàn thành tìm kiếm cho từ khóa "${keyword}" với ${crawledCount} kết quả.`);
@@ -309,6 +446,7 @@ export class KuaishouCrawler implements ICrawler {
     try {
       const photoId = parsePhotoId(target);
       const limit = maxCount || 50;
+      let collectedComments = 0;
       await this.ensureLogin();
 
       const postUuid = await getPostUuid("kuaishou", photoId);
@@ -322,6 +460,8 @@ export class KuaishouCrawler implements ICrawler {
         async (_, comments) => {
           const commentRows = comments.map(c => KuaishouExtractor.extractComment(c, photoId, postUuid));
           await upsertComments(commentRows);
+          collectedComments += comments.length;
+          await updateTaskProgress(process.env.CURRENT_TASK_ID, Math.min(collectedComments, limit), limit);
         },
         limit
       );

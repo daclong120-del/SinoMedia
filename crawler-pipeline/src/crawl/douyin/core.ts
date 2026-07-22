@@ -22,7 +22,7 @@ import {
   resolveShortUrl,
 } from "./help.js";
 import { DouyinSession, createSessionFromRaw } from "./session.js";
-import { runSessionDiagnostic } from "./session_diagnostic.js";
+import { runSessionDiagnostic, runSessionDiagnosticDetailed } from "./session_diagnostic.js";
 import { sleep, CRAWL_SLEEP_MS } from "./http_client.js";
 import { DouyinAweme } from "../../model/douyin.js";
 import { CrawledPostRow } from "../../model/storage.js";
@@ -97,15 +97,34 @@ export async function ensureLogin(): Promise<DouyinSession> {
       session = createSessionFromRaw(account.cookie_data, "pool");
     }
 
-    const isHealthy = await runSessionDiagnostic(session);
-    if (isHealthy) {
+    const diagResult = await runSessionDiagnosticDetailed(session);
+    if (diagResult.code === "ok") {
       console.log(`Tài khoản ${account.username} hoạt động tốt. Sẵn sàng cào.`);
       currentSession = session;
       currentAccountId = account.id;
       currentAccountIsSuspect = false;
       return currentSession;
+    } else if (diagResult.code === "challenge_required") {
+      console.warn(`[Douyin Heartbeat] Tài khoản ${account.username} gặp Douyin anti-bot challenge (verify_check). Khởi động Session Recovery...`);
+      try {
+        const { recoverDouyinSessionDetailed } = await import("./session_recovery.js");
+        const recResult = await recoverDouyinSessionDetailed(session, { keyword: "funny", reason: diagResult.code, accountId: account.id });
+        if (recResult.success && recResult.session) {
+          console.log(`✅ Session Recovery thành công! Tài khoản ${account.username} đã vượt qua challenge.`);
+          currentSession = recResult.session;
+          currentAccountId = account.id;
+          currentAccountIsSuspect = false;
+          return currentSession;
+        } else {
+          console.warn(`[Session Recovery] Recovery thất bại cho tài khoản ${account.username}. Lý do: ${recResult.reason}`);
+        }
+      } catch (recErr: any) {
+        console.error(`[Session Recovery] Phục hồi phiên thất bại: ${recErr.message}`);
+      }
+      await checkinAccount(account.id, false);
+      attempts++;
     } else {
-      console.warn(`[Douyin Heartbeat] Tài khoản ${account.username} không pass được heartbeat. Đánh dấu lỗi và xoay vòng...`);
+      console.warn(`[Douyin Heartbeat] Tài khoản ${account.username} không pass được heartbeat (Reason: ${diagResult.code}). Đánh dấu lỗi và xoay vòng...`);
       // Đánh dấu tài khoản lỗi (tăng failure_count và tự động ban nếu đạt 3 lần lỗi)
       await checkinAccount(account.id, false);
       attempts++;
@@ -113,17 +132,47 @@ export async function ensureLogin(): Promise<DouyinSession> {
   }
 
   console.log("Không có tài khoản hoạt động nào từ Pool DB. Đang thử bằng cookie cục bộ...");
-  const { loadSession } = await import("../../sign/session_store.js");
+  const { loadSession, saveSession } = await import("../../sign/session_store.js");
   const localSessionData = await loadSession();
   if (localSessionData) {
     const localSession = createSessionFromRaw(localSessionData, "local");
-    const localIsActive = await runSessionDiagnostic(localSession);
-    if (localIsActive) {
+    const localDiag = await runSessionDiagnosticDetailed(localSession);
+    if (localDiag.code === "ok") {
       console.log("Cookie cục bộ hoạt động tốt.");
       currentSession = localSession;
       currentAccountId = null;
       currentAccountIsSuspect = false;
       return currentSession;
+    } else if (localDiag.code === "challenge_required" || localDiag.code === "missing_identity") {
+      console.warn(`[Douyin Heartbeat] Cookie cục bộ gặp ${localDiag.code}. Khởi động Session Recovery...`);
+      try {
+        const { recoverDouyinSessionDetailed } = await import("./session_recovery.js");
+        const recResult = await recoverDouyinSessionDetailed(localSession, { keyword: "funny", reason: localDiag.code });
+        if (recResult.success && recResult.session) {
+          console.log("✅ Phục hồi cookie cục bộ thành công! Tiến hành lưu session mới vào local output/session.json...");
+          
+          // BƯỚC 4: PERSIST LOCAL SESSION CHỈ KHI RECOVERY DIAGNOSTIC PASS "OK"
+          await saveSession({
+            cookies: recResult.session.cookies,
+            msToken: recResult.session.msToken,
+            userAgent: recResult.session.userAgent,
+            webid: recResult.session.webid,
+            verifyFp: recResult.session.verifyFp,
+            fp: recResult.session.fp,
+            uifid: recResult.session.uifid,
+            xmst: recResult.session.xmst,
+          });
+
+          currentSession = recResult.session;
+          currentAccountId = null;
+          currentAccountIsSuspect = false;
+          return currentSession;
+        } else {
+          console.warn(`[Session Recovery] Phục hồi cookie cục bộ thất bại. Lý do: ${recResult.reason}`);
+        }
+      } catch (recErr: any) {
+        console.error(`[Session Recovery] Phục hồi cookie cục bộ thất bại: ${recErr.message}`);
+      }
     }
     console.warn(`[Douyin Heartbeat] Cookie cục bộ không pass heartbeat check.`);
   }
@@ -319,7 +368,7 @@ export async function crawlSearch(keyword: string, maxCount = 20): Promise<void>
       break;
     }
 
-    searchId = res.extra?.logid ?? "";
+    searchId = res.search_id || res.extra?.logid || res.log_pb?.impr_id || searchId;
 
     const pagePosts: CrawledPostRow[] = [];
     for (const item of data) {

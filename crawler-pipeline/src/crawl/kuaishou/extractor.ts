@@ -118,7 +118,8 @@ export class KuaishouExtractor {
     const stats = {
       liked_count: Number(photo.realLikeCount || photo.likeCount || videoItem.liked_count || 0),
       comments_count: Number(photo.commentCount || videoItem.comment_count || 0),
-      viewd_count: Number(photo.viewCount || videoItem.viewd_count || 0),
+      view_count: Number(photo.viewCount || videoItem.view_count || videoItem.viewd_count || 0),
+      play_count: Number(photo.viewCount || videoItem.view_count || videoItem.viewd_count || 0),
     };
 
     return {

@@ -11,6 +11,7 @@ import {
   getPostUuid,
   checkoutAccount,
   checkinAccount,
+  updateTaskProgress,
 } from "../../store/index.js";
 import { CrawledPostRow } from "../../model/storage.js";
 import type { ICrawler } from "../../base/base_crawler.js";
@@ -60,12 +61,19 @@ async function persistAuthor(authorInfo: {
 }
 
 async function persistPost(note: TiebaNote, authorUuid?: string): Promise<string> {
+  const mediaUrls = note.media_urls || [];
+  const coverUrl = note.cover_url || mediaUrls[0] || undefined;
+  const mediaType = note.media_type || (mediaUrls.length > 1 ? "carousel" : (mediaUrls.length === 1 ? "image" : "unknown"));
+  const mediaStatus = mediaUrls.length > 0 ? "original_only" : "unavailable";
+
   const postData: CrawledPostRow = {
     platform: "tieba",
     platform_id: note.note_id || "",
     author_id: authorUuid,
+    title: note.title || undefined,
     caption: `${note.title || ""}\n${note.desc || ""}`.trim(),
-    media_urls: [],
+    media_urls: mediaUrls,
+    cover_url: coverUrl,
     stats: {
       digg_count: 0,
       comment_count: note.total_replay_num || 0,
@@ -74,11 +82,13 @@ async function persistPost(note: TiebaNote, authorUuid?: string): Promise<string
     },
     raw: note,
     published_at: note.publish_time || new Date().toISOString(),
-    media_type: "unknown",
-    original_media_urls: [],
-    original_cover_url: undefined,
-    media_status: "unavailable",
-    media_source: "none",
+    media_type: mediaType,
+    content_type: "post",
+    source_url: note.note_url,
+    original_media_urls: note.original_media_urls || mediaUrls,
+    original_cover_url: note.original_cover_url || coverUrl,
+    media_status: mediaStatus,
+    media_source: mediaUrls.length > 0 ? "original" : "none",
   };
 
   await upsertPost(postData);
@@ -122,7 +132,7 @@ export class TiebaCrawler implements ICrawler {
   }
 
   async ensureLogin(): Promise<void> {
-    throw new Error("browser mode removed, provide valid cookie/session");
+    return;
   }
 
   async releaseAccount(isSuccessful: boolean): Promise<void> {
@@ -244,39 +254,94 @@ export class TiebaCrawler implements ICrawler {
     try {
       await this.ensureLogin();
       const limit = maxCount || 20;
-      const notes = await this.client.getNotesByKeyword(keyword, 1, limit);
+      const pageSize = 20;
+      const maxPages = Math.max(10, Math.ceil(limit / pageSize) + 5);
+      const seenNoteIds = new Set<string>();
+      let savedCount = 0;
+      let page = 1;
+      let emptyPages = 0;
 
-      for (const note of notes) {
-        let authorUuid: string | undefined;
-        if (note.user_link) {
-          let uid = "";
-          const match = note.user_link.match(/[?&]id=([^&]+)/);
-          if (match) uid = decodeURIComponent(match[1]);
-          if (uid) {
-            authorUuid = await persistAuthor({
-              uid,
-              nickname: note.user_nickname || "",
-              avatarUrl: note.user_avatar,
-              ipLocation: note.ip_location,
-              raw: note,
-            });
+      while (savedCount < limit && page <= maxPages) {
+        const searchNotes = await this.client.getNotesByKeyword(keyword, page, pageSize);
+        if (searchNotes.length === 0) {
+          emptyPages++;
+          if (emptyPages >= 2) {
+            break;
+          }
+          page++;
+          continue;
+        }
+
+        let newCandidatesOnPage = 0;
+        for (const searchNote of searchNotes) {
+          if (savedCount >= limit) {
+            break;
+          }
+
+          const noteId = searchNote.note_id;
+          if (!noteId || seenNoteIds.has(noteId)) {
+            continue;
+          }
+
+          seenNoteIds.add(noteId);
+          newCandidatesOnPage++;
+
+          let note: TiebaNote;
+          try {
+            note = await this.client.getNoteById(noteId);
+          } catch (err: any) {
+            console.warn(`[TiebaCrawler.search] Skip note ${noteId}: ${err.message}`);
+            continue;
+          }
+
+          let authorUuid: string | undefined;
+          if (note.user_link) {
+            let uid = "";
+            const match = note.user_link.match(/[?&]id=([^&]+)/);
+            if (match) uid = decodeURIComponent(match[1]);
+            if (uid) {
+              authorUuid = await persistAuthor({
+                uid,
+                nickname: note.user_nickname || "",
+                avatarUrl: note.user_avatar,
+                ipLocation: note.ip_location,
+                raw: note,
+              });
+            }
+          }
+
+          const postUuid = await persistPost(note, authorUuid);
+          savedCount++;
+          await updateTaskProgress(process.env.CURRENT_TASK_ID, savedCount, limit);
+
+          if (process.env.ENABLE_GET_COMMENTS !== "false") {
+            const maxComments = process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES
+              ? parseInt(process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES, 10)
+              : 50;
+
+            const callback = async (nid: string, comments: TiebaComment[]) => {
+              const mapped = comments.map(c => mapTiebaComment(c, nid, postUuid));
+              await upsertComments(mapped);
+            };
+
+            await this.client.getNoteAllComments(note, 1.0, callback, maxComments);
           }
         }
 
-        const postUuid = await persistPost(note, authorUuid);
-
-        if (process.env.ENABLE_GET_COMMENTS !== "false") {
-          const maxComments = process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES
-            ? parseInt(process.env.CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES, 10)
-            : 50;
-
-          const callback = async (nid: string, comments: TiebaComment[]) => {
-            const mapped = comments.map(c => mapTiebaComment(c, nid, postUuid));
-            await upsertComments(mapped);
-          };
-
-          await this.client.getNoteAllComments(note, 1.0, callback, maxComments);
+        if (newCandidatesOnPage === 0) {
+          emptyPages++;
+          if (emptyPages >= 2) {
+            break;
+          }
+        } else {
+          emptyPages = 0;
         }
+
+        page++;
+      }
+
+      if (savedCount < limit) {
+        console.warn(`[TiebaCrawler.search] Only saved ${savedCount}/${limit} posts for keyword "${keyword}" after ${page - 1} search pages.`);
       }
 
       success = true;
@@ -294,23 +359,52 @@ export class TiebaCrawler implements ICrawler {
   async comments(target: string, maxCount?: number): Promise<void> {
     let success = false;
     try {
-      let noteId = target;
+      let noteId = "";
       if (target.includes("/p/")) {
         const match = target.match(/\/p\/(\d+)/);
         if (match) noteId = match[1];
+      } else if (/^\d+$/.test(target.trim())) {
+        noteId = target.trim();
       }
 
       await this.ensureLogin();
-      const note = await this.client.getNoteById(noteId);
-      const postUuid = await getPostUuid("tieba", noteId);
-
       const limit = maxCount || 50;
-      const callback = async (nid: string, comments: TiebaComment[]) => {
-        const mapped = comments.map(c => mapTiebaComment(c, nid, postUuid));
-        await upsertComments(mapped);
-      };
+      let remaining = limit;
+      let notes: TiebaNote[];
 
-      await this.client.getNoteAllComments(note, 1.0, callback, limit);
+      if (noteId) {
+        notes = [await this.client.getNoteById(noteId)];
+      } else {
+        const searchNotes = await this.client.getNotesByKeyword(target, 1, Math.min(5, Math.max(1, limit)));
+        if (searchNotes.length === 0) {
+          throw new Error(`No Tieba posts found for keyword: ${target}`);
+        }
+        notes = (await Promise.all(
+          searchNotes
+            .filter(note => note.note_id)
+            .map(note => this.client.getNoteById(note.note_id!))
+        )).filter(Boolean);
+      }
+
+      for (const note of notes) {
+        if (remaining <= 0) {
+          break;
+        }
+
+        const platformPostId = note.note_id || noteId;
+        let postUuid = await getPostUuid("tieba", platformPostId);
+        if (!postUuid) {
+          postUuid = await persistPost(note);
+        }
+
+        const callback = async (nid: string, comments: TiebaComment[]) => {
+          const mapped = comments.map(c => mapTiebaComment(c, nid, postUuid));
+          await upsertComments(mapped);
+        };
+
+        const comments = await this.client.getNoteAllComments(note, 1.0, callback, remaining);
+        remaining -= comments.length;
+      }
       success = true;
     } catch (e) {
       console.error("[TiebaCrawler.comments] Error:", e);

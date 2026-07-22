@@ -227,8 +227,11 @@ export function updateSessionCookies(session: DouyinSession, setCookieHeader: st
         if (name === "msToken") {
           session.msToken = value;
         }
-        if (name === "__ac_webid" || name === "dy_did") {
+        if (name === "__ac_webid" || name === "dy_did" || name === "MONITOR_WEB_ID") {
           session.webid = value;
+        }
+        if (name === "uifid" || name === "UIFID" || name === "UIFID_TEMP") {
+          session.uifid = value;
         }
         if (name === "s_v_web_id") {
           session.verifyFp = value;
@@ -257,6 +260,86 @@ export function updateSessionCookies(session: DouyinSession, setCookieHeader: st
 /**
  * # Gửi request HTTP JSON đến Douyin API
  */
+function parseJsonObjectsFromText(text: string): any[] {
+  const objects: any[] = [];
+  let start = -1;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+
+    if (start === -1) {
+      if (ch === "{") {
+        start = i;
+        depth = 1;
+        inString = false;
+        escaped = false;
+      }
+      continue;
+    }
+
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (ch === "\\") {
+        escaped = true;
+      } else if (ch === "\"") {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (ch === "\"") {
+      inString = true;
+    } else if (ch === "{") {
+      depth++;
+    } else if (ch === "}") {
+      depth--;
+      if (depth === 0) {
+        try {
+          objects.push(JSON.parse(text.slice(start, i + 1)));
+        } catch {}
+        start = -1;
+      }
+    }
+  }
+
+  return objects;
+}
+
+function mergeDouyinJsonObjects(objects: any[]): any {
+  if (objects.length === 1) {
+    const single = objects[0];
+    classifyDouyinError(single);
+    if (single && !Array.isArray(single.data) && Array.isArray(single.aweme_list)) {
+      single.data = single.aweme_list;
+    }
+    return single;
+  }
+
+  const data: any[] = [];
+  for (const item of objects) {
+    classifyDouyinError(item);
+    if (Array.isArray(item?.data)) {
+      data.push(...item.data);
+    } else if (Array.isArray(item?.aweme_list)) {
+      data.push(...item.aweme_list);
+    }
+  }
+
+  const first = objects[0] || {};
+  const last = objects[objects.length - 1] || {};
+  return {
+    ...first,
+    ...last,
+    data,
+    extra: last.extra || first.extra,
+    log_pb: last.log_pb || first.log_pb,
+  };
+}
+
 export async function requestJson(
   url: string,
   session: DouyinSession,
@@ -284,11 +367,13 @@ export async function requestJson(
   console.log("Fetching URL:", redactUrl(url));
 
   let responseText = "";
+  let httpStatus = 200;
   const inst = await getImpitInstance();
 
   if (inst) {
     try {
       const response = await inst.fetch(url, fetchOptions);
+      httpStatus = response.status;
       console.log("impit status:", response.status);
       responseText = await response.text();
       console.log("impit response length:", responseText.length);
@@ -318,6 +403,7 @@ export async function requestJson(
         nativeOpts.dispatcher = dispatcher;
       }
       const res = await fetch(url, nativeOpts);
+      httpStatus = res.status;
       responseText = await res.text();
       console.log(`Native HTTP status: ${res.status} for URL: ${redactUrl(url)}`);
 
@@ -333,6 +419,16 @@ export async function requestJson(
 
   if (!responseText) {
     throw new Error("Yêu cầu thất bại: Không nhận được phản hồi từ impit hoặc trình duyệt fallback.");
+  }
+
+  if (httpStatus === 401 || httpStatus === 403) {
+    throw new SessionExpiredError(`Session expired or unauthorized (HTTP status ${httpStatus})`);
+  }
+  if (httpStatus === 429) {
+    throw new IPBlockError(`IP rate limited or blocked by Douyin (HTTP status 429)`);
+  }
+  if (httpStatus >= 500) {
+    throw new DataFetchError(`Douyin server error (HTTP status ${httpStatus})`);
   }
 
   let cleanText = responseText.trim();
@@ -351,6 +447,10 @@ export async function requestJson(
   } catch (err) {
     if (err instanceof SessionExpiredError || err instanceof IPBlockError || err instanceof DataFetchError) {
       throw err;
+    }
+    const parsedObjects = parseJsonObjectsFromText(cleanText);
+    if (parsedObjects.length > 0) {
+      return mergeDouyinJsonObjects(parsedObjects);
     }
     throw new Error(`JSON parse error: ${(err as Error).message}. Response text: ${responseText.substring(0, 300)}`);
   }
@@ -412,4 +512,3 @@ export async function downloadMedia(url: string): Promise<Buffer> {
  */
 export const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 export const CRAWL_SLEEP_MS = 1500;
-

@@ -36,6 +36,7 @@ if not defined LAN_IP (
     if not errorlevel 1 if not defined LAN_IP set "LAN_IP=!CANDIDATE!"
   )
 )
+
 if defined LAN_IP (
   for /f "delims=" %%a in ("!LAN_IP!") do set "LAN_IP=%%~a"
   set "LAN_IP=!LAN_IP: =!"

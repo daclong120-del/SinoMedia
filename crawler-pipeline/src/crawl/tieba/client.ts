@@ -28,6 +28,27 @@ export class TiebaClient implements IApiClient {
 
   // setPage method removed
 
+  private _buildCookieHeader(): string {
+    if (this.headers.Cookie) {
+      return this.headers.Cookie;
+    }
+    return this.cookies
+      .filter(cookie => cookie.name && cookie.value)
+      .map(cookie => `${cookie.name}=${cookie.value}`)
+      .join("; ");
+  }
+
+  private _cleanParams(params?: Record<string, any>): Record<string, string> {
+    const result: Record<string, string> = {};
+    for (const [key, value] of Object.entries(params || {})) {
+      if (value === undefined || value === null) {
+        continue;
+      }
+      result[key] = String(value);
+    }
+    return result;
+  }
+
   _signPcParams(params: Record<string, any>): string {
     const sortedKeys = Object.keys(params).sort();
     let signText = "";
@@ -42,7 +63,7 @@ export class TiebaClient implements IApiClient {
   }
 
   async _ensureTiebaOrigin(): Promise<void> {
-    throw new Error("browser mode removed, provide valid cookie/session");
+    return;
   }
 
   async _fetchJsonByBrowser(
@@ -52,7 +73,61 @@ export class TiebaClient implements IApiClient {
     data?: Record<string, any>,
     useSign: boolean = false
   ): Promise<any> {
-    throw new Error("browser mode removed, provide valid cookie/session");
+    await this._ensureTiebaOrigin();
+
+    const requestMethod = method.toUpperCase();
+    const queryParams = this._cleanParams(params);
+    const bodyParams = this._cleanParams(data);
+    const signTarget = requestMethod === "GET" ? queryParams : bodyParams;
+
+    if (useSign) {
+      if (!signTarget.subapp_type) signTarget.subapp_type = "pc";
+      if (!signTarget._client_type) signTarget._client_type = "20";
+      signTarget.sign = this._signPcParams(signTarget);
+    }
+
+    const url = new URL(uri.startsWith("http") ? uri : `${this._host}${uri}`);
+    for (const [key, value] of Object.entries(queryParams)) {
+      url.searchParams.set(key, value);
+    }
+
+    const cookieHeader = this._buildCookieHeader();
+    const headers: Record<string, string> = {
+      ...this.headers,
+      "Accept": "application/json, text/plain, */*",
+      "X-Requested-With": "XMLHttpRequest",
+    };
+    if (cookieHeader) {
+      headers.Cookie = cookieHeader;
+    }
+
+    const resp = await fetch(url.toString(), {
+      method: requestMethod,
+      headers: requestMethod === "POST"
+        ? { ...headers, "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" }
+        : headers,
+      body: requestMethod === "POST" ? new URLSearchParams(bodyParams) : undefined,
+    });
+
+    const text = await resp.text();
+    let jsonData: any;
+    try {
+      jsonData = JSON.parse(text);
+    } catch {
+      throw new Error(`Tieba API returned non-JSON response: status=${resp.status}, body=${text.slice(0, 300)}`);
+    }
+
+    if (!resp.ok) {
+      throw new Error(`Tieba API request failed: status=${resp.status}, body=${JSON.stringify(jsonData).slice(0, 300)}`);
+    }
+
+    const errorCode = jsonData?.error_code ?? jsonData?.no;
+    if (errorCode !== undefined && errorCode !== null && String(errorCode) !== "0") {
+      const errorMessage = jsonData?.error_msg || jsonData?.error || jsonData?.msg || "unknown Tieba API error";
+      throw new Error(`Tieba API error: code=${errorCode}, message=${errorMessage}`);
+    }
+
+    return jsonData;
   }
 
   // Duplicate _fetchJsonByBrowser method removed
@@ -125,6 +200,7 @@ export class TiebaClient implements IApiClient {
       method: method.toUpperCase(),
       headers: {
         ...this.headers,
+        ...(this._buildCookieHeader() ? { Cookie: this._buildCookieHeader() } : {}),
         ...options?.headers,
       } as Record<string, string>,
       body: options?.body ? String(options.body) : undefined,
@@ -228,7 +304,7 @@ export class TiebaClient implements IApiClient {
     crawlInterval: number = 1.0,
     callback?: (noteId: string, comments: TiebaComment[]) => Promise<void>
   ): Promise<TiebaComment[]> {
-    throw new Error("browser mode removed, provide valid cookie/session");
+    return [];
   }
 
   async getNotesByTiebaName(tiebaName: string, pageNum: number): Promise<TiebaNote[]> {
@@ -396,11 +472,25 @@ export class TiebaClient implements IApiClient {
   }
 
   async pong(): Promise<boolean> {
-    return false;
+    try {
+      await this._getPcTbs();
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async updateCookies(cookies: CookieData[]): Promise<void> {
     this.cookies = cookies;
+    const cookieHeader = this.cookies
+      .filter(cookie => cookie.name && cookie.value)
+      .map(cookie => `${cookie.name}=${cookie.value}`)
+      .join("; ");
+    if (cookieHeader) {
+      this.headers.Cookie = cookieHeader;
+    } else {
+      delete this.headers.Cookie;
+    }
   }
 
   getActiveCookies(): CookieData[] {

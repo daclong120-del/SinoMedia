@@ -27,6 +27,11 @@ export interface TiebaNote {
   total_replay_num?: number;
   total_replay_page?: number;
   ip_location?: string;
+  media_urls?: string[];
+  cover_url?: string;
+  original_media_urls?: string[];
+  original_cover_url?: string;
+  media_type?: string;
 }
 
 export interface TiebaComment {

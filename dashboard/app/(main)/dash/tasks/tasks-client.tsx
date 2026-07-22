@@ -95,6 +95,24 @@ export default function TasksClient({ initialTasks, initialError }: TasksClientP
   const tasksChannelRef = useRef<RealtimeChannel | null>(null);
   const logsChannelRef = useRef<RealtimeChannel | null>(null);
   const logsEndRef = useRef<HTMLDivElement | null>(null);
+  const isSyncingTasksRef = useRef(false);
+
+  const syncTasks = useCallback(async () => {
+    if (isSyncingTasksRef.current) {
+      return;
+    }
+    isSyncingTasksRef.current = true;
+    try {
+      const freshTasks = await getTasks();
+      setTasks(freshTasks);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+      console.error("Failed to sync tasks:", err);
+    } finally {
+      isSyncingTasksRef.current = false;
+    }
+  }, []);
 
   // ─── Realtime: Tasks table ─────────────────────────────────
   useEffect(() => {
@@ -103,6 +121,7 @@ export default function TasksClient({ initialTasks, initialError }: TasksClientP
       (updatedTask) => {
         if (!updatedTask || !updatedTask.id || !updatedTask.platform) {
           console.warn("Discarding malformed/unauthorized realtime task update:", updatedTask);
+          void syncTasks();
           return;
         }
         setTasks((prev) =>
@@ -113,6 +132,7 @@ export default function TasksClient({ initialTasks, initialError }: TasksClientP
       (newTask) => {
         if (!newTask || !newTask.id || !newTask.platform) {
           console.warn("Discarding malformed/unauthorized realtime task insert:", newTask);
+          void syncTasks();
           return;
         }
         setTasks((prev) => {
@@ -127,6 +147,7 @@ export default function TasksClient({ initialTasks, initialError }: TasksClientP
         } else if (status === "TIMED_OUT" || status === "CHANNEL_ERROR") {
           setRealtimeStatus("error");
           console.error("Tasks realtime subscription error:", status, err);
+          void syncTasks();
         } else if (status === "CLOSED") {
           setRealtimeStatus("connecting");
         }
@@ -139,7 +160,16 @@ export default function TasksClient({ initialTasks, initialError }: TasksClientP
       channel.unsubscribe();
       tasksChannelRef.current = null;
     };
-  }, []);
+  }, [syncTasks]);
+
+  useEffect(() => {
+    const hasActiveTask = tasks.some((task) => task.status === "pending" || task.status === "running");
+    const intervalMs = hasActiveTask || realtimeStatus !== "subscribed" ? 3000 : 10000;
+    const timer = window.setInterval(() => {
+      void syncTasks();
+    }, intervalMs);
+    return () => window.clearInterval(timer);
+  }, [tasks, realtimeStatus, syncTasks]);
 
   const showToast = useCallback((message: string, type: "success" | "error" | "info" = "success") => {
     setNotification({ show: true, message, type });

@@ -753,3 +753,18 @@ Chỉ thay đổi khi có một trong các trigger:
 - Cần tách service backend khỏi Next.js server vì workload vượt ngưỡng.
 
 Mọi thay đổi phải có ADR mới trong `docs/architecture/` hoặc cập nhật mục ADR của tài liệu này, ghi rõ context, options, decision, trade-off và migration plan.
+
+## 19. Addendum 2026-07-21 - Douyin challenge recovery boundary
+
+Douyin anti-bot challenge handling extends the existing Douyin browser-bootstrap exception, but does not change the HTTP-first crawler architecture.
+
+Boundary rules:
+
+- Dashboard and Desktop remain control surfaces. They may configure 2Captcha/API strategy and show balance/status, but they do not solve platform challenges at runtime.
+- `crawler-pipeline` owns runtime session recovery because it owns browser profile, proxy/account context, diagnostic, and task logs.
+- Generic provider code belongs in `crawler-pipeline/src/challenge/`.
+- Douyin challenge detection/recovery belongs in `crawler-pipeline/src/crawl/douyin/`.
+- `http_client.ts` may classify response signals such as `verify_check`, but must not open a browser or call solver providers.
+- `core.ts` or a future `DouyinSessionManager` may orchestrate diagnostic -> recovery -> diagnostic -> crawl, with bounded attempts.
+
+The source-of-truth deep dive is `docs/architecture/douyin-session-recovery.md`.

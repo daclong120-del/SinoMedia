@@ -1,0 +1,1831 @@
+{
+  "catalogVersion": 1,
+  "format": "api-finder-endpoint-catalog",
+  "exportedAt": "2026-07-21T03:24:58.315Z",
+  "reconNotes": "securitySignals are passive heuristics (path, query names, status mix, Content-Type, channel). Not a verdict; validate manually. For Postman or Swagger, use the OpenAPI or Postman export buttons.",
+  "endpoints": [
+    {
+      "contentTypes": {
+        "text/plain": 156
+      },
+      "count": 156,
+      "firstSeen": 1784604096840,
+      "host": "log-sdk.ksapisrv.com",
+      "lastSeen": 1784604293810,
+      "method": "POST",
+      "pathname": "/rest/wd/common/log/collect/radar",
+      "queryParamNames": [
+        "encoding",
+        "kpn",
+        "v"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 156
+      },
+      "sampleUrls": [
+        "https://log-sdk.ksapisrv.com/rest/wd/common/log/collect/radar?v=3.10.45&kpn=30",
+        "https://log-sdk.ksapisrv.com/rest/wd/common/log/collect/radar?v=3.10.49&kpn=30",
+        "https://log-sdk.ksapisrv.com/rest/wd/common/log/collect/radar?v=3.10.46&kpn=1",
+        "https://log-sdk.ksapisrv.com/rest/wd/common/log/collect/radar?encoding=gzip&v=3.9.49&kpn=KS_GAME_LIVE_PC",
+        "https://log-sdk.ksapisrv.com/rest/wd/common/log/collect/radar?encoding=gzip&v=3.9.46&kpn=KUAISHOU"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.kuaishou.com",
+        "server": "Tengine"
+      },
+      "statusCodes": {
+        "200": 156
+      },
+      "templatedPath": "/rest/wd/common/log/collect/radar",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 111
+      },
+      "count": 111,
+      "firstSeen": 1784604100376,
+      "host": "wlog.gifshow.com",
+      "lastSeen": 1784604293803,
+      "method": "POST",
+      "pathname": "/rest/kd/log/collect",
+      "queryParamNames": [
+        "_json",
+        "biz",
+        "kpn",
+        "v"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 111
+      },
+      "sampleUrls": [
+        "https://wlog.gifshow.com/rest/kd/log/collect?v=3.10.45&kpn=30&_json=1&biz=",
+        "https://wlog.gifshow.com/rest/kd/log/collect?v=3.10.49&kpn=30&_json=1&biz="
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.kuaishou.com",
+        "server": "Tengine/2.3.2"
+      },
+      "statusCodes": {
+        "200": 111
+      },
+      "templatedPath": "/rest/kd/log/collect",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 26
+      },
+      "count": 26,
+      "firstSeen": 1784604095708,
+      "host": "www.kuaishou.com",
+      "lastSeen": 1784604290558,
+      "method": "POST",
+      "pathname": "/rest/v/photo/comment/list",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 26
+      },
+      "sampleUrls": [
+        "https://www.kuaishou.com/rest/v/photo/comment/list"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.kuaishou.com"
+      },
+      "statusCodes": {
+        "200": 26
+      },
+      "templatedPath": "/rest/v/photo/comment/list",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 5
+      },
+      "count": 5,
+      "firstSeen": 1784604102789,
+      "host": "www.kuaishou.com",
+      "lastSeen": 1784604289731,
+      "method": "POST",
+      "pathname": "/rest/v/feed/hot",
+      "queryParamNames": [
+        "__NS_hxfalcon",
+        "caver"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 5
+      },
+      "sampleUrls": [
+        "https://www.kuaishou.com/rest/v/feed/hot?__NS_hxfalcon=HUDR_sFnX-DtsGUFXsbDPTnTMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUkhQif$HE_e5fa620705ca2b1f2c31afb6f4ab767680afaeaeaeaf70360214be7d8c4b2dfc55e431af35f89074d5f89046ae&caver=2",
+        "https://www.kuaishou.com/rest/v/feed/hot?__NS_hxfalcon=HUDR_sFnX-DtsGUFXsbDPTnTMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUkhQif$HE_eff0680d0fc1fb16263ba5f4a55483ffd7a5a4a4a4a57a3c081eb4778641392c5cee3ba53ff29a7edff29a4ca4&caver=2",
+        "https://www.kuaishou.com/rest/v/feed/hot?__NS_hxfalcon=HUDR_sFnX-DtsGUFXsbDPTnTMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUkhQif$HE_879800656745157e4e53cdde281c2cdb8fcdcccccccd12546076dc1fee294bc2348653cd579af216b79af224cc&caver=2",
+        "https://www.kuaishou.com/rest/v/feed/hot?__NS_hxfalcon=HUDR_sFnX-DtsGUFXsbDPTnTMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUkhQif$HE_7768f09597a9ea8fbea33d45127f9f53453d3c3c3c3de2a490862cef1ed9983dc576a33da76a02e6476a02d43c&caver=2",
+        "https://www.kuaishou.com/rest/v/feed/hot?__NS_hxfalcon=HUDR_sFnX-DtsGUFXsbDPTnTMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUkhQif$HE_011e86e3e11828fec8d54bbf92efdf88114b4a4a4a4b94d2e6f05a9968afaeffb400d54bd11c7490311c74a24a&caver=2"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.kuaishou.com"
+      },
+      "statusCodes": {
+        "200": 5
+      },
+      "templatedPath": "/rest/v/feed/hot",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 8
+      },
+      "count": 8,
+      "firstSeen": 1784604100301,
+      "host": "www.kuaishou.com",
+      "lastSeen": 1784604287927,
+      "method": "POST",
+      "pathname": "/rest/v/kconf/get",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 8
+      },
+      "sampleUrls": [
+        "https://www.kuaishou.com/rest/v/kconf/get"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.kuaishou.com"
+      },
+      "statusCodes": {
+        "200": 8
+      },
+      "templatedPath": "/rest/v/kconf/get",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 18
+      },
+      "count": 18,
+      "firstSeen": 1784604100340,
+      "host": "www.kuaishou.com",
+      "lastSeen": 1784604287917,
+      "method": "GET",
+      "pathname": "/rest/v/profile/get",
+      "queryParamNames": [
+        "__NS_hxfalcon",
+        "caver"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 18
+      },
+      "sampleUrls": [
+        "https://www.kuaishou.com/rest/v/profile/get?__NS_hxfalcon=HUDR_sFnX-DtsGUFXsbDPT3TMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUlhQif$HE_2a35adc8ca05e4d0e3fe60f4b577cbdac56061616160bef9cddb27e814d2ee339a2bfe60fa375fbb1a375f8961&caver=2",
+        "https://www.kuaishou.com/rest/v/profile/get?__NS_hxfalcon=HUDR_sFnX-DtsGUFXsbDPT3TMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUlhQif$HE_acb32b4e4c9acc556578e6397a10852ae4e6e7e7e7e6387f4b5da16e9254611b1fad78e67cb1d93d9cb1d90fe7&caver=2",
+        "https://www.kuaishou.com/rest/v/profile/get?__NS_hxfalcon=HUDR_sFnX-DtsGUFXsbDPT3TMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUlhQif$HE_7f60f89d9f8c6c86b6ab35eaf805a9e0703534343435ebac988e72bd418767bacc7eab35af620aee4f620adc34&caver=2",
+        "https://www.kuaishou.com/rest/v/profile/get?__NS_hxfalcon=HUDR_sFnX-DtsGUFXsbDPT3TMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUlhQif$HE_223da5c0c20c36dbebf668db87759f5bea6869696968b6f1c5d32fe01cdaf0e19123f668f23f57b3123f578169&caver=2",
+        "https://www.kuaishou.com/rest/v/profile/get?__NS_hxfalcon=HUDR_sFnX-DtsGUFXsbDPTXTMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUnhQif$HE_435cc4a1a36d57ba8a9709e7a293082a9d0908080809d590a4b248d67fea344cf0429709935e36d2735e36e008&caver=2"
+      ],
+      "scheme": "https",
+      "statusCodes": {
+        "200": 18
+      },
+      "templatedPath": "/rest/v/profile/get",
+      "securitySignals": {
+        "tags": [
+          "user-data"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 16
+      },
+      "count": 16,
+      "firstSeen": 1784604100054,
+      "host": "gdfp.gifshow.com",
+      "lastSeen": 1784604287674,
+      "method": "POST",
+      "pathname": "/s/w/c",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 16
+      },
+      "sampleUrls": [
+        "https://gdfp.gifshow.com/s/w/c"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-origin": "*"
+      },
+      "statusCodes": {
+        "200": 16
+      },
+      "templatedPath": "/s/w/c",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/vnd.sailingtracker.track": 10
+      },
+      "count": 10,
+      "firstSeen": 1784604098774,
+      "host": "p23-plat.wskwai.com",
+      "lastSeen": 1784604287157,
+      "method": "GET",
+      "pathname": "/kos/nlav111422/ks-web/manifest.webmanifest",
+      "queryParamNames": [],
+      "resourceType": "other",
+      "resourceTypeHits": {
+        "other": 10
+      },
+      "sampleUrls": [
+        "https://p23-plat.wskwai.com/kos/nlav111422/ks-web/manifest.webmanifest"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-methods": "GET,HEAD,POST,PUT,DELETE,OPTIONS",
+        "access-control-allow-origin": "*",
+        "server": "openresty"
+      },
+      "statusCodes": {
+        "200": 10
+      },
+      "templatedPath": "/kos/{b64id}/ks-web/manifest.webmanifest",
+      "securitySignals": {
+        "tags": [
+          "mostly-other-channel"
+        ],
+        "riskScore": 6,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/plain": 9
+      },
+      "count": 9,
+      "firstSeen": 1784604181841,
+      "host": "log-sdk.ksapisrv.com",
+      "lastSeen": 1784604281068,
+      "method": "POST",
+      "pathname": "/rest/wd/common/log/collect/misc2",
+      "queryParamNames": [
+        "encoding",
+        "kpn",
+        "v"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 9
+      },
+      "sampleUrls": [
+        "https://log-sdk.ksapisrv.com/rest/wd/common/log/collect/misc2?encoding=gzip&v=3.9.49&kpn=KS_GAME_LIVE_PC"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://live.kuaishou.com",
+        "server": "Tengine"
+      },
+      "statusCodes": {
+        "200": 9
+      },
+      "templatedPath": "/rest/wd/common/log/collect/misc2",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 3
+      },
+      "count": 3,
+      "firstSeen": 1784604258497,
+      "host": "id.kuaishou.com",
+      "lastSeen": 1784604280613,
+      "method": "POST",
+      "pathname": "/rest/c/infra/ks/qr/start",
+      "queryParamNames": [
+        "__NS_hxfalcon",
+        "caver"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://id.kuaishou.com/rest/c/infra/ks/qr/start?__NS_hxfalcon=HUDR_sFnX-DtsGUFXsbDPT3TMP-sk0is6Te45rwZR06yM9AP6PdZNdSz2-t2IH_3D09RppVPYcHJtXv9wRA1xsPb91rU2249ThVAkPkuFAgeojJ2tlhn2KatgZWt5hYQkU2EYWLQDclb5_5HfYVUw-QbETHvK50xfiNtT-bUlhQif$HE_e6f9600406487b1e2f32ac851dee118532acadadadad72350117ee25dc18da9154e732ac36fb9377d6fb9345ad&caver=2",
+        "https://id.kuaishou.com/rest/c/infra/ks/qr/start"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://live.kuaishou.com"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/rest/c/infra/ks/qr/start",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "count": 5,
+      "firstSeen": 1784604182237,
+      "host": "verification.kuaishouzt.cn",
+      "lastSeen": 1784604277387,
+      "method": "OPTIONS",
+      "pathname": "/rest/zt/basic/tracing/report",
+      "queryParamNames": [],
+      "resourceType": "other",
+      "resourceTypeHits": {
+        "other": 5
+      },
+      "sampleUrls": [
+        "https://verification.kuaishouzt.cn/rest/zt/basic/tracing/report"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "content-type",
+        "access-control-allow-origin": "https://live.kuaishou.com"
+      },
+      "statusCodes": {
+        "200": 5
+      },
+      "templatedPath": "/rest/zt/basic/tracing/report",
+      "securitySignals": {
+        "tags": [
+          "mostly-other-channel"
+        ],
+        "riskScore": 6,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 4
+      },
+      "count": 4,
+      "firstSeen": 1784604181903,
+      "host": "live.kuaishou.com",
+      "lastSeen": 1784604274575,
+      "method": "GET",
+      "pathname": "/live_api/category/simple",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 4
+      },
+      "sampleUrls": [
+        "https://live.kuaishou.com/live_api/category/simple"
+      ],
+      "scheme": "https",
+      "statusCodes": {
+        "200": 4
+      },
+      "templatedPath": "/{b64id}/{b64id}/simple",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 5
+      },
+      "count": 5,
+      "firstSeen": 1784604177456,
+      "host": "verification.kuaishouzt.cn",
+      "lastSeen": 1784604274321,
+      "method": "GET",
+      "pathname": "/rest/zt/basic/tracing/report",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 5
+      },
+      "sampleUrls": [
+        "https://verification.kuaishouzt.cn/rest/zt/basic/tracing/report"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://live.kuaishou.com"
+      },
+      "statusCodes": {
+        "200": 5
+      },
+      "templatedPath": "/rest/zt/basic/tracing/report",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 3
+      },
+      "count": 3,
+      "firstSeen": 1784604263762,
+      "host": "live.kuaishou.com",
+      "lastSeen": 1784604273918,
+      "method": "GET",
+      "pathname": "/live_api/home/category",
+      "queryParamNames": [
+        "followingWeight",
+        "queryFollowing"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://live.kuaishou.com/live_api/home/category",
+        "https://live.kuaishou.com/live_api/home/livestream?queryFollowing=true&followingWeight=50"
+      ],
+      "scheme": "https",
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/{b64id}/home/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1784604263559,
+      "host": "live.kuaishou.com",
+      "lastSeen": 1784604273770,
+      "method": "GET",
+      "pathname": "/live_api/home/list",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://live.kuaishou.com/live_api/home/list"
+      ],
+      "scheme": "https",
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/{b64id}/home/list",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 12
+      },
+      "count": 12,
+      "firstSeen": 1784604182369,
+      "host": "sentry.kuaishou.com",
+      "lastSeen": 1784604273313,
+      "method": "POST",
+      "pathname": "/api/2221/envelope/",
+      "queryParamNames": [
+        "sentry_key",
+        "sentry_version"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 12
+      },
+      "sampleUrls": [
+        "https://sentry.kuaishou.com/api/2221/envelope/?sentry_key=f5bf0fc0084a4efe9a9677e15cdc3af9&sentry_version=7"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-origin": "https://live.kuaishou.com"
+      },
+      "statusCodes": {
+        "200": 11,
+        "429": 1
+      },
+      "templatedPath": "/api/{id}/{b64id}/",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 4
+      },
+      "count": 4,
+      "firstSeen": 1784604182290,
+      "host": "live.kuaishou.com",
+      "lastSeen": 1784604273232,
+      "method": "GET",
+      "pathname": "/live_api/interestMask/list",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 4
+      },
+      "sampleUrls": [
+        "https://live.kuaishou.com/live_api/interestMask/list"
+      ],
+      "scheme": "https",
+      "statusCodes": {
+        "200": 4
+      },
+      "templatedPath": "/{b64id}/{b64id}/list",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/html": 1
+      },
+      "count": 1,
+      "firstSeen": 1784604272595,
+      "host": "live.kuaishou.com",
+      "lastSeen": 1784604272595,
+      "method": "GET",
+      "pathname": "/",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://live.kuaishou.com/"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "content-security-policy": "default-src 'self' 'unsafe-inline' *.yximgs.com *.kwimgs.com data: *.kskwai.com *.kgw.com blob: *;script-src 'self' 'unsafe-inline' 'unsafe-eval' *.yximgs.com *.kgw.com *.kskwai.com blob:;style-src 'self' 'unsafe-inline' *.kgw.com *.kskwai.com;frame-ancestors http://localhost:3000/ 'self' https://cf.qq.com https://wot.360.cn https://www.yjwujian.cn https://www.ssjj.cn https://ssjj.cn/games/taitan https://pnl.pwesports.cn/ https://pnl-qa.pwesports.cn/ https://lpl.qq.com/act/a20220322city https://"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 4
+      },
+      "count": 4,
+      "firstSeen": 1784604181468,
+      "host": "live.kuaishou.com",
+      "lastSeen": 1784604272024,
+      "method": "GET",
+      "pathname": "/live_api/category/classify",
+      "queryParamNames": [
+        "__NS_hxfalcon",
+        "caver",
+        "liveStreamId",
+        "page",
+        "pageSize",
+        "principalId",
+        "source",
+        "type"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 4
+      },
+      "sampleUrls": [
+        "https://live.kuaishou.com/live_api/category/classify?type=4&source=2&page=1&pageSize=20",
+        "https://live.kuaishou.com/live_api/liveroom/livedetail?principalId=3xknemmd96mm8ie",
+        "https://live.kuaishou.com/live_api/liveroom/websocketinfo?__NS_hxfalcon=HUDR_sFnX-DtsB0FXsbDPT3TMP-sk0is9B7dAtQleg__VsxK3cJBScjfyoZuJDKCd0dFhpVOXKHFtTrFSOUNZnJTTlJFc98xCkEx5ZgnSHUamh8T1mQj2KahjLi44n9t8ADwCRbIUKB-MmbyGO1lXk0LdBXDB7Eldht5J-bUlhQif$HE_4e51c8acae4ff9b6879a043fc88f5cc1470405050504da9da9bf178d24e6ddf6fb4f9a049e533bdf7e533bed05&caver=2&liveStreamId=FwmIL_4WKX8"
+      ],
+      "scheme": "https",
+      "statusCodes": {
+        "200": 4
+      },
+      "templatedPath": "/{b64id}/{b64id}/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784604271853,
+      "host": "live.kuaishou.com",
+      "lastSeen": 1784604271853,
+      "method": "POST",
+      "pathname": "/live_api/liveroom/recall",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://live.kuaishou.com/live_api/liveroom/recall"
+      ],
+      "scheme": "https",
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/{b64id}/{b64id}/recall",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1784604271496,
+      "host": "live.kuaishou.com",
+      "lastSeen": 1784604271814,
+      "method": "GET",
+      "pathname": "/live_api/emoji/gift-list",
+      "queryParamNames": [
+        "liveStreamId"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://live.kuaishou.com/live_api/emoji/gift-list?liveStreamId=FwmIL_4WKX8",
+        "https://live.kuaishou.com/live_api/emoji/allgifts"
+      ],
+      "scheme": "https",
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/{b64id}/emoji/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784604271529,
+      "host": "live.kuaishou.com",
+      "lastSeen": 1784604271529,
+      "method": "POST",
+      "pathname": "/live_api/liveroom/reco",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://live.kuaishou.com/live_api/liveroom/reco"
+      ],
+      "scheme": "https",
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/{b64id}/{b64id}/reco",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784604270568,
+      "host": "live.kuaishou.com",
+      "lastSeen": 1784604270568,
+      "method": "GET",
+      "pathname": "/live_api/emoji/icon",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://live.kuaishou.com/live_api/emoji/icon"
+      ],
+      "scheme": "https",
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/{b64id}/emoji/icon",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/x-component": 12
+      },
+      "count": 12,
+      "firstSeen": 1784604094961,
+      "host": "localhost:3000",
+      "lastSeen": 1784604269272,
+      "method": "POST",
+      "pathname": "/dash/accounts",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 12
+      },
+      "sampleUrls": [
+        "http://localhost:3000/dash/accounts"
+      ],
+      "scheme": "http",
+      "securityHeaders": {
+        "permissions-policy": "camera=(), microphone=(), geolocation=(), browsing-topics=()",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 12
+      },
+      "templatedPath": "/dash/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "user-data"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/xml": 1
+      },
+      "count": 1,
+      "firstSeen": 1784604267365,
+      "host": "live.kuaishou.com",
+      "lastSeen": 1784604267365,
+      "method": "GET",
+      "pathname": "/opensearch.xml",
+      "queryParamNames": [],
+      "resourceType": "other",
+      "resourceTypeHits": {
+        "other": 1
+      },
+      "sampleUrls": [
+        "https://live.kuaishou.com/opensearch.xml"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "content-security-policy": "default-src 'self' 'unsafe-inline' *.yximgs.com *.kwimgs.com data: *.kskwai.com *.kgw.com blob: *;script-src 'self' 'unsafe-inline' 'unsafe-eval' *.yximgs.com *.kgw.com *.kskwai.com blob:;style-src 'self' 'unsafe-inline' *.kgw.com *.kskwai.com;frame-ancestors 'self'"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/opensearch.xml",
+      "securitySignals": {
+        "tags": [
+          "mostly-other-channel",
+          "xml-body"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1784604181731,
+      "host": "live.kuaishou.com",
+      "lastSeen": 1784604266010,
+      "method": "POST",
+      "pathname": "/live_api/baseuser/userLogout",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://live.kuaishou.com/live_api/baseuser/userLogout"
+      ],
+      "scheme": "https",
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/{b64id}/{b64id}/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1784604181603,
+      "host": "id.kuaishou.com",
+      "lastSeen": 1784604264772,
+      "method": "POST",
+      "pathname": "/pass/kuaishou/login/logout",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://id.kuaishou.com/pass/kuaishou/login/logout"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://live.kuaishou.com"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/pass/{b64id}/login/logout",
+      "securitySignals": {
+        "tags": [
+          "auth-flow"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 3
+      },
+      "count": 3,
+      "firstSeen": 1784604177065,
+      "host": "id.kuaishou.com",
+      "lastSeen": 1784604264201,
+      "method": "POST",
+      "pathname": "/pass/kuaishou/getCdns",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://id.kuaishou.com/pass/kuaishou/getCdns"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://live.kuaishou.com"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/pass/{b64id}/getCdns",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1784604181436,
+      "host": "id.kuaishou.com",
+      "lastSeen": 1784604263816,
+      "method": "POST",
+      "pathname": "/pass/kuaishou/login/passToken",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://id.kuaishou.com/pass/kuaishou/login/passToken"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://live.kuaishou.com"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/pass/{b64id}/login/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "auth-flow"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/octet-stream": 1
+      },
+      "count": 1,
+      "firstSeen": 1784604263187,
+      "host": "ntp.nc.gifshow.com",
+      "lastSeen": 1784604263187,
+      "method": "GET",
+      "pathname": "/",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://ntp.nc.gifshow.com/"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-origin": "*"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 20
+      },
+      "count": 20,
+      "firstSeen": 1784604097576,
+      "host": "wlog.ksapisrv.com",
+      "lastSeen": 1784604261921,
+      "method": "POST",
+      "pathname": "/rest/kd/log/collect",
+      "queryParamNames": [
+        "_json",
+        "biz",
+        "kpn",
+        "v"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 20
+      },
+      "sampleUrls": [
+        "https://wlog.ksapisrv.com/rest/kd/log/collect?v=3.10.45&kpn=30&_json=1&biz=",
+        "https://wlog.ksapisrv.com/rest/kd/log/collect?v=3.10.49&kpn=30&_json=1&biz="
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.kuaishou.com",
+        "server": "Tengine/2.3.2"
+      },
+      "statusCodes": {
+        "200": 20
+      },
+      "templatedPath": "/rest/kd/log/collect",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "count": 3,
+      "firstSeen": 1784604175159,
+      "host": "id.kuaishou.com",
+      "lastSeen": 1784604261868,
+      "method": "OPTIONS",
+      "pathname": "/pass/kuaishou/getCdns",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://id.kuaishou.com/pass/kuaishou/getCdns"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "content-type",
+        "access-control-allow-origin": "https://live.kuaishou.com",
+        "x-frame-options": "SAMEORIGIN"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/pass/{b64id}/getCdns",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 5
+      },
+      "count": 5,
+      "firstSeen": 1784604105614,
+      "host": "gdfp.gifshow.com",
+      "lastSeen": 1784604261614,
+      "method": "POST",
+      "pathname": "/s/u/v",
+      "queryParamNames": [
+        "appkey",
+        "bussType",
+        "seckey",
+        "sign",
+        "timestamp",
+        "type"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 5
+      },
+      "sampleUrls": [
+        "https://gdfp.gifshow.com/s/u/v?appkey=10001001&seckey=f2fff381c551a8dcdb765e316f3d44ac&bussType=com.vision.gifshow&timestamp=1784604105&sign=ff070bfb6f9f6a7d61e9298da8212afa&type=SDK_INIT",
+        "https://gdfp.gifshow.com/s/u/v?appkey=10001001&seckey=f2fff381c551a8dcdb765e316f3d44ac&bussType=com.vision.gifshow&timestamp=1784604137&sign=e6bd11e2ef5f0ca358b71e3db6ceeee4&type=SDK_INIT",
+        "https://gdfp.gifshow.com/s/u/v?appkey=10001001&seckey=f2fff381c551a8dcdb765e316f3d44ac&bussType=com.vision.gifshow&timestamp=1784604164&sign=a94173e7b62134c609553bb9b9d0e1cd&type=SDK_INIT",
+        "https://gdfp.gifshow.com/s/u/v?appkey=10001001&seckey=f2fff381c551a8dcdb765e316f3d44ac&bussType=gameLive&timestamp=1784604181&sign=3c8eede9c6ff788916d3b766c2f50ee2&type=SDK_INIT",
+        "https://gdfp.gifshow.com/s/u/v?appkey=10001001&seckey=f2fff381c551a8dcdb765e316f3d44ac&bussType=gameLive&timestamp=1784604261&sign=f035e06c9633865583654984dc9727b5&type=SDK_INIT"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-origin": "*"
+      },
+      "statusCodes": {
+        "200": 5
+      },
+      "templatedPath": "/s/u/v",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784604257391,
+      "host": "www.kuaishou.com",
+      "lastSeen": 1784604257391,
+      "method": "POST",
+      "pathname": "/rest/v/system/configs",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.kuaishou.com/rest/v/system/configs"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.kuaishou.com"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/rest/v/system/configs",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 4
+      },
+      "count": 4,
+      "firstSeen": 1784604214256,
+      "host": "www.kuaishou.com",
+      "lastSeen": 1784604247103,
+      "method": "POST",
+      "pathname": "/rest/k/emotion/package/list",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 4
+      },
+      "sampleUrls": [
+        "https://www.kuaishou.com/rest/k/emotion/package/list"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.kuaishou.com"
+      },
+      "statusCodes": {
+        "200": 4
+      },
+      "templatedPath": "/rest/k/emotion/package/list",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 5
+      },
+      "count": 5,
+      "firstSeen": 1784604199182,
+      "host": "www.kuaishou.com",
+      "lastSeen": 1784604247098,
+      "method": "POST",
+      "pathname": "/rest/v/profile/feed",
+      "queryParamNames": [
+        "__NS_hxfalcon",
+        "caver"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 5
+      },
+      "sampleUrls": [
+        "https://www.kuaishou.com/rest/v/profile/feed?__NS_hxfalcon=HUDR_sFnX-DtsGUFXsbDPTXTMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUnhQif$HE_08178feae8ca9af1c1dc42974a431f4f6542434343429edbeff9049131a70c9cba09dc42d8157d9938157dab43&caver=2",
+        "https://www.kuaishou.com/rest/v/profile/feed?__NS_hxfalcon=HUDR_sFnX-DtsGEFXsbDPTnTMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUkhQif$HE_140b93f6f47b4becddc05ea1436346a46b5e5f5f5f5e81c7f3e51fd22cec9f9ca615c05ec4096185240961b75f&caver=2",
+        "https://www.kuaishou.com/rest/v/profile/feed?__NS_hxfalcon=HUDR_sFnX-DtsGEFXsbDPTnTMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUkhQif$HE_657ae2878546b49dacb12f06a0cd26402a2f2e2e2e2ff0b6829439a00d9bb063d764b12fb57810f4557810c62e&caver=2",
+        "https://www.kuaishou.com/rest/v/profile/feed?__NS_hxfalcon=HUDR_sFnX-DtsGEFXsbDPTnTMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUkhQif$HE_f0ef7712109c12083924ba378ff0c488cbbabbbbbbba65231701f836990370c542f124ba20ed8561c0ed8553bb&caver=2",
+        "https://www.kuaishou.com/rest/v/profile/feed?__NS_hxfalcon=HUDR_sFnX-DtsGEFXsbDPQXTMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUrhQif$HE_8d920a6f6de2d2754459c75459e2ffc77fc7c6c6c6c7175e6a7cd71ee022acd33f8c59c75d90f81cbd90f82ec6&caver=2"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.kuaishou.com"
+      },
+      "statusCodes": {
+        "200": 5
+      },
+      "templatedPath": "/rest/v/profile/feed",
+      "securitySignals": {
+        "tags": [
+          "user-data"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1784604199222,
+      "host": "www.kuaishou.com",
+      "lastSeen": 1784604246847,
+      "method": "POST",
+      "pathname": "/rest/v/profile/user",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://www.kuaishou.com/rest/v/profile/user"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.kuaishou.com"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/rest/v/profile/user",
+      "securitySignals": {
+        "tags": [
+          "user-data"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 4
+      },
+      "count": 4,
+      "firstSeen": 1784604202473,
+      "host": "www.kuaishou.com",
+      "lastSeen": 1784604246825,
+      "method": "POST",
+      "pathname": "/rest/v/live/playBack/list",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 4
+      },
+      "sampleUrls": [
+        "https://www.kuaishou.com/rest/v/live/playBack/list"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.kuaishou.com"
+      },
+      "statusCodes": {
+        "200": 4
+      },
+      "templatedPath": "/rest/v/live/{b64id}/list",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 5
+      },
+      "count": 5,
+      "firstSeen": 1784604142860,
+      "host": "www.kuaishou.com",
+      "lastSeen": 1784604207900,
+      "method": "POST",
+      "pathname": "/rest/v/search/feed",
+      "queryParamNames": [
+        "__NS_hxfalcon",
+        "caver"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 5
+      },
+      "sampleUrls": [
+        "https://www.kuaishou.com/rest/v/search/feed?__NS_hxfalcon=HUDR_sFnX-DtsGUFXsbDPTnTMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUkhQif$HE_bea1395c5e88de47776af47608f8693d99f4f5f5f5f42b6d594fe67b811349090dbf6af46ea3cb2f8ea3cb1df5&caver=2",
+        "https://www.kuaishou.com/rest/v/search/feed?__NS_hxfalcon=HUDR_sFnX-DtsGUFXsbDPTHTMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUmhQif$HE_405fc7a2a07620b989940a37b54c61b8280a0b0b0b0ad793a7b11cd628ed98e0f341940a905d35d1705d35e30b&caver=2",
+        "https://www.kuaishou.com/rest/v/search/feed?__NS_hxfalcon=HUDR_sFnX-DtsGUFXsbDPQnTMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUohQif$HE_19069efbf92f79e0d0cd53c373a4283df7535252525380cafee8148b27e3f8c8aa18cd53c9046c8829046cba52&caver=2",
+        "https://www.kuaishou.com/rest/v/search/feed?__NS_hxfalcon=HUDR_sFnX-DtsGUFXsbDPTHTMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUmhQif$HE_657ae287854b719cacb12f9848ad4513852f2e2e2e2ff2b682943afd59cd1363d664b12fb57810f4557810c62e&caver=2",
+        "https://www.kuaishou.com/rest/v/search/feed?__NS_hxfalcon=HUDR_sFnX-DtsGEFXsbDPTXTMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUnhQif$HE_c6d9412426a9993e0f128c6f36fff732618c8d8d8d8c50152137965ffb6ff67e74c7128c16dbb357f6dbb3658d&caver=2"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.kuaishou.com"
+      },
+      "statusCodes": {
+        "200": 5
+      },
+      "templatedPath": "/rest/v/search/feed",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 5
+      },
+      "count": 5,
+      "firstSeen": 1784604142917,
+      "host": "www.kuaishou.com",
+      "lastSeen": 1784604206785,
+      "method": "POST",
+      "pathname": "/rest/v/search/user",
+      "queryParamNames": [
+        "__NS_hxfalcon",
+        "caver"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 5
+      },
+      "sampleUrls": [
+        "https://www.kuaishou.com/rest/v/search/user?__NS_hxfalcon=HUDR_sFnX-DtsGUFXsbDPTXTMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUnhQif$HE_bfa0385d5f89df46766bf5e2ad16a39a64f5f4f4f4f5296c584eef79d2104a080cbe6bf56fa2ca2e8fa2ca1cf4&caver=2",
+        "https://www.kuaishou.com/rest/v/search/user?__NS_hxfalcon=HUDR_sFnX-DtsGUFXsbDPQ3TMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUphQif$HE_928d157072a4f26b5b46d8fec83ba73798d8d9d9d9d80a417563cf0bfa3c4c32219346d8428fe703a28fe731d9&caver=2",
+        "https://www.kuaishou.com/rest/v/search/user?__NS_hxfalcon=HUDR_sFnX-DtsGUFXsbDPQXTMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUrhQif$HE_ced1492c2ef8ae37071a845bb446f64eb98485858584541d293fc15ba3312e1f7dcf1a841ed3bb5ffed3bb6d85&caver=2",
+        "https://www.kuaishou.com/rest/v/search/user?__NS_hxfalcon=HUDR_sFnX-DtsGUFXsbDPQ3TMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUphQif$HE_071880e5e72913feced34dda1340f8a4f74d4c4c4c4d9fd4e0f659c23cfd7301b406d34dd71a7296371a72a44c&caver=2",
+        "https://www.kuaishou.com/rest/v/search/user?__NS_hxfalcon=HUDR_sFnX-DtsGEFXsbDPTHTMP-sk0is6A6ZH7E4jlryNsQCuNZZRdSj1s8iIQL_CzYl1qEaCKXZ1Qul4A0B9srS50qlqmo1ekhckPk6DAhrslMP3hB67Z7lgc3p-2cIjWWAFDvxFcxzvxYnrQBYIzhKdDXvJ7k1ZiNdT-bUmhQif$HE_d5ca523735ba8a2d1c019f6a1838a67fb19f9e9e9e9f42063224d810e828e26d67d4019f05c8a044e5c8a0769e&caver=2"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.kuaishou.com"
+      },
+      "statusCodes": {
+        "200": 5
+      },
+      "templatedPath": "/rest/v/search/user",
+      "securitySignals": {
+        "tags": [
+          "user-data"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 2,
+      "firstSeen": 1784604174733,
+      "host": "gdfp.gifshow.com",
+      "lastSeen": 1784604181192,
+      "method": "OPTIONS",
+      "pathname": "/s/w/c",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://gdfp.gifshow.com/s/w/c"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-headers": "content-type",
+        "access-control-allow-methods": "POST",
+        "access-control-allow-origin": "*"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/s/w/c",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784604179200,
+      "host": "pay.ssl.kuaishou.com",
+      "lastSeen": 1784604179200,
+      "method": "POST",
+      "pathname": "/rest/k/pay/config",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://pay.ssl.kuaishou.com/rest/k/pay/config"
+      ],
+      "scheme": "https",
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/rest/k/pay/config",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 42
+      },
+      "count": 42,
+      "firstSeen": 1784604105844,
+      "host": "www.kuaishou.com",
+      "lastSeen": 1784604176652,
+      "method": "POST",
+      "pathname": "/graphql",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 42
+      },
+      "sampleUrls": [
+        "https://www.kuaishou.com/graphql"
+      ],
+      "scheme": "https",
+      "statusCodes": {
+        "200": 42
+      },
+      "templatedPath": "/graphql",
+      "securitySignals": {
+        "tags": [
+          "graphql"
+        ],
+        "riskScore": 18,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784604174850,
+      "host": "cp.kuaishou.com",
+      "lastSeen": 1784604174850,
+      "method": "POST",
+      "pathname": "/rest/bamboo/pc/hotspot/show",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://cp.kuaishou.com/rest/bamboo/pc/hotspot/show"
+      ],
+      "scheme": "https",
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/rest/bamboo/pc/hotspot/show",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784604174463,
+      "host": "cp.kuaishou.com",
+      "lastSeen": 1784604174463,
+      "method": "POST",
+      "pathname": "/rest/v2/creator/pc/frontend/kswitch/config",
+      "queryParamNames": [
+        "__NS_sig3"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://cp.kuaishou.com/rest/v2/creator/pc/frontend/kswitch/config?__NS_sig3=c9d99eae977ec5f0f094979687091ef64ca800ec88888a8a8584879d"
+      ],
+      "scheme": "https",
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/rest/v2/creator/pc/{b64id}/kswitch/config",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784604174457,
+      "host": "cp.kuaishou.com",
+      "lastSeen": 1784604174457,
+      "method": "POST",
+      "pathname": "/rest/v2/creator/pc/authority/account/current",
+      "queryParamNames": [
+        "__NS_sig3"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://cp.kuaishou.com/rest/v2/creator/pc/authority/account/current?__NS_sig3=f5e5a292ab42f9cccda8abaaaf57481770943cd0b4b4b6b6b9b8bba1"
+      ],
+      "scheme": "https",
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/rest/v2/creator/pc/{b64id}/account/current",
+      "securitySignals": {
+        "tags": [
+          "user-data",
+          "versioned-api"
+        ],
+        "riskScore": 24,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/html": 5
+      },
+      "count": 5,
+      "firstSeen": 1784604107130,
+      "host": "www.kuaishou.com",
+      "lastSeen": 1784604168571,
+      "method": "GET",
+      "pathname": "/404",
+      "queryParamNames": [],
+      "resourceType": "other",
+      "resourceTypeHits": {
+        "other": 5
+      },
+      "sampleUrls": [
+        "https://www.kuaishou.com/404"
+      ],
+      "scheme": "https",
+      "statusCodes": {
+        "200": 5
+      },
+      "templatedPath": "/{id}",
+      "securitySignals": {
+        "tags": [
+          "mostly-other-channel"
+        ],
+        "riskScore": 6,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 6
+      },
+      "count": 6,
+      "firstSeen": 1784604106266,
+      "host": "gdfp.gifshow.com",
+      "lastSeen": 1784604165062,
+      "method": "POST",
+      "pathname": "/p/z/s",
+      "queryParamNames": [
+        "appkey",
+        "bussType",
+        "seckey",
+        "sign",
+        "timestamp"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 6
+      },
+      "sampleUrls": [
+        "https://gdfp.gifshow.com/p/z/s?appkey=10001001&seckey=f2fff381c551a8dcdb765e316f3d44ac&bussType=com.vision.gifshow&timestamp=1784604106&sign=72e569752eeb977491c399135cfa8940",
+        "https://gdfp.gifshow.com/p/z/s?appkey=10001001&seckey=f2fff381c551a8dcdb765e316f3d44ac&bussType=com.vision.gifshow&timestamp=1784604137&sign=e6bd11e2ef5f0ca358b71e3db6ceeee4",
+        "https://gdfp.gifshow.com/p/z/s?appkey=10001001&seckey=f2fff381c551a8dcdb765e316f3d44ac&bussType=com.vision.gifshow&timestamp=1784604164&sign=a94173e7b62134c609553bb9b9d0e1cd"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-origin": "*"
+      },
+      "statusCodes": {
+        "200": 6
+      },
+      "templatedPath": "/p/z/s",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 8
+      },
+      "count": 8,
+      "firstSeen": 1784604100945,
+      "host": "da-radar-plus-api.ksapisrv.com",
+      "lastSeen": 1784604164199,
+      "method": "GET",
+      "pathname": "/dp/platform/da/radar/api/uid/U2FsdGVkX18oxs4/w57rSZOb0mSZWOe/pJ5EhPgSVxA",
+      "queryParamNames": [
+        "uid"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 8
+      },
+      "sampleUrls": [
+        "https://da-radar-plus-api.ksapisrv.com/dp/platform/da/radar/api/uid/U2FsdGVkX18oxs4/w57rSZOb0mSZWOe/pJ5EhPgSVxA?uid=5624235291"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.kuaishou.com"
+      },
+      "statusCodes": {
+        "200": 8
+      },
+      "templatedPath": "/dp/{b64id}/da/radar/api/uid/{b64id}/{b64id}/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784604137906,
+      "host": "accounts.google.com",
+      "lastSeen": 1784604137906,
+      "method": "POST",
+      "pathname": "/RotateCookies",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://accounts.google.com/RotateCookies"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "content-security-policy": "require-trusted-types-for 'script';report-uri https://csp.withgoogle.com/csp/IdentityRotateCookiesHttp",
+        "permissions-policy": "ch-ua-arch=*, ch-ua-bitness=*, ch-ua-full-version=*, ch-ua-full-version-list=*, ch-ua-model=*, ch-ua-wow64=*, ch-ua-form-factors=*, ch-ua-platform=*, ch-ua-platform-version=*",
+        "server": "ESF",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "SAMEORIGIN",
+        "x-xss-protection": "0"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 6
+      },
+      "count": 6,
+      "firstSeen": 1784604109630,
+      "host": "www.kuaishou.com",
+      "lastSeen": 1784604133088,
+      "method": "POST",
+      "pathname": "/rest/v/client-action-log",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 6
+      },
+      "sampleUrls": [
+        "https://www.kuaishou.com/rest/v/client-action-log"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.kuaishou.com"
+      },
+      "statusCodes": {
+        "200": 6
+      },
+      "templatedPath": "/rest/v/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 4
+      },
+      "count": 4,
+      "firstSeen": 1784604109636,
+      "host": "www.kuaishou.com",
+      "lastSeen": 1784604130922,
+      "method": "POST",
+      "pathname": "/rest/v/clc/show",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 4
+      },
+      "sampleUrls": [
+        "https://www.kuaishou.com/rest/v/clc/show"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.kuaishou.com"
+      },
+      "statusCodes": {
+        "200": 4
+      },
+      "templatedPath": "/rest/v/clc/show",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1784604130063,
+      "host": "www.kuaishou.com",
+      "lastSeen": 1784604130308,
+      "method": "POST",
+      "pathname": "/rest/zt/share/w/any",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://www.kuaishou.com/rest/zt/share/w/any"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-methods": "*",
+        "access-control-allow-origin": "https://www.kuaishou.com"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/rest/zt/share/w/any",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    }
+  ]
+}

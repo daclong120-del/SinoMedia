@@ -68,6 +68,59 @@ export function formatUnixTime(unixTime: number): string {
   return new Date(unixTime * 1000).toISOString();
 }
 
+function addUniqueUrl(urls: string[], url: unknown): void {
+  if (typeof url !== "string" || !url.trim()) {
+    return;
+  }
+  const cleanUrl = url.trim();
+  if (!/^https?:\/\//i.test(cleanUrl) || urls.includes(cleanUrl)) {
+    return;
+  }
+  urls.push(cleanUrl);
+}
+
+function extractMediaUrlsFromContent(content: any): string[] {
+  const urls: string[] = [];
+  const items = Array.isArray(content) ? content : [];
+  for (const item of items) {
+    if (!item || typeof item !== "object") {
+      continue;
+    }
+    addUniqueUrl(urls, item.origin_src);
+    addUniqueUrl(urls, item.big_cdn_src);
+    addUniqueUrl(urls, item.cdn_src);
+    addUniqueUrl(urls, item.cdn_src_active);
+  }
+  return urls;
+}
+
+function extractThreadMediaUrls(apiData: any): string[] {
+  const urls: string[] = [];
+  const mediaList = apiData?.thread?.origin_thread_info?.media || [];
+  for (const media of Array.isArray(mediaList) ? mediaList : []) {
+    addUniqueUrl(urls, media.big_pic);
+    addUniqueUrl(urls, media.water_pic);
+    addUniqueUrl(urls, media.small_pic);
+  }
+
+  addUniqueUrl(urls, apiData?.thread?.t_share_img);
+
+  const firstFloorUrls = extractMediaUrlsFromContent(apiData?.first_floor?.content);
+  for (const url of firstFloorUrls) {
+    addUniqueUrl(urls, url);
+  }
+
+  const postList = Array.isArray(apiData?.post_list) ? apiData.post_list : [];
+  for (const post of postList) {
+    const postUrls = extractMediaUrlsFromContent(post?.content);
+    for (const url of postUrls) {
+      addUniqueUrl(urls, url);
+    }
+  }
+
+  return urls;
+}
+
 export class TieBaExtractor {
   static cleanTitle(title: string, tiebaName: string = ""): string {
     let t = (title || "").replace(/\s+/g, " ").trim();
@@ -119,6 +172,8 @@ export class TieBaExtractor {
     const author = uMap[String(firstFloor.author_id)] || {};
     const noteId = String(thread.id || thread.tid || firstFloor.tid || "");
     const tiebaName = ensureTiebaSuffix(forum.name || "");
+    const mediaUrls = extractThreadMediaUrls(apiData);
+    const coverUrl = mediaUrls[0] || "";
     return {
       note_id: noteId,
       title: this.cleanTitle(thread.title || firstFloor.title || "", tiebaName),
@@ -137,6 +192,11 @@ export class TieBaExtractor {
       total_replay_num: Number(thread.reply_num || 0),
       total_replay_page: Number(page.total_page || 0),
       ip_location: author.ip_address || "",
+      media_urls: mediaUrls,
+      cover_url: coverUrl,
+      original_media_urls: mediaUrls,
+      original_cover_url: coverUrl,
+      media_type: mediaUrls.length > 1 ? "carousel" : (mediaUrls.length === 1 ? "image" : "unknown"),
     };
   }
 

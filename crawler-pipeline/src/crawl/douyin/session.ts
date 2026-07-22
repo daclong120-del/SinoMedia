@@ -47,15 +47,19 @@ export function buildCookieString(cookies: any[]): string {
     .join("; ");
 }
 
+export function isValidDouyinWebId(value: string): boolean {
+  return /^\d{16,22}$/.test(value);
+}
+
 /**
- * # Tạo đối tượng DouyinSession từ dữ liệu cookie hoặc session thô
+ * # Tạo đối tượng DouyinSession từ chuỗi Cookie hoặc dữ liệu nạp thô
  */
 export function createSessionFromRaw(
-  cookiesOrData: any,
-  source: string = "unknown"
+  cookiesOrData: string | any[] | Record<string, any>,
+  source: string = "local"
 ): DouyinSession {
   let cookies: any[] = [];
-  let userAgent = DEFAULT_USER_AGENT;
+  let userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
   let msToken = "";
   let xmst = "";
   let webid = "";
@@ -77,12 +81,12 @@ export function createSessionFromRaw(
   } else if (cookiesOrData && typeof cookiesOrData === "object") {
     cookies = cookiesOrData.cookies || [];
     userAgent = cookiesOrData.userAgent || userAgent;
-    msToken = cookiesOrData.msToken || "";
+    msToken = cookiesOrData.msToken || cookiesOrData.mstoken || "";
     xmst = cookiesOrData.xmst || "";
     webid = cookiesOrData.webid || "";
     verifyFp = cookiesOrData.verifyFp || "";
     fp = cookiesOrData.fp || verifyFp || "";
-    uifid = cookiesOrData.uifid || "";
+    uifid = cookiesOrData.uifid || cookiesOrData.UIFID || "";
     browserName = cookiesOrData.browserName || "Chrome";
     browserVersion = cookiesOrData.browserVersion || "120.0.0.0";
     browserPlatform = cookiesOrData.browserPlatform || "Win32";
@@ -99,11 +103,18 @@ export function createSessionFromRaw(
     }
   }
 
-  // Bổ sung các giá trị từ cookie nếu thiếu trong session object
-  if (!webid) webid = cookieStrMap.get("__ac_webid") || cookieStrMap.get("dy_did") || cookieStrMap.get("webid") || "";
+  const webidCandidates = [
+    webid,
+    cookieStrMap.get("webid"),
+    cookieStrMap.get("__ac_webid"),
+    cookieStrMap.get("dy_did"),
+    cookieStrMap.get("MONITOR_WEB_ID"),
+  ];
+
+  webid = webidCandidates.find(v => typeof v === "string" && isValidDouyinWebId(v)) || "";
   if (!verifyFp) verifyFp = cookieStrMap.get("s_v_web_id") || cookieStrMap.get("verifyFp") || "";
   if (!fp) fp = verifyFp;
-  if (!uifid) uifid = cookieStrMap.get("uifid") || "";
+  if (!uifid) uifid = cookieStrMap.get("UIFID") || cookieStrMap.get("UIFID_TEMP") || cookieStrMap.get("uifid") || "";
   if (!xmst) xmst = cookieStrMap.get("xmst") || "";
   if (!msToken) msToken = cookieStrMap.get("msToken") || "";
 

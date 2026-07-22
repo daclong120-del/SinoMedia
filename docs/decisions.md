@@ -264,3 +264,15 @@
   - 3. **Frontend Controls**: UI hỗ trợ chuyển đổi giao diện mượt mà qua Sidebar, bộ lọc động (Phân hệ/Loại) tự động cập nhật theo dữ liệu thực tế, và chức năng Sắp xếp (Sort) đa chiều ngay tại Client-side.
 - **Trade-off:** Việc chỉnh sửa các test case tự động (`AUTO`/`OVERRIDE`) bị giới hạn (chỉ sửa nội dung hiển thị hoặc tắt test bằng code), không thể xóa hẳn khỏi danh sách trừ khi xóa trực tiếp code kiểm thử trong spec file.
 - **Revisit trigger:** Khi quy mô dự án mở rộng sang kiểm thử đa nền tảng và cần đồng bộ trạng thái chạy (pass/fail) của từng test case lịch sử trực tiếp vào cơ sở dữ liệu Supabase tập trung.
+
+## 2026-07-21 - Douyin challenge solver la session recovery step [initiative: douyin-session-recovery]
+
+- **Context:** Douyin session co the pass browser identity va `getSelfProfile`, nhung search API van tra soft-block `search_nil_info.search_nil_type = "verify_check"` / `result_status = 5` / `data.length = 0`. Loi nay khong phai frontend/worker queue va khong nen chua bang cach tiep tuc crawl HTTP voi session bi challenge.
+- **Options considered:**
+  - A: Nhet 2Captcha vao `core.ts` hoac moi request search/detail/comment de tu dong thu tiep.
+  - B: Tao mot lop session recovery trong crawler worker: diagnostic phan loai `challenge_required`, mo Playwright persistent context, giai/cho challenge theo strategy, xuat lai `DouyinSession`, chay diagnostic lai, sau do moi cho HTTP crawler chay. (Duoc chon).
+  - C: Dua challenge solver vao Dashboard Settings hoac UI task. Khong chon vi Dashboard la control plane, khong co browser profile/proxy/session runtime.
+- **Decision:** Chon B. 2Captcha la provider tuy chon cua subsystem `crawler-pipeline/src/challenge`, duoc goi boi Douyin session recovery trong `crawler-pipeline/src/crawl/douyin`. Dashboard `/dash/settings` chi quan ly secret/strategy va hien thi balance; runtime solving phai nam trong worker. Neu worker can doc key tu DB-backed `system_settings`, phai them endpoint/scope hep nhu `GET /api/worker/settings/captcha` voi `crawler:read_settings`, khong mo rong tuy tien generic PostgREST proxy.
+- **Trade-off:** Tang do phuc tap van hanh: can Playwright non-headless/headless-capable environment, solver balance, timeout, retry budget, va account cooldown. Bu lai tranh bien browser thanh crawler runtime va tranh dot tien 2Captcha trong vong lap loi.
+- **Evidence:** Diagnostic thuc te da xac nhan checkpoint 1 pass profile nhung checkpoint 2 fail voi `verify_check`; `session_bootstrap.ts` hien moi co manual captcha wait, chua co provider adapter. Settings UI/service da co luu key 2Captcha ma hoa va lay balance, nhung worker route allowlist chua co duong doc `system_settings` cho runtime.
+- **Revisit trigger:** Khi Douyin khong con yeu cau challenge cho session da hydrate, khi 2Captcha khong giai duoc dang challenge cua Douyin on dinh, hoac khi he thong chuyen sang mot session provider/official API hop le hon.

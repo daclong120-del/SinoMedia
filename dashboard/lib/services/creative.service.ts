@@ -161,6 +161,10 @@ function mapPostToCreativeAd(
   const resolvedMediaUrls = mediaUrls.map(url => resolveMediaUrl(url));
   const resolvedCoverUrl = resolveMediaUrl(row.cover_url);
   const resolvedOriginalCoverUrl = resolveMediaUrl(row.original_cover_url || row.cover_url);
+  const growthRate =
+    historySource === "snapshot" && viewsHistory.length >= 2
+      ? Math.round(((viewsHistory.at(-1)!.count - viewsHistory[0].count) / Math.max(1, viewsHistory[0].count)) * 100)
+      : 0;
 
   return {
     id: row.id,
@@ -180,7 +184,7 @@ function mapPostToCreativeAd(
     published_at: row.published_at || row.crawled_at || "",
     crawled_at: row.crawled_at || "",
     is_ad: true,
-    growth_rate: Math.min(999, Math.round((likes / Math.max(1, (Date.now() - new Date(row.published_at || row.crawled_at || Date.now()).getTime()) / (1000 * 60 * 60))) * 10 + 15)),
+    growth_rate: Math.min(999, Math.max(0, growthRate)),
     views_history: viewsHistory,
     historySource,
     author: author ? mapAuthorToAdvertiser(author, 0, 0, 0) : null,

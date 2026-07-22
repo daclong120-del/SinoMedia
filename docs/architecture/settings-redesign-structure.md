@@ -99,3 +99,11 @@
 
 ## 5. Bàn giao cho bước tiếp theo
 Tài liệu này là bản thiết kế sitemap lịch sử. Nếu tiếp tục chỉnh Settings/Sidebar, không dùng các file `pages-design` cũ làm source of truth; hãy đối chiếu `docs/project-status.md`, `docs/architecture/architecture.md` và code hiện tại trước khi sửa `Sidebar.tsx` hoặc cấu hình navigation.
+
+## 2026-07-21 Addendum - CAPTCHA settings boundary
+
+`/dash/settings` owns CAPTCHA provider configuration only: enable/disable, API key storage, balance check, default strategy, and operator-facing status.
+
+It must not execute platform challenge solving. Runtime solving belongs to `crawler-pipeline` because the worker owns account checkout, proxy/profile context, Playwright persistent context, task logs, and diagnostic retry policy.
+
+If worker needs DB-backed settings, expose a narrow internal endpoint/scope such as `GET /api/worker/settings/captcha` with `crawler:read_settings`; do not expose the full `system_settings` table through the generic worker REST proxy.

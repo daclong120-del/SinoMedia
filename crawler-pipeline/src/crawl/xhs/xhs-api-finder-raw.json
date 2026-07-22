@@ -1,0 +1,2967 @@
+{
+  "catalogVersion": 1,
+  "format": "api-finder-endpoint-catalog",
+  "exportedAt": "2026-07-21T03:48:46.882Z",
+  "reconNotes": "securitySignals are passive heuristics (path, query names, status mix, Content-Type, channel). Not a verdict; validate manually. For Postman or Swagger, use the OpenAPI or Postman export buttons.",
+  "endpoints": [
+    {
+      "contentTypes": {
+        "text/json": 1021
+      },
+      "count": 1021,
+      "firstSeen": 1784605561529,
+      "host": "t2.rnote.com",
+      "lastSeen": 1784605723999,
+      "method": "POST",
+      "pathname": "/api/v2/collect",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1021
+      },
+      "sampleUrls": [
+        "https://t2.rnote.com/api/v2/collect"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Client-Build,X-Client-Platform,X-Client-Version,X-Mx-ReqToken,X-Requested-With,X-Sign,Batch,request-from,xy-common-params,x-rednote-datactry",
+        "access-control-allow-methods": "GET,POST,OPTIONS,HEAD",
+        "access-control-allow-origin": "*",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1021
+      },
+      "templatedPath": "/api/v2/collect",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 16
+      },
+      "count": 16,
+      "firstSeen": 1784605580484,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605723847,
+      "method": "POST",
+      "pathname": "/api/sns/web/v1/homefeed",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 16
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/homefeed"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 16
+      },
+      "templatedPath": "/api/sns/web/v1/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/json": 148
+      },
+      "count": 148,
+      "firstSeen": 1784605562691,
+      "host": "apm-fe.rnote.com",
+      "lastSeen": 1784605722026,
+      "method": "POST",
+      "pathname": "/api/data",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 148
+      },
+      "sampleUrls": [
+        "https://apm-fe.rnote.com/api/data"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Client-Build,X-Client-Platform,X-Client-Version,X-Mx-ReqToken,X-Requested-With,X-Sign,Batch,request-from,xy-common-params,x-rednote-datactry,Biz-Type",
+        "access-control-allow-methods": "GET,POST,OPTIONS,HEAD",
+        "access-control-allow-origin": "*",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 148
+      },
+      "templatedPath": "/api/data",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/json": 88
+      },
+      "count": 88,
+      "firstSeen": 1784605561454,
+      "host": "t2.rnote.com",
+      "lastSeen": 1784605721997,
+      "method": "OPTIONS",
+      "pathname": "/api/v2/collect",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 88
+      },
+      "sampleUrls": [
+        "https://t2.rnote.com/api/v2/collect"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Client-Build,X-Client-Platform,X-Client-Version,X-Mx-ReqToken,X-Requested-With,X-Sign,Batch,request-from,xy-common-params,x-rednote-datactry,Biz-Type",
+        "access-control-allow-methods": "GET,POST,OPTIONS,HEAD",
+        "access-control-allow-origin": "*",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 88
+      },
+      "templatedPath": "/api/v2/collect",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784605721108,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605721108,
+      "method": "GET",
+      "pathname": "/api/sns/web/v1/note/like/page",
+      "queryParamNames": [
+        "cursor",
+        "image_formats",
+        "num",
+        "user_id",
+        "xsec_source",
+        "xsec_token"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/note/like/page?num=30&cursor=&user_id=6a5eea94000000000d035c10&image_formats=jpg,webp,avif&xsec_token=&xsec_source="
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/sns/web/v1/note/like/page",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/json": 23
+      },
+      "count": 23,
+      "firstSeen": 1784605562232,
+      "host": "apm-fe.rnote.com",
+      "lastSeen": 1784605721086,
+      "method": "OPTIONS",
+      "pathname": "/api/data",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 23
+      },
+      "sampleUrls": [
+        "https://apm-fe.rnote.com/api/data"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Client-Build,X-Client-Platform,X-Client-Version,X-Mx-ReqToken,X-Requested-With,X-Sign,Batch,request-from,xy-common-params,x-rednote-datactry,Biz-Type",
+        "access-control-allow-methods": "GET,POST,OPTIONS,HEAD",
+        "access-control-allow-origin": "*",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 23
+      },
+      "templatedPath": "/api/data",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1784605721004,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605721004,
+      "method": "OPTIONS",
+      "pathname": "/api/sns/web/v1/note/like/page",
+      "queryParamNames": [
+        "cursor",
+        "image_formats",
+        "num",
+        "user_id",
+        "xsec_source",
+        "xsec_token"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/note/like/page?num=30&cursor=&user_id=6a5eea94000000000d035c10&image_formats=jpg,webp,avif&xsec_token=&xsec_source="
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "x-b3-traceid,x-s,x-s-common,x-t,x-xray-traceid",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/sns/web/v1/note/like/page",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784605720185,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605720185,
+      "method": "GET",
+      "pathname": "/api/sns/web/v2/note/collect/page",
+      "queryParamNames": [
+        "cursor",
+        "image_formats",
+        "num",
+        "user_id",
+        "xsec_source",
+        "xsec_token"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v2/note/collect/page?num=30&cursor=&user_id=6a5eea94000000000d035c10&image_formats=jpg,webp,avif&xsec_token=&xsec_source="
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/sns/web/v2/note/collect/page",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 5
+      },
+      "count": 5,
+      "firstSeen": 1784605566914,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605718594,
+      "method": "GET",
+      "pathname": "/api/sns/web/v1/user/hover_card",
+      "queryParamNames": [
+        "image_formats",
+        "target_user_id",
+        "xsec_source",
+        "xsec_token"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 5
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/user/hover_card?target_user_id=5666329eb8c8b456f3c26dee&image_formats=jpg,webp,avif&xsec_source=pc_comment&xsec_token=ABb0JcC8LbbvshMrE7FP5Y9MrnvLmoBpL7fm5Y_4ZJE_I%3D",
+        "https://webapi.rednote.com/api/sns/web/v1/user/hover_card?target_user_id=5f9190b30000000001006e89&image_formats=jpg,webp,avif&xsec_source=pc_comment&xsec_token=ABXhfefZ-Frx8zWO1mAY9bYutAk0RktkOUeMbK-ON59ng%3D",
+        "https://webapi.rednote.com/api/sns/web/v1/user/hover_card?target_user_id=64fc4b9900000000050030b5&image_formats=jpg,webp,avif&xsec_source=pc_note&xsec_token=ABpNT9xf51F8dhQOA90S1JkuZoBzUBtumG8sgSf5gaJlo%3D",
+        "https://webapi.rednote.com/api/sns/web/v1/user/selfinfo"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 5
+      },
+      "templatedPath": "/api/sns/web/v1/user/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "user-data",
+          "versioned-api"
+        ],
+        "riskScore": 24,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 3
+      },
+      "count": 3,
+      "firstSeen": 1784605683047,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605718481,
+      "method": "GET",
+      "pathname": "/api/sns/web/v1/user_posted",
+      "queryParamNames": [
+        "cursor",
+        "image_formats",
+        "num",
+        "user_id",
+        "xsec_source",
+        "xsec_token"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/user_posted?num=30&cursor=69b92f93000000001a0370b3&user_id=64fc4b9900000000050030b5&image_formats=jpg,webp,avif&xsec_token=ABpNT9xf51F8dhQOA90S1JkuZoBzUBtumG8sgSf5gaJlo%3D&xsec_source=pc_note",
+        "https://webapi.rednote.com/api/sns/web/v1/user_posted?num=30&cursor=&user_id=6a5eea94000000000d035c10&image_formats=jpg,webp,avif&xsec_token=&xsec_source="
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/api/sns/web/v1/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 17
+      },
+      "count": 17,
+      "firstSeen": 1784605569671,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605718399,
+      "method": "GET",
+      "pathname": "/api/sns/web/v2/user/me",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 17
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v2/user/me"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 17
+      },
+      "templatedPath": "/api/sns/web/v2/user/me",
+      "securitySignals": {
+        "tags": [
+          "user-data",
+          "versioned-api"
+        ],
+        "riskScore": 24,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 16
+      },
+      "count": 16,
+      "firstSeen": 1784605562489,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605714847,
+      "method": "GET",
+      "pathname": "/api/sns/web/unread_count",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 16
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/unread_count"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 16
+      },
+      "templatedPath": "/api/sns/web/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784605713782,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605713782,
+      "method": "POST",
+      "pathname": "/api/sns/web/v1/comment/post",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/comment/post"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/sns/web/v1/comment/post",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1784605713381,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605713381,
+      "method": "OPTIONS",
+      "pathname": "/api/sns/web/v1/comment/post",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/comment/post"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "content-type,x-b3-traceid,x-rap-param,x-s,x-s-common,x-t,x-xray-traceid",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/sns/web/v1/comment/post",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 3
+      },
+      "count": 3,
+      "firstSeen": 1784605693259,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605710170,
+      "method": "POST",
+      "pathname": "/api/sns/web/v1/comment/like",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/comment/like"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/api/sns/web/v1/comment/like",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/x-component": 3
+      },
+      "count": 3,
+      "firstSeen": 1784605589243,
+      "host": "localhost:3000",
+      "lastSeen": 1784605709412,
+      "method": "POST",
+      "pathname": "/dash/accounts",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "http://localhost:3000/dash/accounts"
+      ],
+      "scheme": "http",
+      "securityHeaders": {
+        "permissions-policy": "camera=(), microphone=(), geolocation=(), browsing-topics=()",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/dash/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "user-data"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 25
+      },
+      "count": 25,
+      "firstSeen": 1784605562817,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605707425,
+      "method": "GET",
+      "pathname": "/api/sns/web/v2/comment/page",
+      "queryParamNames": [
+        "cursor",
+        "image_formats",
+        "need_translation",
+        "note_id",
+        "top_comment_id",
+        "xsec_token"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 25
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v2/comment/page?note_id=6444a1af000000001303c7a5&cursor=&top_comment_id=&image_formats=jpg,webp,avif&xsec_token=AB3DcLdwfP6x_lKhJeJgqIvgv-siNrOSY4tsqQsPB40xc%3D&need_translation=1",
+        "https://webapi.rednote.com/api/sns/web/v2/comment/page?note_id=6a3a8608000000000702de85&cursor=&top_comment_id=&image_formats=jpg,webp,avif&xsec_token=ABdHEg4JK1fFJPyPIPEW3o3GupVfNH1qFoNq3qk94Sc4I%3D&need_translation=1",
+        "https://webapi.rednote.com/api/sns/web/v2/comment/page?note_id=6a40c28b0000000021020f4c&cursor=&top_comment_id=&image_formats=jpg,webp,avif&xsec_token=ABrsGzNKKg6AHsGVF8ttnUHyNMwQl2lF8E6NBgXAFwQ_o%3D&need_translation=1",
+        "https://webapi.rednote.com/api/sns/web/v2/comment/page?note_id=6a283b39000000000803339a&cursor=&top_comment_id=&image_formats=jpg,webp,avif&xsec_token=ABzwLCTIs90YHXloaozIT4FyETmH6uMJ1EVG5URi1Rzfo%3D&need_translation=1",
+        "https://webapi.rednote.com/api/sns/web/v2/comment/page?note_id=6a3cedac0000000006021a0f&cursor=&top_comment_id=&image_formats=jpg,webp,avif&xsec_token=ABdYYUynnhHedLiyg46GbcHWheFZXToeEn68D2SycfSj0%3D&need_translation=1"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 25
+      },
+      "templatedPath": "/api/sns/web/v2/comment/page",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 25
+      },
+      "count": 25,
+      "firstSeen": 1784605571389,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605707247,
+      "method": "POST",
+      "pathname": "/api/sns/web/v1/feed",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 25
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/feed"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 25
+      },
+      "templatedPath": "/api/sns/web/v1/feed",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 20
+      },
+      "count": 20,
+      "firstSeen": 1784605571254,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605707092,
+      "method": "POST",
+      "pathname": "/api/global/v2/seo",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 20
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/global/v2/seo"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 20
+      },
+      "templatedPath": "/api/global/v2/seo",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 23,
+      "firstSeen": 1784605571169,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605707074,
+      "method": "OPTIONS",
+      "pathname": "/api/sns/web/v2/comment/page",
+      "queryParamNames": [
+        "cursor",
+        "image_formats",
+        "need_translation",
+        "note_id",
+        "top_comment_id",
+        "xsec_token"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 23
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v2/comment/page?note_id=6a3a8608000000000702de85&cursor=&top_comment_id=&image_formats=jpg,webp,avif&xsec_token=ABdHEg4JK1fFJPyPIPEW3o3GupVfNH1qFoNq3qk94Sc4I%3D&need_translation=1",
+        "https://webapi.rednote.com/api/sns/web/v2/comment/page?note_id=6a40c28b0000000021020f4c&cursor=&top_comment_id=&image_formats=jpg,webp,avif&xsec_token=ABrsGzNKKg6AHsGVF8ttnUHyNMwQl2lF8E6NBgXAFwQ_o%3D&need_translation=1",
+        "https://webapi.rednote.com/api/sns/web/v2/comment/page?note_id=6a283b39000000000803339a&cursor=&top_comment_id=&image_formats=jpg,webp,avif&xsec_token=ABzwLCTIs90YHXloaozIT4FyETmH6uMJ1EVG5URi1Rzfo%3D&need_translation=1",
+        "https://webapi.rednote.com/api/sns/web/v2/comment/page?note_id=6a3cedac0000000006021a0f&cursor=&top_comment_id=&image_formats=jpg,webp,avif&xsec_token=ABdYYUynnhHedLiyg46GbcHWheFZXToeEn68D2SycfSj0%3D&need_translation=1",
+        "https://webapi.rednote.com/api/sns/web/v2/comment/page?note_id=6a5ce5170000000006011bd7&cursor=&top_comment_id=&image_formats=jpg,webp,avif&xsec_token=ABmxuCN-uif6lEzE9o0_n7z0_zY69FY9Zl8i2aA43VW2Y%3D&need_translation=1"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "x-b3-traceid,x-s,x-s-common,x-t,x-xray-traceid,xy-common-params",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 23
+      },
+      "templatedPath": "/api/sns/web/v2/comment/page",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 3,
+      "firstSeen": 1784605579328,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605700110,
+      "method": "OPTIONS",
+      "pathname": "/api/sns/web/v1/homefeed",
+      "queryParamNames": [
+        "cursor",
+        "image_formats",
+        "num",
+        "user_id",
+        "xsec_source",
+        "xsec_token"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/homefeed",
+        "https://webapi.rednote.com/api/sns/web/v1/user_posted?num=30&cursor=69b92f93000000001a0370b3&user_id=64fc4b9900000000050030b5&image_formats=jpg,webp,avif&xsec_token=ABpNT9xf51F8dhQOA90S1JkuZoBzUBtumG8sgSf5gaJlo%3D&xsec_source=pc_note",
+        "https://webapi.rednote.com/api/sns/web/v1/user_posted?num=30&cursor=&user_id=6a5eea94000000000d035c10&image_formats=jpg,webp,avif&xsec_token=&xsec_source="
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "x-b3-traceid,x-rap-param,x-s,x-s-common,x-t,x-xray-traceid",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/api/sns/web/v1/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 4,
+      "firstSeen": 1784605566429,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605700084,
+      "method": "OPTIONS",
+      "pathname": "/api/sns/web/v1/user/hover_card",
+      "queryParamNames": [
+        "image_formats",
+        "target_user_id",
+        "xsec_source",
+        "xsec_token"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 4
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/user/hover_card?target_user_id=5666329eb8c8b456f3c26dee&image_formats=jpg,webp,avif&xsec_source=pc_comment&xsec_token=ABb0JcC8LbbvshMrE7FP5Y9MrnvLmoBpL7fm5Y_4ZJE_I%3D",
+        "https://webapi.rednote.com/api/sns/web/v1/user/hover_card?target_user_id=5f9190b30000000001006e89&image_formats=jpg,webp,avif&xsec_source=pc_comment&xsec_token=ABXhfefZ-Frx8zWO1mAY9bYutAk0RktkOUeMbK-ON59ng%3D",
+        "https://webapi.rednote.com/api/sns/web/v1/user/hover_card?target_user_id=64fc4b9900000000050030b5&image_formats=jpg,webp,avif&xsec_source=pc_note&xsec_token=ABpNT9xf51F8dhQOA90S1JkuZoBzUBtumG8sgSf5gaJlo%3D",
+        "https://webapi.rednote.com/api/sns/web/v1/user/selfinfo"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "x-b3-traceid,x-s,x-s-common,x-t,x-xray-traceid",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 4
+      },
+      "templatedPath": "/api/sns/web/v1/user/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "user-data",
+          "versioned-api"
+        ],
+        "riskScore": 24,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 3
+      },
+      "count": 3,
+      "firstSeen": 1784605673046,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605698135,
+      "method": "POST",
+      "pathname": "/api/sns/web/v1/search/notes",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/search/notes"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/api/sns/web/v1/search/notes",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 6
+      },
+      "count": 6,
+      "firstSeen": 1784605565542,
+      "host": "as.rednote.com",
+      "lastSeen": 1784605695901,
+      "method": "POST",
+      "pathname": "/api/sec/v1/shield/webprofile",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 6
+      },
+      "sampleUrls": [
+        "https://as.rednote.com/api/sec/v1/shield/webprofile"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 6
+      },
+      "templatedPath": "/api/sec/v1/shield/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1784605693039,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605693039,
+      "method": "OPTIONS",
+      "pathname": "/api/sns/web/v1/comment/like",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/comment/like"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "content-type,x-b3-traceid,x-s,x-s-common,x-t,x-xray-traceid",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/sns/web/v1/comment/like",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 37
+      },
+      "count": 37,
+      "firstSeen": 1784605571417,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605691307,
+      "method": "POST",
+      "pathname": "/api/sns/web/v1/note/metrics_report",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 37
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/note/metrics_report"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 37
+      },
+      "templatedPath": "/api/sns/web/v1/note/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 21
+      },
+      "count": 21,
+      "firstSeen": 1784605562506,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605689974,
+      "method": "POST",
+      "pathname": "/api/sns/web/v2/widgets",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 21
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v2/widgets"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 21
+      },
+      "templatedPath": "/api/sns/web/v2/widgets",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 25
+      },
+      "count": 25,
+      "firstSeen": 1784605571290,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605686084,
+      "method": "POST",
+      "pathname": "/api/sns/web/share/code",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 25
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/share/code"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 25
+      },
+      "templatedPath": "/api/sns/web/share/code",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 12
+      },
+      "count": 12,
+      "firstSeen": 1784605562426,
+      "host": "as.rednote.com",
+      "lastSeen": 1784605682925,
+      "method": "POST",
+      "pathname": "/api/sec/v1/sbtsource",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 12
+      },
+      "sampleUrls": [
+        "https://as.rednote.com/api/sec/v1/sbtsource",
+        "https://as.rednote.com/api/sec/v1/scripting"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 12
+      },
+      "templatedPath": "/api/sec/v1/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 3
+      },
+      "count": 3,
+      "firstSeen": 1784605562886,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605682789,
+      "method": "GET",
+      "pathname": "/api/im/redmoji/version",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/im/redmoji/version"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/api/im/redmoji/version",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 3
+      },
+      "count": 3,
+      "firstSeen": 1784605562510,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605682681,
+      "method": "GET",
+      "pathname": "/api/sns/web/v1/system/config",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/system/config"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/api/sns/web/v1/system/config",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 4
+      },
+      "count": 4,
+      "firstSeen": 1784605562474,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605682453,
+      "method": "GET",
+      "pathname": "/api/sns/web/v1/zones",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 4
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/zones"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 4
+      },
+      "templatedPath": "/api/sns/web/v1/zones",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 3
+      },
+      "count": 3,
+      "firstSeen": 1784605562658,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605681930,
+      "method": "POST",
+      "pathname": "/api/redcaptcha/v2/getconfig",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/redcaptcha/v2/getconfig"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/api/{b64id}/v2/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 5
+      },
+      "count": 5,
+      "firstSeen": 1784605562621,
+      "host": "as.rednote.com",
+      "lastSeen": 1784605681897,
+      "method": "POST",
+      "pathname": "/api/p/pj",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 5
+      },
+      "sampleUrls": [
+        "https://as.rednote.com/api/p/pj"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 5
+      },
+      "templatedPath": "/api/p/pj",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 3
+      },
+      "count": 3,
+      "firstSeen": 1784605562219,
+      "host": "pages.xiaohongshu.com",
+      "lastSeen": 1784605681874,
+      "method": "GET",
+      "pathname": "/data/sem_sdk",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://pages.xiaohongshu.com/data/sem_sdk"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-origin": "*",
+        "server": "Lego Server"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/data/sem_sdk",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "count": 3,
+      "firstSeen": 1784605562191,
+      "host": "pages.xiaohongshu.com",
+      "lastSeen": 1784605681834,
+      "method": "OPTIONS",
+      "pathname": "/data/sem_sdk",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://pages.xiaohongshu.com/data/sem_sdk"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-headers": "x-s,x-s-common,x-t",
+        "access-control-allow-origin": "*",
+        "server": "Lego Server"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/data/sem_sdk",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 3
+      },
+      "count": 3,
+      "firstSeen": 1784605562393,
+      "host": "fe-s10.rednotecdn.com",
+      "lastSeen": 1784605681437,
+      "method": "GET",
+      "pathname": "/fe-platform/ebf234fe97561cc2242114a0c5ba836eaf0848f8.json",
+      "queryParamNames": [
+        "attname"
+      ],
+      "resourceType": "other",
+      "resourceTypeHits": {
+        "other": 3
+      },
+      "sampleUrls": [
+        "https://fe-s10.rednotecdn.com/fe-platform/ebf234fe97561cc2242114a0c5ba836eaf0848f8.json?attname=fe-platform/ebf234fe97561cc2242114a0c5ba836eaf0848f8.json.json"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-origin": "*",
+        "server": "Tengine"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/{b64id}/ebf234fe97561cc2242114a0c5ba836eaf0848f8.json",
+      "securitySignals": {
+        "tags": [
+          "mostly-other-channel"
+        ],
+        "riskScore": 6,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784605679461,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605679461,
+      "method": "POST",
+      "pathname": "/api/sns/web/v1/user/follow",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/user/follow"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/sns/web/v1/user/follow",
+      "securitySignals": {
+        "tags": [
+          "user-data",
+          "versioned-api"
+        ],
+        "riskScore": 24,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1784605679124,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605679124,
+      "method": "OPTIONS",
+      "pathname": "/api/sns/web/v1/user/follow",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/user/follow"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "content-type,x-b3-traceid,x-s,x-s-common,x-t,x-xray-traceid",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/sns/web/v1/user/follow",
+      "securitySignals": {
+        "tags": [
+          "user-data",
+          "versioned-api"
+        ],
+        "riskScore": 24,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784605672562,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605672562,
+      "method": "POST",
+      "pathname": "/api/sns/web/v1/search/onebox",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/search/onebox"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/sns/web/v1/search/onebox",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784605672547,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605672547,
+      "method": "GET",
+      "pathname": "/api/sns/web/v1/search/filter",
+      "queryParamNames": [
+        "keyword",
+        "search_id"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/search/filter?keyword=oggy&search_id=2gnnurc2phzi6oplb39yb"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/sns/web/v1/search/filter",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784605672348,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605672348,
+      "method": "GET",
+      "pathname": "/api/sns/web/v1/board/user",
+      "queryParamNames": [
+        "num",
+        "page",
+        "user_id"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/board/user?user_id=6a5eea94000000000d035c10&num=15&page=1"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/sns/web/v1/board/user",
+      "securitySignals": {
+        "tags": [
+          "user-data",
+          "versioned-api"
+        ],
+        "riskScore": 24,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 3
+      },
+      "count": 3,
+      "firstSeen": 1784605569862,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605672324,
+      "method": "GET",
+      "pathname": "/api/sns/web/v1/search/querytrending",
+      "queryParamNames": [
+        "hint_word",
+        "hint_word_request_id",
+        "hint_word_type",
+        "keyword",
+        "last_query",
+        "last_query_time",
+        "search_type",
+        "source",
+        "word_request_situation"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/search/querytrending?source=UserPage&search_type=trend&last_query=&last_query_time=0&word_request_situation=FIRST_ENTER&hint_word=&hint_word_type=&hint_word_request_id=",
+        "https://webapi.rednote.com/api/sns/web/v1/search/querytrending?source=ExploreNote&search_type=trend&last_query=&last_query_time=0&word_request_situation=FIRST_ENTER&hint_word=%E4%B8%96%E7%95%8C%E6%9D%AF%E5%86%B3%E8%B5%9B&hint_word_type=firstEnterOther%23topicWord%2362a48882870e1600018d7a4e_%E6%95%B4%E4%BD%93_0%231%230&hint_word_request_id=c4964fe6-18dc-48e8-98f4-5045d9c7dc02%231784605562539",
+        "https://webapi.rednote.com/api/sns/web/v1/search/recommend?keyword=oggy"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/api/sns/web/v1/search/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1784605672307,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605672307,
+      "method": "OPTIONS",
+      "pathname": "/api/sns/web/v1/search/onebox",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/search/onebox"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "content-type,x-b3-traceid,x-s,x-s-common,x-t,x-xray-traceid",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/sns/web/v1/search/onebox",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1784605672297,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605672297,
+      "method": "OPTIONS",
+      "pathname": "/api/sns/web/v1/search/notes",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/search/notes"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "content-type,x-b3-traceid,x-rap-param,x-s,x-s-common,x-t,x-xray-traceid",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/sns/web/v1/search/notes",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1784605672270,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605672270,
+      "method": "OPTIONS",
+      "pathname": "/api/sns/web/v1/search/filter",
+      "queryParamNames": [
+        "keyword",
+        "search_id"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/search/filter?keyword=oggy&search_id=2gnnurc2phzi6oplb39yb"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "x-b3-traceid,x-s,x-s-common,x-t,x-xray-traceid",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/sns/web/v1/search/filter",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1784605672261,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605672261,
+      "method": "OPTIONS",
+      "pathname": "/api/sns/web/v1/board/user",
+      "queryParamNames": [
+        "num",
+        "page",
+        "user_id"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/board/user?user_id=6a5eea94000000000d035c10&num=15&page=1"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "x-b3-traceid,x-s,x-s-common,x-t,x-xray-traceid",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/sns/web/v1/board/user",
+      "securitySignals": {
+        "tags": [
+          "user-data",
+          "versioned-api"
+        ],
+        "riskScore": 24,
+        "notes": []
+      }
+    },
+    {
+      "count": 3,
+      "firstSeen": 1784605569627,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605672100,
+      "method": "OPTIONS",
+      "pathname": "/api/sns/web/v1/search/querytrending",
+      "queryParamNames": [
+        "hint_word",
+        "hint_word_request_id",
+        "hint_word_type",
+        "keyword",
+        "last_query",
+        "last_query_time",
+        "search_type",
+        "source",
+        "word_request_situation"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 3
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/search/querytrending?source=UserPage&search_type=trend&last_query=&last_query_time=0&word_request_situation=FIRST_ENTER&hint_word=&hint_word_type=&hint_word_request_id=",
+        "https://webapi.rednote.com/api/sns/web/v1/search/querytrending?source=ExploreNote&search_type=trend&last_query=&last_query_time=0&word_request_situation=FIRST_ENTER&hint_word=%E4%B8%96%E7%95%8C%E6%9D%AF%E5%86%B3%E8%B5%9B&hint_word_type=firstEnterOther%23topicWord%2362a48882870e1600018d7a4e_%E6%95%B4%E4%BD%93_0%231%230&hint_word_request_id=c4964fe6-18dc-48e8-98f4-5045d9c7dc02%231784605562539",
+        "https://webapi.rednote.com/api/sns/web/v1/search/recommend?keyword=oggy"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "x-b3-traceid,x-s,x-s-common,x-t,x-xray-traceid",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 3
+      },
+      "templatedPath": "/api/sns/web/v1/search/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1784605579186,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605665943,
+      "method": "GET",
+      "pathname": "/api/sns/web/global/config",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/global/config"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/api/sns/web/global/config",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/json": 6
+      },
+      "count": 6,
+      "firstSeen": 1784605653858,
+      "host": "lng.xiaohongshu.com",
+      "lastSeen": 1784605656968,
+      "method": "POST",
+      "pathname": "/api/collect",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 6
+      },
+      "sampleUrls": [
+        "https://lng.xiaohongshu.com/api/collect"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Client-Build,X-Client-Platform,X-Client-Version,X-Mx-ReqToken,X-Requested-With,X-Sign,Batch,request-from",
+        "access-control-allow-methods": "GET,POST,OPTIONS,HEAD",
+        "access-control-allow-origin": "*",
+        "server": "Tengine"
+      },
+      "statusCodes": {
+        "200": 6
+      },
+      "templatedPath": "/api/collect",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784605653605,
+      "host": "www.xiaohongshu.com",
+      "lastSeen": 1784605653605,
+      "method": "GET",
+      "pathname": "/api/store/abtest/v3",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://www.xiaohongshu.com/api/store/abtest/v3"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-methods": "GET,OPTIONS",
+        "access-control-allow-origin": "0",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/store/abtest/v3",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "text/plain": 1
+      },
+      "count": 1,
+      "firstSeen": 1784605640932,
+      "host": "log-sdk.ksapisrv.com",
+      "lastSeen": 1784605640932,
+      "method": "POST",
+      "pathname": "/rest/wd/common/log/collect/radar",
+      "queryParamNames": [
+        "kpn",
+        "v"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://log-sdk.ksapisrv.com/rest/wd/common/log/collect/radar?v=3.10.49&kpn=30"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.kuaishou.com",
+        "server": "Tengine"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/rest/wd/common/log/collect/radar",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784605639221,
+      "host": "gdfp.gifshow.com",
+      "lastSeen": 1784605639221,
+      "method": "POST",
+      "pathname": "/s/w/c",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://gdfp.gifshow.com/s/w/c"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-origin": "*"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/s/w/c",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1784605638930,
+      "host": "as.rednote.com",
+      "lastSeen": 1784605638930,
+      "method": "OPTIONS",
+      "pathname": "/api/sec/v1/shield/webprofile",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://as.rednote.com/api/sec/v1/shield/webprofile"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "authorization,content-type,x-s,x-s-common,x-t",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://creator.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/sec/v1/shield/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1784605635835,
+      "host": "creator.rednote.com",
+      "lastSeen": 1784605638920,
+      "method": "GET",
+      "pathname": "/api/media/v1/upload/creator/permit",
+      "queryParamNames": [
+        "biz_name",
+        "file_count",
+        "scene",
+        "source",
+        "version"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://creator.rednote.com/api/media/v1/upload/creator/permit?biz_name=spectrum&scene=preview_video&file_count=1&version=1&source=web",
+        "https://creator.rednote.com/api/media/v1/upload/creator/permit?biz_name=spectrum&scene=video&file_count=1&version=1&source=web"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/api/media/v1/upload/creator/permit",
+      "securitySignals": {
+        "tags": [
+          "file-upload",
+          "versioned-api"
+        ],
+        "riskScore": 24,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1784605638529,
+      "host": "gdfp.gifshow.com",
+      "lastSeen": 1784605638529,
+      "method": "OPTIONS",
+      "pathname": "/s/w/c",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://gdfp.gifshow.com/s/w/c"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-headers": "content-type",
+        "access-control-allow-methods": "POST",
+        "access-control-allow-origin": "*"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/s/w/c",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/wasm": 1
+      },
+      "count": 1,
+      "firstSeen": 1784605637108,
+      "host": "fe-picasso-s10.rednotecdn.com",
+      "lastSeen": 1784605637108,
+      "method": "GET",
+      "pathname": "/fe-platform/2bde328aa3357ce17cb76d37c92055d821e8ff6f/ffmpeg-core.wasm",
+      "queryParamNames": [
+        "attname"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://fe-picasso-s10.rednotecdn.com/fe-platform/2bde328aa3357ce17cb76d37c92055d821e8ff6f/ffmpeg-core.wasm?attname=fe-platform/2bde328aa3357ce17cb76d37c92055d821e8ff6f/ffmpeg-core.wasm.wasm"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "origin,range,hdntl,hdnts,CMCD-Request,CMCD-Object,CMCD-Status,CMCD-Session",
+        "access-control-allow-methods": "GET,POST,OPTIONS",
+        "access-control-allow-origin": "*",
+        "server": "Tengine"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/{b64id}/{hash}/ffmpeg-core.wasm",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1784605636573,
+      "host": "ros-upload-d4.xhscdn.com",
+      "lastSeen": 1784605636573,
+      "method": "OPTIONS",
+      "pathname": "/",
+      "queryParamNames": [
+        "speedTestToken"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://ros-upload-d4.xhscdn.com/?speedTestToken=bRJACMUSQjdKGbqfnpNBFqMIWQIpUvDErmumipzgdCR"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-headers": "*",
+        "access-control-allow-methods": "POST,GET,HEAD,PUT",
+        "access-control-allow-origin": "*"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1784605636316,
+      "host": "ros-upload.xiaohongshu.com",
+      "lastSeen": 1784605636316,
+      "method": "PUT",
+      "pathname": "/",
+      "queryParamNames": [
+        "speedTestToken"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://ros-upload.xiaohongshu.com/?speedTestToken=bRJACMUSQjdKGbqfnpNBFqMIWQIpUvDErmumipzgdCR"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-origin": "*",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/",
+      "securitySignals": {
+        "tags": [
+          "state-changing"
+        ],
+        "riskScore": 4,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1784605635889,
+      "host": "ros-upload.xiaohongshu.com",
+      "lastSeen": 1784605635889,
+      "method": "OPTIONS",
+      "pathname": "/",
+      "queryParamNames": [
+        "speedTestToken"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://ros-upload.xiaohongshu.com/?speedTestToken=bRJACMUSQjdKGbqfnpNBFqMIWQIpUvDErmumipzgdCR"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-headers": "*",
+        "access-control-allow-methods": "POST,GET,HEAD,PUT",
+        "access-control-allow-origin": "*",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1784605635133,
+      "host": "edith.xiaohongshu.com",
+      "lastSeen": 1784605635455,
+      "method": "POST",
+      "pathname": "/api/sns/web/racing_get",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://edith.xiaohongshu.com/api/sns/web/racing_get",
+        "https://edith.xiaohongshu.com/api/sns/web/racing_report"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://creator.rednote.com",
+        "server": "Tengine"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/api/sns/web/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "count": 2,
+      "firstSeen": 1784605634993,
+      "host": "edith.xiaohongshu.com",
+      "lastSeen": 1784605635339,
+      "method": "OPTIONS",
+      "pathname": "/api/sns/web/racing_get",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://edith.xiaohongshu.com/api/sns/web/racing_get",
+        "https://edith.xiaohongshu.com/api/sns/web/racing_report"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "authorization,content-type,x-b3-traceid,x-s,x-s-common,x-t,x-xray-traceid",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://creator.rednote.com",
+        "server": "Tengine"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/api/sns/web/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784605634717,
+      "host": "creator.rednote.com",
+      "lastSeen": 1784605634717,
+      "method": "GET",
+      "pathname": "/api/galaxy/user/info",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://creator.rednote.com/api/galaxy/user/info"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "server": "TencentEdgeOne",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-xss-protection": "1; mode=block"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/galaxy/user/info",
+      "securitySignals": {
+        "tags": [
+          "user-data"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 2,
+      "firstSeen": 1784605633415,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605633438,
+      "method": "OPTIONS",
+      "pathname": "/api/sns/web/v1/zones",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/zones"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "authorization,x-s,x-s-common,x-t",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://creator.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/api/sns/web/v1/zones",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1784605633427,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605633427,
+      "method": "OPTIONS",
+      "pathname": "/api/sns/web/v2/user/me",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v2/user/me"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "authorization,x-s,x-s-common,x-t",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://creator.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/sns/web/v2/user/me",
+      "securitySignals": {
+        "tags": [
+          "user-data",
+          "versioned-api"
+        ],
+        "riskScore": 24,
+        "notes": []
+      }
+    },
+    {
+      "count": 2,
+      "firstSeen": 1784605633055,
+      "host": "as.rednote.com",
+      "lastSeen": 1784605633400,
+      "method": "OPTIONS",
+      "pathname": "/api/sec/v1/scripting",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://as.rednote.com/api/sec/v1/scripting",
+        "https://as.rednote.com/api/sec/v1/sbtsource"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "authorization,content-type,x-s,x-s-common,x-t",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://creator.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/api/sec/v1/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1784605633376,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605633376,
+      "method": "OPTIONS",
+      "pathname": "/api/redcaptcha/v2/getconfig",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/redcaptcha/v2/getconfig"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "content-type,x-s,x-s-common,x-t",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://creator.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/{b64id}/v2/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1784605633120,
+      "host": "as.rednote.com",
+      "lastSeen": 1784605633120,
+      "method": "OPTIONS",
+      "pathname": "/api/p/pj",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://as.rednote.com/api/p/pj"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "content-type",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://creator.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/p/pj",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1784605628072,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605630365,
+      "method": "GET",
+      "pathname": "/api/sns/web/v1/you/mentions",
+      "queryParamNames": [
+        "cursor",
+        "num"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/you/mentions?num=20&cursor=",
+        "https://webapi.rednote.com/api/sns/web/v1/you/connections?num=20&cursor="
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/api/sns/web/v1/you/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 2,
+      "firstSeen": 1784605627968,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605630281,
+      "method": "OPTIONS",
+      "pathname": "/api/sns/web/v1/you/mentions",
+      "queryParamNames": [
+        "cursor",
+        "num"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/you/mentions?num=20&cursor=",
+        "https://webapi.rednote.com/api/sns/web/v1/you/connections?num=20&cursor="
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "x-b3-traceid,x-s,x-s-common,x-t,x-xray-traceid",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/api/sns/web/v1/you/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784605629846,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605629846,
+      "method": "GET",
+      "pathname": "/api/sns/web/v1/you/likes",
+      "queryParamNames": [
+        "cursor",
+        "num"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/you/likes?num=20&cursor="
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/sns/web/v1/you/likes",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1784605629756,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605629756,
+      "method": "OPTIONS",
+      "pathname": "/api/sns/web/v1/you/likes",
+      "queryParamNames": [
+        "cursor",
+        "num"
+      ],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/you/likes?num=20&cursor="
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "x-b3-traceid,x-s,x-s-common,x-t,x-xray-traceid",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/sns/web/v1/you/likes",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784605579067,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605579067,
+      "method": "GET",
+      "pathname": "/api/sns/web/v1/homefeed/category",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/homefeed/category"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/sns/web/v1/{b64id}/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1784605579033,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605579033,
+      "method": "OPTIONS",
+      "pathname": "/api/sns/web/global/config",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/global/config"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "x-b3-traceid,x-s,x-s-common,x-t,x-xray-traceid",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/sns/web/global/config",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1784605578966,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605578966,
+      "method": "OPTIONS",
+      "pathname": "/api/sns/web/v1/homefeed/category",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/v1/homefeed/category"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "x-b3-traceid,x-s,x-s-common,x-t,x-xray-traceid",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/sns/web/v1/{b64id}/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 2
+      },
+      "count": 2,
+      "firstSeen": 1784605562421,
+      "host": "pages.xiaohongshu.com",
+      "lastSeen": 1784605578914,
+      "method": "GET",
+      "pathname": "/data/xhs_pc_nps",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://pages.xiaohongshu.com/data/xhs_pc_nps"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-origin": "*",
+        "server": "Lego Server"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/data/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "count": 2,
+      "firstSeen": 1784605562391,
+      "host": "pages.xiaohongshu.com",
+      "lastSeen": 1784605578897,
+      "method": "OPTIONS",
+      "pathname": "/data/xhs_pc_nps",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://pages.xiaohongshu.com/data/xhs_pc_nps"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-headers": "x-s,x-s-common,x-t",
+        "access-control-allow-origin": "*",
+        "server": "Lego Server"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/data/{b64id}",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "count": 1,
+      "firstSeen": 1784605571163,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605571163,
+      "method": "OPTIONS",
+      "pathname": "/api/global/v2/seo",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/global/v2/seo"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "content-type,x-b3-traceid,x-s,x-s-common,x-t,x-xray-traceid",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/global/v2/seo",
+      "securitySignals": {
+        "tags": [
+          "versioned-api"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    },
+    {
+      "count": 2,
+      "firstSeen": 1784605571122,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605571151,
+      "method": "OPTIONS",
+      "pathname": "/api/sns/web/share/code",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 2
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/sns/web/share/code"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-headers": "content-type,x-b3-traceid,x-s,x-s-common,x-t,x-xray-traceid",
+        "access-control-allow-methods": "POST, GET, OPTIONS, PUT, DELETE",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 2
+      },
+      "templatedPath": "/api/sns/web/share/code",
+      "securitySignals": {
+        "tags": [],
+        "riskScore": 0,
+        "notes": []
+      }
+    },
+    {
+      "contentTypes": {
+        "application/json": 1
+      },
+      "count": 1,
+      "firstSeen": 1784605562711,
+      "host": "webapi.rednote.com",
+      "lastSeen": 1784605562711,
+      "method": "POST",
+      "pathname": "/api/redtrust/user/privacy/personalization",
+      "queryParamNames": [],
+      "resourceType": "xmlhttprequest",
+      "resourceTypeHits": {
+        "xmlhttprequest": 1
+      },
+      "sampleUrls": [
+        "https://webapi.rednote.com/api/redtrust/user/privacy/personalization"
+      ],
+      "scheme": "https",
+      "securityHeaders": {
+        "access-control-allow-credentials": "true",
+        "access-control-allow-origin": "https://www.rednote.com",
+        "server": "TencentEdgeOne"
+      },
+      "statusCodes": {
+        "200": 1
+      },
+      "templatedPath": "/api/{b64id}/user/privacy/{b64id}",
+      "securitySignals": {
+        "tags": [
+          "user-data"
+        ],
+        "riskScore": 12,
+        "notes": []
+      }
+    }
+  ]
+}

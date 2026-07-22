@@ -19,20 +19,21 @@ export async function searchAweme(
 ): Promise<any> {
   const referer = encodeURI(`https://www.douyin.com/search/${keyword}?aid=6383&type=general`);
   return douyinGet(
-    "/aweme/v1/web/general/search/single/",
+    "/aweme/v1/web/general/search/stream/",
     {
       search_channel: "aweme_general",
       enable_history: "1",
       keyword: keyword,
-      search_source: "tab_search",
+      search_source: "normal_search",
       query_correct_type: "1",
       is_filter_search: "0",
-      from_group_id: "7378810571505847586",
+      from_group_id: "",
+      disable_rs: "1",
       offset: String(offset),
-      count: "15",
+      count: "10",
       need_filter_settings: "1",
-      list_type: "multi",
-      search_id: searchId,
+      list_type: "",
+      ...(searchId ? { search_id: searchId } : {}),
     },
     session,
     { sign: true, referer }
