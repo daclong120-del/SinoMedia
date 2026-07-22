@@ -1,0 +1,81 @@
+"use client";
+
+import React from 'react';
+import { MOCK_PLAY_ACCOUNTS } from '@/lib/fixtures/release-ops-fixtures';
+
+export default function AccountsPage() {
+  return (
+    <div suppressHydrationWarning className="px-4 md:px-8 py-6 max-w-[1400px] mx-auto space-y-6">
+      {/* Standard Page Header */}
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-lg font-bold text-foreground">Quản lý Tài khoản Google Play Developer (Service Accounts)</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Quản lý API Key, OAuth Scopes/Permissions, tuổi thọ Key (Key Age) và giám sát hạn mức Quota API 24h
+          </p>
+        </div>
+
+        <button className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+          + Thêm Tài khoản Developer
+        </button>
+      </div>
+
+      {/* ─── Accounts Grid ─── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {MOCK_PLAY_ACCOUNTS.map(acc => (
+          <div key={acc.id} className="bg-card border border-border rounded-xl p-5 space-y-4 shadow-xs">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="font-bold text-sm text-foreground block">{acc.name}</span>
+                <span className="font-mono text-xs text-muted-foreground">{acc.email}</span>
+              </div>
+              <span className={`px-2.5 py-0.5 rounded text-xs font-bold ${acc.status === 'healthy' ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-600 border border-amber-500/20'}`}>
+                {acc.status.toUpperCase()}
+              </span>
+            </div>
+
+            {/* Quota & Key Age Meter */}
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="p-3 bg-muted/30 border border-border rounded-lg space-y-1">
+                <span className="text-[10px] text-muted-foreground block">Hạn mức API Quota (24h)</span>
+                <div className="flex justify-between items-center">
+                  <span className="font-bold font-mono text-foreground">{acc.quotaUsedPercentage}%</span>
+                  <span className="text-[10px] text-muted-foreground">Sync {acc.lastSyncAt}</span>
+                </div>
+                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-primary" style={{ width: `${acc.quotaUsedPercentage}%` }} />
+                </div>
+              </div>
+
+              <div className="p-3 bg-muted/30 border border-border rounded-lg space-y-1">
+                <span className="text-[10px] text-muted-foreground block">Service Account Key Age</span>
+                <span className="font-bold font-mono text-foreground">{acc.keyAgeDays} ngày</span>
+                <span className="text-[10px] text-muted-foreground block">Hết hạn: {acc.credentialExpiryDate}</span>
+              </div>
+            </div>
+
+            {/* Granular API Scopes / Permissions Matrix */}
+            <div className="space-y-1.5 text-xs">
+              <span className="font-bold text-foreground block">Quyền API đã cấp (Granted OAuth Scopes):</span>
+              <div className="space-y-1">
+                {acc.scopes.map((s, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-2 bg-muted/20 border border-border rounded-lg">
+                    <span className="font-mono text-[11px] text-muted-foreground">{s.scopeName}</span>
+                    <span className="text-emerald-600 font-bold text-[10px]">✅ GRANTED</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Auth Error Warning if present */}
+            {acc.lastAuthError && (
+              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-700 dark:text-amber-400 text-xs">
+                <strong>Cảnh báo Auth:</strong> {acc.lastAuthError}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

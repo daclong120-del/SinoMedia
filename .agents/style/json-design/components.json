@@ -42,11 +42,13 @@
       "badge": "inline-flex items-center rounded-md bg-cloudflare-orange/10 px-2 py-0.5 text-[10px] font-semibold text-cloudflare-orange"
     },
     "sidebarMenu": {
-      "parentTrigger": "group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-colors text-left cursor-pointer text-sidebar-foreground hover:bg-muted hover:text-foreground",
-      "parentActive": "bg-primary/10 text-primary hover:bg-primary/15",
-      "nestedContainer": "relative pl-4 ml-[21px] border-l border-border/40 space-y-1 mt-1 mb-2.5 animate-in fade-in slide-in-from-top-1 duration-150",
-      "nestedChild": "group flex items-center justify-between transition-colors py-1.5 px-3 rounded-md w-full text-zinc-600 dark:text-zinc-400 hover:bg-muted/30 hover:text-zinc-950 dark:hover:text-zinc-50",
-      "nestedChildActive": "bg-muted text-foreground font-semibold"
+      "parentTrigger": "group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-xs font-semibold transition-colors text-left cursor-pointer text-slate-800 dark:text-zinc-100 hover:bg-muted hover:text-slate-950 dark:hover:text-white",
+      "parentActive": "bg-blue-500/10 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 font-bold shadow-2xs",
+      "icon": "size-4 shrink-0 stroke-[2] text-slate-700 group-hover:text-slate-950 dark:text-zinc-300 dark:group-hover:text-white transition-colors",
+      "iconActive": "text-blue-600 dark:text-blue-400",
+      "nestedContainer": "relative pl-3 ml-[21px] border-l-2 border-slate-200 dark:border-zinc-700 space-y-0.5 mt-1 mb-2 animate-in fade-in slide-in-from-top-1 duration-150",
+      "nestedChild": "flex items-center py-1.5 px-3 rounded-lg text-xs font-semibold transition-colors text-slate-700 dark:text-zinc-300 hover:bg-muted/60 hover:text-slate-950 dark:hover:text-white",
+      "nestedChildActive": "bg-slate-200/80 dark:bg-zinc-800 text-slate-950 dark:text-white font-bold shadow-2xs"
     },
     "keyboardShortcut": {
       "kbdTag": "hidden sm:inline-flex h-5 select-none items-center gap-0.5 rounded border border-border bg-background px-1.5 font-mono text-[9px] font-medium text-muted-foreground pointer-events-none shrink-0"

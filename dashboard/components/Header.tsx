@@ -28,6 +28,15 @@ const ROUTE_LABELS: Record<string, string[]> = {
   "/dash/creative/new": ["LutechTools", "Creative Hub", "BXH", "Creative mới"],
   "/dash/creative/calendar": ["LutechTools", "Creative Hub", "Lịch tiếp thị"],
   "/dash/creative/advertisers": ["LutechTools", "Creative Hub", "Phân tích Advertiser"],
+  "/dash/release-ops": ["LutechTools", "Release Ops", "Tổng quan Ops"],
+  "/dash/release-ops/overview": ["LutechTools", "Release Ops", "Tổng quan Ops"],
+  "/dash/release-ops/releases": ["LutechTools", "Release Ops", "Phát hành & Build", "Danh sách Release"],
+  "/dash/release-ops/upload": ["LutechTools", "Release Ops", "Phát hành & Build", "Upload AAB"],
+  "/dash/release-ops/batch": ["LutechTools", "Release Ops", "Phát hành & Build", "Batch Ops"],
+  "/dash/release-ops/apps": ["LutechTools", "Release Ops", "Quản lý App & ASO", "Danh mục App"],
+  "/dash/release-ops/aso": ["LutechTools", "Release Ops", "Quản lý App & ASO", "Phân tích ASO"],
+  "/dash/release-ops/sdk": ["LutechTools", "Release Ops", "Quản lý App & ASO", "Target SDK"],
+  "/dash/release-ops/accounts": ["LutechTools", "Release Ops", "Tài khoản Play"],
 };
 
 

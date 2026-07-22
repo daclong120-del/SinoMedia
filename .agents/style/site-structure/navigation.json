@@ -39,6 +39,36 @@
         ]
       },
       {
+        "id": "release-ops",
+        "title": "Release Ops",
+        "items": [
+          { "id": "release-overview", "label": "Tổng quan Ops", "labelEn": "Ops Overview", "icon": "HomeIcon", "href": "/dash/release-ops/overview", "minRole": "viewer" },
+          {
+            "id": "release-management",
+            "label": "Phát hành & Build",
+            "labelEn": "Releases & Build",
+            "icon": "RocketIcon",
+            "children": [
+              { "id": "release-list", "label": "Danh sách Release", "href": "/dash/release-ops/releases" },
+              { "id": "release-upload", "label": "Upload AAB", "href": "/dash/release-ops/upload" },
+              { "id": "release-batch", "label": "Batch Ops", "href": "/dash/release-ops/batch" }
+            ]
+          },
+          {
+            "id": "app-aso-management",
+            "label": "Quản lý App & ASO",
+            "labelEn": "Apps & ASO",
+            "icon": "ChartBarIcon",
+            "children": [
+              { "id": "release-apps", "label": "Danh mục App", "href": "/dash/release-ops/apps" },
+              { "id": "release-aso", "label": "Phân tích ASO", "href": "/dash/release-ops/aso" },
+              { "id": "release-sdk", "label": "Target SDK", "href": "/dash/release-ops/sdk" }
+            ]
+          },
+          { "id": "release-accounts", "label": "Tài khoản Play", "labelEn": "Play Accounts", "icon": "KeyIcon", "href": "/dash/release-ops/accounts", "minRole": "admin" }
+        ]
+      },
+      {
         "id": "admin",
         "title": "Quản trị",
         "titleEn": "Administration",
