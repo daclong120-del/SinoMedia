@@ -212,7 +212,11 @@ export async function recoverDouyinSessionDetailed(
       cookieMap.get("MONITOR_WEB_ID"),
       currentSession.webid,
     ];
-    const webid = webidCandidates.find(v => typeof v === "string" && isValidDouyinWebId(v)) || "";
+    let webid = webidCandidates.find(v => typeof v === "string" && isValidDouyinWebId(v)) || "";
+    if (!webid) {
+      webid = getWebId();
+    }
+
     const msToken = localStorage.xmst || cookieMap.get("msToken") || currentSession.msToken || "";
     const verifyFp = cookieMap.get("s_v_web_id") || "";
     const uifid = cookieMap.get("UIFID") || cookieMap.get("UIFID_TEMP") || cookieMap.get("uifid") || "";

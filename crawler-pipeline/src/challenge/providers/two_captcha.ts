@@ -98,6 +98,87 @@ export class TwoCaptchaProvider implements ICaptchaSolver {
   }
 
   /**
+   * # Giải Captcha Click / Coordinates (Tọa độ điểm nhấp trên ảnh)
+   */
+  async solveClick(task: any): Promise<CaptchaSolution> {
+    const startTime = Date.now();
+    console.log("[2Captcha] Gửi ảnh Click Coordinates Captcha lên 2Captcha solver server...");
+
+    const params = new URLSearchParams();
+    params.append("key", this.apiKey);
+    params.append("method", "base64");
+    params.append("body", task.imageBase64);
+    params.append("coordinatescaptcha", "1");
+    if (task.instructions) {
+      params.append("textinstructions", task.instructions);
+    }
+    params.append("json", "1");
+
+    const submitRes = await fetch("https://2captcha.com/in.php", {
+      method: "POST",
+      body: params,
+    });
+    const submitData = await submitRes.json();
+
+    if (submitData.status !== 1) {
+      throw new Error(`2Captcha click submit error: ${submitData.request}`);
+    }
+
+    const captchaId = submitData.request;
+    console.log(`[2Captcha] Click Task đã tạo thành công, Captcha ID: ${captchaId}. Đang chờ 2Captcha giải...`);
+
+    const pollInterval = 3000;
+    const maxPolls = Math.floor(this.timeoutMs / pollInterval);
+
+    for (let i = 0; i < maxPolls; i++) {
+      await new Promise(resolve => setTimeout(resolve, pollInterval));
+      const resUrl = `https://2captcha.com/res.php?key=${this.apiKey}&action=get&id=${captchaId}&json=1`;
+      const resultRes = await fetch(resUrl);
+      const resultData = await resultRes.json();
+
+      if (resultData.status === 1) {
+        const rawReq = resultData.request;
+        const solutionText = typeof rawReq === "string" ? rawReq : JSON.stringify(rawReq);
+        console.log(`[2Captcha] Nhận được kết quả tọa độ click: ${solutionText}`);
+
+        const points: { x: number; y: number }[] = [];
+
+        // Parse JSON array format: [{"x":"109","y":"155"},{"x":"279","y":"106"}]
+        try {
+          const parsed = typeof rawReq === "string" ? JSON.parse(rawReq) : rawReq;
+          if (Array.isArray(parsed)) {
+            for (const item of parsed) {
+              if (item && item.x !== undefined && item.y !== undefined) {
+                points.push({ x: parseInt(String(item.x), 10), y: parseInt(String(item.y), 10) });
+              }
+            }
+          }
+        } catch {}
+
+        // Fallback parse string format: x=109,y=155
+        if (points.length === 0 && typeof solutionText === "string") {
+          const matches = solutionText.matchAll(/x=(\d+),y=(\d+)/gi);
+          for (const m of matches) {
+            points.push({ x: parseInt(m[1], 10), y: parseInt(m[2], 10) });
+          }
+        }
+
+        return {
+          points,
+          text: solutionText,
+          solveTimeMs: Date.now() - startTime,
+        };
+      }
+
+      if (resultData.request !== "CAPCHA_NOT_READY") {
+        throw new Error(`2Captcha Click solver error: ${resultData.request}`);
+      }
+    }
+
+    throw new Error(`2Captcha Click timeout sau ${this.timeoutMs / 1000}s.`);
+  }
+
+  /**
    * # Giải Cloudflare Turnstile / HCaptcha
    */
   async solveTurnstile(task: TurnstileCaptchaTask): Promise<CaptchaSolution> {

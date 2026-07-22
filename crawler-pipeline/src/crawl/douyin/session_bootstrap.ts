@@ -160,10 +160,12 @@ export async function bootstrapDouyinSession(options: BootstrapOptions = {}): Pr
       cookieMap.get("MONITOR_WEB_ID"),
       options.rawWebId,
     ];
-    const webid = webidCandidates.find(v => typeof v === "string" && isValidDouyinWebId(v)) || "";
+    let webid = webidCandidates.find(v => typeof v === "string" && isValidDouyinWebId(v)) || "";
     if (!webid) {
-      throw new Error("Bootstrap failed: Missing valid numeric webid (16-22 digits) from browser context.");
+      webid = getWebId();
+      console.log(`[Bootstrap] Generated fallback numeric webid: ${webid}`);
     }
+
     const msToken = capturedMsToken || localStorage.xmst || cookieMap.get("msToken") || options.rawMsToken || "";
     const xmst = localStorage.xmst || cookieMap.get("xmst") || "";
     const verifyFp = cookieMap.get("s_v_web_id") || options.rawVerifyFp || "";
