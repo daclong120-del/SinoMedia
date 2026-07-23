@@ -14,31 +14,6 @@
     "search": { "enabled": true, "placeholder": "Tìm kiếm...", "shortcut": "Ctrl+K" },
     "groups": [
       {
-        "id": "dashboard",
-        "title": "Dashboard",
-        "items": [
-          { "id": "home", "label": "Tổng quan", "labelEn": "Overview", "icon": "HomeIcon", "href": "/dash/home", "minRole": "viewer" }
-        ]
-      },
-      {
-        "id": "crawler-controller",
-        "title": "Crawler Controller",
-        "items": [
-          { "id": "tasks", "label": "Nhiệm vụ cào", "labelEn": "Crawl Tasks", "icon": "PlayCircleIcon", "href": "/dash/tasks", "minRole": "viewer" },
-          { "id": "accounts", "label": "Tài khoản cào", "labelEn": "Accounts", "icon": "KeyIcon", "href": "/dash/accounts", "minRole": "admin" },
-          { "id": "proxies", "label": "Proxy Pool", "labelEn": "Proxy Pool", "icon": "ServerIcon", "href": "/dash/proxies", "minRole": "admin" }
-        ]
-      },
-      {
-        "id": "data-explorer",
-        "title": "Data Explorer",
-        "items": [
-          { "id": "authors", "label": "Tác giả / KOL", "labelEn": "Authors", "icon": "UsersIcon", "href": "/dash/data/authors", "minRole": "viewer" },
-          { "id": "posts", "label": "Bài viết & Video", "labelEn": "Posts & Videos", "icon": "FilmIcon", "href": "/dash/data/posts", "minRole": "viewer" },
-          { "id": "management", "label": "Quản lý dữ liệu", "labelEn": "Data Management", "icon": "CircleStackIcon", "href": "/dash/data/management", "minRole": "admin" }
-        ]
-      },
-      {
         "id": "release-ops",
         "title": "Release Ops",
         "items": [
@@ -66,6 +41,25 @@
             ]
           },
           { "id": "release-accounts", "label": "Tài khoản Play", "labelEn": "Play Accounts", "icon": "KeyIcon", "href": "/dash/release-ops/accounts", "minRole": "admin" }
+        ]
+      },
+      {
+        "id": "crawler-controller",
+        "title": "Crawler Controller",
+        "items": [
+          { "id": "home", "label": "Giám sát crawler", "labelEn": "Crawler Monitoring", "icon": "ActivityIcon", "href": "/dash/home", "minRole": "viewer" },
+          { "id": "tasks", "label": "Nhiệm vụ cào", "labelEn": "Crawl Tasks", "icon": "PlayCircleIcon", "href": "/dash/tasks", "minRole": "viewer" },
+          { "id": "accounts", "label": "Tài khoản cào", "labelEn": "Accounts", "icon": "KeyIcon", "href": "/dash/accounts", "minRole": "admin" },
+          { "id": "proxies", "label": "Proxy Pool", "labelEn": "Proxy Pool", "icon": "ServerIcon", "href": "/dash/proxies", "minRole": "admin" }
+        ]
+      },
+      {
+        "id": "data-explorer",
+        "title": "Data Explorer",
+        "items": [
+          { "id": "authors", "label": "Tác giả / KOL", "labelEn": "Authors", "icon": "UsersIcon", "href": "/dash/data/authors", "minRole": "viewer" },
+          { "id": "posts", "label": "Bài viết & Video", "labelEn": "Posts & Videos", "icon": "FilmIcon", "href": "/dash/data/posts", "minRole": "viewer" },
+          { "id": "management", "label": "Quản lý dữ liệu", "labelEn": "Data Management", "icon": "CircleStackIcon", "href": "/dash/data/management", "minRole": "admin" }
         ]
       },
       {

@@ -20,6 +20,7 @@ Trang này là cửa vào cho tài liệu hiện hành của SinoMedia. Nếu c�
 - [Creative Media Refactor Plan](architecture/creative-media-refactor-plan.md)
 - [Embedded Iframe Player Strategy](architecture/embedded-iframe-player-strategy.md)
 - [Role Management Strategy](architecture/role-management.md)
+- [Release Ops Analytics & Dashboard Spec](architecture/release-ops-analytics-spec.md)
 - [Desktop App Packaging & Strategy](architecture/desktop-app.md)
 - [Module Extraction Contract](../desktop-app/MODULE_EXTRACTION_CONTRACT.md)
 - [Build Artifact Contract](../desktop-app/BUILD_ARTIFACT_CONTRACT.md)

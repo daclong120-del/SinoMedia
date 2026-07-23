@@ -32,6 +32,11 @@ const ICON_MAP: Record<string, (p: { className?: string }) => React.ReactNode> =
       <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
     </svg>
   ),
+  ActivityIcon: ({ className }) => (
+    <svg className={cn("size-4", className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+    </svg>
+  ),
   PlayCircleIcon: ({ className }) => (
     <svg className={cn("size-4", className)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10" /><polygon points="10 8 16 12 10 16 10 8" />
@@ -137,46 +142,6 @@ interface NavGroup {
 
 const NAV_GROUPS: NavGroup[] = [
   {
-    id: "dashboard", title: "Dashboard",
-    items: [
-      { id: "home", label: "Tổng quan", icon: "HomeIcon", href: "/dash/home" },
-    ],
-  },
-  {
-    id: "creative-hub", title: "Creative Hub",
-    items: [
-      { id: "creative-search", label: "Tìm Creative", icon: "MagnifyingGlassIcon", href: "/dash/creative/search" },
-      {
-        id: "creative-ranking",
-        label: "BXH Creative",
-        icon: "ChartBarIcon",
-        children: [
-          { id: "creative-trending", label: "Xu hướng mới nhất", href: "/dash/creative/trending" },
-          { id: "creative-growth", label: "Tăng trưởng nhanh", href: "/dash/creative/growth" },
-          { id: "creative-new", label: "Creative mới", href: "/dash/creative/new" }
-        ]
-      },
-      { id: "creative-calendar", label: "Lịch tiếp thị", icon: "CalendarIcon", href: "/dash/creative/calendar" },
-      { id: "creative-advertisers", label: "Phân tích Advertiser", icon: "UserGroupIcon", href: "/dash/creative/advertisers" },
-    ],
-  },
-  {
-    id: "crawler-controller", title: "Crawler Controller",
-    items: [
-      { id: "tasks", label: "Nhiệm vụ cào", icon: "PlayCircleIcon", href: "/dash/tasks" },
-      { id: "accounts", label: "Tài khoản cào", icon: "KeyIcon", href: "/dash/accounts", minRole: "admin" },
-      { id: "proxies", label: "Proxy Pool", icon: "ServerIcon", href: "/dash/proxies", minRole: "admin" },
-    ],
-  },
-  {
-    id: "data-explorer", title: "Data Explorer",
-    items: [
-      { id: "authors", label: "Tác giả / KOL", icon: "UsersIcon", href: "/dash/data/authors" },
-      { id: "posts", label: "Bài viết & Video", icon: "FilmIcon", href: "/dash/data/posts" },
-      { id: "management", label: "Quản lý dữ liệu", icon: "CircleStackIcon", href: "/dash/data/management", minRole: "admin" },
-    ],
-  },
-  {
     id: "release-ops", title: "Release Ops",
     items: [
       { id: "release-overview", label: "Tổng quan Ops", icon: "HomeIcon", href: "/dash/release-ops/overview" },
@@ -201,6 +166,41 @@ const NAV_GROUPS: NavGroup[] = [
         ]
       },
       { id: "release-accounts", label: "Tài khoản Play", icon: "KeyIcon", href: "/dash/release-ops/accounts" },
+    ],
+  },
+  {
+    id: "creative-hub", title: "Creative Hub",
+    items: [
+      { id: "creative-search", label: "Tìm Creative", icon: "MagnifyingGlassIcon", href: "/dash/creative/search" },
+      {
+        id: "creative-ranking",
+        label: "BXH Creative",
+        icon: "ChartBarIcon",
+        children: [
+          { id: "creative-trending", label: "Xu hướng mới nhất", href: "/dash/creative/trending" },
+          { id: "creative-growth", label: "Tăng trưởng nhanh", href: "/dash/creative/growth" },
+          { id: "creative-new", label: "Creative mới", href: "/dash/creative/new" }
+        ]
+      },
+      { id: "creative-calendar", label: "Lịch tiếp thị", icon: "CalendarIcon", href: "/dash/creative/calendar" },
+      { id: "creative-advertisers", label: "Phân tích Advertiser", icon: "UserGroupIcon", href: "/dash/creative/advertisers" },
+    ],
+  },
+  {
+    id: "crawler-controller", title: "Crawler Controller",
+    items: [
+      { id: "home", label: "Giám sát crawler", icon: "ActivityIcon", href: "/dash/home" },
+      { id: "tasks", label: "Nhiệm vụ cào", icon: "PlayCircleIcon", href: "/dash/tasks" },
+      { id: "accounts", label: "Tài khoản cào", icon: "KeyIcon", href: "/dash/accounts", minRole: "admin" },
+      { id: "proxies", label: "Proxy Pool", icon: "ServerIcon", href: "/dash/proxies", minRole: "admin" },
+    ],
+  },
+  {
+    id: "data-explorer", title: "Data Explorer",
+    items: [
+      { id: "authors", label: "Tác giả / KOL", icon: "UsersIcon", href: "/dash/data/authors" },
+      { id: "posts", label: "Bài viết & Video", icon: "FilmIcon", href: "/dash/data/posts" },
+      { id: "management", label: "Quản lý dữ liệu", icon: "CircleStackIcon", href: "/dash/data/management", minRole: "admin" },
     ],
   },
   {

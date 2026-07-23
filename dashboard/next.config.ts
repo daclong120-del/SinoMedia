@@ -25,7 +25,6 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   /* config options here */
-  output: "standalone",
   allowedDevOrigins: devOrigins,
   async headers() {
     return [

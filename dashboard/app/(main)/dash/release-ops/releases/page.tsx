@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { MOCK_RELEASES } from '@/lib/fixtures/release-ops-fixtures';
 import { AppReleaseItem, ReleaseStatus, TrackType } from '@/types/release-ops';
+import ReleaseOpsNavTabs from '@/components/dashboard/release-ops/ReleaseOpsNavTabs';
 
 function StatusBadge({ status }: { status: ReleaseStatus }) {
   const map: Record<ReleaseStatus, { label: string; style: string }> = {

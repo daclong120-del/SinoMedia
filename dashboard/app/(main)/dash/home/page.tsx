@@ -196,7 +196,7 @@ export default function HomePage() {
     <div className="px-4 md:px-8 py-6 max-w-[1400px] mx-auto space-y-6">
       {/* Page title */}
       <div>
-        <h1 className="text-lg font-bold text-foreground">Tổng quan hệ thống</h1>
+        <h1 className="text-lg font-bold text-foreground">Giám sát Crawler</h1>
         <p className="text-xs text-muted-foreground mt-0.5">Giám sát sức khỏe crawler và dữ liệu thu thập</p>
       </div>
 

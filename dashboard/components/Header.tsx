@@ -12,7 +12,7 @@ import { useUIStore } from "@/lib/stores/use-ui-store";
 
 // ─── Breadcrumb mapping ──────────────────────────────────────
 const ROUTE_LABELS: Record<string, string[]> = {
-  "/dash/home": ["LutechTools", "Tổng quan"],
+  "/dash/home": ["LutechTools", "Crawler Controller", "Giám sát crawler"],
   "/dash/tasks": ["LutechTools", "Crawler Controller", "Nhiệm vụ cào"],
   "/dash/accounts": ["LutechTools", "Crawler Controller", "Tài khoản"],
   "/dash/proxies": ["LutechTools", "Crawler Controller", "Proxy Pool"],

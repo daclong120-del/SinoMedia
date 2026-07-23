@@ -1,7 +1,8 @@
 # Project Status
 
-Cập nhật lần cuối: 2026-07-22 08:40 (GMT+7)
+Cập nhật lần cuối: 2026-07-22 14:05 (GMT+7)
 Mục đích: một trang sống để biết SinoMedia đã làm được gì, phần nào đang chạy, phần nào chỉ là phác thảo, và phần nào cần agent kiểm tra trước khi phát triển tiếp.
+Đã thêm đặc tả kỹ thuật kiến trúc cho **Release Ops Analytics & Dashboard Thống kê** tại `docs/architecture/release-ops-analytics-spec.md`.
 
 ## Legend
 

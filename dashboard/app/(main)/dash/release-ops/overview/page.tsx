@@ -1,9 +1,9 @@
 "use client";
 
-import React from 'react';
-import { MOCK_RELEASES, MOCK_SUMMARY_STATS } from '@/lib/fixtures/release-ops-fixtures';
-import { ReleaseStatus, DataSourceType } from '@/types/release-ops';
-import Link from 'next/link';
+import React, { useState } from 'react';
+import { MOCK_RELEASES } from '@/lib/fixtures/release-ops-fixtures';
+import { ReleaseStatus } from '@/types/release-ops';
+import ReleaseOpsNavTabs from '@/components/dashboard/release-ops/ReleaseOpsNavTabs';
 
 function StatusBadge({ status }: { status: ReleaseStatus }) {
   const map: Record<ReleaseStatus, { label: string; style: string }> = {
@@ -27,230 +27,497 @@ function StatusBadge({ status }: { status: ReleaseStatus }) {
   );
 }
 
-function SourceBadge({ source }: { source: DataSourceType }) {
-  const map: Record<DataSourceType, string> = {
-    play_api: 'Play API',
-    ci_webhook: 'CI Webhook',
-    manual_checklist: 'Manual Action',
-    report_import: 'Report Import',
-    estimated: 'Estimated',
-  };
-  return (
-    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono bg-muted text-muted-foreground border border-border">
-      {map[source] || source}
-    </span>
-  );
+// Time range option types
+type TimeRangeType = '7d' | '14d' | '30d' | '90d';
+
+interface BuildPoint {
+  day: string;
+  success: number;
+  failed: number;
+  duration: string;
 }
+
+const BUILD_DATASET: Record<TimeRangeType, BuildPoint[]> = {
+  '7d': [
+    { day: '28/6', success: 15, failed: 3, duration: '3m 40s' },
+    { day: '29/6', success: 18, failed: 4, duration: '4m 10s' },
+    { day: '30/6', success: 12, failed: 1, duration: '3m 15s' },
+    { day: '1/7', success: 16, failed: 2, duration: '3m 50s' },
+    { day: '2/7', success: 14, failed: 2, duration: '4m 05s' },
+    { day: '3/7', success: 5, failed: 1, duration: '2m 50s' },
+    { day: '4/7', success: 8, failed: 1, duration: '3m 20s' },
+  ],
+  '14d': [
+    { day: '21/6', success: 11, failed: 1, duration: '3m 30s' },
+    { day: '22/6', success: 14, failed: 3, duration: '4m 15s' },
+    { day: '23/6', success: 9, failed: 0, duration: '3m 05s' },
+    { day: '24/6', success: 16, failed: 4, duration: '4m 30s' },
+    { day: '25/6', success: 13, failed: 1, duration: '3m 40s' },
+    { day: '26/6', success: 4, failed: 0, duration: '2m 45s' },
+    { day: '27/6', success: 2, failed: 0, duration: '2m 10s' },
+    { day: '28/6', success: 15, failed: 3, duration: '3m 40s' },
+    { day: '29/6', success: 18, failed: 4, duration: '4m 10s' },
+    { day: '30/6', success: 12, failed: 1, duration: '3m 15s' },
+    { day: '1/7', success: 16, failed: 2, duration: '3m 50s' },
+    { day: '2/7', success: 14, failed: 2, duration: '4m 05s' },
+    { day: '3/7', success: 5, failed: 1, duration: '2m 50s' },
+    { day: '4/7', success: 8, failed: 1, duration: '3m 20s' },
+  ],
+  '30d': [
+    { day: '5/6', success: 10, failed: 2, duration: '3m 45s' },
+    { day: '8/6', success: 14, failed: 1, duration: '3m 50s' },
+    { day: '11/6', success: 12, failed: 3, duration: '4m 00s' },
+    { day: '14/6', success: 15, failed: 2, duration: '3m 30s' },
+    { day: '17/6', success: 11, failed: 1, duration: '3m 20s' },
+    { day: '20/6', success: 13, failed: 2, duration: '3m 40s' },
+    { day: '23/6', success: 9, failed: 0, duration: '3m 05s' },
+    { day: '26/6', success: 15, failed: 3, duration: '4m 10s' },
+    { day: '29/6', success: 18, failed: 4, duration: '4m 25s' },
+    { day: '2/7', success: 14, failed: 2, duration: '4m 05s' },
+    { day: '4/7', success: 8, failed: 1, duration: '3m 20s' },
+  ],
+  '90d': [
+    { day: 'Tháng 4', success: 142, failed: 18, duration: '3m 40s' },
+    { day: 'Tháng 5', success: 198, failed: 22, duration: '3m 35s' },
+    { day: 'Tháng 6', success: 245, failed: 31, duration: '3m 50s' },
+    { day: 'Tháng 7', success: 43, failed: 5, duration: '3m 25s' },
+  ],
+};
 
 export default function OverviewPage() {
   const rollouts = MOCK_RELEASES.filter(r => r.status === 'rolling_out');
   const reviews = MOCK_RELEASES.filter(r => r.status === 'in_review');
-  const issues = MOCK_RELEASES.filter(r => ['rejected', 'halted', 'failed', 'policy_blocked'].includes(r.status));
+  const issues = MOCK_RELEASES.filter(r => r.status === 'rejected' || r.status === 'failed');
 
-  // Mock CI builds data
-  const mockBuilds14Days = [
-    { day: '09/07', status: 'success' }, { day: '10/07', status: 'success' },
-    { day: '11/07', status: 'failed' },  { day: '12/07', status: 'success' },
-    { day: '13/07', status: 'success' }, { day: '14/07', status: 'success' },
-    { day: '15/07', status: 'success' }, { day: '16/07', status: 'failed' },
-    { day: '17/07', status: 'success' }, { day: '18/07', status: 'success' },
-    { day: '19/07', status: 'success' }, { day: '20/07', status: 'success' },
-    { day: '21/07', status: 'success' }, { day: '22/07', status: 'success' },
-  ];
+  // Time range selection state
+  const [timeRange, setTimeRange] = useState<TimeRangeType>('14d');
+  const [hoveredPoint, setHoveredPoint] = useState<BuildPoint | null>(null);
+  const [selectedDayModal, setSelectedDayModal] = useState<BuildPoint | null>(null);
+
+  const activePoints = BUILD_DATASET[timeRange];
+
+  // Calculate summary metrics for current active timeframe
+  const totalSuccess = activePoints.reduce((acc, p) => acc + p.success, 0);
+  const totalFailed = activePoints.reduce((acc, p) => acc + p.failed, 0);
+  const totalBuilds = totalSuccess + totalFailed;
+  const successRate = totalBuilds > 0 ? ((totalSuccess / totalBuilds) * 100).toFixed(1) : '0.0';
+
+  const maxTotal = Math.max(...activePoints.map(b => b.success + b.failed), 1);
+  const maxY = Math.ceil(maxTotal / 5) * 5 || 25;
+  const ticksY = [maxY, Math.round(maxY * 0.8), Math.round(maxY * 0.6), Math.round(maxY * 0.4), Math.round(maxY * 0.2), 0];
 
   return (
     <div suppressHydrationWarning className="px-4 md:px-8 py-6 max-w-[1400px] mx-auto space-y-6">
-      {/* Standard Page Header */}
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-lg font-bold text-foreground">Tổng quan Release Operations</h1>
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 border border-blue-500/20">
-              Freshness: Live (10s)
-            </span>
+      {/* ─── Top Header Strip (Lutech Release Ops) ─── */}
+      <div className="flex items-center justify-between border-b border-border pb-3">
+        <div className="flex items-center gap-3">
+          <h1 className="text-lg font-bold text-foreground">Lutech Release Ops</h1>
+          <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
+            <span className="px-2 py-0.5 rounded bg-muted border border-border">102 apps</span>
+            <span>&bull;</span>
+            <span className="px-2 py-0.5 rounded bg-muted border border-border">4 dev accounts</span>
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Vòng đời phát hành, CI build pipeline health và kiểm duyệt khẩn cấp cho toàn bộ 102 ứng dụng
-          </p>
         </div>
-        <div className="flex items-center gap-3 text-xs">
-          <div className="flex items-center gap-3 bg-card border border-border rounded-lg px-3 py-1.5 shadow-xs">
-            <div>
-              <span className="text-muted-foreground">Apps: </span>
-              <span className="font-semibold text-foreground">{MOCK_SUMMARY_STATS.totalApps}</span>
+
+        <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
+          <span className="size-2 rounded-full bg-emerald-500 animate-ping" />
+          <span>play sync &bull; lần cuối 14:52</span>
+        </div>
+      </div>
+
+      {/* ─── Pipeline Today Stage Counter Strip ─── */}
+      <div className="bg-card border border-border rounded-xl p-4 shadow-xs">
+        <div className="text-[10px] font-mono font-bold text-muted-foreground uppercase tracking-wider mb-2">
+          PIPELINE HÔM NAY &bull; RELEASES ĐANG DI CHUYỂN QUA CÁC STAGE
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div className="p-3 rounded-lg bg-muted/50 border border-border space-y-1">
+            <span className="text-2xl font-black text-foreground block">4</span>
+            <span className="text-xs font-semibold text-muted-foreground block">DRAFT</span>
+            <div className="flex items-center gap-1 pt-1">
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-rose-500/10 text-rose-600 border border-rose-500/20">build_failed 3</span>
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-rose-500/10 text-rose-600 border border-rose-500/20">rejected 2</span>
+              <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-amber-500/10 text-amber-600 border border-amber-500/20">halted 1</span>
             </div>
-            <div className="w-px h-3 bg-border" />
-            <div>
-              <span className="text-muted-foreground">Dev: </span>
-              <span className="font-semibold text-foreground">{MOCK_SUMMARY_STATS.totalAccounts}</span>
-            </div>
-            <div className="w-px h-3 bg-border" />
-            <div>
-              <span className="text-muted-foreground">Rollouts: </span>
-              <span className="font-semibold text-blue-600 dark:text-blue-400">{MOCK_SUMMARY_STATS.activeRollouts}</span>
-            </div>
+          </div>
+
+          <div className="p-3 rounded-lg bg-blue-500/5 border border-blue-500/20 space-y-1">
+            <span className="text-2xl font-black text-blue-600 dark:text-blue-400 block">7</span>
+            <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 block">BUILDING</span>
+          </div>
+
+          <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/20 space-y-1">
+            <span className="text-2xl font-black text-amber-600 dark:text-amber-400 block">12</span>
+            <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 block">IN_REVIEW</span>
+          </div>
+
+          <div className="p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/20 space-y-1">
+            <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 block">9</span>
+            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 block">ROLLING_OUT</span>
+          </div>
+
+          <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 space-y-1">
+            <span className="text-2xl font-black text-emerald-700 dark:text-emerald-300 block">86</span>
+            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 block">LIVE</span>
           </div>
         </div>
       </div>
 
-      {/* ─── CI Pipeline Health Widget (Builds 14 ngày qua) ─── */}
-      <div className="bg-card border border-border rounded-xl p-4 space-y-3 shadow-xs">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Sức khỏe Pipeline CI/CD (Lịch sử Builds 14 ngày qua)
-            </h2>
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-              Pass Rate: 92.8% (26/28 builds)
+      {/* ─── Hybrid Crisp Interactive CI Builds Chart ─── */}
+      <div className="bg-card border border-border rounded-xl p-5 space-y-4 shadow-xs">
+        {/* Header Strip with Dynamic Timeframe Selector */}
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
+          <div>
+            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <span>Builds CI</span>
+              <span className="text-xs font-normal text-muted-foreground font-mono">
+                ({timeRange === '7d' ? '7 ngày qua' : timeRange === '14d' ? '14 ngày qua' : timeRange === '30d' ? '30 ngày qua' : '90 ngày qua'})
+              </span>
+            </h3>
+            <span className="text-xs text-muted-foreground block mt-0.5">
+              Thống kê tỷ lệ Success vs Failed từ webhook CI / GitHub Actions
             </span>
           </div>
-          <SourceBadge source="ci_webhook" />
+
+          {/* Timeframe Selector Pill Bar */}
+          <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-lg border border-border text-xs">
+            {(['7d', '14d', '30d', '90d'] as TimeRangeType[]).map((rangeKey) => {
+              const labels: Record<TimeRangeType, string> = {
+                '7d': '7 ngày',
+                '14d': '14 ngày',
+                '30d': '30 ngày',
+                '90d': '90 ngày',
+              };
+              const isActive = timeRange === rangeKey;
+              return (
+                <button
+                  key={rangeKey}
+                  onClick={() => setTimeRange(rangeKey)}
+                  className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
+                    isActive
+                      ? 'bg-background text-foreground shadow-xs border border-border font-bold'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
+                  }`}
+                >
+                  {labels[rangeKey]}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        <div className="flex items-center justify-between gap-1 overflow-x-auto pb-1">
-          {mockBuilds14Days.map((b, idx) => (
-            <div key={idx} className="flex flex-col items-center gap-1 min-w-[36px]">
-              <div
-                className={`w-full h-8 rounded-md transition-transform hover:scale-105 ${b.status === 'success' ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-600' : 'bg-rose-500/20 border border-rose-500/40 text-rose-600'} flex items-center justify-center font-mono text-[10px] font-bold`}
-                title={`Ngày ${b.day}: Build ${b.status === 'success' ? 'Thành công' : 'Thất bại'}`}
+        {/* Live Metrics Summary Row */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-muted/20 border border-border rounded-lg p-3 text-xs">
+          <div>
+            <span className="text-muted-foreground block font-medium">Tổng số Builds:</span>
+            <span className="text-base font-black font-mono text-foreground">{totalBuilds}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground block font-medium">Tỷ lệ Thành công:</span>
+            <span className="text-base font-black font-mono text-emerald-600 dark:text-emerald-400">
+              {successRate}%
+            </span>
+          </div>
+          <div>
+            <span className="text-muted-foreground block font-medium">Build Thất bại:</span>
+            <span className="text-base font-black font-mono text-rose-600 dark:text-rose-400">{totalFailed}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground block font-medium">Thời gian trung bình:</span>
+            <span className="text-base font-black font-mono text-blue-600 dark:text-blue-400">3m 42s</span>
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div className="flex items-center justify-end gap-4 text-xs font-semibold pt-1">
+          <div className="flex items-center gap-1.5">
+            <span className="size-3 bg-emerald-600" />
+            <span className="text-muted-foreground">Success ({totalSuccess})</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="size-3 bg-rose-600" />
+            <span className="text-muted-foreground">Failed ({totalFailed})</span>
+          </div>
+        </div>
+
+        {/* ─── Hybrid Chart Container ─── */}
+        <div className="relative border-t border-border pt-4 space-y-2">
+          {/* Y-Axis Title (Native HTML Text - 100% Crisp) */}
+          <div className="text-xs font-bold text-foreground">
+            ↑ Trục Y: Số lượng Builds CI
+          </div>
+
+          {/* Chart Flex Container: Left HTML Y-Axis Ticks + Stretched SVG Canvas */}
+          <div className="flex gap-3 items-stretch">
+            {/* Native HTML Y-Axis Numbers (100% Crisp, Un-squished) */}
+            <div className="flex flex-col justify-between text-xs font-mono text-muted-foreground text-right w-6 py-1 select-none">
+              {ticksY.map(v => (
+                <span key={v} className="leading-none">{v}</span>
+              ))}
+            </div>
+
+            {/* SVG Canvas for Grid Lines and Sharp Bars (100% Full Width Stretched) */}
+            <div className="flex-1 relative">
+              <svg viewBox="0 0 1000 220" className="w-full h-56" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="buildSuccessGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#10b981" />
+                    <stop offset="100%" stopColor="#059669" />
+                  </linearGradient>
+                  <linearGradient id="buildFailedGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#f43f5e" />
+                    <stop offset="100%" stopColor="#be123c" />
+                  </linearGradient>
+                </defs>
+
+                {/* Horizontal Grid Lines */}
+                {[0, 0.2, 0.4, 0.6, 0.8, 1].map((pct) => {
+                  const y = Math.round(pct * 220);
+                  return (
+                    <line key={pct} x1="0" y1={y} x2="1000" y2={y} stroke="currentColor" strokeDasharray="3 3" className="text-border/60" strokeWidth="1" />
+                  );
+                })}
+
+                {/* Vertical Grid Lines & Sharp Square Bars (Fixed 36px Bar Width) */}
+                {activePoints.map((pt, idx) => {
+                  const slotW = 1000 / activePoints.length;
+                  const colX = (idx + 0.5) * slotW;
+                  const total = pt.success + pt.failed;
+                  const totalH = (total / maxY) * 220;
+                  const failedH = (pt.failed / maxY) * 220;
+                  const successH = totalH - failedH;
+                  const barY = 220 - totalH;
+                  const colW = Math.min(slotW * 0.55, 38);
+                  const barX = colX - colW / 2;
+                  const isHovered = hoveredPoint?.day === pt.day;
+
+                  return (
+                    <g
+                      key={pt.day}
+                      className="cursor-pointer group"
+                      onMouseEnter={() => setHoveredPoint(pt)}
+                      onMouseLeave={() => setHoveredPoint(null)}
+                      onClick={() => setSelectedDayModal(pt)}
+                    >
+                      {/* Vertical Grid Line */}
+                      <line x1={colX} y1="0" x2={colX} y2="220" stroke="currentColor" strokeDasharray="2 4" className="text-border/30" strokeWidth="1" />
+
+                      {/* Failed Portion (Top - Sharp Crimson Square rx=0) */}
+                      {pt.failed > 0 && (
+                        <rect
+                          x={barX}
+                          y={barY}
+                          width={colW}
+                          height={failedH}
+                          rx="0"
+                          fill="url(#buildFailedGrad)"
+                          className={`transition-all ${isHovered ? 'brightness-125' : ''}`}
+                        />
+                      )}
+
+                      {/* Success Portion (Bottom - Sharp Emerald Square rx=0) */}
+                      {pt.success > 0 && (
+                        <rect
+                          x={barX}
+                          y={barY + failedH}
+                          width={colW}
+                          height={successH}
+                          rx="0"
+                          fill="url(#buildSuccessGrad)"
+                          className={`transition-all ${isHovered ? 'brightness-125' : ''}`}
+                        />
+                      )}
+
+                      {/* Hover Outline Border */}
+                      {isHovered && (
+                        <rect
+                          x={barX - 2}
+                          y={barY - 2}
+                          width={colW + 4}
+                          height={totalH + 4}
+                          rx="0"
+                          fill="none"
+                          stroke="currentColor"
+                          className="text-primary"
+                          strokeWidth="2"
+                        />
+                      )}
+                    </g>
+                  );
+                })}
+
+                {/* Bottom X-Axis Border Line */}
+                <line x1="0" y1="220" x2="1000" y2="220" stroke="currentColor" className="text-border" strokeWidth="1.5" />
+              </svg>
+
+              {/* Total Build Numbers HTML Overlay above Bars */}
+              <div className="absolute inset-0 pointer-events-none">
+                {activePoints.map((pt, idx) => {
+                  const total = pt.success + pt.failed;
+                  const totalH = (total / maxY) * 220;
+                  const isHovered = hoveredPoint?.day === pt.day;
+                  const leftPct = ((idx + 0.5) / activePoints.length) * 100;
+
+                  return (
+                    <div
+                      key={pt.day}
+                      className={`absolute -translate-x-1/2 font-sans text-xs font-black transition-all ${
+                        isHovered ? 'text-primary scale-125 z-10' : 'text-foreground'
+                      }`}
+                      style={{
+                        left: `${leftPct}%`,
+                        bottom: `${totalH + 10}px`,
+                      }}
+                    >
+                      {total}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* X-Axis HTML Date Labels (100% Crisp, Un-squished Native Font) */}
+              <div className="flex justify-between pt-2.5 text-xs font-mono text-muted-foreground select-none">
+                {activePoints.map((pt) => {
+                  const isHovered = hoveredPoint?.day === pt.day;
+                  return (
+                    <span
+                      key={pt.day}
+                      className={`flex-1 text-center font-medium transition-colors ${
+                        isHovered ? 'text-primary font-bold' : 'text-muted-foreground'
+                      }`}
+                    >
+                      {pt.day}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* X-Axis Title (Native HTML Text) */}
+          <div className="text-center text-xs font-bold text-foreground pt-2">
+            → Trục X: Ngày Build (Thời gian)
+          </div>
+        </div>
+      </div>
+
+      {/* ─── Day Build Detail Modal Popup ─── */}
+      {selectedDayModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-background border border-border rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <div>
+                <h3 className="text-sm font-bold text-foreground">Chi tiết CI Builds &mdash; Ngày {selectedDayModal.day}</h3>
+                <span className="text-xs text-muted-foreground font-mono block mt-0.5">
+                  Tổng {selectedDayModal.success + selectedDayModal.failed} builds &bull; {selectedDayModal.duration} avg
+                </span>
+              </div>
+              <button
+                onClick={() => setSelectedDayModal(null)}
+                className="flex h-7 w-7 items-center justify-center rounded-full border border-border bg-card text-muted-foreground hover:bg-muted font-semibold text-base"
               >
-                {b.status === 'success' ? '✓' : '✗'}
-              </div>
-              <span className="text-[9px] font-mono text-muted-foreground">{b.day}</span>
+                &times;
+              </button>
             </div>
-          ))}
-        </div>
-      </div>
 
-      {/* ─── Pipeline Strip ─── */}
-      <div className="bg-card border border-border rounded-xl p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Luồng Vòng đời Release (Pipeline Stage Strip)
-          </h2>
-          <SourceBadge source="play_api" />
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-center">
-          <div className="p-3 rounded-lg bg-muted/30 border border-border">
-            <span className="text-xs text-muted-foreground block">1. Draft / Dev</span>
-            <span className="text-lg font-bold text-foreground">3</span>
-          </div>
-          <div className="p-3 rounded-lg bg-blue-500/5 border border-blue-500/20">
-            <span className="text-xs text-blue-600 dark:text-blue-400 block font-medium">2. Building / Pre-check</span>
-            <span className="text-lg font-bold text-blue-600 dark:text-blue-400">1</span>
-          </div>
-          <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/20">
-            <span className="text-xs text-amber-600 dark:text-amber-400 block font-medium">3. In Review (Play Console)</span>
-            <span className="text-lg font-bold text-amber-600 dark:text-amber-400">{MOCK_SUMMARY_STATS.pendingReviews}</span>
-          </div>
-          <div className="p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
-            <span className="text-xs text-emerald-600 dark:text-emerald-400 block font-medium">4. Staged Rollout</span>
-            <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{MOCK_SUMMARY_STATS.activeRollouts}</span>
-          </div>
-          <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
-            <span className="text-xs text-emerald-700 dark:text-emerald-300 block font-semibold">5. Live Production</span>
-            <span className="text-lg font-bold text-emerald-700 dark:text-emerald-300">84</span>
-          </div>
-        </div>
-      </div>
-
-      {/* ─── Fail / Attention Lane ─── */}
-      {issues.length > 0 && (
-        <div className="bg-rose-500/5 border border-rose-500/20 rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <span className="size-2 rounded-full bg-rose-500" />
-              <h2 className="text-sm font-bold text-rose-700 dark:text-rose-400">
-                Luồng Sự cố / Cần can thiệp ngay ({issues.length})
-              </h2>
-            </div>
-            <Link href="/dash/release-ops/releases" className="text-xs text-rose-600 hover:underline font-medium">
-              Xem tất cả sự cố &rarr;
-            </Link>
-          </div>
-          <div className="space-y-2">
-            {issues.map(item => (
-              <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-lg bg-card border border-border">
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-xs text-foreground">{item.appName}</span>
-                    <span className="font-mono text-[11px] text-muted-foreground">({item.packageName})</span>
-                    <StatusBadge status={item.status} />
-                    <SourceBadge source={item.provenance.source} />
+            {/* Mock Build Runs list */}
+            <div className="space-y-2 max-h-72 overflow-y-auto text-xs font-mono">
+              {Array.from({ length: selectedDayModal.success }).map((_, i) => (
+                <div key={`s-${i}`} className="p-2.5 rounded-lg bg-emerald-500/5 border border-emerald-500/20 flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <span className="font-bold text-foreground block">#BUILD-{1840 + i} &bull; QR Scanner Plus</span>
+                    <span className="text-[10px] text-muted-foreground font-sans">commit main: 8f3a91c &bull; CI runner #4</span>
                   </div>
-                  {item.rejectionReason && (
-                    <p className="text-xs text-rose-600 dark:text-rose-400 font-medium">
-                      Lý do: {item.rejectionReason}
-                    </p>
-                  )}
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                    SUCCESS ({selectedDayModal.duration})
+                  </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">{item.accountName}</span>
-                  <button className="px-2.5 py-1 text-xs font-medium rounded-lg bg-rose-600 text-white hover:bg-rose-700 transition-colors">
-                    Xử lý ngay
-                  </button>
+              ))}
+
+              {Array.from({ length: selectedDayModal.failed }).map((_, i) => (
+                <div key={`f-${i}`} className="p-2.5 rounded-lg bg-rose-500/5 border border-rose-500/20 flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <span className="font-bold text-foreground block">#BUILD-{1890 + i} &bull; Short Drama</span>
+                    <span className="text-[10px] text-rose-600 dark:text-rose-400 font-sans">Exit Code 1: NullPointerException in AdMob init</span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-600 border border-rose-500/20">
+                    FAILED
+                  </span>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+
+            <div className="flex justify-end pt-3 border-t border-border">
+              <button
+                onClick={() => setSelectedDayModal(null)}
+                className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90"
+              >
+                Đóng
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* ─── Active Staged Rollouts & Review Queue ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Active Rollouts */}
-        <div className="bg-card border border-border rounded-xl p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-foreground">Staged Rollouts Đang Hoạt động</h3>
-            <span className="text-xs font-medium text-muted-foreground">{rollouts.length} bản phát hành</span>
+      {/* ─── Bottom Operational Grid (Review Queue, Cần xử lý, Rollout đang chạy) ─── */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* 1. Review queue */}
+        <div className="bg-card border border-border rounded-xl p-4 space-y-3 shadow-xs">
+          <div>
+            <h3 className="text-sm font-bold text-foreground">Review queue</h3>
+            <span className="text-xs text-muted-foreground block">Đang chờ Google review, sắp theo thời gian chờ</span>
           </div>
           <div className="divide-y divide-border border border-border rounded-lg overflow-hidden">
-            {rollouts.map(r => (
-              <div key={r.id} className="p-3 bg-card hover:bg-muted/30 transition-colors space-y-2">
+            {reviews.map(r => (
+              <div key={r.id} className="p-3 hover:bg-muted/30 transition-colors space-y-1">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <span className="font-semibold text-xs text-foreground block">{r.appName}</span>
-                    <span className="font-mono text-[11px] text-muted-foreground">v{r.versionName} ({r.versionCode})</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-                      Health: Crash {r.healthGuard.crashRatePct}% | ANR {r.healthGuard.anrRatePct}%
-                    </span>
-                    <StatusBadge status={r.status} />
-                  </div>
+                  <span className="font-semibold text-xs text-foreground">{r.appName}</span>
+                  <StatusBadge status={r.status} />
                 </div>
-                <div className="space-y-1">
-                  <div className="flex justify-between text-[11px] text-muted-foreground">
-                    <span>Tỷ lệ phân phối:</span>
-                    <span className="font-bold text-foreground">{r.rolloutPercentage}% &bull; {r.healthGuard.recommendation === 'safe_to_increase' ? '✅ Đề xuất tăng Rollout' : '⚠️ Giữ nguyên'}</span>
-                  </div>
-                  <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-500" style={{ width: `${r.rolloutPercentage}%` }} />
-                  </div>
-                </div>
+                <span className="font-mono text-[11px] text-muted-foreground block">
+                  v{r.versionName} &bull; Đang chờ {r.reviewLifecycle?.reviewAgeHours || 14}h (SLA &lt; 48h)
+                </span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Pending Reviews */}
-        <div className="bg-card border border-border rounded-xl p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-foreground">Hàng chờ Duyệt Play Console (SLA Status)</h3>
-            <span className="text-xs font-medium text-amber-600 dark:text-amber-400">{reviews.length} ứng dụng</span>
+        {/* 2. Cần xử lý */}
+        <div className="bg-card border border-border rounded-xl p-4 space-y-3 shadow-xs">
+          <div>
+            <h3 className="text-sm font-bold text-foreground">Cần xử lý</h3>
+            <span className="text-xs text-muted-foreground block">Rejected &amp; build failed trong 48h</span>
           </div>
           <div className="divide-y divide-border border border-border rounded-lg overflow-hidden">
-            {reviews.map(r => (
-              <div key={r.id} className="p-3 bg-card hover:bg-muted/30 transition-colors flex items-center justify-between">
-                <div>
-                  <span className="font-semibold text-xs text-foreground block">{r.appName}</span>
-                  <span className="font-mono text-[11px] text-muted-foreground">
-                    v{r.versionName} &bull; {r.reviewLifecycle ? `Đang duyệt ${r.reviewLifecycle.reviewAgeHours}h (SLA < ${r.reviewLifecycle.slaHours}h)` : r.accountName}
-                  </span>
+            {issues.map(item => (
+              <div key={item.id} className="p-3 hover:bg-muted/30 transition-colors space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-xs text-foreground">{item.appName}</span>
+                  <StatusBadge status={item.status} />
                 </div>
-                <div className="text-right space-y-1">
-                  <StatusBadge status={r.status} />
-                  <span className="text-[10px] text-muted-foreground block">{r.updatedAt}</span>
+                <p className="text-[11px] text-rose-600 dark:text-rose-400 font-medium">
+                  {item.rejectionReason || 'Build pipeline error (Exit code 1)'}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 3. Rollout đang chạy */}
+        <div className="bg-card border border-border rounded-xl p-4 space-y-3 shadow-xs">
+          <div>
+            <h3 className="text-sm font-bold text-foreground">Rollout đang chạy</h3>
+            <span className="text-xs text-muted-foreground block">Staged rollout &lt; 100% trên production</span>
+          </div>
+          <div className="divide-y divide-border border border-border rounded-lg overflow-hidden">
+            {rollouts.map(r => (
+              <div key={r.id} className="p-3 hover:bg-muted/30 transition-colors space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-xs text-foreground">{r.appName}</span>
+                  <span className="font-bold text-xs text-emerald-600">{r.rolloutPercentage}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-500" style={{ width: `${r.rolloutPercentage}%` }} />
                 </div>
               </div>
             ))}
