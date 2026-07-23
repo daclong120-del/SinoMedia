@@ -24,8 +24,8 @@ export class AuthService {
       return { user: data.user, session: data.session };
     } catch (err: any) {
       const errMsg = err?.message || String(err);
-      if (errMsg.includes("fetch failed") || errMsg.includes("ECONNREFUSED") || process.env.NODE_ENV === "development") {
-        if (password === "testpassword123" || email.includes("test") || email.includes("@")) {
+      if (process.env.NODE_ENV === "development") {
+        if (password === "testpassword123" || email.includes("test")) {
           const { cookies } = await import("next/headers");
           const cookieStore = await cookies();
           cookieStore.set("sinomedia_dev_user", email, { path: "/", maxAge: 86400 });
@@ -34,6 +34,9 @@ export class AuthService {
             session: { access_token: "dev-mock-token" } as any,
           };
         }
+      }
+      if (errMsg.includes("fetch failed") || errMsg.includes("ECONNREFUSED")) {
+        throw new Error("Khong ket noi duoc Supabase Auth. Kiem tra NEXT_PUBLIC_SUPABASE_URL va Supabase project.");
       }
       throw err;
     }
