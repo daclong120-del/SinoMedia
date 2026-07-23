@@ -1,9 +1,27 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { MOCK_PLAY_ACCOUNTS } from '@/lib/fixtures/release-ops-fixtures';
 
 export default function AccountsPage() {
+  const [accountActionNotice, setAccountActionNotice] = useState<Record<string, string>>({});
+
+  const handleAccountAction = (accountId: string, actionName: string) => {
+    const msgMap: Record<string, string> = {
+      test: 'Kết nối Google Play API OK (Latency: 182ms, HTTP 200)',
+      rotate: 'Đã tạo yêu cầu xoay vòng Service Account Key (Rotate Request Logged)',
+      sync: 'Đã kích hoạt Đồng bộ Thủ công (Manual Sync Complete)',
+    };
+    setAccountActionNotice(prev => ({ ...prev, [accountId]: msgMap[actionName] || 'Thao tác hoàn tất' }));
+    setTimeout(() => {
+      setAccountActionNotice(prev => {
+        const copy = { ...prev };
+        delete copy[accountId];
+        return copy;
+      });
+    }, 4000);
+  };
+
   return (
     <div suppressHydrationWarning className="px-4 md:px-8 py-6 max-w-[1400px] mx-auto space-y-6">
       {/* Standard Page Header */}
@@ -11,7 +29,7 @@ export default function AccountsPage() {
         <div>
           <h1 className="text-lg font-bold text-foreground">Quản lý Tài khoản Google Play Developer (Service Accounts)</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Quản lý API Key, OAuth Scopes/Permissions, tuổi thọ Key (Key Age) và giám sát hạn mức Quota API 24h
+            Quản lý API Key, OAuth Scopes/Permissions, kiểm tra kết nối (Test Connection) và xoay vòng chìa khóa (Rotate Key)
           </p>
         </div>
 
@@ -33,6 +51,13 @@ export default function AccountsPage() {
                 {acc.status.toUpperCase()}
               </span>
             </div>
+
+            {/* Action feedback toast */}
+            {accountActionNotice[acc.id] && (
+              <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-700 dark:text-emerald-400 text-xs font-semibold animate-in fade-in duration-200">
+                ✅ {accountActionNotice[acc.id]}
+              </div>
+            )}
 
             {/* Quota & Key Age Meter */}
             <div className="grid grid-cols-2 gap-3 text-xs">
@@ -73,6 +98,28 @@ export default function AccountsPage() {
                 <strong>Cảnh báo Auth:</strong> {acc.lastAuthError}
               </div>
             )}
+
+            {/* Operational Action Buttons */}
+            <div className="pt-3 border-t border-border flex items-center justify-end gap-2 text-xs">
+              <button
+                onClick={() => handleAccountAction(acc.id, 'sync')}
+                className="px-2.5 py-1 font-medium border border-border rounded-md hover:bg-muted"
+              >
+                🔄 Đồng bộ Thủ công
+              </button>
+              <button
+                onClick={() => handleAccountAction(acc.id, 'test')}
+                className="px-2.5 py-1 font-medium border border-border rounded-md hover:bg-muted text-blue-600"
+              >
+                🔌 Test Connection
+              </button>
+              <button
+                onClick={() => handleAccountAction(acc.id, 'rotate')}
+                className="px-2.5 py-1 font-semibold rounded-md bg-amber-500/10 text-amber-600 border border-amber-500/20 hover:bg-amber-500/20"
+              >
+                🔑 Rotate Key
+              </button>
+            </div>
           </div>
         ))}
       </div>

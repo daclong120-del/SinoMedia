@@ -1,9 +1,16 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { MOCK_TARGET_SDK, MOCK_TARGET_SDK_POLICY } from '@/lib/fixtures/release-ops-fixtures';
 
 export default function TargetSDKPage() {
+  const [createdBatchMsg, setCreatedBatchMsg] = useState<string | null>(null);
+
+  const handleCreateBatchUpgrade = (appName: string) => {
+    setCreatedBatchMsg(`Đã khởi tạo Batch Job nâng cấp Target SDK 34 cho ứng dụng "${appName}"`);
+    setTimeout(() => setCreatedBatchMsg(null), 4000);
+  };
+
   return (
     <div suppressHydrationWarning className="px-4 md:px-8 py-6 max-w-[1400px] mx-auto space-y-6">
       {/* Standard Page Header */}
@@ -11,7 +18,7 @@ export default function TargetSDKPage() {
         <div>
           <h1 className="text-lg font-bold text-foreground">Tuân thủ Target SDK Mandate (Google Play Compliance)</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Cấu hình Chính sách Mandate, kiểm soát tiến độ nâng cấp Target SDK 34 (Android 14) cho toàn bộ danh mục app
+            Cấu hình Chính sách Mandate, đếm ngược ngày còn lại & điều phối Batch Job nâng cấp Target SDK 34 (Android 14)
           </p>
         </div>
 
@@ -19,6 +26,12 @@ export default function TargetSDKPage() {
           Hạn chót Mandate: {MOCK_TARGET_SDK_POLICY.deadlineDate}
         </span>
       </div>
+
+      {createdBatchMsg && (
+        <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-700 dark:text-emerald-400 text-xs font-semibold animate-in fade-in duration-200">
+          ✅ {createdBatchMsg}
+        </div>
+      )}
 
       {/* ─── Policy Config Panel ─── */}
       <div className="bg-card border border-border rounded-xl p-4 space-y-3">
@@ -57,9 +70,10 @@ export default function TargetSDKPage() {
               <tr>
                 <th className="py-3 px-4">Tên App & Package</th>
                 <th className="py-3 px-4">Target SDK Hiện tại</th>
-                <th className="py-3 px-4">Muc tiêu SDK Yêu cầu</th>
+                <th className="py-3 px-4">Mục tiêu SDK Yêu cầu</th>
                 <th className="py-3 px-4">Trạng thái Tuân thủ</th>
-                <th className="py-3 px-4 text-right">Hạn chót Khẩn cấp</th>
+                <th className="py-3 px-4">Đếm ngược Hạn chót</th>
+                <th className="py-3 px-4 text-right">Thao tác Nâng cấp</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -80,8 +94,24 @@ export default function TargetSDKPage() {
                       {sdk.status === 'compliant' ? 'Đã Tuân thủ (Compliant)' : 'Khẩn cấp Nâng cấp (Urgent)'}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-right font-mono font-semibold text-foreground">
-                    {sdk.deadline}
+                  <td className="py-3 px-4 font-mono font-bold">
+                    {sdk.daysRemaining > 0 ? (
+                      <span className="text-rose-600">⏳ Còn {sdk.daysRemaining} ngày ({sdk.deadline})</span>
+                    ) : (
+                      <span className="text-emerald-600">✅ {sdk.deadline}</span>
+                    )}
+                  </td>
+                  <td className="py-3 px-4 text-right">
+                    {sdk.status !== 'compliant' ? (
+                      <button
+                        onClick={() => handleCreateBatchUpgrade(sdk.appName)}
+                        className="px-2.5 py-1 text-[11px] font-semibold bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                      >
+                        + Tạo Batch Upgrade
+                      </button>
+                    ) : (
+                      <span className="text-[11px] text-muted-foreground italic">Không cần thao tác</span>
+                    )}
                   </td>
                 </tr>
               ))}

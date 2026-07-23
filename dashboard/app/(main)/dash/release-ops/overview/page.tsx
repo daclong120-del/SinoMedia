@@ -47,6 +47,17 @@ export default function OverviewPage() {
   const reviews = MOCK_RELEASES.filter(r => r.status === 'in_review');
   const issues = MOCK_RELEASES.filter(r => ['rejected', 'halted', 'failed', 'policy_blocked'].includes(r.status));
 
+  // Mock CI builds data
+  const mockBuilds14Days = [
+    { day: '09/07', status: 'success' }, { day: '10/07', status: 'success' },
+    { day: '11/07', status: 'failed' },  { day: '12/07', status: 'success' },
+    { day: '13/07', status: 'success' }, { day: '14/07', status: 'success' },
+    { day: '15/07', status: 'success' }, { day: '16/07', status: 'failed' },
+    { day: '17/07', status: 'success' }, { day: '18/07', status: 'success' },
+    { day: '19/07', status: 'success' }, { day: '20/07', status: 'success' },
+    { day: '21/07', status: 'success' }, { day: '22/07', status: 'success' },
+  ];
+
   return (
     <div suppressHydrationWarning className="px-4 md:px-8 py-6 max-w-[1400px] mx-auto space-y-6">
       {/* Standard Page Header */}
@@ -59,7 +70,7 @@ export default function OverviewPage() {
             </span>
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Vòng đời phát hành, pipeline status và kiểm duyệt khẩn cấp cho toàn bộ 102 ứng dụng
+            Vòng đời phát hành, CI build pipeline health và kiểm duyệt khẩn cấp cho toàn bộ 102 ứng dụng
           </p>
         </div>
         <div className="flex items-center gap-3 text-xs">
@@ -79,6 +90,35 @@ export default function OverviewPage() {
               <span className="font-semibold text-blue-600 dark:text-blue-400">{MOCK_SUMMARY_STATS.activeRollouts}</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* ─── CI Pipeline Health Widget (Builds 14 ngày qua) ─── */}
+      <div className="bg-card border border-border rounded-xl p-4 space-y-3 shadow-xs">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Sức khỏe Pipeline CI/CD (Lịch sử Builds 14 ngày qua)
+            </h2>
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+              Pass Rate: 92.8% (26/28 builds)
+            </span>
+          </div>
+          <SourceBadge source="ci_webhook" />
+        </div>
+
+        <div className="flex items-center justify-between gap-1 overflow-x-auto pb-1">
+          {mockBuilds14Days.map((b, idx) => (
+            <div key={idx} className="flex flex-col items-center gap-1 min-w-[36px]">
+              <div
+                className={`w-full h-8 rounded-md transition-transform hover:scale-105 ${b.status === 'success' ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-600' : 'bg-rose-500/20 border border-rose-500/40 text-rose-600'} flex items-center justify-center font-mono text-[10px] font-bold`}
+                title={`Ngày ${b.day}: Build ${b.status === 'success' ? 'Thành công' : 'Thất bại'}`}
+              >
+                {b.status === 'success' ? '✓' : '✗'}
+              </div>
+              <span className="text-[9px] font-mono text-muted-foreground">{b.day}</span>
+            </div>
+          ))}
         </div>
       </div>
 
