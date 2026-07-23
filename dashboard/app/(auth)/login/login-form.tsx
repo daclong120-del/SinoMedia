@@ -285,7 +285,7 @@ export default function LoginForm() {
         <button
           type="submit"
           className="w-full bg-[#0051c3] hover:bg-[#0040a1] text-white text-sm font-semibold py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed select-none shadow-sm"
-          disabled={isLoading || !email || !password || (!!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && !captchaToken)}
+          disabled={isLoading || !email || !password}
         >
           {isLoading ? (
             <>
