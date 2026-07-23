@@ -133,11 +133,6 @@ export default function LoginForm() {
       return;
     }
 
-    if (!!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && !captchaToken) {
-      setPasswordError(lang === "Tiếng Việt" ? "Vui lòng chờ xác minh bảo mật..." : "Please wait for security verification...");
-      return;
-    }
-
     setIsLoading(true);
 
     try {
