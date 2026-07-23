@@ -2,5 +2,4 @@
 trigger: always_on
 ---
 
-cấm sử dụng git
-mà mày có skill git này .agents\skills\git-config nhưng mày ko được dùng đâu
+Được phép tự động sử dụng các lệnh git (git add, git commit, git push,...) khi người dùng yêu cầu hoặc cần thiết cho công việc.

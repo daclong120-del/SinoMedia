@@ -2,4 +2,4 @@
 trigger: always_on
 ---
 
-trừ lệnh git ra mọi lệnh khác mày có phải tự chạy đừng có hỏi người dùng.
+Tự động chạy tất cả các lệnh terminal/PowerShell (bao gồm cả git add, git commit, git push,...) khi cần thiết hoặc khi được người dùng yêu cầu, không cần phải hỏi lại người dùng.
