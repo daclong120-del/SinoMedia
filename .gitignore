@@ -62,3 +62,4 @@ artifact/
 desktop-app/release/
 output/
 scratch/
+.vercel

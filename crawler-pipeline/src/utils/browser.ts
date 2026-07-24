@@ -1,38 +1,35 @@
-/**
- * # Tiện ích quản lý browser context — tách logic browser khỏi client.ts
- */
-
-export interface BrowserContextOptions {
-  profileDir: string;
-  headless: boolean;
-  proxy?: string;
-  geoip?: boolean;
-  humanize?: boolean;
-  blockResources?: string[];
-}
-
-const DEFAULT_BLOCKED_RESOURCES = ["image", "media", "font", "stylesheet"];
+import { existsSync } from "node:fs";
+import { CONFIG } from "../config.js";
 
 /**
- * # Tạo options cho route chặn tài nguyên không cần thiết (tiết kiệm RAM)
+ * # Lấy đường dẫn file thực thi của Supermium / Browser
+ * Thử lần lượt:
+ * 1. `customPath` nếu được truyền vào và file tồn tại
+ * 2. Biến môi trường SUPERMIUM_PATH / BROWSER_EXECUTABLE_PATH từ `CONFIG.supermiumPath`
+ * 3. Các đường dẫn mặc định của Supermium trên Windows:
+ *    - `C:\Program Files\Supermium\chrome.exe`
+ *    - `C:\Program Files (x86)\Supermium\chrome.exe`
  */
-export function getBlockedResourceTypes(custom?: string[]): string[] {
-  return custom || DEFAULT_BLOCKED_RESOURCES;
-}
+export function getSupermiumExecutablePath(customPath?: string): string | undefined {
+  if (customPath && existsSync(customPath)) {
+    return customPath;
+  }
 
-/**
- * # Tính toán có nên recycle browser dựa trên số trang đã tải
- */
-export function shouldRecycleBrowser(pageLoadCount: number, threshold: number = 50): boolean {
-  return pageLoadCount >= threshold;
-}
+  const envPath = CONFIG.supermiumPath;
+  if (envPath && existsSync(envPath)) {
+    return envPath;
+  }
 
-/**
- * # Trích xuất thông tin Chrome version từ User-Agent string
- */
-export function extractChromeVersion(userAgent: string): { full: string; major: string } {
-  const match = userAgent.match(/Chrome\/([\d.]+)/);
-  const full = match ? match[1] : "120.0.0.0";
-  const major = full.split(".")[0];
-  return { full, major };
+  const defaultPaths = [
+    "C:\\Program Files\\Supermium\\chrome.exe",
+    "C:\\Program Files (x86)\\Supermium\\chrome.exe"
+  ];
+
+  for (const path of defaultPaths) {
+    if (existsSync(path)) {
+      return path;
+    }
+  }
+
+  return undefined;
 }

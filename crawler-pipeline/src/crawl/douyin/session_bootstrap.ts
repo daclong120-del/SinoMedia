@@ -2,9 +2,11 @@ import { join } from "node:path";
 import { chromium } from "playwright";
 import { DouyinSession, isValidDouyinWebId } from "./session.js";
 import { getWebId } from "./http_client.js";
+import { getSupermiumExecutablePath } from "../../utils/browser.js";
 
 export interface BootstrapOptions {
   profileDir?: string;
+  executablePath?: string;
   headless?: boolean;
   rawCookies?: any[];
   rawWebId?: string;
@@ -20,10 +22,16 @@ export async function bootstrapDouyinSession(options: BootstrapOptions = {}): Pr
   const profileDir = options.profileDir || join(process.cwd(), "output", "browser-profiles", "douyin-default");
   const headless = options.headless === true;
   const timeoutMs = options.timeoutMs || 30000;
+  const execPath = getSupermiumExecutablePath(options.executablePath);
 
-  console.log(`[Bootstrap] Launching Chromium Persistent Context at: ${profileDir} (headless: ${headless})`);
+  if (execPath) {
+    console.log(`[Bootstrap] Using Supermium Browser binary at: ${execPath}`);
+  } else {
+    console.log(`[Bootstrap] Launching Chromium Persistent Context at: ${profileDir} (headless: ${headless})`);
+  }
 
   const context = await chromium.launchPersistentContext(profileDir, {
+    executablePath: execPath,
     headless,
     viewport: { width: 1920, height: 1080 },
     args: [

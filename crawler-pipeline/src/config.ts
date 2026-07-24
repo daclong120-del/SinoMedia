@@ -40,4 +40,6 @@ export const CONFIG = {
   },
   proxy: getEnv("CRAWLER_PROXY") ?? "",
   headless: getEnv("CRAWLER_HEADLESS") !== "false",
+  supermiumPath: getEnv("SUPERMIUM_PATH") ?? getEnv("BROWSER_EXECUTABLE_PATH") ?? "C:\\Program Files\\Supermium\\chrome.exe",
 };
+

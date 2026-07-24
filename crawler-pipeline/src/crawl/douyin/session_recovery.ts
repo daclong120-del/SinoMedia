@@ -4,6 +4,7 @@ import { DouyinSession, createSessionFromRaw, isValidDouyinWebId } from "./sessi
 import { runSessionDiagnosticDetailed, DiagnosticResult } from "./session_diagnostic.js";
 import { ChallengeSolverFactory } from "../../challenge/solver.js";
 import { getWebId } from "./http_client.js";
+import { getSupermiumExecutablePath } from "../../utils/browser.js";
 
 export interface SearchApiResponse {
   status: number;
@@ -16,6 +17,7 @@ export interface RecoveryOptions {
   reason?: string;
   accountId?: string;
   profileDir?: string;
+  executablePath?: string;
   headless?: boolean;
   timeoutMs?: number;
   maxAttempts?: number;
@@ -51,6 +53,7 @@ export async function recoverDouyinSessionDetailed(
   const profileDir = options.profileDir || join(process.cwd(), "output", "browser-profiles", "douyin-default");
   const headless = options.headless !== undefined ? options.headless : false;
   const timeoutMs = options.timeoutMs || 45000;
+  const execPath = getSupermiumExecutablePath(options.executablePath);
 
   console.log("\n=============================================================");
   console.log("🛠️ DOUYIN SESSION RECOVERY AUTOMATION STARTED");
@@ -58,9 +61,13 @@ export async function recoverDouyinSessionDetailed(
   console.log(`- Trigger Reason:    ${options.reason || "challenge_required"}`);
   console.log(`- Profile Directory: ${profileDir}`);
   console.log(`- Headless Mode:     ${headless}`);
+  if (execPath) {
+    console.log(`- Browser Binary:    ${execPath} (Supermium)`);
+  }
   console.log("=============================================================\n");
 
   const context = await chromium.launchPersistentContext(profileDir, {
+    executablePath: execPath,
     headless,
     viewport: { width: 1920, height: 1080 },
     args: [
