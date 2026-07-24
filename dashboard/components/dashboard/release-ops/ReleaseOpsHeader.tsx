@@ -55,7 +55,7 @@ export default function ReleaseOpsHeader() {
               {meta.title}
             </h1>
             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-500/10 text-blue-600 border border-blue-500/20">
-              Lutech Ops Center
+              Creative Lutech Ops Center
             </span>
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">

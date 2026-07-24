@@ -12,31 +12,31 @@ import { useUIStore } from "@/lib/stores/use-ui-store";
 
 // ─── Breadcrumb mapping ──────────────────────────────────────
 const ROUTE_LABELS: Record<string, string[]> = {
-  "/dash/home": ["LutechTools", "Crawler Controller", "Giám sát crawler"],
-  "/dash/tasks": ["LutechTools", "Crawler Controller", "Nhiệm vụ cào"],
-  "/dash/accounts": ["LutechTools", "Crawler Controller", "Tài khoản"],
-  "/dash/proxies": ["LutechTools", "Crawler Controller", "Proxy Pool"],
-  "/dash/data/authors": ["LutechTools", "Data Explorer", "Tác giả"],
-  "/dash/data/posts": ["LutechTools", "Data Explorer", "Bài viết"],
-  "/dash/data/management": ["LutechTools", "Data Explorer", "Quản lý dữ liệu"],
-  "/dash/audit-logs": ["LutechTools", "Admin", "Audit Logs"],
-  "/dash/settings": ["LutechTools", "Admin", "Cài đặt"],
-  "/dash/settings/permissions": ["LutechTools", "Admin", "Cài đặt", "Phân quyền"],
-  "/dash/creative/search": ["LutechTools", "Creative Hub", "Tìm Creative"],
-  "/dash/creative/trending": ["LutechTools", "Creative Hub", "BXH", "Xu hướng mới nhất"],
-  "/dash/creative/growth": ["LutechTools", "Creative Hub", "BXH", "Tăng trưởng nhanh"],
-  "/dash/creative/new": ["LutechTools", "Creative Hub", "BXH", "Creative mới"],
-  "/dash/creative/calendar": ["LutechTools", "Creative Hub", "Lịch tiếp thị"],
-  "/dash/creative/advertisers": ["LutechTools", "Creative Hub", "Phân tích Advertiser"],
-  "/dash/release-ops": ["LutechTools", "Release Ops", "Tổng quan Ops"],
-  "/dash/release-ops/overview": ["LutechTools", "Release Ops", "Tổng quan Ops"],
-  "/dash/release-ops/releases": ["LutechTools", "Release Ops", "Phát hành & Build", "Danh sách Release"],
-  "/dash/release-ops/upload": ["LutechTools", "Release Ops", "Phát hành & Build", "Upload AAB"],
-  "/dash/release-ops/batch": ["LutechTools", "Release Ops", "Phát hành & Build", "Batch Ops"],
-  "/dash/release-ops/apps": ["LutechTools", "Release Ops", "Quản lý App & ASO", "Danh mục App"],
-  "/dash/release-ops/aso": ["LutechTools", "Release Ops", "Quản lý App & ASO", "Phân tích ASO"],
-  "/dash/release-ops/sdk": ["LutechTools", "Release Ops", "Quản lý App & ASO", "Target SDK"],
-  "/dash/release-ops/accounts": ["LutechTools", "Release Ops", "Tài khoản Play"],
+  "/dash/home": ["Creative Lutech", "Crawler Controller", "Giám sát crawler"],
+  "/dash/tasks": ["Creative Lutech", "Crawler Controller", "Nhiệm vụ cào"],
+  "/dash/accounts": ["Creative Lutech", "Crawler Controller", "Tài khoản"],
+  "/dash/proxies": ["Creative Lutech", "Crawler Controller", "Proxy Pool"],
+  "/dash/data/authors": ["Creative Lutech", "Data Explorer", "Tác giả"],
+  "/dash/data/posts": ["Creative Lutech", "Data Explorer", "Bài viết"],
+  "/dash/data/management": ["Creative Lutech", "Data Explorer", "Quản lý dữ liệu"],
+  "/dash/audit-logs": ["Creative Lutech", "Admin", "Audit Logs"],
+  "/dash/settings": ["Creative Lutech", "Admin", "Cài đặt"],
+  "/dash/settings/permissions": ["Creative Lutech", "Admin", "Cài đặt", "Phân quyền"],
+  "/dash/creative/search": ["Creative Lutech", "Creative Hub", "Tìm Creative"],
+  "/dash/creative/trending": ["Creative Lutech", "Creative Hub", "BXH", "Xu hướng mới nhất"],
+  "/dash/creative/growth": ["Creative Lutech", "Creative Hub", "BXH", "Tăng trưởng nhanh"],
+  "/dash/creative/new": ["Creative Lutech", "Creative Hub", "BXH", "Creative mới"],
+  "/dash/creative/calendar": ["Creative Lutech", "Creative Hub", "Lịch tiếp thị"],
+  "/dash/creative/advertisers": ["Creative Lutech", "Creative Hub", "Phân tích Advertiser"],
+  "/dash/release-ops": ["Creative Lutech", "Release Ops", "Tổng quan Ops"],
+  "/dash/release-ops/overview": ["Creative Lutech", "Release Ops", "Tổng quan Ops"],
+  "/dash/release-ops/releases": ["Creative Lutech", "Release Ops", "Phát hành & Build", "Danh sách Release"],
+  "/dash/release-ops/upload": ["Creative Lutech", "Release Ops", "Phát hành & Build", "Upload AAB"],
+  "/dash/release-ops/batch": ["Creative Lutech", "Release Ops", "Phát hành & Build", "Batch Ops"],
+  "/dash/release-ops/apps": ["Creative Lutech", "Release Ops", "Quản lý App & ASO", "Danh mục App"],
+  "/dash/release-ops/aso": ["Creative Lutech", "Release Ops", "Quản lý App & ASO", "Phân tích ASO"],
+  "/dash/release-ops/sdk": ["Creative Lutech", "Release Ops", "Quản lý App & ASO", "Target SDK"],
+  "/dash/release-ops/accounts": ["Creative Lutech", "Release Ops", "Tài khoản Play"],
 };
 
 
@@ -65,15 +65,15 @@ export default function Header({ onMenuToggle }: HeaderProps) {
 
   const getBreadcrumbs = () => {
     if (pathname.startsWith("/dash/manage-account")) {
-      return ["LutechTools", "Quản trị", "Quản lý thành viên"];
+      return ["Creative Lutech", "Quản trị", "Quản lý thành viên"];
     }
     if (pathname.startsWith("/dash/creative/advertisers/")) {
-      return ["LutechTools", "Creative Hub", "Advertiser", "Hồ sơ"];
+      return ["Creative Lutech", "Creative Hub", "Advertiser", "Hồ sơ"];
     }
     if (pathname.startsWith("/dash/creative/") && !ROUTE_LABELS[pathname]) {
-      return ["LutechTools", "Creative Hub", "Creative", "Chi tiết"];
+      return ["Creative Lutech", "Creative Hub", "Creative", "Chi tiết"];
     }
-    return ROUTE_LABELS[pathname] || ["LutechTools"];
+    return ROUTE_LABELS[pathname] || ["Creative Lutech"];
   };
 
 

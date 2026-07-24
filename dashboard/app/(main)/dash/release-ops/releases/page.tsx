@@ -160,8 +160,8 @@ export default function ReleasesPage() {
             className="px-2 py-1 bg-background border border-border rounded-md text-foreground focus:outline-none"
           >
             <option value="all">Tất cả Account</option>
-            <option value="Lutech Dev Alpha">Lutech Dev Alpha</option>
-            <option value="Lutech Global Studio">Lutech Global Studio</option>
+            <option value="Creative Lutech Dev Alpha">Creative Lutech Dev Alpha</option>
+            <option value="Creative Lutech Global Studio">Creative Lutech Global Studio</option>
             <option value="SinoMedia Ops HK">SinoMedia Ops HK</option>
           </select>
         </div>

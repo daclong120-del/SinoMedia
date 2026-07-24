@@ -108,10 +108,10 @@ export default function OverviewPage() {
 
   return (
     <div suppressHydrationWarning className="px-4 md:px-8 py-6 max-w-[1400px] mx-auto space-y-6">
-      {/* ─── Top Header Strip (Lutech Release Ops) ─── */}
+      {/* ─── Top Header Strip (Creative Lutech Release Ops) ─── */}
       <div className="flex items-center justify-between border-b border-border pb-3">
         <div className="flex items-center gap-3">
-          <h1 className="text-lg font-bold text-foreground">Lutech Release Ops</h1>
+          <h1 className="text-lg font-bold text-foreground">Creative Lutech Release Ops</h1>
           <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
             <span className="px-2 py-0.5 rounded bg-muted border border-border">102 apps</span>
             <span>&bull;</span>

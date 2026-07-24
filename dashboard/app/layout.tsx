@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LutechTools — Crawler Dashboard",
-  description: "Dashboard quản trị hệ thống crawler đa nền tảng mạng xã hội Trung Quốc",
+  title: "Creative Lutech",
+  description: "Nền tảng quản lý sáng tạo và dữ liệu vận hành cho đội ngũ Creative Lutech.",
 };
 
 export default function RootLayout({
